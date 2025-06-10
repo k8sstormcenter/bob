@@ -1,0 +1,29 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Values.rbac.roleName | default (printf "%s-role" (include "mywebapp.fullname" .)) }}
+  labels:
+    {{- include "mywebapp.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Values.rbac.roleName | default (printf "%s-role" (include "mywebapp.fullname" .)) }}-binding
+  labels:
+    {{- include "mywebapp.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "mywebapp.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ .Values.rbac.roleName | default (printf "%s-role" (include "mywebapp.fullname" .)) }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

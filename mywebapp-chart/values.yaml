@@ -1,0 +1,34 @@
+# Default values for mywebapp.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/k8sstormcenter/webapp
+  # The image tag is the SHA256 digest from your manifest
+  tag: "sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b"
+  pullPolicy: Always
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true 
+  # Annotations to add to the service account
+  annotations: {}
+  name: "default" 
+
+podAnnotations: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 80
+
+rbac:
+  create: true # Set to false to disable creation of Role and RoleBinding
+  roleName: webapp-role
+  # serviceAccountName is taken from the serviceAccount.name above
