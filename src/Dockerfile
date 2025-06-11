@@ -1,21 +1,24 @@
+# syntax=docker/dockerfile:1.4
+
 ARG GO_VERSION=1.24
 
-# Use the official Go image as the base
-FROM cgr.dev/chainguard/go:${GO_VERSION}
+# Build stage
+FROM golang:${GO_VERSION}-alpine AS builder
 
-# Set the working directory
-WORKDIR /app
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
 
-# Install any necessary packages (optional, add what you need)
-# RUN apt-get update && apt-get install -y --no-install-recommends \
-#   <your-packages-here> \
-#   && rm -rf /var/lib/apt/lists/*
+COPY . .
 
-# Copy the current directory contents into the container at /app
-# COPY . /app
+# Set necessary Go build flags for static binary and reproducibility
+ENV CGO_ENABLED=0
+ENV GOOS=linux
 
-# Expose any ports your application might use (optional)
-# EXPOSE 8080
+RUN go build -trimpath -ldflags="-s -w" -o /out/bobctl ./main.go
 
-# Command to run when the container starts (optional)
-# CMD ["go", "run", "main.go"]
+# Final image
+FROM cgr.dev/chainguard/go
+COPY --from=builder /out/bobctl /bobctl
+
+ENTRYPOINT ["/bobctl"]
