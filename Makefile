@@ -44,3 +44,8 @@ run: build
 .PHONY: mac-prep
 mac-prep:
 	docker buildx create --name mybuilder --driver docker-container --use
+
+.PHONE: helm-install
+helm-install:
+	helm pull oci://ghcr.io/k8sstormcenter/mywebapp #we re pulling the sampleapp not the bobcli
+	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace 
