@@ -48,9 +48,10 @@ jobs:
         run: |
           DIGEST=$(oras manifest fetch --descriptor ghcr.io/k8sstormcenter/${CHART_NAME}:${CHART_VERSION} | jq -r .digest)
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "DIGEST=$DIGEST" >> $GITHUB_ENV"
 
       - name: Sign Helm chart with Cosign
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
-          cosign sign --yes ghcr.io/k8sstormcenter/${CHART_NAME}@${{ steps.digest.outputs.digest }}
+          cosign sign --yes ghcr.io/k8sstormcenter/${CHART_NAME}@${DIGEST}
