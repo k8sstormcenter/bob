@@ -52,11 +52,12 @@ jobs:
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
           echo "DIGEST=$DIGEST" >> $GITHUB_ENV
 
-      - name: Sign Helm chart with Cosign
-        env:
-          COSIGN_EXPERIMENTAL: "1"
-        run: |
-          cosign sign --yes ghcr.io/k8sstormcenter/${CHART_NAME}@${DIGEST}
+     # - name: Sign Helm chart with Cosign
+     #   env:
+     #     COSIGN_EXPERIMENTAL: "1"
+     #   run: |
+     #     cosign sign --yes ghcr.io/k8sstormcenter/${CHART_NAME}@${DIGEST}
+     # argh, you need to tell cosign wehre the docker creds are... dont have time right now
 
 
       - name: Push Helm chart to OCI registry
