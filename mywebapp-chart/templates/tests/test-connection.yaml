@@ -6,7 +6,7 @@ metadata:
     {{- include "mywebapp.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": test
-    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+    "helm.sh/hook-delete-policy": hook-succeeded     #,hook-failed
 spec:
   restartPolicy: Never
   containers:
@@ -16,7 +16,7 @@ spec:
         - /bin/sh
         - -c
         - |
-          set -e
+          set -ex
           SERVICE="{{ include "mywebapp.fullname" . }}"
           NAMESPACE="{{ .Release.Namespace }}"
           PORT="{{ .Values.service.port }}"
