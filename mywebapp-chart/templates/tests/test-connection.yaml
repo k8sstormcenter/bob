@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "mywebapp.fullname" . }}-test-connection"
+  labels:
+    {{- include "mywebapp.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  restartPolicy: Never
+  containers:
+    - name: curl
+      image: curlimages/curl:8.7.1
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          RESPONSE=$(curl -s webapp.default.svc.cluster.local:8080/ping.php?ip=172.16.0.2)
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q "Ping results for 172.16.0.2"
+          echo "$RESPONSE" | grep -q "64 bytes from 172.16.0.2: icmp_seq=1"
+          echo "$RESPONSE" | grep -q "4 packets transmitted, 4 received, 0% packet loss"
