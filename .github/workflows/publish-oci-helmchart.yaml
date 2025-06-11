@@ -39,19 +39,26 @@ jobs:
           echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
           echo "CHART_NAME=$CHART_NAME" >> $GITHUB_ENV
 
-      - name: Push Helm chart to OCI registry
+      - name: Install oras
         run: |
-          helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
+          curl -LO https://github.com/oras-project/oras/releases/download/v1.1.0/oras_1.1.0_linux_amd64.tar.gz
+          tar -xzf oras_1.1.0_linux_amd64.tar.gz oras
+          sudo mv oras /usr/local/bin/
 
       - name: Get chart digest
         id: digest
         run: |
           DIGEST=$(oras manifest fetch --descriptor ghcr.io/k8sstormcenter/${CHART_NAME}:${CHART_VERSION} | jq -r .digest)
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-          echo "DIGEST=$DIGEST" >> $GITHUB_ENV"
+          echo "DIGEST=$DIGEST" >> $GITHUB_ENV
 
       - name: Sign Helm chart with Cosign
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
           cosign sign --yes ghcr.io/k8sstormcenter/${CHART_NAME}@${DIGEST}
+
+
+      - name: Push Helm chart to OCI registry
+        run: |
+          helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
