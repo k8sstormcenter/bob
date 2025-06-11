@@ -1,0 +1,49 @@
+name: Publish Helm Chart to OCI Registry
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'mywebapp-chart/**'
+      - '.github/workflows/publish-oci-helmchart.yaml'
+
+jobs:
+  publish-oci:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Package Helm chart
+        run: |
+          helm package mywebapp-chart
+          export CHART_VERSION=$(yq '.version' mywebapp-chart/Chart.yaml)
+          export CHART_NAME=$(yq '.name' mywebapp-chart/Chart.yaml)
+          echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
+          echo "CHART_NAME=$CHART_NAME" >> $GITHUB_ENV
+
+      - name: Push Helm chart to OCI registry
+        run: |
+          helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
+
+      - name: Sign Helm chart with Cosign
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign sign --yes ghcr.io/k8sstormcenter/${CHART_NAME}:${CHART_VERSION}
