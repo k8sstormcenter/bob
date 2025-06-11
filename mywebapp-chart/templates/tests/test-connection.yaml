@@ -6,6 +6,7 @@ metadata:
     {{- include "mywebapp.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
 spec:
   restartPolicy: Never
   containers:
@@ -16,7 +17,11 @@ spec:
         - -c
         - |
           set -e
-          RESPONSE=$(curl -s webapp.default.svc.cluster.local:8080/ping.php?ip=172.16.0.2)
+          SERVICE="{{ include "mywebapp.fullname" . }}"
+          NAMESPACE="{{ .Release.Namespace }}"
+          PORT="{{ .Values.service.port }}"
+          URL="${SERVICE}.${NAMESPACE}.svc.cluster.local:${PORT}/ping.php?ip=172.16.0.2"
+          RESPONSE=$(curl -s "$URL")
           echo "$RESPONSE"
           echo "$RESPONSE" | grep -q "Ping results for 172.16.0.2"
           echo "$RESPONSE" | grep -q "64 bytes from 172.16.0.2: icmp_seq=1"
