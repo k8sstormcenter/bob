@@ -20,22 +20,27 @@ all: build
 build: $(OUTPUT_PATH)
 
 $(OUTPUT_PATH): $(GO_FILES)
-    @echo "Building $(NAME) for $(OS)/$(ARCH)..."
-    @mkdir -p $(dir $(OUTPUT_PATH))
-    CGO_ENABLED=0 $(GO) build -trimpath -ldflags="$(GO_LDFLAGS)" -o $(OUTPUT_PATH) ./src/main.go
-    @echo "Build complete: $(OUTPUT_PATH)"
+	@echo "Building $(NAME) for $(OS)/$(ARCH)..."
+	@mkdir -p $(dir $(OUTPUT_PATH))
+	CGO_ENABLED=0 $(GO) build -trimpath -ldflags="$(GO_LDFLAGS)" -o $(OUTPUT_PATH) ./src/main.go
+	@echo "Build complete: $(OUTPUT_PATH)"
 
 .PHONY: clean
 clean:
-    @echo "Cleaning build artifacts..."
-    @rm -rf $(BUILD_DIR)
-    @echo "Clean complete."
+	@echo "Cleaning build artifacts..."
+	@rm -rf $(BUILD_DIR)
+	@echo "Clean complete."
 
 .PHONY: docker-build
 docker-build:
-    docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/k8sstormcenter/$(NAME):latest -f src/Dockerfile .
+	@echo "Running docker build $(NAME)..."
+	docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/k8sstormcenter/$(NAME):latest -f Dockerfile .
 
 .PHONY: run
 run: build
-    @echo "Running $(NAME)..."
-    @$(OUTPUT_PATH)
+	@echo "Running $(NAME)..."
+	@$(OUTPUT_PATH)
+
+.PHONY: mac-prep
+mac-prep:
+	docker buildx create --name mybuilder --driver docker-container --use
