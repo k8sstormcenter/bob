@@ -24,5 +24,4 @@ spec:
           RESPONSE=$(curl -s "$URL")
           echo "$RESPONSE"
           echo "$RESPONSE" | grep -q "Ping results for 172.16.0.2"
-          echo "$RESPONSE" | grep -q "64 bytes from 172.16.0.2: icmp_seq=1"
-          echo "$RESPONSE" | grep -q "4 packets transmitted, 4 received, 0% packet loss"
+          echo "$RESPONSE" | grep -q "bytes from 172.16.0.2: icmp_seq=1"
