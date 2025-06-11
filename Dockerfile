@@ -9,7 +9,7 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY . .
+COPY src/ .
 
 # Set necessary Go build flags for static binary and reproducibility
 ENV CGO_ENABLED=0

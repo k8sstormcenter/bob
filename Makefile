@@ -1,45 +1,41 @@
 NAME := bobctl
-VERSION := 0.1.0
+VERSION ?= 0.1.0
 BUILD_DIR := bin
 
-OS := $(shell /usr/local/opt/go/libexec/bin/go env GOOS)
-ARCH := $(shell /usr/local/opt/go/libexec/bin/go env GOARCH)
+GO ?= go
+GO_VERSION ?= 1.24
 
-# Output binary name
-ifeq ($(OS),windows)
-	BINARY_NAME := $(NAME).exe
-else
-	BINARY_NAME := $(NAME)
-endif
+OS ?= $(shell $(GO) env GOOS)
+ARCH ?= $(shell $(GO) env GOARCH)
+OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
 
-OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(BINARY_NAME)
+GO_LDFLAGS := -s -w -X main.version=$(VERSION)
 
 GO_FILES := $(shell find src -type f -name '*.go')
 
-##@ General
-
 .PHONY: all
-all: build 
+all: build
 
 .PHONY: build
-build: $(OUTPUT_PATH) 
- 
+build: $(OUTPUT_PATH)
+
 $(OUTPUT_PATH): $(GO_FILES)
-	@echo "Building $(NAME) for $(OS)/$(ARCH)..."
-	@mkdir -p $(dir $(OUTPUT_PATH))
-	/usr/local/opt/go/libexec/bin/go version
-	/usr/local/opt/go/libexec/bin/go build -o $(OUTPUT_PATH) ./src/main.go
-	@echo "Build complete: $(OUTPUT_PATH)"
+    @echo "Building $(NAME) for $(OS)/$(ARCH)..."
+    @mkdir -p $(dir $(OUTPUT_PATH))
+    CGO_ENABLED=0 $(GO) build -trimpath -ldflags="$(GO_LDFLAGS)" -o $(OUTPUT_PATH) ./src/main.go
+    @echo "Build complete: $(OUTPUT_PATH)"
 
 .PHONY: clean
-clean: ## Remove build artifacts
-	@echo "Cleaning build artifacts..."
-	@rm -rf $(BUILD_DIR)
-	@echo "Clean complete."
+clean:
+    @echo "Cleaning build artifacts..."
+    @rm -rf $(BUILD_DIR)
+    @echo "Clean complete."
 
-##@ Development
+.PHONY: docker-build
+docker-build:
+    docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/k8sstormcenter/$(NAME):latest -f src/Dockerfile .
 
 .PHONY: run
-run: build ## Build and run the CLI
-	@echo "Running $(NAME)..."
-	@$(OUTPUT_PATH)
+run: build
+    @echo "Running $(NAME)..."
+    @$(OUTPUT_PATH)
