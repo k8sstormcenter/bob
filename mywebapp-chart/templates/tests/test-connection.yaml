@@ -20,8 +20,9 @@ spec:
           SERVICE="{{ include "mywebapp.fullname" . }}"
           NAMESPACE="{{ .Release.Namespace }}"
           PORT="{{ .Values.service.port }}"
-          URL="${SERVICE}.${NAMESPACE}.svc.cluster.local:${PORT}/ping.php?ip=172.16.0.2"
+          TARGET_IP="{{ .Values.bob.targetIp }}"
+          URL="${SERVICE}.${NAMESPACE}.svc.cluster.local:${PORT}/ping.php?ip=${TARGET_IP}"
           RESPONSE=$(curl -s "$URL")
           echo "$RESPONSE"
-          echo "$RESPONSE" | grep -q "Ping results for 172.16.0.2"
-          echo "$RESPONSE" | grep -q "bytes from 172.16.0.2: icmp_seq=1"
+          echo "$RESPONSE" | grep -q "Ping results for ${TARGET_IP}"
+          echo "$RESPONSE" | grep -q "${TARGET_IP} ping statistics"
