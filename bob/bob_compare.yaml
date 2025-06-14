@@ -1,25 +1,20 @@
-apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
-kind: ApplicationProfile
-metadata:
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-default/kind-ReplicaSet/name-webapp-d87cdd796
-    kubescape.io/resource-size: "245"
-    kubescape.io/status: completed
-    kubescape.io/wlid: wlid://cluster-honeycluster/namespace-default/deployment-webapp
-  creationTimestamp: "2025-05-12T12:45:42Z"
-  labels:
-    kubescape.io/instance-template-hash: d87cdd796
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: webapp
-    kubescape.io/workload-namespace: default
-    kubescape.io/workload-resource-version: "4303"
-  name: replicaset-webapp-d87cdd796
-  namespace: default
-  resourceVersion: "3"
-  uid: 72df8e99-570d-4c04-b925-2e359adf5862
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1                        
+kind: ApplicationProfile                                                         
+metadata:                                                                        
+  annotations:           
+    kubescape.io/completion: complete                                            
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-webapp/kind-ReplicaSet/name-webapp-mywebapp-6d5bc6f895                                           
+    kubescape.io/status: completed                                               
+    kubescape.io/wlid: wlid://cluster-soccluster/namespace-webapp/deployment-webapp-mywebapp                                     
+  labels:                                                                        
+    kubescape.io/instance-template-hash: 6d5bc6f895                              
+    kubescape.io/workload-api-group: apps                                        
+    kubescape.io/workload-api-version: v1                                        
+    kubescape.io/workload-kind: Deployment                                       
+    kubescape.io/workload-name: webapp-mywebapp                                  
+    kubescape.io/workload-namespace: webapp                                                                 
+  name: replicaset-webapp-mywebapp-6d5bc6f895                                    
+  namespace: webapp                                                              
 spec:
   architectures:
   - amd64
@@ -33,7 +28,8 @@ spec:
       endpoint: :8080/ping.php
       headers:
         Host:
-        - localhost:8080
+        - webapp-mywebapp.webapp.svc.cluster.local:8080 
+        - 127.0.0.1:8080
       internal: false
       methods:
       - GET
