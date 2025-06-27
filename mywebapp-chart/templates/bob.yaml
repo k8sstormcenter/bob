@@ -1,20 +1,21 @@
-apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1                        
-kind: ApplicationProfile                                                         
-metadata:                                                                        
-  annotations:           
-    kubescape.io/completion: complete                                            
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-webapp/kind-ReplicaSet/name-webapp-mywebapp-6d5bc6f895                                           
-    kubescape.io/status: completed                                               
-    kubescape.io/wlid: wlid://cluster-soccluster/namespace-webapp/deployment-webapp-mywebapp                                     
-  labels:                                                                        
-    kubescape.io/instance-template-hash: 6d5bc6f895                              
-    kubescape.io/workload-api-group: apps                                        
-    kubescape.io/workload-api-version: v1                                        
-    kubescape.io/workload-kind: Deployment                                       
-    kubescape.io/workload-name: webapp-mywebapp                                  
-    kubescape.io/workload-namespace: webapp                                                                 
-  name: replicaset-webapp-mywebapp-6d5bc6f895                                    
-  namespace: webapp                                                              
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-ReplicaSet/name-{{ include "mywebapp.fullname" . }}-67965968bb
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/deployment-{{ include "mywebapp.fullname" . }}  
+  labels:
+    kubescape.io/instance-template-hash: 67965968bb
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: {{ include "mywebapp.fullname" . }}                                 
+    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
+  name: replicaset-{{ include "mywebapp.fullname" . }}-67965968bb                                   
+  namespace: {{ .Release.Namespace }}                                                             
+  resourceVersion: "1" 
 spec:
   architectures:
   - amd64
@@ -28,8 +29,9 @@ spec:
       endpoint: :8080/ping.php
       headers:
         Host:
-        - webapp-mywebapp.webapp.svc.cluster.local:8080 
-        - 127.0.0.1:8080
+        - {{ include "mywebapp.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}                          
+        - 127.0.0.1:8080     
+        - localhost:8080
       internal: false
       methods:
       - GET
@@ -40,34 +42,27 @@ spec:
       path: /usr/bin/dirname
     - args:
       - /usr/bin/dirname
-      - /var/run/apache2
+      - /var/log/apache2
       path: /usr/bin/dirname
-    - args:
-      - /usr/sbin/apache2
-      - -DFOREGROUND
-      path: /usr/sbin/apache2
     - args:
       - /bin/mkdir
       - -p
       - /var/lock/apache2
       path: /bin/mkdir
     - args:
-      - /usr/local/bin/apache2-foreground
-      path: /usr/local/bin/apache2-foreground
-    - args:
-      - /bin/rm
-      - -f
-      - /var/run/apache2/apache2.pid
-      path: /bin/rm
-    - args:
-      - /usr/bin/dirname
-      - /var/log/apache2
-      path: /usr/bin/dirname
-    - args:
       - /bin/mkdir
       - -p
       - /var/log/apache2
       path: /bin/mkdir
+    - args:
+      - /usr/sbin/apache2
+      - -DFOREGROUND
+      path: /usr/sbin/apache2
+    - args:
+      - /bin/sh
+      - -c
+      - ping -c 4 172.16.0.2
+      path: /bin/sh
     - args:
       - /bin/ping
       - -c
@@ -75,15 +70,22 @@ spec:
       - 172.16.0.2
       path: /bin/ping
     - args:
-      - /bin/sh
-      - -c
-      - ping -c 4 172.16.0.2
-      path: /bin/sh
+      - /bin/rm
+      - -f
+      - /var/run/apache2/apache2.pid
+      path: /bin/rm
+    - args:
+      - /usr/bin/dirname
+      - /var/run/apache2
+      path: /usr/bin/dirname
     - args:
       - /bin/mkdir
       - -p
       - /var/run/apache2
       path: /bin/mkdir
+    - args:
+      - /usr/local/bin/apache2-foreground
+      path: /usr/local/bin/apache2-foreground
     - args:
       - /usr/local/bin/docker-php-entrypoint
       - apache2-foreground
@@ -91,7 +93,7 @@ spec:
     identifiedCallStacks: null
     imageID: ghcr.io/k8sstormcenter/webapp@sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b
     imageTag: ghcr.io/k8sstormcenter/webapp@sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b
-    name: ping-app
+    name: mywebapp-app
     opens:
     - flags:
       - O_CLOEXEC
@@ -404,7 +406,17 @@ spec:
       - O_CREAT
       - O_EXCL
       - O_RDWR
-      path: /run/apache2/apache2.pid.iDMKOh
+      path: /run/apache2/apache2.pid.* 
+    - flags:
+      - O_CREAT
+      - O_EXCL
+      - O_RDWR
+      path: /run/apache2/apache2.pid.36w8sh 
+    - flags:
+      - O_CREAT
+      - O_EXCL
+      - O_RDWR
+      path: /run/apache2/apache2.pid.vKuuzh
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -703,6 +715,7 @@ spec:
     - capset
     - chdir
     - chmod
+    - clock_nanosleep
     - clone
     - close
     - close_range
@@ -712,11 +725,19 @@ spec:
     - epoll_create1
     - epoll_ctl
     - epoll_pwait
+    - eventfd2
     - execve
     - exit
     - exit_group
+    - faccessat
     - faccessat2
+    - fchdir
+    - fchmodat
+    - fchownat
     - fcntl
+    - fsconfig
+    - fsmount
+    - fsopen
     - fstat
     - fstatfs
     - futex
@@ -725,37 +746,50 @@ spec:
     - getegid
     - geteuid
     - getgid
+    - getpgid
     - getpgrp
     - getpid
     - getppid
     - getrandom
     - getsockname
     - getsockopt
+    - gettid
     - getuid
     - ioctl
+    - keyctl
+    - kill
     - listen
     - lseek
     - lstat
     - madvise
     - mkdir
+    - mkdirat
+    - mknodat
     - mmap
+    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
+    - open_tree
     - openat
+    - openat2
     - pipe
     - pipe2
+    - pivot_root
     - poll
     - prctl
     - prlimit64
     - read
+    - readlinkat
     - recvfrom
     - recvmsg
     - rename
     - rt_sigaction
     - rt_sigprocmask
     - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
     - select
     - sendto
     - set_robust_list
@@ -763,7 +797,7 @@ spec:
     - setgid
     - setgroups
     - setitimer
-    - setrlimit
+    - setsid
     - setsockopt
     - setuid
     - shutdown
@@ -771,11 +805,16 @@ spec:
     - socket
     - stat
     - statfs
+    - statx
+    - symlinkat
     - sysinfo
     - tgkill
     - times
+    - tkill
     - umask
+    - umount2
     - uname
+    - unlink
     - unlinkat
     - vfork
     - wait4

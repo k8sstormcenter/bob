@@ -1,0 +1,40 @@
+name: Publish Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+      - 1-bobctl-to-install-and-uninstall-a-helm-chart
+    paths:
+      - 'mywebapp-chart/**'
+      - '.github/workflows/publish-helmchart.yaml'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Package Helm chart
+        run: |
+          helm package mywebapp-chart
+          mkdir -p helm-charts
+          mv mywebapp-*.tgz helm-charts/
+
+      - name: Create Helm repo index
+        run: |
+          helm repo index helm-charts --url https://k8sstormcenter.github.io/bobctl/helm-charts
+
+      - name: Publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./helm-charts
+          destination_dir: helm-charts
