@@ -61,3 +61,8 @@ helm-test:
 .PHONY: helm-uninstall
 helm-uninstall:
 	helm uninstall webapp -n webapp
+
+.PHONY: fwd 
+fwd:
+	sudo kill -9 $(sudo lsof -t -i :8080)
+	kubectl --namespace webapp port-forward $$(kubectl get pods --namespace webapp -l "app.kubernetes.io/name=mywebapp,app.kubernetes.io/instance=webapp" -o jsonpath="{.items[0].metadata.name}") 8080:80 &
