@@ -92,6 +92,15 @@ storage:
 	kubectl apply -f storage/sc.yaml
 	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
+.PHONY: wipe
+wipe:
+	-sudo kill -9 $$(sudo lsof -t -i :8080)
+	-kubectl delete -f storage/sc.yaml
+	-kubectl delete -f https://openebs.github.io/charts/openebs-operator-lite.yaml
+	-kubectl delete -f https://openebs.github.io/charts/openebs-lite-sc.yaml
+	-$(HELM) uninstall -n honey kubescape
+	-$(HELM) uninstall -n webapp webapp
+
 
 
 
