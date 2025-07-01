@@ -5,9 +5,12 @@ BUILD_DIR := bin
 GO ?= go
 GO_VERSION ?= 1.24
 
-OS ?= $(shell $(GO) env GOOS)
-ARCH ?= $(shell $(GO) env GOARCH)
 OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
+HELM = $(shell which helm)
+
+CURRENT_CONTEXT := $(shell kubectl config current-context)
+OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 GO_LDFLAGS := -s -w -X main.version=$(VERSION)
 
@@ -80,3 +83,24 @@ kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values kubescape/values.yaml
+
+
+
+
+
+
+.PHONY: helm
+HELM = $(shell pwd)/bin/helm
+helm: ## Download helm if required
+ifeq (,$(wildcard $(HELM)))
+ifeq (,$(shell which helm 2> /dev/null))
+	@{ \
+		mkdir -p $(dir $(HELM)); \
+		curl -sSLo $(HELM).tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz; \
+		tar -xzf $(HELM).tar.gz --one-top-level=$(dir $(HELM)) --strip-components=1; \
+		chmod + $(HELM); \
+	}
+else
+HELM = $(shell which helm)
+endif
+endif
