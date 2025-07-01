@@ -6,10 +6,17 @@ nodeAgent:
 capabilities:
   runtimeDetection: enable
   networkEventsStreaming: disable
+  nodeScan: disable
+  vulnerabilityScan: disable
+  relevancy: disable
+  seccompGenerator: enable
 alertCRD:
   installDefault: true
   scopeClustered: false
   scopeNamespaced: true
+persistence:
+  size:
+    backingStorage: 1Gi
 clusterName: bobexample
 ksNamespace: honey
 excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs,kube-flannel,ingress-nginx,olm,pl,px-operator"
