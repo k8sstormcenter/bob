@@ -85,6 +85,12 @@ kubescape:
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values kubescape/values.yaml
 
 
+.PHONY: storage
+storage:
+	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
+	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
+	kubectl apply -f storage/sc.yaml
+	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
 
 
