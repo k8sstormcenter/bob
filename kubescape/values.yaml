@@ -2,7 +2,7 @@ nodeAgent:
   config:
     maxLearningPeriod: 2m
     learningPeriod: 2m
-    #updatePeriod: 100m
+    updatePeriod: 10m
     #ruleCooldown:
     #  ruleCooldownDuration: 0.01h
     #  ruleCooldownAfterCount: 10
@@ -13,15 +13,15 @@ capabilities:
   networkEventsStreaming: disable
   nodeScan: disable
   vulnerabilityScan: disable
-  relevancy: disable
-  seccompGenerator: enable
+  #relevancy: disable
+  #seccompGenerator: enable
 alertCRD:
   installDefault: true
   scopeClustered: true
-  scopeNamespaced: false
-persistence:
-  size:
-    backingStorage: 1Gi
+  #scopeNamespaced: false
+#persistence:
+#  size:
+#    backingStorage: 1Gi
 clusterName: bobexample
 ksNamespace: honey
 excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs,kube-flannel,ingress-nginx,olm,pl,px-operator"
