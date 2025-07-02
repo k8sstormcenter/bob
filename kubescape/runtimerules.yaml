@@ -13,7 +13,8 @@ metadata:
     app.kubernetes.io/part-of: kubescape
     kubescape.io/ignore: "true"
     tier: ks-control-plane
-  name: all-rules-all-pods
+  name: all-rules-default-namespace
+  namespace: honey 
 spec:
   namespaceSelector:
     matchExpressions:
