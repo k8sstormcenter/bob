@@ -83,9 +83,9 @@ kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator -n honey --create-namespace --values kubescape/values.yaml
-	-kubectl apply -f kubescape/runtimerules.yaml
-	sleep 10
-	-kubectl rollout restart -n honey ds node-agent
+	#-kubectl apply -f kubescape/runtimerules.yaml
+	#sleep 10
+	#-kubectl rollout restart -n honey ds node-agent
 
 
 .PHONY: storage

@@ -3,7 +3,7 @@ kind: RuntimeRuleAlertBinding
 metadata:
   annotations:
     meta.helm.sh/release-name: kubescape
-    meta.helm.sh/release-namespace: honey
+    meta.helm.sh/release-namespace: honey #need to discover where we installed kubescape
   labels:
     app: node-agent
     app.kubernetes.io/component: node-agent
@@ -13,7 +13,8 @@ metadata:
     app.kubernetes.io/part-of: kubescape
     kubescape.io/ignore: "true"
     tier: ks-control-plane
-  name: all-rules-namespaced
+  name: all-rules-namespaced-{{ .Release.Namespace }}  
+  namespace: {{ .Release.Namespace }}  #it needs to go into same ns as our app, not with kubescape
 spec:
   rules:
   - ruleName: Unexpected process launched
