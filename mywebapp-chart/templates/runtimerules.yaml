@@ -1,14 +1,10 @@
 apiVersion: kubescape.io/v1
 kind: RuntimeRuleAlertBinding
 metadata:
-  annotations:
-    meta.helm.sh/release-name: kubescape
-    meta.helm.sh/release-namespace: honey #need to discover where we installed kubescape
   labels:
     app: node-agent
     app.kubernetes.io/component: node-agent
     app.kubernetes.io/instance: kubescape
-    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: kubescape-operator
     app.kubernetes.io/part-of: kubescape
     kubescape.io/ignore: "true"
