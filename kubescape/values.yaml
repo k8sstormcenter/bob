@@ -3,6 +3,11 @@ nodeAgent:
     maxLearningPeriod: 5m
     learningPeriod: 2m
     updatePeriod: 10000m
+    ruleCooldown:
+      ruleCooldownDuration: 1s # duration string
+      ruleCooldownAfterCount: 10
+      ruleCooldownOnProfileFailure: true
+      ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
   networkEventsStreaming: disable
