@@ -5,9 +5,12 @@ BUILD_DIR := bin
 GO ?= go
 GO_VERSION ?= 1.24
 
-OS ?= $(shell $(GO) env GOOS)
-ARCH ?= $(shell $(GO) env GOARCH)
 OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
+HELM = $(shell which helm)
+
+CURRENT_CONTEXT := $(shell kubectl config current-context)
+OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 GO_LDFLAGS := -s -w -X main.version=$(VERSION)
 
@@ -64,7 +67,7 @@ helm-uninstall:
 
 .PHONY: fwd 
 fwd:
-	sudo kill -9 $$(sudo lsof -t -i :8080)
+	-sudo kill -9 $$(sudo lsof -t -i :8080)
 	kubectl --namespace webapp port-forward $$(kubectl get pods --namespace webapp -l "app.kubernetes.io/name=mywebapp,app.kubernetes.io/instance=webapp" -o jsonpath="{.items[0].metadata.name}") 8080:80 &
 
 .PHONY: attack
@@ -74,3 +77,48 @@ attack:
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20index.html"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20/run/secrets/kubernetes.io/serviceaccount/token"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcurl%20google.com"
+
+.PHONY: kubescape
+kubescape:
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values.yaml
+	-kubectl apply  -f kubescape/runtimerules.yaml
+	sleep 10
+	-kubectl rollout restart -n honey ds node-agent
+
+
+.PHONY: storage
+storage:
+	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
+	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
+	kubectl apply -f storage/sc.yaml
+	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+.PHONY: wipe
+wipe:
+	-sudo kill -9 $$(sudo lsof -t -i :8080)
+	-kubectl delete -f storage/sc.yaml
+	-kubectl delete -f https://openebs.github.io/charts/openebs-operator-lite.yaml
+	-kubectl delete -f https://openebs.github.io/charts/openebs-lite-sc.yaml
+	-$(HELM) uninstall -n honey kubescape
+	-$(HELM) uninstall -n webapp webapp
+
+
+
+
+.PHONY: helm
+HELM = $(shell pwd)/bin/helm
+helm: ## Download helm if required
+ifeq (,$(wildcard $(HELM)))
+ifeq (,$(shell which helm 2> /dev/null))
+	@{ \
+		mkdir -p $(dir $(HELM)); \
+		curl -sSLo $(HELM).tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz; \
+		tar -xzf $(HELM).tar.gz --one-top-level=$(dir $(HELM)) --strip-components=1; \
+		chmod + $(HELM); \
+	}
+else
+HELM = $(shell which helm)
+endif
+endif

@@ -1,0 +1,54 @@
+apiVersion: v1
+data:
+  config.json: |
+    {
+        "applicationProfileServiceEnabled": true,
+        "prometheusExporterEnabled": false,
+        "runtimeDetectionEnabled": true,
+        "httpDetectionEnabled": true,
+        "networkServiceEnabled": true,
+        "malwareDetectionEnabled": false,
+        "hostMalwareSensorEnabled": false,
+        "hostNetworkSensorEnabled": false,
+        "nodeProfileServiceEnabled": false,
+        "networkStreamingEnabled": false,
+        "maxImageSize": 5.36870912e+09,
+        "maxSBOMSize": 2.097152e+07,
+        "sbomGenerationEnabled": true,
+        "enableEmbeddedSBOMs": false,
+        "seccompServiceEnabled": true,
+        "initialDelay": "0m",
+        "updateDataPeriod": "10000m",
+        "nodeProfileInterval": "10m",
+        "networkStreamingInterval": "2m",
+        "maxSniffingTimePerContainer": "5m",
+        "excludeNamespaces": "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs,kube-flannel,ingress-nginx,olm,pl,px-operator",
+        "excludeLabels":null,
+        "exporters": {
+          "alertManagerExporterUrls":[],
+          "stdoutExporter":true,
+          "syslogExporterURL": ""
+        },
+        "excludeJsonPaths":null,
+        "ruleCooldown": {
+            "ruleCooldownDuration": "1s",
+            "ruleCooldownAfterCount": 50,
+            "ruleCooldownOnProfileFailure": true,
+            "ruleCooldownMaxSize": 20000
+        }
+    }
+kind: ConfigMap
+metadata:
+  labels:
+    app: ks-cloud-config
+    app.kubernetes.io/component: ks-cloud-config
+    app.kubernetes.io/instance: kubescape
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kubescape-operator
+    app.kubernetes.io/part-of: kubescape
+    kubescape.io/ignore: "true"
+    kubescape.io/infra: config
+    kubescape.io/tier: core
+    tier: ks-control-plane
+  name: ks-cloud-config
+  namespace: honey
