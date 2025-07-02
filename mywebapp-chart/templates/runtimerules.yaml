@@ -1,6 +1,8 @@
 apiVersion: kubescape.io/v1
 kind: RuntimeRuleAlertBinding
 metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bob-runtimerules-baseline
   labels:
     app: node-agent
     app.kubernetes.io/component: node-agent
@@ -9,8 +11,6 @@ metadata:
     app.kubernetes.io/part-of: kubescape
     kubescape.io/ignore: "true"
     tier: ks-control-plane
-  name: all-rules-namespaced-{{ .Release.Namespace }}  
-  namespace: {{ .Release.Namespace }}  #it needs to go into same ns as our app, not with kubescape
 spec:
   rules:
   - ruleName: Unexpected process launched
