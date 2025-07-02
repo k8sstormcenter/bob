@@ -4,7 +4,7 @@ nodeAgent:
     learningPeriod: 2m
     updatePeriod: 10000m
     ruleCooldown:
-      ruleCooldownDuration: 1s # duration string
+      ruleCooldownDuration: 0.01h
       ruleCooldownAfterCount: 10
       ruleCooldownOnProfileFailure: true
       ruleCooldownMaxSize: 20000
@@ -17,8 +17,8 @@ capabilities:
   seccompGenerator: enable
 alertCRD:
   installDefault: true
-  scopeClustered: false
-  scopeNamespaced: true
+  scopeClustered: true
+  scopeNamespaced: false
 persistence:
   size:
     backingStorage: 1Gi

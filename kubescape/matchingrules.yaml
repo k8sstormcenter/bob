@@ -1,0 +1,21 @@
+apiVersion: v1
+data:
+  matchingRules.json: >
+    {"match":[{"apiGroups":["apps"],"apiVersions":["v1"],"resources":["deployments"]}],"namespaces":["webapp"]}
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: kubescape
+    meta.helm.sh/release-namespace: honey
+  labels:
+    app: kubescape
+    app.kubernetes.io/component: kubescape
+    app.kubernetes.io/instance: kubescape
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kubescape-operator
+    app.kubernetes.io/part-of: kubescape
+    kubescape.io/ignore: 'true'
+    kubescape.io/tier: core
+    tier: ks-control-plane
+  name: cs-matching-rules
+  namespace: honey
