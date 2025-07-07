@@ -48,11 +48,21 @@ run: build
 mac-prep:
 	docker buildx create --name mybuilder --driver docker-container --use
 
-.PHONY: helm-install
-helm-install:
-	helm pull oci://ghcr.io/k8sstormcenter/mywebapp #we re pulling the sampleapp not the bobcli
-	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace
+
+ifeq ($(findstring --no-bob, $(MAKECMDGOALS)),--no-bob)
+helm-install: 
+	@echo "Installing webapp without BoB configuration..."
+	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
+	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.ignore=true
 	rm -rf mywebapp-0.1.0.tgz
+else
+helm-install:
+	@echo "Installing webapp with BoB configuration (not yet implemented, using default install)..."
+	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
+	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.ignore=false
+	rm -rf mywebapp-0.1.0.tgz
+endif
+
 
 
 .PHONY: helm-test
