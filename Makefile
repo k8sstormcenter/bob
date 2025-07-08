@@ -49,19 +49,20 @@ mac-prep:
 	docker buildx create --name mybuilder --driver docker-container --use
 
 
-ifeq ($(findstring --no-bob, $(MAKECMDGOALS)),--no-bob)
-helm-install: 
+.PHONY: helm-install-no-bob
+helm-install-no-bob: 
 	@echo "Installing webapp without BoB configuration..."
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
-	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.ignore=true
+	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false
 	rm -rf mywebapp-0.1.0.tgz
-else
+
+.PHONY: helm-install
 helm-install:
-	@echo "Installing webapp with BoB configuration (not yet implemented, using default install)..."
+	@echo "Installing webapp with BoB configuration ..."
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
-	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.ignore=false
+	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true
 	rm -rf mywebapp-0.1.0.tgz
-endif
+
 
 
 
