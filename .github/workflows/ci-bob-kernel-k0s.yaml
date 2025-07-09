@@ -1,0 +1,56 @@
+name: Test Bill of Behaviour on different Kernels
+
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        #kernel-version: [5.0, 5.1, 5.2, 5.3, 5.4, 6.0, 6.1, 6.2, 6.3] #for testing lets first check how expensive this is gonna get
+        k8s-distribution: [k0s, k3s]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kubernetes
+        run: |
+          if [ "${{ matrix.k8s-distribution }}" == "k0s" ]; then
+            curl -sSL https://get.k0s.sh | sh
+            sudo k0s install controller
+            sudo k0s start
+          else
+            curl -sSL https://get.k3s.io | sh -
+          fi
+
+      - name: Execute kubescape
+        run: make kubescape
+
+      - name: Wait for kubescape to be ready
+        run: |
+          while ! kubectl get pods -n honey | grep -q "Running"; do
+            sleep 5
+          done
+
+      - name: Run helm install
+        run: make helm-install
+
+      - name: Wait for installation
+        run: |
+          while ! kubectl get pods -l app=webapp -o jsonpath='{range .items[*]}{.status.conditions[?(@.type=="Ready")].status}{"\n"}{end}' | grep -q "True"; do
+            sleep 5
+          done
+
+
+      - name: Run helm test
+        run: |
+          make helm-test
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
+          kubectl logs -l app=node-agent -n honey | grep -q "Unexpected" && exit 1 || exit 0
