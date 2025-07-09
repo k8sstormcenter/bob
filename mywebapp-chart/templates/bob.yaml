@@ -677,7 +677,10 @@ spec:
       - O_RDONLY
       path: /var/www/html/ping.php
     rulePolicies:
-      R0001: {}
+      R0001:
+        processAllowed:
+        - ping
+        - sh
       R0002: {}
       R0003: {}
       R0004: {}
