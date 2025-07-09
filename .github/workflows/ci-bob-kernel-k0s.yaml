@@ -14,21 +14,26 @@ jobs:
     strategy:
       matrix:
         #kernel-version: [5.0, 5.1, 5.2, 5.3, 5.4, 6.0, 6.1, 6.2, 6.3] #for testing lets first check how expensive this is gonna get
-        k8s-distribution: [k0s, k3s]
+        k8s-distribution: [kind, k3s ] #fix k0s
+        kubernetes-version: [v1.32.0] #[v1.27.3, v1.28.0, v1.29.0]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Kubernetes
+      - name: Set up Kind Cluster
+        if: matrix.k8s-distribution == 'kind'
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+
+      - name: Set up k3s Cluster
+        if: matrix.k8s-distribution == 'k3s'
         run: |
-          if [ "${{ matrix.k8s-distribution }}" == "k0s" ]; then
-            curl -sSL https://get.k0s.sh | sh
-            sudo k0s install controller
-            sudo k0s start
-          else
-            curl -sSL https://get.k3s.io | sh -
-          fi
+          curl -sSL https://get.k3s.io | INSTALL_K3S_VERSION=${{ matrix.kubernetes-version }}+k3s1 sh -
+          sudo mkdir -p $HOME/.kube
+          sudo k3s kubectl config view --raw > $HOME/.kube/config
+          sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
       - name: Execute kubescape
         run: make kubescape
