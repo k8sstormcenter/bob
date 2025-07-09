@@ -1,8 +1,20 @@
-# Software Bill of Behaviour CTL aka bobctl
+# Software Bill of Behaviour - Tooling `bobctl`
 
-We introduce the “Bill of Behavior” (BoB): a vendor-supplied profile detailing known benign runtime behaviors for software, designed to be distributed directly within OCI artifacts. Generated using eBPF, a BoB codifies expected syscalls, file access patterns, network communications, and capabilities. This empowers powerful, signature-less anomaly detection, allowing end-users to infer malicious activity or tampering in third-party software without the current burden of authoring and maintaining complex, custom security rules.
+We introduce the “Bill of Behavior” (BoB): a vendor-supplied profile detailing known benign runtime behaviors for software, designed to be distributed directly within OCI artifacts. 
+Generated using eBPF, a BoB codifies expected syscalls, file access patterns, network communications, and capabilities. 
+This empowers powerful, signature-less anomaly detection, allowing end-users to infer malicious activity or tampering in third-party software without the current burden of authoring and maintaining complex, custom security rules.
 ![bobvertical](https://github.com/user-attachments/assets/83a78f2b-57d6-4812-99e5-fce956bfb36f)
 
+
+## Origin Story
+London KubeCon EU 25, Peter Constanze and David are talking about stuff, probably Constanze expressed her unhappyness about SBOMs ...  
+pause   
+like "Why, dont we attach something like Kubescape's ApplicationProfile to OCI Artefacts of all Software? People could inherit Runtime Rules .... from the people who know the Rules, cause they made the Software... "   
+
+And then she asked Vadim, if that d work... with Harbor  
+And then she asked Matthias, if that d work... with Kubescape  
+
+And so far, it looks like it `just works`.
 
 ## Understanding the Use Cases
 
