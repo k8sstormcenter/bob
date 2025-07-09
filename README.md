@@ -10,6 +10,7 @@ This empowers powerful, signature-less anomaly detection, allowing end-users to 
 London KubeCon EU 25, Peter Constanze and David are talking about stuff, probably Constanze expressed her unhappyness about SBOMs ...  
 pause   
 like "Why, dont we attach something like Kubescape's ApplicationProfile to OCI Artefacts of all Software? People could inherit Runtime Rules .... from the people who know the Rules, cause they made the Software... "   
+@prossbach what did you say at this point - I dont remember 
 
 And then she asked Vadim, if that d work... with Harbor  
 And then she asked Matthias, if that d work... with Kubescape  
