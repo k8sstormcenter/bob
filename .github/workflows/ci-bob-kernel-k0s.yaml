@@ -32,7 +32,7 @@ jobs:
         uses: jupyterhub/action-k3s-helm@v4
         with:
           k3s-version: ${{ matrix.kubernetes-version }}+k3s1
-          
+
       - name: Verify function of k8s, kubectl, and helm
         run: |
           echo "kubeconfig: $KUBECONFIG"
@@ -47,8 +47,9 @@ jobs:
 
       - name: Wait for kubescape to be ready
         run: |
-          while ! kubectl get pods -n honey | grep -q "Running"; do
-            sleep 5
+          KUBESCAPE_STATUS=$(kubectl get pods -n honey -l app.kubernetes.io/instance=kubescape -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' | sort | uniq)
+          while ! echo $KUBESCAPE_STATUS | grep -q "Running"; do
+            sleep 2
           done
 
       - name: Run helm install
