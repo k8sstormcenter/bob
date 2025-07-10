@@ -55,6 +55,9 @@ helm-install-no-bob:
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
 	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false
 	rm -rf mywebapp-0.1.0.tgz
+	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
+
+
 
 .PHONY: helm-install
 helm-install:
@@ -62,6 +65,7 @@ helm-install:
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
 	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true
 	rm -rf mywebapp-0.1.0.tgz
+	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
 
@@ -95,8 +99,10 @@ kubescape:
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values.yaml
 	-kubectl apply  -f kubescape/runtimerules.yaml
-	sleep 10
+	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
+	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout=120s
+
 
 
 .PHONY: storage
@@ -119,17 +125,8 @@ wipe:
 
 
 .PHONY: helm
-HELM = $(shell pwd)/bin/helm
 helm: ## Download helm if required
-ifeq (,$(wildcard $(HELM)))
-ifeq (,$(shell which helm 2> /dev/null))
-	@{ \
-		mkdir -p $(dir $(HELM)); \
-		curl -sSLo $(HELM).tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz; \
-		tar -xzf $(HELM).tar.gz --one-top-level=$(dir $(HELM)) --strip-components=1; \
-		chmod + $(HELM); \
-	}
-else
+	curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
+		&& chmod +x get_helm.sh &&./get_helm.sh
 HELM = $(shell which helm)
-endif
-endif
+

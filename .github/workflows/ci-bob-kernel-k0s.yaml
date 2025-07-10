@@ -1,0 +1,110 @@
+name: Test Bill of Behaviour on different Kernels
+
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        #kernel-version: [5.0, 5.1, 5.2, 5.3, 5.4, 6.0, 6.1, 6.2, 6.3] #for testing lets first check how expensive this is gonna get
+        k8s-distribution: [kind, k3s ] #fix k0s
+        kubernetes-version: [v1.32.0] #[v1.27.3, v1.28.0, v1.29.0]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kind Cluster
+        if: matrix.k8s-distribution == 'kind'
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+
+      - name: Set up k3s Cluster
+        if: matrix.k8s-distribution == 'k3s'
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+
+      - name: Verify function of k8s, kubectl, and helm
+        run: |
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+
+          helm version
+          helm list
+
+      - name: Execute kubescape
+        run: make kubescape
+
+
+      - name: Run helm install
+        run: make helm-install
+
+
+      - name: Run helm test
+        run: |
+          make helm-test
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "please see the testdata for expected anomalies for each" || echo "no anomaly"
+
+          #kubectl logs -l app=node-agent -n honey | grep -q "Unexpected" && exit 1 || exit 0
+
+      - name: Port fwd
+        run: |
+          make fwd
+
+
+      - name: Run mock injection attack - count if it s 14 of them and they are the right AlertNames 
+        run: |
+          make attack
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
+          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+          echo "Found $count anomalies"
+          if [ "$count" -ne 14 ]; then
+            echo "❌ Expected 14 anomalies, but found $count"
+          fi
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" > /tmp/anomalyobserved.json
+          jq -r '.BaseRuntimeMetadata.alertName' /tmp/anomalyobserved.json | sort > /tmp/actual_alerts.txt
+          jq -r '.BaseRuntimeMetadata.alertName' ./testdata/anomaly.json | sort > /tmp/expected_alerts.txt
+          if ! diff -u /tmp/expected_alerts.txt /tmp/actual_alerts.txt; then
+            echo "❌ Alert names do not match expected!"
+          fi
+
+      - name: Compare alertName and first argument with expected anomalies
+        run: |
+          extract() {
+            jq -r '
+              [
+                .BaseRuntimeMetadata.alertName,
+                (
+                  .BaseRuntimeMetadata.arguments.flags[0] // 
+                  .BaseRuntimeMetadata.arguments.args[0] // 
+                  .BaseRuntimeMetadata.arguments.addresses[0] // 
+                  .BaseRuntimeMetadata.arguments.syscall // 
+                  ""
+                )
+              ] | @tsv
+            ' "$1" | sort
+          }
+
+          # Extract from observed and expected
+          extract /tmp/anomaly.json > /tmp/actual_alerts.tsv
+          extract anomaly.json > /tmp/expected_alerts.tsv
+
+          echo "Actual:"
+          cat /tmp/actual_alerts.tsv
+          echo "Expected:"
+          cat /tmp/expected_alerts.tsv
+
+          # Compare
+          if ! diff -u /tmp/expected_alerts.tsv /tmp/actual_alerts.tsv; then
+            echo "❌ alertName/first-argument pairs do not match expected!"
+          fi
