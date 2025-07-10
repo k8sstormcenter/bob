@@ -10,12 +10,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        kernel-version: [5.0, 5.1, 5.2, 5.3, 5.4, 6.0, 6.1, 6.2, 6.3] 
+        os: [ubuntu-22.04, ubuntu-24.04]
         k8s-distribution: [kind, k3s ] #fix k0s
-        kubernetes-version: [v1.32.0] #[v1.27.3, v1.28.0, v1.29.0]
+        kubernetes-version: [v1.27.3, v1.28.0, v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0
+    runs-on: ${{ matrix.os }}
+
 
     steps:
       - name: Checkout code
@@ -38,6 +39,7 @@ jobs:
           echo "kubeconfig: $KUBECONFIG"
           kubectl version
           kubectl get pods --all-namespaces
+          uname -a
 
           helm version
           helm list
