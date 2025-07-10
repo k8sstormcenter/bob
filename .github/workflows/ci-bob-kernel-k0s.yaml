@@ -29,11 +29,18 @@ jobs:
 
       - name: Set up k3s Cluster
         if: matrix.k8s-distribution == 'k3s'
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+          
+      - name: Verify function of k8s, kubectl, and helm
         run: |
-          curl -sSL https://get.k3s.io | INSTALL_K3S_VERSION=${{ matrix.kubernetes-version }}+k3s1 sh -
-          #sudo mkdir -p $HOME/.kube
-          #sudo k3s kubectl config view --raw > $HOME/.kube/config
-          #sudo chown $(id -u):$(id -g) $HOME/.kube/config
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+
+          helm version
+          helm list
 
       - name: Execute kubescape
         run: make kubescape
