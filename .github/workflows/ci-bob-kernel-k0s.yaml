@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
         k8s-distribution: [kind, k3s ] #fix k0s
-        kubernetes-version: [v1.27.3, v1.28.0, v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0
+        kubernetes-version: [v1.27.3,  v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
 
