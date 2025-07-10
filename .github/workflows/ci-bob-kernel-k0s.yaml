@@ -53,7 +53,7 @@ jobs:
       - name: Run helm test
         run: |
           make helm-test
-          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "please see the testdata for expected anomalies for each" || echo "no anomaly"
 
           #kubectl logs -l app=node-agent -n honey | grep -q "Unexpected" && exit 1 || exit 0
 
@@ -62,14 +62,14 @@ jobs:
           make fwd
 
 
-      - name: Run mock injection attack - count if it s 10 of them and they are the right AlertNames 
+      - name: Run mock injection attack - count if it s 14 of them and they are the right AlertNames 
         run: |
           make attack
           kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
           count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
           echo "Found $count anomalies"
-          if [ "$count" -ne 10 ]; then
-            echo "❌ Expected 10 anomalies, but found $count"
+          if [ "$count" -ne 14 ]; then
+            echo "❌ Expected 14 anomalies, but found $count"
           fi
           kubectl logs -l app=node-agent -n honey | grep  "Unexpected" > /tmp/anomalyobserved.json
           jq -r '.BaseRuntimeMetadata.alertName' /tmp/anomalyobserved.json | sort > /tmp/actual_alerts.txt

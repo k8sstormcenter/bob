@@ -125,15 +125,8 @@ wipe:
 
 
 .PHONY: helm
-HELM = $(shell pwd)/bin/helm
 helm: ## Download helm if required
-ifeq (,$(wildcard $(HELM)))
-ifeq (,$(shell which helm 2> /dev/null))
-	@{ \
-		curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
+	curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
 		&& chmod +x get_helm.sh &&./get_helm.sh
-	}
-else
 HELM = $(shell which helm)
-endif
-endif
+
