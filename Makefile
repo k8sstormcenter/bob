@@ -130,10 +130,8 @@ helm: ## Download helm if required
 ifeq (,$(wildcard $(HELM)))
 ifeq (,$(shell which helm 2> /dev/null))
 	@{ \
-		mkdir -p $(dir $(HELM)); \
-		curl -sSLo $(HELM).tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz; \
-		tar -xzf $(HELM).tar.gz --one-top-level=$(dir $(HELM)) --strip-components=1; \
-		chmod + $(HELM); \
+		curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
+		&& chmod +x get_helm.sh &&./get_helm.sh
 	}
 else
 HELM = $(shell which helm)
