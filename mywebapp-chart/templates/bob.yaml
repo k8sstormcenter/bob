@@ -15,7 +15,7 @@ metadata:
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: {{ include "mywebapp.fullname" . }}                                 
     kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
-  name: replicaset-{{ include "mywebapp.fullname" . }}-{{ .Values.bob.templateHash | quote }}                                  
+  name: replicaset-{{ include "mywebapp.fullname" . }}-{{ .Values.bob.templateHash }}                                  
   namespace: {{ .Release.Namespace }}                                                             
   resourceVersion: "1" 
 spec:

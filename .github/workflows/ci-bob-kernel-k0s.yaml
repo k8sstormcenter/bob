@@ -64,6 +64,14 @@ jobs:
         run: |
           make helm-test
           kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "please see the testdata for expected anomalies for each" || echo "no anomaly"
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+          kubectl describe applicationprofile -n webapp
+
+
 
 
 
