@@ -31,9 +31,9 @@ jobs:
         if: matrix.k8s-distribution == 'k3s'
         run: |
           curl -sSL https://get.k3s.io | INSTALL_K3S_VERSION=${{ matrix.kubernetes-version }}+k3s1 sh -
-          sudo mkdir -p $HOME/.kube
-          sudo k3s kubectl config view --raw > $HOME/.kube/config
-          sudo chown $(id -u):$(id -g) $HOME/.kube/config
+          #sudo mkdir -p $HOME/.kube
+          #sudo k3s kubectl config view --raw > $HOME/.kube/config
+          #sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
       - name: Execute kubescape
         run: make kubescape
