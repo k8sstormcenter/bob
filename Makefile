@@ -55,6 +55,9 @@ helm-install-no-bob:
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
 	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false
 	rm -rf mywebapp-0.1.0.tgz
+	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
+
+
 
 .PHONY: helm-install
 helm-install:
@@ -62,6 +65,7 @@ helm-install:
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
 	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true
 	rm -rf mywebapp-0.1.0.tgz
+	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
 
@@ -97,7 +101,7 @@ kubescape:
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
-	kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout=120s
+	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout=120s
 
 
 
