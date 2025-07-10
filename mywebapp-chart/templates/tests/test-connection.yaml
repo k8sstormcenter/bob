@@ -4,9 +4,10 @@ metadata:
   name: "{{ include "mywebapp.fullname" . }}-test-connection"
   labels:
     {{- include "mywebapp.labels" . | nindent 4 }}
+    kubescape.io/ignore: "true"
   annotations:
     "helm.sh/hook": test
-    "helm.sh/hook-delete-policy": hook-succeeded     #,hook-failed
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
 spec:
   restartPolicy: Never
   containers:
