@@ -66,7 +66,7 @@ helm-install:
 	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false --set bob.ignore=true
 	rm -rf mywebapp-0.1.0.tgz
 	HASH=$$(kubectl get rs -n webapp -o jsonpath='{.items[0].metadata.labels.pod-template-hash}')
-	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --set bob.create=true --set bob.ignore=false ----set bob.templateHash=$HASH
+	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --set bob.create=true --set bob.ignore=false --set bob.templateHash=${HASH}
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 

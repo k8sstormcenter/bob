@@ -4,7 +4,7 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-ReplicaSet/name-{{ include "mywebapp.fullname" . }}-{{ .Values.bob.templateHash | quote }}
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-ReplicaSet/name-{{ include "mywebapp.fullname" . }}-{{ .Values.bob.templateHash }}
     kubescape.io/status: completed
     kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/deployment-{{ include "mywebapp.fullname" . }}  
   labels:
