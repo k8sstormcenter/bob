@@ -45,21 +45,9 @@ jobs:
       - name: Execute kubescape
         run: make kubescape
 
-      - name: Wait for kubescape to be ready
-        run: |
-          KUBESCAPE_STATUS=$(kubectl get pods -n honey -l app.kubernetes.io/instance=kubescape -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' | sort | uniq)
-          while ! echo $KUBESCAPE_STATUS | grep -q "Running"; do
-            sleep 2
-          done
 
       - name: Run helm install
         run: make helm-install
-
-      - name: Wait for installation
-        run: |
-          while ! kubectl get pods -l app=webapp -o jsonpath='{range .items[*]}{.status.conditions[?(@.type=="Ready")].status}{"\n"}{end}' | grep -q "True"; do
-            sleep 5
-          done
 
 
       - name: Run helm test
@@ -67,3 +55,26 @@ jobs:
           make helm-test
           kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
           kubectl logs -l app=node-agent -n honey | grep -q "Unexpected" && exit 1 || exit 0
+
+      - name: Port fwd
+        run: |
+          make fwd
+
+
+      - name: Run mock injection attack - count if it s 10 of them and they are the right AlertNames 
+        run: |
+          make attack
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
+          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+          echo "Found $count anomalies"
+          if [ "$count" -ne 10 ]; then
+            echo "❌ Expected 10 anomalies, but found $count"
+          fi
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" > /tmp/anomalyobserved.json
+          jq -r '.BaseRuntimeMetadata.alertName' /tmp/anomalyobserved.json | sort > /tmp/actual_alerts.txt
+          jq -r '.BaseRuntimeMetadata.alertName' ./testdata/anomaly.json | sort > /tmp/expected_alerts.txt
+          if ! diff -u /tmp/expected_alerts.txt /tmp/actual_alerts.txt; then
+            echo "❌ Alert names do not match expected!"
+            exit 1
+          fi
+
