@@ -45,7 +45,15 @@ jobs:
           helm list
 
       - name: Execute kubescape
-        run: make storage kubescape
+        run: |
+          make storage kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+
 
 
       - name: Run helm install
