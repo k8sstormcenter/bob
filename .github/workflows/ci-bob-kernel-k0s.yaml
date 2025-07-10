@@ -10,12 +10,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        #kernel-version: [5.0, 5.1, 5.2, 5.3, 5.4, 6.0, 6.1, 6.2, 6.3] #for testing lets first check how expensive this is gonna get
-        k8s-distribution: [kind, k3s ] #fix k0s
-        kubernetes-version: [v1.32.0] #[v1.27.3, v1.28.0, v1.29.0]
+        os: [ubuntu-22.04] # ubuntu-24.04]
+        k8s-distribution: [kind ] # , k3s  #fix k0s
+        kubernetes-version: [v1.27.3] #,  v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+    runs-on: ${{ matrix.os }}
+
 
     steps:
       - name: Checkout code
@@ -38,12 +39,21 @@ jobs:
           echo "kubeconfig: $KUBECONFIG"
           kubectl version
           kubectl get pods --all-namespaces
+          uname -a
 
           helm version
           helm list
 
       - name: Execute kubescape
-        run: make kubescape
+        run: |
+          make storage kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+
 
 
       - name: Run helm install
@@ -54,8 +64,16 @@ jobs:
         run: |
           make helm-test
           kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "please see the testdata for expected anomalies for each" || echo "no anomaly"
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+          kubectl describe applicationprofile -n webapp
 
-          #kubectl logs -l app=node-agent -n honey | grep -q "Unexpected" && exit 1 || exit 0
+
+
+
 
       - name: Port fwd
         run: |
@@ -80,6 +98,7 @@ jobs:
 
       - name: Compare alertName and first argument with expected anomalies
         run: |
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" > /tmp/anomalyobserved.json
           extract() {
             jq -r '
               [
@@ -95,10 +114,9 @@ jobs:
             ' "$1" | sort
           }
 
-          # Extract from observed and expected
-          extract /tmp/anomaly.json > /tmp/actual_alerts.tsv
-          extract anomaly.json > /tmp/expected_alerts.tsv
 
+          extract /tmp/anomalyobserved.json > /tmp/actual_alerts.tsv
+          extract ./testdata/anomaly.json > /tmp/expected_alerts.tsv
           echo "Actual:"
           cat /tmp/actual_alerts.tsv
           echo "Expected:"
