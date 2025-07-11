@@ -80,8 +80,7 @@ helm-redis: storage
 	helm dependency update myredis-umbrella-chart/redis-bob/
 	helm repo update 
 	helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob
-	@echo "The template has is ${HASH}"
-	helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].metadata.labels.pod-template-hash}') ./myredis-umbrella-chart/redis-bob
+	helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-') ./myredis-umbrella-chart/redis-bob
 
 
 .PHONY: helm-redis-test
