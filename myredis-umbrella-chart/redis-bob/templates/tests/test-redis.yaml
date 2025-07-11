@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "redis-bob.fullname" . }}-test"
+  labels:
+    {{- include "redis-bob.labels" . | nindent 4 }}
+    kubescape.io/ignore: "true"
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  restartPolicy: Never
+  containers:
+    - name: redis-test
+      image: redis:7.2-alpine
+      env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              # This assumes the Bitnami Redis chart was deployed as a dependency
+              # with the release name matching the parent chart's release name.
+              # The secret is typically named `<release-name>-redis`.
+              name: "{{ .Release.Name }}-redis"
+              key: redis-password
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -ex
+
+          # The service name for the Bitnami Redis master node.
+          # This might need to be adjusted if you use a release alias for the redis sub-chart.
+          REDIS_HOST="{{ .Release.Name }}-redis-master"
+          SERVICE="{{ include "mywebapp.fullname" . }}"
+          NAMESPACE="{{ .Release.Namespace }}"
+          URL="${REDIS_HOST}.${NAMESPACE}.svc.cluster.local:6379"
+          
+          echo "--- Starting Redis Test ---"
+
+          # 1. Healthcheck
+          echo "1. PING - Healthcheck"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" PING | grep PONG
+
+          # 2. Admin Task: Get Server Info
+          echo "2. INFO - Get server info"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" INFO SERVER | grep -q "redis_version"
+
+          # 3. Admin Task: List Clients
+          echo "3. CLIENT LIST - List connected clients"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" CLIENT LIST | grep -q "cmd=client"
+
+          # 4. Admin Task: Get DB Size
+          echo "4. DBSIZE - Get database size"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" DBSIZE
+
+          # 5. Data Op: Set a key
+          echo "5. SET - Set a key"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" SET mykey "hello-from-helm-test"
+
+          # 6. Data Op: Get a key
+          echo "6. GET - Get the key back"
+          VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" GET mykey)
+          if [ "$VALUE" != "hello-from-helm-test" ]; then echo "❌ GET failed: unexpected value '$VALUE'"; exit 1; fi
+
+          # 7. Data Op: Increment a number
+          echo "7. INCR - Increment a counter"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" SET mycounter 10
+          NEW_VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" INCR mycounter)
+          if [ "$NEW_VALUE" != "11" ]; then echo "❌ INCR failed: unexpected value '$NEW_VALUE'"; exit 1; fi
+
+          # 8. Data Op: Push to a list
+          echo "8. LPUSH - Push to a list"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" LPUSH mylist "item1" "item2"
+
+          # 9. Data Op: Read from a list
+          echo "9. LRANGE - Read from the list"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" LRANGE mylist 0 -1 | grep -q "item1"
+
+          # 10. Data Op: Delete keys
+          echo "10. DEL - Clean up test keys"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" DEL mykey mycounter mylist
+
+          echo "--- Redis Test Successful ---"
