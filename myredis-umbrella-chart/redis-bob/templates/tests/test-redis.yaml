@@ -34,38 +34,39 @@ spec:
           SERVICE="{{ include "redis-bob.fullname" . }}"
           NAMESPACE="{{ .Release.Namespace }}"
           URL="${REDIS_HOST}.${NAMESPACE}.svc.cluster.local:6379"
+          REDIS_PASSWORD="youfoundzepasswd"
           
           echo "--- Starting Redis Test ---"
 
           # 1. Healthcheck
           echo "1. PING - Healthcheck"
-          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" PING | grep PONG
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  PING | grep PONG
 
           # 2. Admin Task: Get Server Info
           echo "2. INFO - Get server info"
-          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" INFO SERVER | grep -q "redis_version"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  INFO SERVER | grep -q "redis_version"
 
           # 3. Admin Task: List Clients
           echo "3. CLIENT LIST - List connected clients"
-          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" CLIENT LIST | grep -q "cmd=client"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  CLIENT LIST | grep -q "cmd=client"
 
           # 4. Admin Task: Get DB Size
           echo "4. DBSIZE - Get database size"
-          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" DBSIZE
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  DBSIZE
 
           # 5. Data Op: Set a key
           echo "5. SET - Set a key"
-          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" SET mykey "hello-from-helm-test"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT SET mykey "hello-from-helm-test"
 
           # 6. Data Op: Get a key
           echo "6. GET - Get the key back"
-          VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" GET mykey)
+          VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT  GET mykey)
           if [ "$VALUE" != "hello-from-helm-test" ]; then echo "❌ GET failed: unexpected value '$VALUE'"; exit 1; fi
 
           # 7. Data Op: Increment a number
           echo "7. INCR - Increment a counter"
-          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" SET mycounter 10
-          NEW_VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" INCR mycounter)
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  SET mycounter 10
+          NEW_VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT  INCR mycounter)
           if [ "$NEW_VALUE" != "11" ]; then echo "❌ INCR failed: unexpected value '$NEW_VALUE'"; exit 1; fi
 
           # 8. Data Op: Push to a list
