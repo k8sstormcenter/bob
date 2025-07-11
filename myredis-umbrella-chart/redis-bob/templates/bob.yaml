@@ -6,7 +6,7 @@ metadata:
     # Helm hooks to ensure this CR is created after the kubescape-operator CRD is ready.
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "10"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
+    "helm.sh/hook-delete-policy": "hook-failed"
     kubescape.io/completion: complete
    # kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-ReplicaSet/name-{{ include "redis-bob.fullname" . }}-{{ .Values.bob.templateHash }}
     kubescape.io/status: completed

@@ -13,15 +13,15 @@ spec:
   containers:
     - name: redis-test
       image: redis:7.2-alpine
-      env:
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              # This assumes the Bitnami Redis chart was deployed as a dependency
-              # with the release name matching the parent chart's release name.
-              # The secret is typically named `<release-name>-redis`.
-              name: "{{ .Release.Name }}-redis"
-              key: redis-password
+      # env:
+      #   - name: REDIS_PASSWORD
+      #     valueFrom:
+      #       secretKeyRef:
+      #         # This assumes the Bitnami Redis chart was deployed as a dependency
+      #         # with the release name matching the parent chart's release name.
+      #         # The secret is typically named `<release-name>-redis`.
+      #         name: "{{ .Release.Name }}-redis"
+      #         key: redis-password
       command:
         - /bin/sh
         - -c
