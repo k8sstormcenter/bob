@@ -31,7 +31,7 @@ spec:
           # The service name for the Bitnami Redis master node.
           # This might need to be adjusted if you use a release alias for the redis sub-chart.
           REDIS_HOST="{{ .Release.Name }}-redis-master"
-          SERVICE="{{ include "mywebapp.fullname" . }}"
+          SERVICE="{{ include "redis-bob.fullname" . }}"
           NAMESPACE="{{ .Release.Namespace }}"
           URL="${REDIS_HOST}.${NAMESPACE}.svc.cluster.local:6379"
           
