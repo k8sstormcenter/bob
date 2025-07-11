@@ -74,7 +74,7 @@ helm-install:
 .PHONY: helm-redis
 helm-redis:
 	@echo "Installing redis..."
-	cd myredis-umbrella-chart/redis-bob && helm dependency build 
+	helm dependency update myredis-umbrella-chart/redis-bob/
 	helm repo update 
 	helm upgrade --install bob -n bob --create-namespace --set bob.create=false ./myredis-umbrella-chart/redis-bob
 
