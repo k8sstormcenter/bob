@@ -71,12 +71,18 @@ helm-install:
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
+
+
+
 .PHONY: helm-redis
-helm-redis:
+helm-redis: storage
 	@echo "Installing redis..."
 	helm dependency update myredis-umbrella-chart/redis-bob/
 	helm repo update 
-	helm upgrade --install bob -n bob --create-namespace --set bob.create=false ./myredis-umbrella-chart/redis-bob
+	helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob
+	@echo "The template has is ${HASH}"
+	helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].metadata.labels.pod-template-hash}') ./myredis-umbrella-chart/redis-bob
+
 
 .PHONY: helm-redis-test
 helm-redis-test:
@@ -120,7 +126,7 @@ kubescape:
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
-	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout=120s
+	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey 
 
 
 

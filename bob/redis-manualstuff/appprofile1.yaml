@@ -1,27 +1,24 @@
-{{- if .Values.bob.create -}}
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
   annotations:
-    # Helm hooks to ensure this CR is created after the kubescape-operator CRD is ready.
-   # "helm.sh/hook": post-install,post-upgrade
-   # "helm.sh/hook-weight": "10"
-   # "helm.sh/hook-delete-policy": "hook-failed"
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-{{ include "redis-bob.fullname" . }}-{{ .Values.bob.templateHash }}
-    kubescape.io/status: completed
-    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-{{ include "redis-bob.fullname" . }}  
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-StatefulSet/name-bob-redis-master-8775bb74f
+    kubescape.io/resource-size: "166"
+    kubescape.io/status: ready
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-bob/statefulset-bob-redis-master
+  creationTimestamp: "2025-07-11T20:55:59Z"
   labels:
-    kubescape.io/instance-template-hash: {{ .Values.bob.templateHash | quote }}
-    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
-    kubescape.io/workload-name: {{ include "redis-bob.fullname" . }}                                 
-    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
-  name: statefulset-{{ include "redis-bob.fullname" . }}-{{ .Values.bob.templateHash }}                                  
-  namespace: {{ .Release.Namespace }}                                                             
-  resourceVersion: "1" 
+    kubescape.io/workload-name: bob-redis-master
+    kubescape.io/workload-namespace: bob
+    kubescape.io/workload-resource-version: "9948"
+  name: statefulset-bob-redis-master-8775bb74f
+  namespace: bob
+  resourceVersion: "3"
+  uid: 9d0088f1-3231-43f9-8ee3-9420549298c5
 spec:
   architectures:
   - amd64
@@ -187,10 +184,10 @@ spec:
       path: /etc/ssl/openssl.cnf
     - flags:
       - O_RDONLY
-      path: /health/⋯/ping_liveness_local.sh
+      path: /health/..2025_07_11_20_53_56.4291958918/ping_liveness_local.sh
     - flags:
       - O_RDONLY
-      path: /health/⋯/ping_readiness_local.sh
+      path: /health/..2025_07_11_20_53_56.4291958918/ping_readiness_local.sh
     - flags:
       - O_CREAT
       - O_EXCL
@@ -205,13 +202,13 @@ spec:
       path: /opt/bitnami/redis/etc/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/⋯/master.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_11_20_53_56.1263551623/master.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/⋯/redis.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_11_20_53_56.1263551623/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/scripts/start-scripts/⋯/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/..2025_07_11_20_53_56.878218395/start-master.sh
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -427,5 +424,4 @@ spec:
     - vfork
     - wait4
     - write
-
-{{- end }}
+status: {}

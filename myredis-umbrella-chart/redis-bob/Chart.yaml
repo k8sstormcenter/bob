@@ -26,6 +26,9 @@ dependencies:
   - name: redis
     version: 19.5.2
     repository: https://charts.bitnami.com/bitnami
-  - name: kubescape-operator
-    version: 1.28.0
-    repository: https://kubescape.github.io/helm-charts/
+ # for now I m commenting it out because I need to find a way to properly install it into namesapce=honey
+ # - name: kubescape-operator
+ #   version: 1.28.0
+ #   repository: https://kubescape.github.io/helm-charts/
+ #   condition: kubescape-operator.enabled == "true"
+  

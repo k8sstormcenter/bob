@@ -73,13 +73,15 @@ spec:
           # 8. Data Op: Push to a list
           echo "8. LPUSH - Push to a list"
           redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" LPUSH mylist "item1" "item2"
+          #redis-cli -h $REDIS_HOST -p $REDIS_PORT  LPUSH mylist "item1" "item2"
 
           # 9. Data Op: Read from a list
           echo "9. LRANGE - Read from the list"
-          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" LRANGE mylist 0 -1 | grep -q "item1"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  LRANGE mylist 0 -1 | grep -q "item1"
 
           # 10. Data Op: Delete keys
           echo "10. DEL - Clean up test keys"
-          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" DEL mykey mycounter mylist
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  DEL mykey mycounter mylist
 
           echo "--- Redis Test Successful ---"
+          sleep 10
