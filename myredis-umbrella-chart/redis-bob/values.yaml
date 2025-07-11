@@ -1,5 +1,6 @@
 # Default values for redis-bob.
 kubescape-operator:
+  enabled: true
   nodeAgent:
     config:
       maxLearningPeriod: 5m
@@ -19,7 +20,7 @@ kubescape-operator:
     installDefault: true
     scopeClustered: true
   clusterName: bobexample
-  ksNamespace: honey
+  ksNamespace: bob ## You MUST install the whole umbrella into the same ns, at the moment -> rewrite into helmfile is known issue
   excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs,kube-flannel,ingress-nginx,olm,pl,px-operator"
 
 
