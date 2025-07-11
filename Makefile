@@ -71,7 +71,19 @@ helm-install:
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
+.PHONY: helm-redis
+helm-redis:
+	@echo "Installing redis..."
+    cd myredis-umbrella-chart/redis-bob
+	helm dependency build
+	helm repo update 
+	#the post-install hook isnt working yet
+	helm upgrade --install bob -n bob --create-namespace --set bob.create=false 
 
+.PHONY: wipe-redis
+wipe-redis:
+	-$(HELM) uninstall -n bob bob
+	-kubectl delete namespace bob
 
 .PHONY: helm-test
 helm-test:
