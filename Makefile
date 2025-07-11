@@ -83,6 +83,15 @@ helm-redis: storage
 	helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-') ./myredis-umbrella-chart/redis-bob
 
 
+.PHONY: helm-redis-learn
+helm-redis-learn: 	
+	@echo "Installing redis without bob"
+	helm dependency update myredis-umbrella-chart/redis-bob/
+	helm repo update 
+	helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=false ./myredis-umbrella-chart/redis-bob
+		
+
+
 .PHONY: helm-redis-test
 helm-redis-test:
 	helm test bob -n bob
@@ -125,7 +134,7 @@ kubescape:
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
-	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey 
+	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey 
 
 
 
