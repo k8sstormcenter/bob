@@ -74,11 +74,14 @@ helm-install:
 .PHONY: helm-redis
 helm-redis:
 	@echo "Installing redis..."
-    cd myredis-umbrella-chart/redis-bob
-	helm dependency build
+	cd myredis-umbrella-chart/redis-bob && helm dependency build 
 	helm repo update 
-	#the post-install hook isnt working yet
-	helm upgrade --install bob -n bob --create-namespace --set bob.create=false 
+	helm upgrade --install bob -n bob --create-namespace --set bob.create=false ./myredis-umbrella-chart/redis-bob
+
+.PHONY: helm-redis-test
+helm-redis-test:
+	helm test bob -n bob
+
 
 .PHONY: wipe-redis
 wipe-redis:
