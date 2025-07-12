@@ -63,6 +63,8 @@ spec:
       - /opt/bitnami/scripts/start-scripts/start-master.sh
       path: /bin/bash
     identifiedCallStacks: null
+    imageID: {{ .Values.bob.imageID }}
+    imageTag: {{ .Values.bob.imageTag }}
     name: redis
     opens:
     - flags:
