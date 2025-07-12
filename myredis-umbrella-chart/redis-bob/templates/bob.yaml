@@ -8,18 +8,18 @@ metadata:
    # "helm.sh/hook-weight": "10"
    # "helm.sh/hook-delete-policy": "hook-failed"
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-{{ include "redis-bob.fullname" . }}-{{ .Values.bob.templateHash }}
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-bob-redis-master-{{ .Values.bob.templateHash }}
     kubescape.io/status: completed
-    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-{{ include "redis-bob.fullname" . }}  
+    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-bob-redis-master 
   labels:
     kubescape.io/instance-template-hash: {{ .Values.bob.templateHash | quote }}
     kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
-    kubescape.io/workload-name: {{ include "redis-bob.fullname" . }}                                 
+    kubescape.io/workload-name: bob-redis-master                      
     kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
-  name: statefulset-{{ include "redis-bob.fullname" . }}-{{ .Values.bob.templateHash }}                                  
+  name: statefulset-bob-redis-master-{{ .Values.bob.templateHash }}                                  
   namespace: {{ .Release.Namespace }}                                                             
   resourceVersion: "1" 
 spec:
