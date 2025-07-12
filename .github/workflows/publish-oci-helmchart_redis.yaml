@@ -65,4 +65,5 @@ jobs:
 
       - name: Push Helm chart to OCI registry
         run: |
+          cd myredis-umbrella-chart
           helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
