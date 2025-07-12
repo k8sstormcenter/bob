@@ -48,10 +48,8 @@ redis:
 bob:
   clusterName: "bobexample"
   #if set to false, the bob supplied by the vendor is not installed
-  create: false
+  create: true
   # this gets overwritten in the two step release process #this is hackish
-  templateHash: "8775bb74f" #orig image 
+  templateHash: "849b7c549c" #orig image 
   # this adds/removes an annotation to the entire deployment for kubescape to ignore it
   ignore: false
-  rediscli:
-    allow: false

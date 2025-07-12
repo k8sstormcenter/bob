@@ -1,28 +1,24 @@
-{{- if .Values.bob.create -}}
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
   annotations:
-    # Helm hooks to ensure this CR is created after the kubescape-operator CRD is ready.
-   # "helm.sh/hook": post-install,post-upgrade
-   # "helm.sh/hook-weight": "10"
-   # "helm.sh/hook-delete-policy": "hook-failed"
-   # this is a copy of redis_pure_noprobes.yaml -> with the container SHA removed so we can pretend we see a supply chain compromise
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-bob-redis-master-{{ .Values.bob.templateHash }}
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-StatefulSet/name-bob-redis-master-59ffc7bcc9
+    kubescape.io/resource-size: "160"
     kubescape.io/status: completed
-    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-bob-redis-master 
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-bob/statefulset-bob-redis-master
+  creationTimestamp: "2025-07-12T22:43:19Z"
   labels:
-    kubescape.io/instance-template-hash: {{ .Values.bob.templateHash | quote }}
-   # kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
-    kubescape.io/workload-name: bob-redis-master                      
-    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
-  name: statefulset-bob-redis-master-{{ .Values.bob.templateHash }}                                  
-  namespace: {{ .Release.Namespace }}                                                             
-  resourceVersion: "1" 
+    kubescape.io/workload-name: bob-redis-master
+    kubescape.io/workload-namespace: bob
+    kubescape.io/workload-resource-version: "10036"
+  name: statefulset-bob-redis-master-59ffc7bcc9
+  namespace: bob
+  resourceVersion: "3"
+  uid: 11a62c7b-2984-4de5-b6cd-dd2e38027aa9
 spec:
   architectures:
   - amd64
@@ -34,20 +30,12 @@ spec:
     endpoints: null
     execs:
     - args:
-      - /opt/bitnami/scripts/start-scripts/start-master.sh
-      path: /opt/bitnami/scripts/start-scripts/start-master.sh
-    - args:
-      - /usr/bin/cp
-      - /opt/bitnami/redis/mounted-etc/master.conf
-      - /opt/bitnami/redis/etc/master.conf
-      path: /usr/bin/cp
-    - args:
       - /usr/bin/cp
       - /opt/bitnami/redis/mounted-etc/redis.conf
       - /opt/bitnami/redis/etc/redis.conf
       path: /usr/bin/cp
     - args:
-      - /opt/bitnami/redis/bin/redis-server
+      - /usr/local/bin/redis-server
       - --port
       - "6379"
       - --protected-mode
@@ -56,33 +44,37 @@ spec:
       - /opt/bitnami/redis/etc/redis.conf
       - --include
       - /opt/bitnami/redis/etc/master.conf
-      path: /opt/bitnami/redis/bin/redis-server
+      path: /usr/local/bin/redis-server
     - args:
       - /bin/bash
       - -c
       - /opt/bitnami/scripts/start-scripts/start-master.sh
       path: /bin/bash
+    - args:
+      - /opt/bitnami/scripts/start-scripts/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/start-master.sh
+    - args:
+      - /usr/bin/cp
+      - /opt/bitnami/redis/mounted-etc/master.conf
+      - /opt/bitnami/redis/etc/master.conf
+      path: /usr/bin/cp
     identifiedCallStacks: null
+    imageID: docker.io/library/redis@sha256:30f67e1e6c1c1ab81e7926313fda732c573b80f079a5a5b3be848613ebb1b69a
+    imageTag: docker.io/library/redis:8.2-rc1-bookworm
     name: redis
     opens:
     - flags:
       - O_RDONLY
-      path: /data/appendonlydir
+      path: /data/appendonlydir/appendonly.aof.1.base.rdb
     - flags:
       - O_APPEND
       - O_CREAT
+      - O_RDONLY
       - O_WRONLY
       path: /data/appendonlydir/appendonly.aof.1.incr.aof
     - flags:
-      - O_CREAT
-      - O_TRUNC
-      - O_WRONLY
-      path: /data/appendonlydir/temp-appendonly.aof.manifest
-    - flags:
-      - O_CREAT
-      - O_TRUNC
-      - O_WRONLY
-      path: /data/temp-rewriteaof-1.aof
+      - O_RDONLY
+      path: /data/appendonlydir/appendonly.aof.manifest
     - flags:
       - O_RDONLY
       path: /dev/urandom
@@ -99,9 +91,6 @@ spec:
       - O_RDONLY
       path: /etc/passwd
     - flags:
-      - O_RDONLY
-      path: /etc/ssl/openssl.cnf
-    - flags:
       - O_CREAT
       - O_EXCL
       - O_RDONLY
@@ -115,13 +104,13 @@ spec:
       path: /opt/bitnami/redis/etc/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/⋯/master.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_12_22_41_17.413551777/master.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/⋯/redis.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_12_22_41_17.413551777/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/scripts/start-scripts/⋯/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/..2025_07_12_22_41_17.1998305812/start-master.sh
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -169,6 +158,10 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libm.so.6
     - flags:
       - O_CLOEXEC
@@ -182,6 +175,10 @@ spec:
       - O_CLOEXEC
       - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libssl.so.3
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -221,6 +218,7 @@ spec:
       spec:
         defaultAction: ""
     syscalls:
+    - accept4
     - access
     - arch_prctl
     - bind
@@ -228,12 +226,12 @@ spec:
     - capget
     - capset
     - chdir
-    - chmod
     - clone
     - close
     - close_range
     - connect
     - copy_file_range
+    - dup
     - dup2
     - dup3
     - epoll_create
@@ -271,13 +269,13 @@ spec:
     - getpid
     - getppid
     - getrandom
+    - getsockname
     - gettid
     - getuid
     - ioctl
     - keyctl
     - listen
     - lseek
-    - lstat
     - madvise
     - mkdir
     - mkdirat
@@ -294,6 +292,7 @@ spec:
     - openat2
     - pipe2
     - pivot_root
+    - poll
     - prctl
     - pread64
     - prlimit64
@@ -301,36 +300,42 @@ spec:
     - readlink
     - readlinkat
     - recvfrom
+    - recvmsg
     - rename
-    - rmdir
     - rseq
     - rt_sigaction
     - rt_sigprocmask
     - rt_sigreturn
+    - rt_sigsuspend
     - sched_getaffinity
     - sched_yield
+    - sendto
     - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
     - setitimer
+    - setns
+    - setpgid
     - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
-    - stat
     - statfs
     - statx
     - symlinkat
     - sysinfo
     - tgkill
+    - timer_create
+    - timer_settime
     - tkill
     - umask
     - umount2
     - uname
-    - unlink
     - unlinkat
+    - unshare
+    - vfork
     - wait4
     - write
-{{- end }}
+status: {}
