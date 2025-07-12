@@ -55,23 +55,24 @@ spec:
           echo "4. DBSIZE - Get database size"
           redis-cli -h $REDIS_HOST -p $REDIS_PORT  DBSIZE
 
-          # 5. Data Op: Set a key
-          echo "5. SET - Set a key"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  SET mycounter 10
+          NEW_VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT  INCR mycounter)
           redis-cli -h $REDIS_HOST -p $REDIS_PORT SET mykey "hello-from-helm-test"
 
           # 6. Data Op: Get a key
           echo "6. GET - Get the key back"
-          VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT  GET mykey)
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT -a "$REDIS_PASSWORD" LPUSH mylist "item1" "item2"
+          #redis-cli -h $REDIS_HOST -p $REDIS_PORT  LPUSH mylist "item1" "item2"
           if [ "$VALUE" != "hello-from-helm-test" ]; then echo "❌ GET failed: unexpected value '$VALUE'"; exit 1; fi
 
           # 7. Data Op: Increment a number
-          echo "7. INCR - Increment a counter"
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  LRANGE mylist 0 -1 | grep -q "item1"
           redis-cli -h $REDIS_HOST -p $REDIS_PORT  SET mycounter 10
           NEW_VALUE=$(redis-cli -h $REDIS_HOST -p $REDIS_PORT  INCR mycounter)
           if [ "$NEW_VALUE" != "11" ]; then echo "❌ INCR failed: unexpected value '$NEW_VALUE'"; exit 1; fi
+          redis-cli -h $REDIS_HOST -p $REDIS_PORT  DEL mykey mycounter mylist
 
           # 8. Data Op: Push to a list
-          echo "8. LPUSH - Push to a list"
           redis-cli -h $REDIS_HOST -p $REDIS_PORT  LPUSH mylist "item1" "item2"
 
           # 9. Data Op: Read from a list
@@ -83,4 +84,3 @@ spec:
           redis-cli -h $REDIS_HOST -p $REDIS_PORT  DEL mykey mycounter mylist
 
           echo "--- Redis Test Successful ---"
-          sleep 30

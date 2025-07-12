@@ -35,6 +35,7 @@ jobs:
       - name: Package Helm chart
         run: |
           cd myredis-umbrella-chart
+          helm dependency update redis-bob
           helm package redis-bob
           export CHART_VERSION=$(yq '.version' redis-bob/Chart.yaml)
           export CHART_NAME=$(yq '.name' redis-bob/Chart.yaml)
