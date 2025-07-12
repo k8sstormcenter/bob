@@ -313,9 +313,14 @@ spec:
       R1003: {}
       R1004:
         processAllowed:
-          - sh
-          - bash
-          - dash
+          - /health/ping_readiness_local.sh
+          - /health/ping_liveness_local.sh
+          - /health/⋯/ping_liveness_local.sh
+          - /health/⋯/ping_readiness_local.sh
+          - /usr/bin/bash
+          - /usr/bin/sh
+          - /usr/bin/dash
+        containerAllowed: true
       R1005: {}
       R1006: {}
       R1007: {}
