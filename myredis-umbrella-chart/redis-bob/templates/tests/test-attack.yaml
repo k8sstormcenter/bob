@@ -13,35 +13,33 @@ spec:
   containers:
     - name: redis-attack-test
       image: instrumentisto/nmap
+
       command:
         - /bin/sh
         - -c
         - |
           set -ex
-          REDIS_HOST="{{ .Release.Name }}-redis-master"
-          REDIS_PORT=6379
+          export REDIS_HOST="bob-redis-master.bob.svc.cluster.local"
+          export REDIS_PORT=6379
           SERVICE="{{ include "redis-bob.fullname" . }}"
           NAMESPACE="{{ .Release.Namespace }}"
-          URL="${REDIS_HOST}.${NAMESPACE}.svc.cluster.local:${REDIS_PORT}"
+          URL="${REDIS_HOST}.${NAMESPACE}.svc.cluster.local"
           echo "--- Starting Advanced Attack Simulation Test ---"
 
-          # 1. An attacker uses a pre-built image with their tools (nmap).
-          # They might still need to install other tools like python for data access.
+         
+         
           echo "1. Installing python..."
           apk update
-          apk add --no-cache python3 py3-pip
+          apk add --no-cache python3 py3-redis
 
-          # 2. The attacker uses nmap for network reconnaissance to identify services.
+
           echo "2. Using nmap to scan the Redis host..."
-          nmap -p $REDIS_PORT -sV $REDIS_HOST
+          nmap bob-redis-master.bob.svc.cluster.local -p 6379 -Pn
+          nmap bob-redis-master.bob.svc.cluster.local -p 6379 -Pn --script redis-info
 
-          # 3. The attacker installs a specific library to interact with the target service.
-          echo "3. Installing python redis library..."
-          pip install redis
 
-          # 4. The attacker uses a custom script to connect to Redis,
-          # write some data, and then enumerate all keys.
-          echo "4. Using python to connect to Redis and enumerate keys..."
+
+          echo "3. Using python to connect to Redis and enumerate keys..."
           python3 -c "
           import redis, os
           r = redis.Redis(host=os.getenv('REDIS_HOST'), port=int(os.getenv('REDIS_PORT')), db=0, decode_responses=True)
