@@ -23,7 +23,7 @@ metadata:
   namespace: {{ .Release.Namespace }}                                                             
   resourceVersion: "1" 
 spec:
- architectures:
+  architectures:
   - amd64
   containers:
   - capabilities:
@@ -187,10 +187,10 @@ spec:
       path: /etc/ssl/openssl.cnf
     - flags:
       - O_RDONLY
-      path: /health/..2025_07_12_14_12_29.4184044212/ping_liveness_local.sh
+      path: /health/⋯/ping_liveness_local.sh
     - flags:
       - O_RDONLY
-      path: /health/..2025_07_12_14_12_29.4184044212/ping_readiness_local.sh
+      path: /health/⋯/ping_readiness_local.sh
     - flags:
       - O_CREAT
       - O_EXCL
@@ -205,13 +205,13 @@ spec:
       path: /opt/bitnami/redis/etc/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/..2025_07_12_14_12_29.1125808993/master.conf
+      path: /opt/bitnami/redis/mounted-etc/⋯/master.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/..2025_07_12_14_12_29.1125808993/redis.conf
+      path: /opt/bitnami/redis/mounted-etc/⋯/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/scripts/start-scripts/..2025_07_12_14_12_29.3831348470/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/⋯/start-master.sh
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -427,5 +427,4 @@ spec:
     - vfork
     - wait4
     - write
-
 {{- end }}

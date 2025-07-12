@@ -1,0 +1,28 @@
+redis:
+  image: 
+    repository: redis
+    tag: 8.2-rc1-bookworm
+  architecture: standalone
+  auth:
+    enabled: false
+  resources:
+    requests:
+      cpu: 2
+      memory: 512Mi
+    limits:
+      cpu: 3
+      memory: 1024Mi
+  master:
+    pdb:
+      minAvailable: 0
+  
+bob:
+  clusterName: "bobexample"
+  #if set to false, the bob supplied by the vendor is not installed
+  create: false
+  # this gets overwritten in the two step release process #this is hackish
+  templateHash: "67965968bb" 
+  # this adds/removes an annotation to the entire deployment for kubescape to ignore it
+  ignore: false
+  rediscli:
+    allow: false
