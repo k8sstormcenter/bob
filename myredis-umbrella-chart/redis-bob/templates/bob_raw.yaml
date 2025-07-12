@@ -1,4 +1,4 @@
-{{- if .Values.bob.rediscli.allow -}}
+{{- if .Values.bob.create -}}
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
@@ -23,7 +23,7 @@ metadata:
   namespace: {{ .Release.Namespace }}                                                             
   resourceVersion: "1" 
 spec:
-  architectures:
+ architectures:
   - amd64
   containers:
   - capabilities:
@@ -38,33 +38,22 @@ spec:
     endpoints: null
     execs:
     - args:
-      - /usr/bin/timeout
-      - -s
-      - "15"
+      - /health/ping_liveness_local.sh
       - "5"
-      - redis-cli
-      - -h
-      - localhost
-      - -p
-      - "6379"
-      - ping
-      path: /usr/bin/timeout
+      path: /health/ping_liveness_local.sh
     - args:
-      - /usr/bin/sh
-      - -c
-      - /health/ping_liveness_local.sh 5
-      path: /usr/bin/sh
-    - args:
-      - /opt/bitnami/redis/bin/redis-server
-      - --port
-      - "6379"
-      - --protected-mode
-      - "no"
-      - --include
-      - /opt/bitnami/redis/etc/redis.conf
-      - --include
+      - /usr/bin/cp
+      - /opt/bitnami/redis/mounted-etc/master.conf
       - /opt/bitnami/redis/etc/master.conf
-      path: /opt/bitnami/redis/bin/redis-server
+      path: /usr/bin/cp
+    - args:
+      - /usr/bin/awk
+      - '{print $1;}'
+      path: /usr/bin/awk
+    - args:
+      - /health/ping_readiness_local.sh
+      - "1"
+      path: /health/ping_readiness_local.sh
     - args:
       - /usr/bin/head
       - -n1
@@ -81,28 +70,21 @@ spec:
       - ping
       path: /opt/bitnami/redis/bin/redis-cli
     - args:
-      - /bin/bash
-      - -c
-      - /opt/bitnami/scripts/start-scripts/start-master.sh
-      path: /bin/bash
-    - args:
-      - /usr/bin/awk
-      - '{print $1;}'
-      path: /usr/bin/awk
-    - args:
-      - /health/ping_liveness_local.sh
-      - "5"
-      path: /health/ping_liveness_local.sh
+      - /opt/bitnami/redis/bin/redis-server
+      - --port
+      - "6379"
+      - --protected-mode
+      - "no"
+      - --include
+      - /opt/bitnami/redis/etc/redis.conf
+      - --include
+      - /opt/bitnami/redis/etc/master.conf
+      path: /opt/bitnami/redis/bin/redis-server
     - args:
       - /usr/bin/sh
       - -c
       - /health/ping_readiness_local.sh 1
       path: /usr/bin/sh
-    - args:
-      - /usr/bin/cp
-      - /opt/bitnami/redis/mounted-etc/redis.conf
-      - /opt/bitnami/redis/etc/redis.conf
-      path: /usr/bin/cp
     - args:
       - /usr/bin/timeout
       - -s
@@ -116,13 +98,31 @@ spec:
       - ping
       path: /usr/bin/timeout
     - args:
-      - /health/ping_readiness_local.sh
-      - "1"
-      path: /health/ping_readiness_local.sh
+      - /usr/bin/sh
+      - -c
+      - /health/ping_liveness_local.sh 5
+      path: /usr/bin/sh
+    - args:
+      - /usr/bin/timeout
+      - -s
+      - "15"
+      - "5"
+      - redis-cli
+      - -h
+      - localhost
+      - -p
+      - "6379"
+      - ping
+      path: /usr/bin/timeout
+    - args:
+      - /bin/bash
+      - -c
+      - /opt/bitnami/scripts/start-scripts/start-master.sh
+      path: /bin/bash
     - args:
       - /usr/bin/cp
-      - /opt/bitnami/redis/mounted-etc/master.conf
-      - /opt/bitnami/redis/etc/master.conf
+      - /opt/bitnami/redis/mounted-etc/redis.conf
+      - /opt/bitnami/redis/etc/redis.conf
       path: /usr/bin/cp
     identifiedCallStacks: null
     imageID: docker.io/bitnami/redis@sha256:5261cae9e4076b75d114e6bb032a0699c50b004ea06a680a5304c4c08d286adb
@@ -187,10 +187,10 @@ spec:
       path: /etc/ssl/openssl.cnf
     - flags:
       - O_RDONLY
-      path: /health/⋯/ping_liveness_local.sh
+      path: /health/..2025_07_12_14_12_29.4184044212/ping_liveness_local.sh
     - flags:
       - O_RDONLY
-      path: /health/⋯/ping_readiness_local.sh
+      path: /health/..2025_07_12_14_12_29.4184044212/ping_readiness_local.sh
     - flags:
       - O_CREAT
       - O_EXCL
@@ -205,13 +205,13 @@ spec:
       path: /opt/bitnami/redis/etc/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/⋯/master.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_12_14_12_29.1125808993/master.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/⋯/redis.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_12_14_12_29.1125808993/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/scripts/start-scripts/⋯/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/..2025_07_12_14_12_29.3831348470/start-master.sh
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -311,16 +311,7 @@ spec:
       R1001: {}
       R1002: {}
       R1003: {}
-      R1004:
-        processAllowed:
-          - /health/ping_readiness_local.sh
-          - /health/ping_liveness_local.sh
-          - /health/⋯/ping_liveness_local.sh
-          - /health/⋯/ping_readiness_local.sh
-          - /usr/bin/bash
-          - /usr/bin/sh
-          - /usr/bin/dash
-        containerAllowed: true
+      R1004: {}
       R1005: {}
       R1006: {}
       R1007: {}
