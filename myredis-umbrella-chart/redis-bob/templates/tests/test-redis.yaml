@@ -4,7 +4,7 @@ metadata:
   name: "{{ include "redis-bob.fullname" . }}-test"
   labels:
     {{- include "redis-bob.labels" . | nindent 4 }}
-    kubescape.io/ignore: true
+    kubescape.io/ignore: "true"
   annotations:
     "helm.sh/hook": test
     "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
