@@ -71,8 +71,8 @@ helm-install:
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
-
-
+# for when we know the hash upfront:
+#helm upgrade --install bob -n bob --create-namespace --set bob.create=true ./myredis-umbrella-chart/redis-bob
 
 .PHONY: helm-redis
 helm-redis: 

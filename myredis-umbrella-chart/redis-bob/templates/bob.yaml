@@ -13,7 +13,7 @@ metadata:
     kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-bob-redis-master 
   labels:
     kubescape.io/instance-template-hash: {{ .Values.bob.templateHash | quote }}
-    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
+   # kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
