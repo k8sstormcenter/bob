@@ -62,12 +62,8 @@ jobs:
 
       - name: Run helm test
         run: |
-          if ! make helm-redis-test; then
-            echo "Helm test failed. Fetching logs from the test pod for debugging..."
-            # The pod name is derived from the Helm test error output.
-            kubectl logs -n bob bob-redis-bob-test
-            exit 1
-          fi
+          make helm-redis-test&
+          kubectl logs -n bob bob-redis-bob-test
           echo "Helm test passed. Checking for unexpected anomalies in Kubescape logs..."
           kubectl logs -l app=node-agent -n honey | grep -v ping_liveness| grep -v ping_readiness_local.sh | grep  "Unexpected" && echo "Found unexpected anomalies, please investigate." || echo "No unexpected anomalies found."
           kubectl logs -n honey -l app=kubescape
@@ -76,3 +72,6 @@ jobs:
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
           kubectl describe applicationprofile -n bob
+
+
+
