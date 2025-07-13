@@ -65,11 +65,10 @@ jobs:
 
       - name: Run helm test
         run: |
-          helm test -n bob bob &
-          echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
-          kubectl logs -l app=node-agent -n honey | grep -v ping_liveness| grep -v ping_readiness_local.sh | grep  "Unexpected" && echo "Found unexpected anomalies, please investigate." || echo "No unexpected anomalies found."
+          make helm-redis test
+          echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
           kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent |jq
+          kubectl logs -n honey -l app=node-agent |grep "Unexpected"|jq
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
