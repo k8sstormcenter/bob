@@ -63,7 +63,7 @@ jobs:
           kubectl logs -n bob pods/bob-redis-master-0 redis 
           #kubectl describe -n bob applicationprofiles.spdx.softwarecomposition.kubescape.io
           kubectl logs -n honey -l app=node-agent 
-          sleep 5
+          sleep 15
 
 
       - name: Run helm test
@@ -72,24 +72,20 @@ jobs:
           make helm-redis-test
           echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
           kubectl logs -n honey -l app=kubescape
-          #kubectl logs -n honey -l app=node-agent |grep Unexpected|jq
-          #kubectl logs -n honey -l app=node-agent 
-          #kubectl logs -n honey -l app=storage
-          #kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
-          #kubectl describe applicationprofile -n bob
+          kubectl get applicationprofile -n bob -o yaml
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-          sleep 15
+          sleep 25
           kubectl logs -n honey -l app=node-agent 
 
       - name: Run Supply Chain SwitchOut (change redis image but not bob)
         run: |
           make helm-redis-compromise
-          sleep 10
           echo "Checking for unexpected anomalies in Kubescape logs..."
-          kubectl logs -n honey -l app=node-agent 
-          kubectl describe applicationprofile -n bob
+          kubectl get applicationprofile -n bob -o yaml
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+          sleep 25
+          kubectl logs -n honey -l app=node-agent 
 
 
 
