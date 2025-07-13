@@ -65,14 +65,21 @@ jobs:
 
       - name: Run helm test
         run: |
-          make helm-redis-test&
-          echo "Checking for unexpected anomalies in Kubescape logs..."
+          helm test -n bob bob &
+          echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
           kubectl logs -l app=node-agent -n honey | grep -v ping_liveness| grep -v ping_readiness_local.sh | grep  "Unexpected" && echo "Found unexpected anomalies, please investigate." || echo "No unexpected anomalies found."
           kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent | grep -v ping_liveness| grep -v ping_readiness_local.sh
+          kubectl logs -n honey -l app=node-agent |jq
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
+          kubectl describe applicationprofile -n bob
+
+      - name: Run Supply Chain SwitchOut (change redis image but not bob)
+        run: |
+          make helm-redis-compromise
+          echo "Checking for unexpected anomalies in Kubescape logs..."
+          kubectl logs -n honey -l app=node-agent |jq
           kubectl describe applicationprofile -n bob
 
 

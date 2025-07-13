@@ -3,22 +3,22 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-StatefulSet/name-bob-redis-master-849b7c549c
-    kubescape.io/resource-size: "152"
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-StatefulSet/name-bob-redis-master-7cfb6d58df
+    kubescape.io/resource-size: "124"
     kubescape.io/status: completed
     kubescape.io/wlid: wlid://cluster-bobexample/namespace-bob/statefulset-bob-redis-master
-  creationTimestamp: "2025-07-12T22:26:01Z"
+  creationTimestamp: "2025-07-13T00:17:46Z"
   labels:
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
     kubescape.io/workload-name: bob-redis-master
     kubescape.io/workload-namespace: bob
-    kubescape.io/workload-resource-version: "8659"
-  name: statefulset-bob-redis-master-849b7c549c
+    kubescape.io/workload-resource-version: "17954"
+  name: statefulset-bob-redis-master-7cfb6d58df
   namespace: bob
   resourceVersion: "3"
-  uid: 4ee89428-a16a-4e76-9233-4298560b7290
+  uid: ccc59930-b946-48d2-9a65-2edb926c0875
 spec:
   architectures:
   - amd64
@@ -30,13 +30,18 @@ spec:
     endpoints: null
     execs:
     - args:
+      - /bin/bash
+      - -c
       - /opt/bitnami/scripts/start-scripts/start-master.sh
-      path: /opt/bitnami/scripts/start-scripts/start-master.sh
+      path: /bin/bash
     - args:
       - /usr/bin/cp
       - /opt/bitnami/redis/mounted-etc/master.conf
       - /opt/bitnami/redis/etc/master.conf
       path: /usr/bin/cp
+    - args:
+      - /opt/bitnami/scripts/start-scripts/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/start-master.sh
     - args:
       - /usr/bin/cp
       - /opt/bitnami/redis/mounted-etc/redis.conf
@@ -53,14 +58,9 @@ spec:
       - --include
       - /opt/bitnami/redis/etc/master.conf
       path: /opt/bitnami/redis/bin/redis-server
-    - args:
-      - /bin/bash
-      - -c
-      - /opt/bitnami/scripts/start-scripts/start-master.sh
-      path: /bin/bash
     identifiedCallStacks: null
-    imageID: docker.io/bitnami/redis@sha256:5261cae9e4076b75d114e6bb032a0699c50b004ea06a680a5304c4c08d286adb
-    imageTag: docker.io/bitnami/redis:7.2.5-debian-12-r0
+    imageID: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
+    imageTag: docker.io/bitnami/redis:8.0.3-debian-12-r1
     name: redis
     opens:
     - flags:
@@ -113,13 +113,13 @@ spec:
       path: /opt/bitnami/redis/etc/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/..2025_07_12_22_23_59.525730846/master.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_13_00_15_41.2130563978/master.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/..2025_07_12_22_23_59.525730846/redis.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_13_00_15_41.2130563978/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/scripts/start-scripts/..2025_07_12_22_23_59.2433294672/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/..2025_07_13_00_15_41.1517824776/start-master.sh
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -167,6 +167,10 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libm.so.6
     - flags:
       - O_CLOEXEC
@@ -180,6 +184,10 @@ spec:
       - O_CLOEXEC
       - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libssl.so.3
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -226,35 +234,24 @@ spec:
     - capget
     - capset
     - chdir
-    - chmod
     - clone
     - close
     - close_range
     - connect
     - copy_file_range
     - dup2
-    - dup3
     - epoll_create
-    - epoll_create1
     - epoll_ctl
     - epoll_pwait
     - epoll_wait
-    - eventfd2
     - execve
     - exit
     - exit_group
-    - faccessat
     - faccessat2
     - fadvise64
-    - fchdir
-    - fchmodat
     - fchown
-    - fchownat
     - fcntl
     - fdatasync
-    - fsconfig
-    - fsmount
-    - fsopen
     - fstat
     - fstatfs
     - fsync
@@ -272,63 +269,44 @@ spec:
     - gettid
     - getuid
     - ioctl
-    - keyctl
     - listen
     - lseek
-    - lstat
     - madvise
     - mkdir
-    - mkdirat
-    - mknodat
     - mmap
-    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
     - open
-    - open_tree
     - openat
-    - openat2
     - pipe2
-    - pivot_root
     - prctl
     - pread64
     - prlimit64
     - read
     - readlink
-    - readlinkat
     - recvfrom
     - rename
-    - rmdir
     - rseq
     - rt_sigaction
     - rt_sigprocmask
     - rt_sigreturn
     - sched_getaffinity
-    - sched_yield
     - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
     - setitimer
-    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
-    - stat
     - statfs
-    - statx
-    - symlinkat
     - sysinfo
-    - tgkill
     - tkill
     - umask
-    - umount2
     - uname
-    - unlink
-    - unlinkat
     - wait4
     - write
 status: {}

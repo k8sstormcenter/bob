@@ -29,8 +29,8 @@ redis:
   architecture: standalone
   image:
     repository: bitnami/redis
-    tag: 8.0.3-debian-12-r1
-   # digest: sha256:5261cae9e4076b75d114e6bb032a0699c50b004ea06a680a5304c4c08d286adb
+    #tag: 8.0.3-debian-12-r1
+    digest: sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
   auth:
     enabled: false
   resources:
@@ -52,10 +52,10 @@ redis:
 bob:
   clusterName: "bobexample"
   #if set to false, the bob supplied by the vendor is not installed
-  create: false
+  create: true
   # this gets overwritten in the two step release process #this is hackish
-  templateHash: "849b7c549c" #orig image 
+  templateHash: "7cfb6d58df" #orig image 
   # this adds/removes an annotation to the entire deployment for kubescape to ignore it
   ignore: false
-  imageID: docker.io/bitnami/redis@sha256:5261cae9e4076b75d114e6bb032a0699c50b004ea06a680a5304c4c08d286adb
+  imageID: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
   imageTag: docker.io/bitnami/redis:8.0.3-debian-12-r1

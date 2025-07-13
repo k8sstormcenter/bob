@@ -1,4 +1,4 @@
-{{- if .Values.bob.create -}}
+{{- if .Values.bob.create }}
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
@@ -34,13 +34,18 @@ spec:
     endpoints: null
     execs:
     - args:
+      - /bin/bash
+      - -c
       - /opt/bitnami/scripts/start-scripts/start-master.sh
-      path: /opt/bitnami/scripts/start-scripts/start-master.sh
+      path: /bin/bash
     - args:
       - /usr/bin/cp
       - /opt/bitnami/redis/mounted-etc/master.conf
       - /opt/bitnami/redis/etc/master.conf
       path: /usr/bin/cp
+    - args:
+      - /opt/bitnami/scripts/start-scripts/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/start-master.sh
     - args:
       - /usr/bin/cp
       - /opt/bitnami/redis/mounted-etc/redis.conf
@@ -57,11 +62,6 @@ spec:
       - --include
       - /opt/bitnami/redis/etc/master.conf
       path: /opt/bitnami/redis/bin/redis-server
-    - args:
-      - /bin/bash
-      - -c
-      - /opt/bitnami/scripts/start-scripts/start-master.sh
-      path: /bin/bash
     identifiedCallStacks: null
     imageID: {{ .Values.bob.imageID }}
     imageTag: {{ .Values.bob.imageTag }}
@@ -117,13 +117,13 @@ spec:
       path: /opt/bitnami/redis/etc/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/⋯/master.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_13_00_15_41.2130563978/master.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/redis/mounted-etc/⋯/redis.conf
+      path: /opt/bitnami/redis/mounted-etc/..2025_07_13_00_15_41.2130563978/redis.conf
     - flags:
       - O_RDONLY
-      path: /opt/bitnami/scripts/start-scripts/⋯/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/..2025_07_13_00_15_41.1517824776/start-master.sh
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -171,6 +171,10 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libm.so.6
     - flags:
       - O_CLOEXEC
@@ -184,6 +188,10 @@ spec:
       - O_CLOEXEC
       - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libssl.so.3
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -230,35 +238,24 @@ spec:
     - capget
     - capset
     - chdir
-    - chmod
     - clone
     - close
     - close_range
     - connect
     - copy_file_range
     - dup2
-    - dup3
     - epoll_create
-    - epoll_create1
     - epoll_ctl
     - epoll_pwait
     - epoll_wait
-    - eventfd2
     - execve
     - exit
     - exit_group
-    - faccessat
     - faccessat2
     - fadvise64
-    - fchdir
-    - fchmodat
     - fchown
-    - fchownat
     - fcntl
     - fdatasync
-    - fsconfig
-    - fsmount
-    - fsopen
     - fstat
     - fstatfs
     - fsync
@@ -276,63 +273,44 @@ spec:
     - gettid
     - getuid
     - ioctl
-    - keyctl
     - listen
     - lseek
-    - lstat
     - madvise
     - mkdir
-    - mkdirat
-    - mknodat
     - mmap
-    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
     - open
-    - open_tree
     - openat
-    - openat2
     - pipe2
-    - pivot_root
     - prctl
     - pread64
     - prlimit64
     - read
     - readlink
-    - readlinkat
     - recvfrom
     - rename
-    - rmdir
     - rseq
     - rt_sigaction
     - rt_sigprocmask
     - rt_sigreturn
     - sched_getaffinity
-    - sched_yield
     - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
     - setitimer
-    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
-    - stat
     - statfs
-    - statx
-    - symlinkat
     - sysinfo
-    - tgkill
     - tkill
     - umask
-    - umount2
     - uname
-    - unlink
-    - unlinkat
     - wait4
     - write
-{{- end }}
+{{-end }}
