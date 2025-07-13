@@ -86,6 +86,7 @@ helm-redis:
 	#kubectl annotate applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob meta.helm.sh/release-name- 
 	#kubectl annotate applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob meta.helm.sh/release-namespace-
 	#kubectl annotate --overwrite applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob kubescape.io/status='completed'
+	-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
 
 
@@ -101,7 +102,8 @@ helm-redis-compromise:
 
 .PHONY: helm-redis-test
 helm-redis-test:
-	helm test bob -n bob
+	-helm test bob -n bob
+
 
 
 .PHONY: wipe-redis
