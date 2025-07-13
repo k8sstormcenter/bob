@@ -73,7 +73,7 @@ jobs:
           echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
-          kubectl get applicationprofile -n bob -o yaml
+          #kubectl get applicationprofile -n bob -o yaml
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
           sleep 25
           kubectl logs -n honey -l app=node-agent 
@@ -83,8 +83,8 @@ jobs:
           make helm-redis-compromise
           echo "Checking for unexpected anomalies in Kubescape logs..."
           kubectl get applicationprofile -n bob -o yaml
-          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
           sleep 25
+          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
           kubectl logs -n honey -l app=node-agent 
 
 

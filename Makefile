@@ -101,7 +101,7 @@ helm-redis:
 .PHONY: helm-redis-compromise
 helm-redis-compromise: 	
 	@echo "Installing a compromised redis with original bob"
-	kubectl delete -n bob applicationprofile statefulset-bob-redis-master-$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')
+	#kubectl delete -n bob applicationprofile statefulset-bob-redis-master-$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')
 	helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
 	-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
