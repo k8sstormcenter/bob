@@ -87,7 +87,7 @@ jobs:
           make helm-redis-compromise
           sleep 10
           echo "Checking for unexpected anomalies in Kubescape logs..."
-          kubectl logs -n honey -l app=node-agent |jq
+          kubectl logs -n honey -l app=node-agent 
           kubectl describe applicationprofile -n bob
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
 
