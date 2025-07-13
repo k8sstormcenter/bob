@@ -1,13 +1,13 @@
-name: Publish Helm Chart to OCI Registry
+name: Publish Redis Helm Chart to OCI Registry
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'mywebapp-chart/**'
-      - '.github/workflows/publish-oci-helmchart.yaml'
-  #pull_request:
+      - 'myredis-umbrella-chart/**'
+      - '.github/workflows/publish-oci-helmchart_redis.yaml'
+  pull_request:
     
 
 jobs:
@@ -34,9 +34,11 @@ jobs:
 
       - name: Package Helm chart
         run: |
-          helm package mywebapp-chart
-          export CHART_VERSION=$(yq '.version' mywebapp-chart/Chart.yaml)
-          export CHART_NAME=$(yq '.name' mywebapp-chart/Chart.yaml)
+          cd myredis-umbrella-chart
+          helm dependency update redis-bob
+          helm package redis-bob
+          export CHART_VERSION=$(yq '.version' redis-bob/Chart.yaml)
+          export CHART_NAME=$(yq '.name' redis-bob/Chart.yaml)
           echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
           echo "CHART_NAME=$CHART_NAME" >> $GITHUB_ENV
 
@@ -63,4 +65,5 @@ jobs:
 
       - name: Push Helm chart to OCI registry
         run: |
+          cd myredis-umbrella-chart
           helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter

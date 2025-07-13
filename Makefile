@@ -71,7 +71,45 @@ helm-install:
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
+# for when we know the hash upfront:
+#helm upgrade --install bob -n bob --create-namespace --set bob.create=true ./myredis-umbrella-chart/redis-bob
 
+.PHONY: helm-redis
+helm-redis: 
+	@echo "Installing redis..."
+	helm dependency update myredis-umbrella-chart/redis-bob/
+	helm repo update 
+	helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob
+	helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-') ./myredis-umbrella-chart/redis-bob
+	#-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
+	#helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml
+	#kubectl annotate applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob meta.helm.sh/release-name- 
+	#kubectl annotate applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob meta.helm.sh/release-namespace-
+	#kubectl annotate --overwrite applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob kubescape.io/status='completed'
+	-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
+
+
+
+
+.PHONY: helm-redis-compromise
+helm-redis-compromise: 	
+	@echo "Installing a compromised redis with original bob"
+	helm dependency update myredis-umbrella-chart/redis-bob/
+	helm repo update 
+	helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
+		
+
+
+.PHONY: helm-redis-test
+helm-redis-test:
+	-helm test bob -n bob
+
+
+
+.PHONY: wipe-redis
+wipe-redis:
+	-$(HELM) uninstall -n bob bob
+	-kubectl delete namespace bob
 
 .PHONY: helm-test
 helm-test:
@@ -98,14 +136,15 @@ attack:
 	sleep 30
 
 .PHONY: kubescape
-kubescape:
+kubescape: storage
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values.yaml
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
-	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout=120s
+	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
+	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
 
 
 

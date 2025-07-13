@@ -1,0 +1,89 @@
+name: Test Bill of Behaviour on different Kernels
+
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04] # ubuntu-24.04]
+        k8s-distribution: [k3s, kind]  #fix k0s
+        kubernetes-version: [v1.27.3] #,  v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+    runs-on: ${{ matrix.os }}
+
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kind Cluster
+        if: matrix.k8s-distribution == 'kind'
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+
+      - name: Set up k3s Cluster
+        if: matrix.k8s-distribution == 'k3s'
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+
+      - name: Verify function of k8s, kubectl, and helm
+        run: |
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+
+          helm version
+          helm list
+
+      - name: Execute kubescape
+        run: |
+          make kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+
+
+
+      - name: Run helm install for redis
+        run: |
+          make helm-redis
+          kubectl logs -n bob pods/bob-redis-master-0 redis 
+          #kubectl describe -n bob applicationprofiles.spdx.softwarecomposition.kubescape.io
+          kubectl logs -n honey -l app=node-agent 
+
+
+      - name: Run helm test
+        continue-on-error: true
+        run: |
+          make helm-redis-test
+          echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent |grep "Unexpected"|jq
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+          kubectl describe applicationprofile -n bob
+
+      - name: Run Supply Chain SwitchOut (change redis image but not bob)
+        run: |
+          make helm-redis-compromise
+          echo "Checking for unexpected anomalies in Kubescape logs..."
+          kubectl logs -n honey -l app=node-agent |jq
+          kubectl describe applicationprofile -n bob
+
+
+
+

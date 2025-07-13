@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "redis-bob.fullname" . }}-test-attack"
+  labels:
+    {{- include "redis-bob.labels" . | nindent 4 }}
+    kubescape.io/ignore: "true"
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: redis-attack-test
+      image: instrumentisto/nmap
+
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -ex
+          export REDIS_HOST="bob-redis-master.bob.svc.cluster.local"
+          export REDIS_PORT=6379
+          SERVICE="{{ include "redis-bob.fullname" . }}"
+          NAMESPACE="{{ .Release.Namespace }}"
+          URL="${REDIS_HOST}.${NAMESPACE}.svc.cluster.local"
+          echo "--- Starting Advanced Attack Simulation Test ---"
+
+         
+          echo "1. Installing python..."
+          apk update
+          apk add --no-cache python3 py3-redis
+
+
+          echo "2. Using nmap to scan the Redis host..."
+          nmap bob-redis-master.bob.svc.cluster.local -p 6379 -Pn
+          nmap bob-redis-master.bob.svc.cluster.local -p 6379 -Pn --script redis-info
+          nmap bob-redis-master.bob.svc.cluster.local -p 6379 -Pn --script redis-brute
+
+
+
+
+          echo "3. Using python to connect to Redis and enumerate keys..."
+          python3 -c "
+          import redis, os
+          r = redis.Redis(host=os.getenv('REDIS_HOST'), port=int(os.getenv('REDIS_PORT')), db=0, decode_responses=True)
+          print(f'Pinging Redis at {os.getenv(\"REDIS_HOST\")}:{os.getenv(\"REDIS_PORT\")} -> {r.ping()}')
+          print('Writing a malicious key...')
+          r.set('malicious_key', 'hacked_by_test')
+          print('Enumerating all keys in Redis...')
+          all_keys = r.keys('*')
+          print(f'Found keys: {all_keys}')
+          print('Cleaning up malicious key...')
+          r.delete('malicious_key')
+          "
+
+          echo "--- Advanced Attack Simulation Test Complete ---"

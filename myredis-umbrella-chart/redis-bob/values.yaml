@@ -1,0 +1,61 @@
+# Default values for redis-bob.
+kubescape-operator:
+  enabled: true
+  nodeAgent:
+    config:
+      maxLearningPeriod: 5m
+      learningPeriod: 2m
+      updatePeriod: 1m
+      ruleCooldown:
+        ruleCooldownDuration: 0h
+        ruleCooldownAfterCount: 1000000000
+        ruleCooldownOnProfileFailure: false
+        ruleCooldownMaxSize: 20000
+  capabilities:
+    runtimeDetection: "enable"
+    networkEventsStreaming: "disable"
+    configurations:
+      persistence: false
+  alertCRD:
+    installDefault: true
+    scopeClustered: true
+  clusterName: bobexample
+  ksNamespace: bob ## You MUST install the whole umbrella into the same ns, at the moment -> rewrite into helmfile is known issue
+  excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs,kube-flannel,ingress-nginx,olm,pl,px-operator"
+
+
+
+redis: 
+  architecture: standalone
+  image:
+    repository: bitnami/redis
+    #tag: 8.0.3-debian-12-r1
+    digest: sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
+  auth:
+    enabled: false
+  resources:
+    requests:
+      cpu: 2
+      memory: 512Mi
+    limits:
+      cpu: 3
+      memory: 1024Mi
+  master:
+    pdb:
+      minAvailable: 0
+    livenessProbe:
+      enabled: false
+    readinessProbe:
+      enabled: false
+
+
+bob:
+  clusterName: "bobexample"
+  #if set to false, the bob supplied by the vendor is not installed
+  create: true
+  # this gets overwritten in the two step release process #this is hackish
+  templateHash: "668c4559b4" #orig image 
+  # this adds/removes an annotation to the entire deployment for kubescape to ignore it
+  ignore: false
+  imageID: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
+  imageTag: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
