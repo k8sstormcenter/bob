@@ -3,18 +3,12 @@ apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
   annotations:
-    # Helm hooks to ensure this CR is created after the kubescape-operator CRD is ready.
-   # "helm.sh/hook": post-install,post-upgrade
-   # "helm.sh/hook-weight": "10"
-   # "helm.sh/hook-delete-policy": "hook-failed"
-   # this is a copy of redis_pure_noprobes.yaml -> with the container SHA removed so we can pretend we see a supply chain compromise
     kubescape.io/completion: complete
     kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-bob-redis-master-{{ .Values.bob.templateHash }}
     kubescape.io/status: completed
     kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-bob-redis-master 
   labels:
-    kubescape.io/instance-template-hash: {{ .Values.bob.templateHash | quote }}
-   # kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
+    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
@@ -313,4 +307,4 @@ spec:
     - uname
     - wait4
     - write
-{{- end }}
+{{-end }}
