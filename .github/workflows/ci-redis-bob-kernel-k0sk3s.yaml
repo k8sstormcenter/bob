@@ -71,11 +71,13 @@ jobs:
           make helm-redis-test
           echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
           kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent |grep "Unexpected"|jq
+          kubectl logs -n honey -l app=node-agent |grep Unexpected|jq
+          kubectl logs -n honey -l app=node-agent 
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
           kubectl describe applicationprofile -n bob
+          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
 
       - name: Run Supply Chain SwitchOut (change redis image but not bob)
         run: |
