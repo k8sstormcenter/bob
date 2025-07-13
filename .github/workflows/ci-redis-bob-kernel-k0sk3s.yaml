@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04] # ubuntu-24.04]
-        k8s-distribution: [k3s ] # , kind  #fix k0s
+        k8s-distribution: [k3s, kind]  #fix k0s
         kubernetes-version: [v1.27.3] #,  v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
@@ -60,12 +60,13 @@ jobs:
         run: |
           make helm-redis
           kubectl logs -n bob pods/bob-redis-master-0 redis 
-          kubectl describe -n bob applicationprofiles.spdx.softwarecomposition.kubescape.io
+          #kubectl describe -n bob applicationprofiles.spdx.softwarecomposition.kubescape.io
+          kubectl logs -n honey -l app=node-agent 
 
 
       - name: Run helm test
         run: |
-          make helm-redis test
+          make helm-redis-test
           echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=node-agent |grep "Unexpected"|jq
