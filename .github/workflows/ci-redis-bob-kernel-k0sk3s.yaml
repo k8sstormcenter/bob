@@ -46,7 +46,7 @@ jobs:
 
       - name: Execute kubescape
         run: |
-          make storage kubescape
+          make kubescape
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=node-agent 

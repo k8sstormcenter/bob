@@ -142,6 +142,7 @@ kubescape: storage
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
 	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
+	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
 
 
 
