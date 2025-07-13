@@ -49,7 +49,7 @@ jobs:
           make storage kubescape
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent | grep -v ping_liveness| grep -v ping_readiness_local.sh
+          kubectl logs -n honey -l app=node-agent 
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
