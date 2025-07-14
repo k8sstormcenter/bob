@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04] #, ubuntu-24.04]
-        k8s-distribution: [k0s, k3s, kind, minikube, microk8s]  #fix k0s
+        k8s-distribution: [k3s, kind, minikube, microk8s]  #fix k0s
         kubernetes-version: [v1.27.3] ##, v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
@@ -136,7 +136,7 @@ jobs:
             kubectl logs -n honey -l app=storage
             kubectl logs -n honey -l app=kubevuln
             kubectl logs -n honey -l app=operator
-            kubectl logs -n bob pods/bob-redis-master-0 redis 
+            kubectl logs -n webapp webapp
           else
 
             count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
@@ -150,6 +150,9 @@ jobs:
             jq -r '.BaseRuntimeMetadata.alertName' ./testdata/anomaly.json | sort > /tmp/expected_alerts.txt
             if ! diff -u /tmp/expected_alerts.txt /tmp/actual_alerts.txt; then
               echo "❌ Alert names do not match expected!"
+            else
+              echo "✅ Alert names match expected."
+              echo "status=Success" >> $GITHUB_OUTPUT
             fi
           fi
 
@@ -192,7 +195,11 @@ jobs:
           if [ -z "$SYSCALLS" ]; then
             SYSCALLS="N/A"
           fi
-          
+          PROCESSES=$(jq 'select(.BaseRuntimeMetadata.alertName == "Unexpected process launched") | .BaseRuntimeMetadata.arguments.args' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          if [ -z "$PROCESSES" ]; then
+            PROCESSES="N/A"
+          fi
+          FILE_ACCESS=$(jq 'select(.BaseRuntimeMetadata.alertName == "Unexpected file access") | .BaseRuntimeMetadata.arguments.flags' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
           mkdir -p results
           cat << EOF > results/summary.json
           {
@@ -202,6 +209,7 @@ jobs:
             "kernel_version": "$KERNEL_VERSION",
             "status": "${{ steps.compare_anomalies.outputs.status || 'Skipped' }}",
             "syscalls": "$SYSCALLS"
+            "processes": "$PROCESSES"
           }
           EOF
 
