@@ -1,11 +1,11 @@
-name: Test Bill of Behaviour on different Kernels
+name: Test Redis Bill of Behaviour on different Kernels, Kubernetes Versions, Kubernetes Distros and OSs
 
 
 on:
   push:
     branches:
       - main
-  pull_request:
+  #pull_request:
     
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
         k8s-distribution: [k3s, kind]  #fix k0s
-        kubernetes-version: [v1.27.3, v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+        kubernetes-version: [v1.27.3, v1.29.0, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
 
