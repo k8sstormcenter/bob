@@ -143,6 +143,7 @@ jobs:
             echo "Found $count anomalies"
             if [ "$count" -ne 9 ]; then
               echo "❌ Expected 9 anomalies, but found $count"
+              echo ::set-output name=status::failure
             fi
             kubectl logs -l app=node-agent -n honey | grep  "Unexpected" > /tmp/anomalyobserved.json
             cat /tmp/anomalyobserved.json
@@ -152,7 +153,7 @@ jobs:
               echo "❌ Alert names do not match expected!"
             else
               echo "✅ Alert names match expected."
-              echo "status=Success" >> $GITHUB_OUTPUT
+              echo ::set-output name=status::success
             fi
           fi
 
@@ -200,6 +201,9 @@ jobs:
             PROCESSES="N/A"
           fi
           FILE_ACCESS=$(jq 'select(.BaseRuntimeMetadata.alertName == "Unexpected file access") | .BaseRuntimeMetadata.arguments.flags' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          if [ -z "$FILE_ACCESS" ]; then
+            FILE_ACCESS="N/A"
+          fi
           mkdir -p results
           cat << EOF > results/summary.json
           {
@@ -208,8 +212,9 @@ jobs:
             "kubernetes_version": "${{ matrix.kubernetes-version }}",
             "kernel_version": "$KERNEL_VERSION",
             "status": "${{ steps.compare_anomalies.outputs.status || 'Skipped' }}",
-            "syscalls": "$SYSCALLS"
-            "processes": "$PROCESSES"
+            "syscalls": "$SYSCALLS",
+            "processes": "$PROCESSES",
+            "file_access": "$FILE_ACCESS"
           }
           EOF
 
