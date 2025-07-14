@@ -197,11 +197,11 @@ jobs:
           if [ -z "$SYSCALLS" ]; then
             SYSCALLS="N/A"
           fi
-          PROCESSES=$(jq 'select(.BaseRuntimeMetadata.alertName == "Unexpected process launched") | .BaseRuntimeMetadata.arguments.args' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          PROCESSES=$(jq -r 'select(.BaseRuntimeMetadata.alertName == "Unexpected process launched") | .BaseRuntimeMetadata.arguments.args[]' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
           if [ -z "$PROCESSES" ]; then
             PROCESSES="N/A"
           fi
-          FILE_ACCESS=$(jq 'select(.BaseRuntimeMetadata.alertName == "Unexpected file access") | .BaseRuntimeMetadata.arguments.flags' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          FILE_ACCESS=$(jq -r 'select(.BaseRuntimeMetadata.alertName == "Unexpected file access") | .BaseRuntimeMetadata.arguments.flags[]' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,/, /g')
           if [ -z "$FILE_ACCESS" ]; then
             FILE_ACCESS="N/A"
           fi
