@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04] #, ubuntu-24.04]
-        k8s-distribution: [kind ] ##, k3s]  #fix k0s
+        k8s-distribution: [k0s, k3s]  #fix k0s
         kubernetes-version: [v1.27.3] ##, v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
@@ -28,6 +28,16 @@ jobs:
         uses: helm/kind-action@v1
         with:
           node_image: kindest/node:${{ matrix.kubernetes-version }}
+
+      - name: Set up K0s Cluster
+        if: matrix.k8s-distribution == 'k0s'
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://get.k0s.sh | sudo sh
+          sudo k0s install controller --single
+          sudo k0s start
+          sudo k0s status
+          k0s kubeconfig admin > ~/.kube/config 
+    
 
       - name: Set up k3s Cluster
         if: matrix.k8s-distribution == 'k3s'
