@@ -71,7 +71,7 @@ jobs:
 
       - name: Set up MicroK8s Cluster
         if: matrix.k8s-distribution == 'microk8s'
-        uses: canonical/setup-microk8s@v3
+        uses: balchua/microk8s-actions@v0.3.2
         with:
           channel: ${{ env.MICROK8S_CHANNEL }}
 
