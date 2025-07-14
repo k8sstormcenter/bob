@@ -5,16 +5,17 @@ on:
   push:
     branches:
       - main
-  #pull_request:
+  pull_request:
     
 
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-22.04] # ubuntu-24.04]
-        k8s-distribution: [kind ] # , k3s  #fix k0s
-        kubernetes-version: [v1.27.3] #,  v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+        os: [ubuntu-22.04] #, ubuntu-24.04]
+        k8s-distribution: [kind ] ##, k3s]  #fix k0s
+        kubernetes-version: [v1.27.3] ##, v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
 
@@ -81,8 +82,10 @@ jobs:
 
 
       - name: Run mock injection attack - count if it s 14 of them and they are the right AlertNames 
+        id: compare_anomalies
         run: |
           make attack
+          sleep 45
           kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
           count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
           echo "Found $count anomalies"
@@ -126,3 +129,62 @@ jobs:
           if ! diff -u /tmp/expected_alerts.tsv /tmp/actual_alerts.tsv; then
             echo "❌ alertName/first-argument pairs do not match expected!"
           fi
+
+      - name: Prepare result artifact
+        if: always()
+        run: |
+          KERNEL_VERSION=$(uname -r)
+          SYSCALLS=$(jq -r 'select(.BaseRuntimeMetadata.alertName == "Unexpected system call") | .BaseRuntimeMetadata.arguments.syscall' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          if [ -z "$SYSCALLS" ]; then
+            SYSCALLS="N/A"
+          fi
+          
+          mkdir -p results
+          cat << EOF > results/summary.json
+          {
+            "os": "${{ matrix.os }}",
+            "k8s_distribution": "${{ matrix.k8s-distribution }}",
+            "kubernetes_version": "${{ matrix.kubernetes-version }}",
+            "kernel_version": "$KERNEL_VERSION",
+            "status": "${{ steps.compare_anomalies.outputs.status || 'Skipped' }}",
+            "syscalls": "$SYSCALLS"
+          }
+          EOF
+
+      - name: Upload result artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: result-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+          path: results/summary.json
+
+
+  summarize:
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate summary table
+        run: |
+          echo '### Matrix Build Summary' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '| OS | K8s Distro | K8s Version | Kernel Version | Status | Observed Syscalls |' >> $GITHUB_STEP_SUMMARY
+          echo '|----|------------|---------------|----------------|--------|-------------------|' >> $GITHUB_STEP_SUMMARY
+          
+          for dir in artifacts/result-*; do
+            if [ -f "$dir/summary.json" ]; then
+              OS=$(jq -r '.os' "$dir/summary.json")
+              K8S_DISTRO=$(jq -r '.k8s_distribution' "$dir/summary.json")
+              K8S_VERSION=$(jq -r '.kubernetes_version' "$dir/summary.json")
+              KERNEL=$(jq -r '.kernel_version' "$dir/summary.json")
+              STATUS_RAW=$(jq -r '.status' "$dir/summary.json")
+              SYSCALLS=$(jq -r '.syscalls' "$dir/summary.json")
+              if [ "$STATUS_RAW" == "Success" ]; then STATUS="✅ Success"; else STATUS="❌ ${STATUS_RAW}"; fi
+              echo "| $OS | $K8S_DISTRO | $K8S_VERSION | $KERNEL | $STATUS | \`$SYSCALLS\` |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
