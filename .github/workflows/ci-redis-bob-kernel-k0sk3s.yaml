@@ -14,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
-        k8s-distribution: [k3s, kind]  #fix k0s
-        kubernetes-version: [v1.27.3, v1.29.0, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+        k8s-distribution: [k3s, kind, minikube] #fix k0s
+        kubernetes-version: [v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
 
@@ -34,6 +34,25 @@ jobs:
         uses: jupyterhub/action-k3s-helm@v4
         with:
           k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+
+      - name: Set up Minikube Cluster
+        if: matrix.k8s-distribution == 'minikube'
+        uses: medyagh/setup-minikube@master
+        with:
+          kubernetes-version: ${{ matrix.kubernetes-version }}
+
+      - name: Prepare MicroK8s channel
+        if: matrix.k8s-distribution == 'microk8s'
+        run: |
+          K8S_MAJOR_MINOR=$(echo "${{ matrix.kubernetes-version }}" | cut -d. -f1,2 | sed 's/v//')
+          echo "MICROK8S_CHANNEL=${K8S_MAJOR_MINOR}/stable" >> $GITHUB_ENV
+
+      - name: Set up MicroK8s Cluster
+        if: matrix.k8s-distribution == 'microk8s'
+        uses: balchua/microk8s-actions@v0.3.2
+        with:
+          channel: ${{ env.MICROK8S_CHANNEL }}
+          addons: '["dns", "hostpath-storage"]'
 
       - name: Verify function of k8s, kubectl, and helm
         run: |
@@ -79,15 +98,28 @@ jobs:
           kubectl logs -n honey -l app=node-agent 
           kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
           count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+          if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
+            echo "🤔 Didnt find anything, nodeagent is struggeling, here are some logs"
+            kubectl logs -n honey -l app=kubescape
+            kubectl logs -n honey -l app=node-agent
+            kubectl logs -n honey -l app=storage
+            kubectl logs -n honey -l app=kubevuln
+            kubectl logs -n honey -l app=operator
+            kubectl logs -n webapp webapp
+          else
           echo "Found $count anomalies"
           if [ "$count" -ne 5 ]; then
             echo "❌ Expected 5 anomalies, but found $count"
+            echo ::set-output name=status::failure
           fi
           kubectl logs -l app=node-agent -n honey | grep  "Unexpected" > /tmp/anomalyobserved.json
           jq -r '.BaseRuntimeMetadata.alertName' /tmp/anomalyobserved.json | sort > /tmp/actual_alerts.txt
           jq -r '.BaseRuntimeMetadata.alertName' ./testdata/redis_attack_raw.json | sort > /tmp/expected_alerts.txt
           if ! diff -u /tmp/expected_alerts.txt /tmp/actual_alerts.txt; then
             echo "❌ Alert names do not match expected!"
+          else
+            echo "✅ Alert names match expected."
+            echo ::set-output name=status::success
           fi
 
       - name: Compare alertName and first argument with expected anomalies
@@ -120,10 +152,9 @@ jobs:
           # Compare
           if ! diff -u /tmp/expected_alerts.tsv /tmp/actual_alerts.tsv; then
             echo "❌ alertName/first-argument pairs do not match expected!"
-            echo "status=Failed" >> $GITHUB_OUTPUT
           else
             echo "✅ Alert names match expected."
-            echo "status=Success" >> $GITHUB_OUTPUT
+            echo ::set-output name=status::success
           fi
 
       - name: Prepare result artifact
@@ -134,7 +165,14 @@ jobs:
           if [ -z "$SYSCALLS" ]; then
             SYSCALLS="N/A"
           fi
-          
+          PROCESSES=$(jq -r 'select(.BaseRuntimeMetadata.alertName == "Unexpected process launched") | .BaseRuntimeMetadata.arguments.args[]' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          if [ -z "$PROCESSES" ]; then
+            PROCESSES="N/A"
+          fi
+          FILE_ACCESS=$(jq -r 'select(.BaseRuntimeMetadata.alertName == "Unexpected file access") | .BaseRuntimeMetadata.arguments.flags[]' /tmp/anomalyobserved.json | sort -u | tr '\n' ',' | sed 's/,/, /g')
+          if [ -z "$FILE_ACCESS" ]; then
+            FILE_ACCESS="N/A"
+          fi
           mkdir -p results
           cat << EOF > results/summary.json
           {
@@ -143,7 +181,9 @@ jobs:
             "kubernetes_version": "${{ matrix.kubernetes-version }}",
             "kernel_version": "$KERNEL_VERSION",
             "status": "${{ steps.compare_anomalies.outputs.status || 'Skipped' }}",
-            "syscalls": "$SYSCALLS"
+            "syscalls": "$SYSCALLS",
+            "processes": "$PROCESSES",
+            "file_access": "$FILE_ACCESS"
           }
           EOF
 
@@ -153,15 +193,6 @@ jobs:
         with:
           name: result-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
           path: results/summary.json
-
-      # - name: Run Supply Chain SwitchOut (change redis image but not bob)
-      #   run: |
-      #     make helm-redis-compromise
-      #     echo "Checking for unexpected anomalies in Kubescape logs..."
-      #     kubectl get applicationprofile -n bob -o yaml
-      #     sleep 25
-      #     kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-      #     kubectl logs -n honey -l app=node-agent 
 
 
   summarize:
@@ -178,8 +209,8 @@ jobs:
         run: |
           echo '### Matrix Build Summary' >> $GITHUB_STEP_SUMMARY
           echo '' >> $GITHUB_STEP_SUMMARY
-          echo '| OS | K8s Distro | K8s Version | Kernel Version | Status | Observed Syscalls |' >> $GITHUB_STEP_SUMMARY
-          echo '|----|------------|---------------|----------------|--------|-------------------|' >> $GITHUB_STEP_SUMMARY
+          echo '| OS | K8s Distro | K8s Version | Kernel Version | Status | Observed Syscalls | Observed Processes | Observed File Access |' >> $GITHUB_STEP_SUMMARY
+          echo '|----|------------|---------------|----------------|--------|-------------------|--------------------|----------------------|' >> $GITHUB_STEP_SUMMARY
           
           for dir in artifacts/result-*; do
             if [ -f "$dir/summary.json" ]; then
@@ -189,7 +220,9 @@ jobs:
               KERNEL=$(jq -r '.kernel_version' "$dir/summary.json")
               STATUS_RAW=$(jq -r '.status' "$dir/summary.json")
               SYSCALLS=$(jq -r '.syscalls' "$dir/summary.json")
-              if [ "$STATUS_RAW" == "Success" ]; then STATUS="✅ Success"; else STATUS="❌ ${STATUS_RAW}"; fi
-              echo "| $OS | $K8S_DISTRO | $K8S_VERSION | $KERNEL | $STATUS | \`$SYSCALLS\` |" >> $GITHUB_STEP_SUMMARY
+              PROCESSES=$(jq -r '.processes' "$dir/summary.json")
+              FILE_ACCESS=$(jq -r '.file_access' "$dir/summary.json")
+              if [ "$STATUS_RAW" == "success" ]; then STATUS="✅ Success"; else STATUS="❌ ${STATUS_RAW}"; fi
+              echo "| $OS | $K8S_DISTRO | $K8S_VERSION | $KERNEL | $STATUS | \`$SYSCALLS\` | \`$PROCESSES\` | \`$FILE_ACCESS\` |" >> $GITHUB_STEP_SUMMARY
             fi
           done
