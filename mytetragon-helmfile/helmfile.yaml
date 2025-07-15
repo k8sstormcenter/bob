@@ -1,0 +1,41 @@
+# Helmfile for deploying runtime security tools: Kubescape and Tetragon
+
+hooks:
+  - name: Apply OpenEBS StorageClass
+    events:
+      - presync
+    command: "kubectl"
+    args:
+      - "apply"
+      - "-f"
+      - "../https://openebs.github.io/charts/openebs-operator-lite.yaml"
+      - "../https://openebs.github.io/charts/openebs-lite-sc.yaml"
+      - "../storage/sc.yaml" 
+      #- patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+repositories:
+  - name: kubescape
+    url: https://kubescape.github.io/helm-charts/
+
+  - name: cilium
+    url: https://helm.cilium.io/
+
+releases:
+  - name: kubescape
+    namespace: honey
+    chart: kubescape/kubescape-operator
+    version: "1.28.0" 
+    createNamespace: true
+    values:
+      - ../kubescape/values.yaml
+
+  - name: tetragon
+    namespace: tetragon 
+    chart: cilium/tetragon
+    #version: "1.1.0" # Using a recent stable version
+    createNamespace: true
+    values:
+      - tetragon:
+          exportDenyList: |-
+            {"health_check":true}
+            {"namespace":["", "storm","cert-manager","honey","cilium","kube-system","gmp-system", "pl","olm","px-operator"]}
