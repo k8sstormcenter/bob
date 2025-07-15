@@ -7,15 +7,29 @@ This empowers powerful, signature-less anomaly detection, allowing end-users to 
 
 
 ## Origin Story
-London KubeCon EU 25, Peter Constanze and David are talking about stuff, probably Constanze expressed her unhappyness about SBOMs ...  
-pause   
-like "Why, dont we attach something like Kubescape's ApplicationProfile to OCI Artefacts of all Software? People could inherit Runtime Rules .... from the people who know the Rules, cause they made the Software... "   
-@prossbach what did you say at this point - I dont remember 
 
-And then she asked Vadim, if that d work... with Harbor  
-And then she asked Matthias, if that d work... with Kubescape  
+Peter, Constanze, and David are catching up over coffee at London KubeCon EU 2025, discussing the complexities of modern software delivery and security.
 
-And so far, it looks like it `just works`.
+Constanze sighs, “You know, I’m really frustrated with how we deal with SBOMs. It’s still way too difficult to transfer and adapt ApplicationProfiles for different customers. Every setup is a little different—different CPU architectures, different runtime policies, and we end up managing way too much variance manually.”
+
+Peter looks thoughtful. “Wait—can you remind me again what exactly these Bills of Materials look like? Are they just SBOM documents?”
+
+“Well,” Constanze replies, “they’re similar in spirit to an SBOM—machine-readable descriptions of what’s running—but they go beyond just listing packages. They’re more like Flux configurations or Falco policies, specific to a container image and tailored to a customer’s setup.”
+
+Peter raises an eyebrow. “So why don’t we treat them as first-class OCI artifacts? Imagine generating a custom artifact per container and customizing it using Kustomize or Helm templates. You could even attach Kubescape’s ApplicationProfiles as additional OCI layers—”
+
+He leans forward, excited. “—and then users could inherit runtime rules directly from the people who built the software, not reinvent them later. If the original authors encode those rules once, everyone downstream benefits.”
+
+Constanze pauses, visibly intrigued. “That… actually makes a lot of sense.”
+
+Peter nods. “With modern OCI registries, you can attach new artifacts and reference existing images. I mean, I don’t have much time right now—but this feels like the right direction for a prototype. You can even sign the BoB artifact, so it becomes a trusted, native part of the cloud-native ecosystem. What do you both think?
+
+Constanze smiles. “I really like that idea.”
+
+She quickly messages Vadim: “Would this work with Harbor?”
+Then she pings Matthias: “Could we get this working with Kubescape?”
+
+And surprisingly, the early signals are promising. So far, it looks like… it just works.
 
 ## Understanding the Use Cases
 
