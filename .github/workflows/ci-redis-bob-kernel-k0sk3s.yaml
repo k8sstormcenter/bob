@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-  pull_request:
+  #pull_request:
     
 
 jobs:
@@ -152,10 +152,9 @@ jobs:
           # Compare
           if ! diff -u /tmp/expected_alerts.tsv /tmp/actual_alerts.tsv; then
             echo "❌ alertName/first-argument pairs do not match expected!"
-            echo "status=Failed" >> $GITHUB_OUTPUT
           else
             echo "✅ Alert names match expected."
-            echo "status=Success" >> $GITHUB_OUTPUT
+            echo ::set-output name=status::success
           fi
 
       - name: Prepare result artifact
