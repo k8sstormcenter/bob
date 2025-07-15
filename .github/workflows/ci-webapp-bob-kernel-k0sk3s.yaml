@@ -76,7 +76,7 @@ jobs:
         uses: balchua/microk8s-actions@v0.3.2
         with:
           channel: ${{ env.MICROK8S_CHANNEL }}
-          addons: dns storage
+          addons: '["dns", "hostpath-storage"]'
 
       - name: Verify function of k8s, kubectl, and helm
         run: |
