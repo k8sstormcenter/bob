@@ -14,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
-        k8s-distribution: [k3s, kind, minikube, microk8s] #fix k0s
-        kubernetes-version: [v1.31.0] #[v1.27.3, v1.28.0, v1.29.0, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+        k8s-distribution: [k3s, kind, minikube] #fix k0s
+        kubernetes-version: [v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
 
@@ -34,6 +34,12 @@ jobs:
         uses: jupyterhub/action-k3s-helm@v4
         with:
           k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+
+      - name: Set up Minikube Cluster
+        if: matrix.k8s-distribution == 'minikube'
+        uses: medyagh/setup-minikube@master
+        with:
+          kubernetes-version: ${{ matrix.kubernetes-version }}
 
       - name: Prepare MicroK8s channel
         if: matrix.k8s-distribution == 'microk8s'
