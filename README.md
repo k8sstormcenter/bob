@@ -14,9 +14,11 @@ Constanze sighs, “You know, I’m really frustrated with how we deal with SBOM
 
 Peter looks thoughtful. “Wait—can you remind me again what exactly these Bills of Materials look like? Are they just SBOM documents?”
 
-“Well,” Constanze replies, “they’re similar in spirit to an SBOM—machine-readable descriptions of what’s running—but they go beyond just listing packages. They’re more like Flux configurations or Falco policies, specific to a container image and tailored to a customer’s setup.”
+“Well,” Constanze replies, “they’re similar in spirit to an SBOM—machine-readable descriptions of what’s running—but they go beyond just listing packages.
 
-Peter raises an eyebrow. “So why don’t we treat them as first-class OCI artifacts? Imagine generating a custom artifact per container and customizing it using Kustomize or Helm templates. You could even attach Kubescape’s ApplicationProfiles as additional OCI layers—”
+Peter raises an eyebrow. “OK, they’re more like Flux configurations or Falco policies, specific to a container image and tailored to a customer’s setup."
+So why don’t we treat them as first-class OCI artifacts? Imagine generating a custom artifact per container and customizing it using Kustomize or Helm templates.
+You could even attach Kubescape’s ApplicationProfiles as additional OCI layers—”
 
 He leans forward, excited. “—and then users could inherit runtime rules directly from the people who built the software, not reinvent them later. If the original authors encode those rules once, everyone downstream benefits.”
 
