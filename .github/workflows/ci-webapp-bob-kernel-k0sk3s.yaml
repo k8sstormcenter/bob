@@ -13,9 +13,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04] #, ubuntu-24.04]
+        os: [ubuntu-22.04, ubuntu-24.04]
         k8s-distribution: [k3s, kind, minikube, microk8s]  #fix k0s
-        kubernetes-version: [v1.27.3] ##, v1.29.0, v1.30.0, v1.31.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+        kubernetes-version: [v1.27.3,v1.28.0, v1.29.0, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
 
@@ -254,7 +254,7 @@ jobs:
               SYSCALLS=$(jq -r '.syscalls' "$dir/summary.json")
               PROCESSES=$(jq -r '.processes' "$dir/summary.json")
               FILE_ACCESS=$(jq -r '.file_access' "$dir/summary.json")
-              if [ "$STATUS_RAW" == "Success" ]; then STATUS="✅ Success"; else STATUS="❌ ${STATUS_RAW}"; fi
+              if [ "$STATUS_RAW" == "success" ]; then STATUS="✅ Success"; else STATUS="❌ ${STATUS_RAW}"; fi
               echo "| $OS | $K8S_DISTRO | $K8S_VERSION | $KERNEL | $STATUS | \`$SYSCALLS\` | \`$PROCESSES\` | \`$FILE_ACCESS\` |" >> $GITHUB_STEP_SUMMARY
             fi
           done
