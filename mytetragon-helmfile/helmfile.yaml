@@ -49,6 +49,13 @@ releases:
           - "local-hostpath"
           - "-p"
           - '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+      - name: Override RuntimeRuleAlertBinding
+        events: ["postsync"]
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "../kubescape/runtimerules.yaml"
 
         
 
