@@ -29,6 +29,8 @@ releases:
     chart: kubescape/kubescape-operator
     version: "1.28.0" 
     createNamespace: true
+    wait: true
+    timeout: 600
     values:
       - ../kubescape/values.yaml
     disableValidation: true
@@ -63,9 +65,26 @@ releases:
     namespace: tetragon 
     chart: cilium/tetragon
     version: "1.4.1" 
+    needs:
+      - honey/kubescape
     createNamespace: true
     values:
       - tetragon:
           exportDenyList: |-
             {"health_check":true}
             {"namespace":["", "storm","cert-manager","honey","cilium","kube-system","gmp-system", "pl","olm","px-operator"]}
+    hooks:
+      - name: bobtetragonoperator
+        events: ["prepare"]
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "./rstetragonbob.yaml"
+      - name: tetragonbob
+        events: ["prepare"]
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "./dstetragonbob.yaml"
