@@ -16,8 +16,6 @@ hooks:
       - "-f"
       - "https://openebs.github.io/charts/openebs-lite-sc.yaml"
 
-      #- patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-
 repositories:
   - name: kubescape
     url: https://kubescape.github.io/helm-charts/
@@ -41,18 +39,26 @@ releases:
         args:
           - "apply"
           - "-f"
-          - "../storage/sc.yaml" 
+          - "../storage/sc.yaml"
+      - name: Set local-hostpath as default StorageClass
+        events: ["presync"]
+        command: "kubectl"
+        args:
+          - "patch"
+          - "storageclass"
+          - "local-hostpath"
+          - "-p"
+          - '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
         
 
   - name: tetragon
     namespace: tetragon 
     chart: cilium/tetragon
-    version: "1.4.1" # Using a recent stable version
+    version: "1.4.1" 
     createNamespace: true
     values:
       - tetragon:
           exportDenyList: |-
             {"health_check":true}
             {"namespace":["", "storm","cert-manager","honey","cilium","kube-system","gmp-system", "pl","olm","px-operator"]}
-
