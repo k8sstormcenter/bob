@@ -1,5 +1,8 @@
 # Software Bill of Behaviour - Tooling `bobctl`
 
+<img width="1475" height="746" alt="Screenshot 2025-07-16 at 22 49 26" src="https://github.com/user-attachments/assets/d9766e8c-33e4-4d4b-b318-8b7109150e35" />
+
+
 We introduce the “Bill of Behavior” (BoB): a vendor-supplied profile detailing known benign runtime behaviors for software, designed to be distributed directly within OCI artifacts. 
 Generated using eBPF, a BoB codifies expected syscalls, file access patterns, network communications, and capabilities. 
 This empowers powerful, signature-less anomaly detection, allowing end-users to infer malicious activity or tampering in third-party software without the current burden of authoring and maintaining complex, custom security rules.
