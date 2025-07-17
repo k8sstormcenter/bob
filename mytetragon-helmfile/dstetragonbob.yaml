@@ -1,3 +1,4 @@
+#Linux dev-machine 5.10.238 #1 SMP Tue Jun 10 21:13:01 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux#k8s
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
@@ -110,6 +111,7 @@ spec:
     - getpid
     - getppid
     - getuid
+    - gettid
     - lseek
     - madvise
     - mmap
@@ -133,6 +135,7 @@ spec:
     - sigaltstack
     - stat
     - tgkill
+    - tkill
     - wait4
     - write
   - capabilities:

@@ -43,8 +43,6 @@ releases:
           - "-f"
           - "../storage/sc.yaml"
       - name: Set local-hostpath as default StorageClass
-        events: ["presync"]
-        command: "kubectl"
         args:
           - "patch"
           - "storageclass"
@@ -59,8 +57,6 @@ releases:
           - "-f"
           - "../kubescape/runtimerules.yaml"
 
-        
-
   - name: tetragon
     namespace: tetragon 
     chart: cilium/tetragon
@@ -73,16 +69,17 @@ releases:
           exportDenyList: |-
             {"health_check":true}
             {"namespace":["", "storm","cert-manager","honey","cilium","kube-system","gmp-system", "pl","olm","px-operator"]}
+    disableValidation: true
     hooks:
       - name: bobtetragonoperator
-        events: ["prepare"]
+        events: ["postsync"]
         command: "kubectl"
         args:
           - "apply"
           - "-f"
           - "./rstetragonbob.yaml"
       - name: tetragonbob
-        events: ["prepare"]
+        events: ["postsync"]
         command: "kubectl"
         args:
           - "apply"

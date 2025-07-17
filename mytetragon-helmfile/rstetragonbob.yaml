@@ -1,3 +1,4 @@
+#Linux dev-machine 5.10.238 #1 SMP Tue Jun 10 21:13:01 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux#k8s
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
@@ -7,7 +8,6 @@ metadata:
     kubescape.io/status: completed
     kubescape.io/wlid: wlid://cluster-bobexample/namespace-tetragon/deployment-tetragon-operator
   labels:
-    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/instance-template-hash: 6767dc8c8d
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
