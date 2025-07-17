@@ -152,6 +152,16 @@ kubescape: storage
 	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
 	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
 
+.PHONY: kubescape-vendor
+kubescape: storage
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values_vendor.yaml
+	-kubectl apply  -f kubescape/runtimerules.yaml
+	sleep 5
+	-kubectl rollout restart -n honey ds node-agent
+	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
+	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
 
 
 .PHONY: storage
