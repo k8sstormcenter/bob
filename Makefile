@@ -14,7 +14,6 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 GO_LDFLAGS := -s -w -X main.version=$(VERSION)
 
-GO_FILES := $(shell find src -type f -name '*.go')
 
 .PHONY: all
 all: build
