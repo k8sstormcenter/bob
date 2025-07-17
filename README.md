@@ -1,6 +1,7 @@
 # Software Bill of Behaviour - Tooling `bobctl`
 
-<img width="1475" height="746" alt="Screenshot 2025-07-16 at 22 49 26" src="https://github.com/user-attachments/assets/d9766e8c-33e4-4d4b-b318-8b7109150e35" />
+<img width="623" height="440" alt="PNG image" src="https://github.com/user-attachments/assets/a85b5168-ffff-4aef-a8f1-cd3f551d69e7" />
+
 
 
 We introduce the “Bill of Behavior” (BoB): a vendor-supplied profile detailing known benign runtime behaviors for software, designed to be distributed directly within OCI artifacts. 
