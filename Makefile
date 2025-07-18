@@ -59,7 +59,7 @@ helm-install-no-bob:
 
 
 .PHONY: helm-install
-helm-install:
+helm-install: kubescape
 	@echo "Installing webapp with BoB configuration ..."
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
 	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false --set bob.ignore=true
@@ -70,6 +70,8 @@ helm-install:
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
+.PHONY: nothing
+nothing:
 # for when we know the hash upfront:
 #helm upgrade --install bob -n bob --create-namespace --set bob.create=true ./myredis-umbrella-chart/redis-bob
 	#helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml
