@@ -47,6 +47,9 @@ run: build
 mac-prep:
 	docker buildx create --name mybuilder --driver docker-container --use
 
+.PHONY: tetragon
+tetragon:
+	helm upgrade --install tetragon cilium/tetragon -n tetragon --create-namespace --version 1.4.1 --values ../honeycluster/honeystack/tetragon/values.yaml
 
 .PHONY: helm-install-no-bob
 helm-install-no-bob: 
