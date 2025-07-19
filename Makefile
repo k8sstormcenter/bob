@@ -14,7 +14,6 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 GO_LDFLAGS := -s -w -X main.version=$(VERSION)
 
-GO_FILES := $(shell find src -type f -name '*.go')
 
 .PHONY: all
 all: build
@@ -48,6 +47,9 @@ run: build
 mac-prep:
 	docker buildx create --name mybuilder --driver docker-container --use
 
+.PHONY: tetragon
+tetragon:
+	helm upgrade --install tetragon cilium/tetragon -n tetragon --create-namespace --version 1.4.1 --values ../honeycluster/honeystack/tetragon/values.yaml
 
 .PHONY: helm-install-no-bob
 helm-install-no-bob: 
@@ -60,7 +62,7 @@ helm-install-no-bob:
 
 
 .PHONY: helm-install
-helm-install:
+helm-install: kubescape storage
 	@echo "Installing webapp with BoB configuration ..."
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
 	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false --set bob.ignore=true
@@ -71,6 +73,8 @@ helm-install:
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
+.PHONY: nothing
+nothing:
 # for when we know the hash upfront:
 #helm upgrade --install bob -n bob --create-namespace --set bob.create=true ./myredis-umbrella-chart/redis-bob
 	#helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml
@@ -142,7 +146,7 @@ attack:
 	sleep 10
 
 .PHONY: kubescape
-kubescape: storage
+kubescape: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values.yaml
@@ -152,6 +156,16 @@ kubescape: storage
 	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
 	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
 
+.PHONY: kubescape-vendor
+kubescape-vendor: 
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values_vendor.yaml
+	-kubectl apply  -f kubescape/runtimerules.yaml
+	sleep 5
+	-kubectl rollout restart -n honey ds node-agent
+	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
+	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
 
 
 .PHONY: storage
