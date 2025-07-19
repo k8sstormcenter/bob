@@ -59,7 +59,7 @@ helm-install-no-bob:
 
 
 .PHONY: helm-install
-helm-install: kubescape
+helm-install: kubescape storage
 	@echo "Installing webapp with BoB configuration ..."
 	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
 	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false --set bob.ignore=true
@@ -143,7 +143,7 @@ attack:
 	sleep 10
 
 .PHONY: kubescape
-kubescape: storage
+kubescape: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values.yaml
@@ -154,7 +154,7 @@ kubescape: storage
 	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
 
 .PHONY: kubescape-vendor
-kubescape-vendor: storage
+kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values_vendor.yaml
