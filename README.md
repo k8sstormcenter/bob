@@ -24,8 +24,8 @@ it doesnt require loading anything into the LSM. LSMs have a totally different l
 
 .. over coffee at London KubeCon EU 2025
 
-![CNS_Munich_05](https://github.com/user-attachments/assets/94221f12-73b3-43e9-bc74-5cb64ef540dc)
 
+![animation](https://github.com/user-attachments/assets/51ccc381-b1c4-4889-9d68-8ef7518e74ff)
 
 
 ## Understanding the Use Cases
@@ -45,7 +45,7 @@ This scenario covers threats originating from a compromised supply chain. For ex
 
 # Try it out in a live lab 
 [give us feedback ](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a), report issues , raise PRs (contributing guidelines will follow)
-![animation](https://github.com/user-attachments/assets/fa80f926-540d-4549-972d-9a966bae2b9b)
+
 
 https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a
 
