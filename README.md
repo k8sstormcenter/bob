@@ -17,14 +17,15 @@ That means the user receives a secure default runtime profile. They can customiz
 ## FAQ
 Q: Isnt this the same as SELINUX/APPARMOR profiles?   
 A: Just like eBPF extends the Kernel, the above Profile are a superset of `seccomp` (Profiles incl FileAccess, Execs, ImageHashes, NetworkEndpoints and Capabilities) and can work real-time with user-space applications. In this example
-it doesnt require loading anything into the LSM. LSMs have a totally different life-cycle and granularity than applications.
+it doesnt require loading anything into the LSM. LSMs have a totally different life-cycle and granularity than applications.   
 **THE MOST IMPORTANT DIFFERENCE is granularity and timeing** and this enables transferring it between systems and the UX  (nothing against SELinux, but ... have you tried modifying policies? There are also limits)
 
 ## Origin Story
 
 .. over coffee at London KubeCon EU 2025
 
-![CNS_Munich_cover](https://github.com/user-attachments/assets/fe61d9d7-ea01-400b-a5e4-1506fd6c4cfc)
+![CNS_Munich_05](https://github.com/user-attachments/assets/94221f12-73b3-43e9-bc74-5cb64ef540dc)
+
 
 
 ## Understanding the Use Cases
