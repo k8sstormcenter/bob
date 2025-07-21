@@ -33,6 +33,8 @@ This scenario covers threats originating from a compromised supply chain. For ex
 # Try it out in a live lab 
 [give us feedback ](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a), report issues , raise PRs (contributing guidelines will follow)
 
+https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a
+
 License is Apache 2.0
 
 ## Demo: Deploy a Application
@@ -46,8 +48,8 @@ Using a well-known `demo`** app, we deploy a ping utility called `webapp` that h
 
 ```sh
 cd ~/bobctl
-git checkout git checkout
-#Optional make storage
+git checkout https://github.com/k8sstormcenter/bobctl
+# maybe you need storage, then `make storage`
 make kubescape
 sleep 30 # TODO proper wait command goes here
 make helm-install
