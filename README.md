@@ -11,7 +11,8 @@ This empowers powerful, signature-less anomaly detection, allowing end-users to 
 Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
 <img width="3124" height="2638" alt="bobverticalvendor" src="https://github.com/user-attachments/assets/b66e1510-c4c6-41b8-8f45-11ce98faf947" />
 
-
+That means the user receives a secure default runtime profile. They can customize it, or directly apply it for runtime detection. And which each update of the software,
+get an uptodate runtimeprofile: 
 ``` yaml
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
@@ -137,7 +138,7 @@ spec:
 ```
 
 
-That means the user receives a secure default runtime profile. They can customize it, or directly apply it for runtime detection. And which each update of the software, get
+
 <img width="3133" height="2637" alt="bobverticalcustomer" src="https://github.com/user-attachments/assets/7e3b045c-8c63-4948-9748-21d62125823a" />
 
 ## FAQ
