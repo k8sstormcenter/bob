@@ -45,6 +45,7 @@ This scenario covers threats originating from a compromised supply chain. For ex
 
 # Try it out in a live lab 
 [give us feedback ](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a), report issues , raise PRs (contributing guidelines will follow)
+![animation](https://github.com/user-attachments/assets/fa80f926-540d-4549-972d-9a966bae2b9b)
 
 https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a
 
