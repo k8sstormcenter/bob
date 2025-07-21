@@ -11,18 +11,20 @@ This empowers powerful, signature-less anomaly detection, allowing end-users to 
 Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
 <img width="3124" height="2638" alt="bobverticalvendor" src="https://github.com/user-attachments/assets/b66e1510-c4c6-41b8-8f45-11ce98faf947" />
 
-That means the user receives a secure default runtime 
+That means the user receives a secure default runtime profile. They can customize it, or directly apply it for runtime detection. And which each update of the software, get
 <img width="3133" height="2637" alt="bobverticalcustomer" src="https://github.com/user-attachments/assets/7e3b045c-8c63-4948-9748-21d62125823a" />
 
 ## FAQ
 Q: Isnt this the same as SELINUX/APPARMOR profiles?   
 A: Just like eBPF extends the Kernel, the above Profile are a superset of `seccomp` (Profiles incl FileAccess, Execs, ImageHashes, NetworkEndpoints and Capabilities) and can work real-time with user-space applications. In this example
-it doesnt require loading anything into the LSM. 
-**THE MOST IMPORTANT DIFFERENCE** is that you can transfer it between systems and the UX  (nothing against SELinux, but ... have you tried modifying policies?)
+it doesnt require loading anything into the LSM. LSMs have a totally different life-cycle and granularity than applications.
+**THE MOST IMPORTANT DIFFERENCE is granularity and timeing** and this enables transferring it between systems and the UX  (nothing against SELinux, but ... have you tried modifying policies? There are also limits)
 
 ## Origin Story
 
 .. over coffee at London KubeCon EU 2025
+
+![CNS_Munich_cover](https://github.com/user-attachments/assets/b87998e1-d46e-4317-959a-754ff865331d)
 
 
 ## Understanding the Use Cases
