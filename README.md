@@ -11,6 +11,132 @@ This empowers powerful, signature-less anomaly detection, allowing end-users to 
 Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
 <img width="3124" height="2638" alt="bobverticalvendor" src="https://github.com/user-attachments/assets/b66e1510-c4c6-41b8-8f45-11ce98faf947" />
 
+
+``` yaml
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-ReplicaSet/name-{{ include "mywebapp.fullname" . }}-{{ .Values.bob.templateHash }}
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/deployment-{{ include "mywebapp.fullname" . }}  
+  labels:
+    kubescape.io/instance-template-hash: {{ .Values.bob.templateHash | quote }}
+    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: {{ include "mywebapp.fullname" . }}                                 
+    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
+  name: replicaset-{{ include "mywebapp.fullname" . }}-{{ .Values.bob.templateHash }}                                  
+  namespace: {{ .Release.Namespace }}                                                             
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - SETGID
+    - SETUID
+    endpoints:
+    - direction: inbound
+      endpoint: :8080/ping.php
+      headers:
+        Host:
+        - {{ include "mywebapp.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}                          
+      internal: false
+      methods:
+      - GET
+    execs:
+    - args:
+      - /usr/bin/dirname
+      - /var/lock/apache2
+      path: /usr/bin/dirname
+    - args:
+      - /usr/sbin/apache2
+      - -DFOREGROUND
+      path: /usr/sbin/apache2
+    - args:
+      - /bin/sh
+      - -c
+      - ping -c 4 172.16.0.2
+      path: /bin/sh
+    imageID: ghcr.io/k8sstormcenter/webapp@sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b
+    imageTag: ghcr.io/k8sstormcenter/webapp@sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b
+    opens:
+    - flags:
+      - O_DIRECTORY
+      - O_NONBLOCK
+      - O_RDONLY
+      path: /etc/apache2/mods-enabled
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/apache2/ports.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/apache2/sites-available/000-default.conf
+    - flags:
+      - O_CLOEXEC
+      - O_DIRECTORY
+      - O_NONBLOCK
+      - O_RDONLY
+      path: /etc/apache2/sites-enabled
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/gai.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/group
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/host.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/hosts
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/ld.so.cache
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/mime.types
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/nsswitch.conf
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - ping
+        - sh
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      ...
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - access
+    - arch_prctl
+    - getegid
+    - geteuid
+      ...
+```
+
+
 That means the user receives a secure default runtime profile. They can customize it, or directly apply it for runtime detection. And which each update of the software, get
 <img width="3133" height="2637" alt="bobverticalcustomer" src="https://github.com/user-attachments/assets/7e3b045c-8c63-4948-9748-21d62125823a" />
 
