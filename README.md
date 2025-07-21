@@ -23,7 +23,8 @@ it doesnt require loading anything into the LSM. LSMs have a totally different l
 ## Origin Story
 
 .. over coffee at London KubeCon EU 2025
-![CNS_Munich_cover](https://github.com/user-attachments/assets/9e8069a5-7eb1-4606-8921-6cc0b93d7d11)
+
+![CNS_Munich_cover](https://github.com/user-attachments/assets/fe61d9d7-ea01-400b-a5e4-1506fd6c4cfc)
 
 
 ## Understanding the Use Cases
