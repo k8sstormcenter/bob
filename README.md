@@ -8,9 +8,16 @@ We introduce the “Bill of Behavior” (BoB): a vendor-supplied profile detaili
 Generated using eBPF, a BoB codifies expected syscalls, file access patterns, network communications, and capabilities. 
 This empowers powerful, signature-less anomaly detection, allowing end-users to infer malicious activity or tampering in third-party software without the current burden of authoring and maintaining complex, custom security rules.
 
-
+Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
 <img width="3124" height="2638" alt="bobverticalvendor" src="https://github.com/user-attachments/assets/b66e1510-c4c6-41b8-8f45-11ce98faf947" />
+
+That means the user receives a secure default runtime 
 <img width="3133" height="2637" alt="bobverticalcustomer" src="https://github.com/user-attachments/assets/7e3b045c-8c63-4948-9748-21d62125823a" />
+
+## FAQ
+Q: Isnt this the same as SELINUX/APPARMOR profiles?   
+A: Just like eBPF extends the Kernel, the above Profile are a superset of `seccomp` (Profiles incl FileAccess, Execs, ImageHashes, NetworkEndpoints and Capabilities) and can work real-time with user-space applications. In this example
+it doesnt require loading anything into the LSM, i.e. you cant break anything.
 
 ## Origin Story
 
