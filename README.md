@@ -17,7 +17,8 @@ That means the user receives a secure default runtime
 ## FAQ
 Q: Isnt this the same as SELINUX/APPARMOR profiles?   
 A: Just like eBPF extends the Kernel, the above Profile are a superset of `seccomp` (Profiles incl FileAccess, Execs, ImageHashes, NetworkEndpoints and Capabilities) and can work real-time with user-space applications. In this example
-it doesnt require loading anything into the LSM, i.e. you cant break anything.
+it doesnt require loading anything into the LSM. 
+**THE MOST IMPORTANT DIFFERENCE** is that you can transfer it between systems and the UX  (nothing against SELinux, but ... have you tried modifying policies?)
 
 ## Origin Story
 
