@@ -93,8 +93,19 @@ spec:
 ## FAQ
 Q: Isnt this the same as SELINUX/APPARMOR profiles?   
 A: Just like eBPF extends the Kernel, the above Profile are a superset of `seccomp` (Profiles incl FileAccess, Execs, ImageHashes, NetworkEndpoints and Capabilities) and can work real-time with user-space applications. In this example
-it doesnt require loading anything into the LSM. LSMs have a totally different life-cycle and granularity than applications.   
-**THE MOST IMPORTANT DIFFERENCE is granularity and timeing** and this enables transferring it between systems and the UX  (nothing against SELinux, but ... have you tried modifying policies? There are also limits)
+it doesnt require loading anything into the LSM. LSMs have a totally different life-cycle and granularity than applications. 
+
+**THE MOST IMPORTANT DIFFERENCE is UX, granularity and timeing** and this enables transferring it between systems and making it transparent to users
+
+| Function    | LSM     | Seccomp   | BoB |
+|===|===|===|===|
+Real-Time     | x       | ✅        |  ✅|
+Can be recorded |  ✅   | ✅        | ✅|
+HumanReadable | x       |  ✅       | ✅|
+Network Calls L7 |x     | x         | ✅|
+FileOpens      |  ✅      | x        | ✅|  
+ TODO: finish this
+
 
 ## Origin Story
 
@@ -170,8 +181,62 @@ In shell 2
 make fwd
 curl localhost:8080/ping.php?ip=172.16.0.2
 ```
+This will be recorded into the above profile reflected by the stanza:
+```
+  endpoint:
+    - direction: inbound
+      endpoint: :8080/ping.php
+      headers:
+        Host:
+        - localhost:8080  # vendor needs to template possible benign endpoints e.g via k8s-dns                         
+      internal: false
+      methods:
+      - GET
+  exec:
+  ...
+    - args:
+      - /bin/sh
+      - -c
+      - ping -c 4 172.16.0.2 #vendor needs to template possible benign IP CIDR
+      path: /bin/sh
+```
 
-You should see no anomalies.
+## Create a repeatable Positive Test
+
+**Vendor**
+Encode the `benign` behavior into a test, like a helm hook
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    {{- include "mywebapp.labels" . | nindent 4 }}
+    kubescape.io/ignore: "true"
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  containers:
+    - image: curlimages/curl:8.7.1
+      command:
+          URL="${SERVICE}.${NAMESPACE}.svc.cluster.local:${PORT}/ping.php?ip=${TARGET_IP}"
+          RESPONSE=$(curl -s "$URL")
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q "Ping results for ${TARGET_IP}"
+          echo "$RESPONSE" | grep -q "${TARGET_IP} ping statistics"
+```
+
+**User** 
+If I now pull the helm-chart and execute helm test -> I can test that I do not see any anomalies.
+```
+make helm-test
+```
+```sh
+kubectl logs -n honey -l app=node-agent -c node-agent -f | grep "Unexpected"  # You should not see anything 
+```
+
+*** Known exceptions: There are expected syscall deviations, those are small. Making those transparent to the user is WIP. Currently you need a superset Bob
 
 ## Generate Runtime Attack (normal attack that abuses CVE)
 In shell 1:
