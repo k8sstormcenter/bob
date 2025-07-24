@@ -11,7 +11,6 @@ on:
 jobs:
   publish-oci:
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       packages: write
@@ -59,7 +58,3 @@ jobs:
           COSIGN_EXPERIMENTAL: "1"
         run: |          
           cosign sign --yes "ghcr.io/k8sstormcenter/${{ steps.chart_info.outputs.name }}@${{ steps.push.outputs.digest }}"
-
-      - name: Push Helm chart to OCI registry
-        run: |
-          helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
