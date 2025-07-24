@@ -71,11 +71,6 @@ spec:
         - ping
         - sh
       R0002: {}
-      R0003: {}
-      R0004: {}
-      R0005: {}
-      R0006: {}
-      R0007: {}
       ...
     syscalls:    # KNOWN SYSCALLS
     - accept4
