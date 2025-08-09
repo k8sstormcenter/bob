@@ -1,0 +1,247 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-dynatrace/kind-ReplicaSet/name-dynatrace-webhook-74cd9f4996
+    kubescape.io/resource-size: "101"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-dynatrace/deployment-dynatrace-webhook
+  creationTimestamp: "2025-08-07T16:08:28Z"
+  labels:
+    kubescape.io/instance-template-hash: 74cd9f4996
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: dynatrace-webhook
+    kubescape.io/workload-namespace: dynatrace
+    kubescape.io/workload-resource-version: "5457"
+  name: replicaset-dynatrace-webhook-74cd9f4996
+  namespace: dynatrace
+  resourceVersion: "5"
+  uid: 3d49a4da-6bf6-4234-8e7c-6dc1dcb0cea3
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    endpoints:
+    - direction: inbound
+      endpoint: :10080/readyz
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.244.0.8:10080
+        - 10.244.1.13:10080
+      internal: false
+      methods:
+      - GET
+    - direction: inbound
+      endpoint: :10080/livez
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.244.0.8:10080
+        - 10.244.1.13:10080
+      internal: false
+      methods:
+      - GET
+    execs:
+    - args:
+      - /usr/local/bin/entrypoint
+      - webhook-server
+      - --certs-dir=/tmp/k8s-webhook-server/serving-certs/
+      path: /usr/local/bin/entrypoint
+    - args:
+      - /usr/local/bin/dynatrace-operator
+      - webhook-server
+      - --certs-dir=/tmp/k8s-webhook-server/serving-certs/
+      path: /usr/local/bin/dynatrace-operator
+    identifiedCallStacks: null
+    imageID: public.ecr.aws/dynatrace/dynatrace-operator@sha256:14ff416ed28b09a1ac719cf71b88ec91b15b04654592c9d64e7bf48d4511d1c8
+    imageTag: public.ecr.aws/dynatrace/dynatrace-operator:v1.6.1
+    name: webhook
+    opens:
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/ld.so.cache
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/nsswitch.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/passwd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_20.2356384563/ca.crt
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_20.2356384563/token
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_21.2693438710/ca.crt
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_21.2693438710/token
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_CLOEXEC
+      - O_CREAT
+      - O_RDONLY
+      - O_TRUNC
+      - O_WRONLY
+      path: /tmp/k8s-webhook-server/serving-certs/tls.crt
+    - flags:
+      - O_CLOEXEC
+      - O_CREAT
+      - O_RDONLY
+      - O_TRUNC
+      - O_WRONLY
+      path: /tmp/k8s-webhook-server/serving-certs/tls.key
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib64/libc.so.6
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib64/libtinfo.so.6.2
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/local/bin/dynatrace-operator
+    - flags:
+      - O_RDONLY
+      path: /usr/local/bin/entrypoint
+    rulePolicies:
+      R0001: {}
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clone
+    - close
+    - close_range
+    - connect
+    - dup2
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - eventfd2
+    - execve
+    - exit
+    - faccessat2
+    - fchown
+    - fcntl
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
+    - getpgrp
+    - getpid
+    - getppid
+    - getrandom
+    - getsockname
+    - getsockopt
+    - gettid
+    - getuid
+    - inotify_add_watch
+    - inotify_init1
+    - ioctl
+    - listen
+    - lseek
+    - madvise
+    - mmap
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - pipe2
+    - prctl
+    - pread64
+    - prlimit64
+    - read
+    - readlinkat
+    - recvfrom
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setrlimit
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - statfs
+    - sysinfo
+    - tgkill
+    - uname
+    - write
+status: {}

@@ -149,7 +149,7 @@ attack:
 kubescape: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values.yaml
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.29.0 -n honey --create-namespace --values kubescape/values.yaml
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
@@ -160,7 +160,7 @@ kubescape:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values_vendor.yaml
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.29.0 -n honey --create-namespace --values kubescape/values_vendor.yaml
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
