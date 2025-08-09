@@ -193,3 +193,8 @@ helm: ## Download helm if required
 		&& chmod +x get_helm.sh &&./get_helm.sh
 HELM = $(shell which helm)
 
+
+.PHONY: template
+template:
+	go run src/main.go testdata/parameterstudy/oneagent/operatorbobk8somni61.yaml src/config.yaml 6.1.0  myoneagent/bob-dyna-operator.yaml
+

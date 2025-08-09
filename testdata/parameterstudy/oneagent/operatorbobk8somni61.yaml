@@ -3,70 +3,69 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-dynatrace/kind-ReplicaSet/name-dynatrace-webhook-74cd9f4996
-    kubescape.io/resource-size: "101"
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-dynatrace/kind-ReplicaSet/name-dynatrace-operator-5d9b4d586d
+    kubescape.io/resource-size: "115"
     kubescape.io/status: completed
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-dynatrace/deployment-dynatrace-webhook
-  creationTimestamp: "2025-08-07T16:08:28Z"
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-dynatrace/deployment-dynatrace-operator
+  creationTimestamp: "2025-08-07T16:08:31Z"
   labels:
-    kubescape.io/instance-template-hash: 74cd9f4996
+    kubescape.io/instance-template-hash: 5d9b4d586d
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: dynatrace-webhook
+    kubescape.io/workload-name: dynatrace-operator
     kubescape.io/workload-namespace: dynatrace
-    kubescape.io/workload-resource-version: "5457"
-  name: replicaset-dynatrace-webhook-74cd9f4996
+    kubescape.io/workload-resource-version: "5438"
+  name: replicaset-dynatrace-operator-5d9b4d586d
   namespace: dynatrace
-  resourceVersion: "5"
-  uid: 3d49a4da-6bf6-4234-8e7c-6dc1dcb0cea3
+  resourceVersion: "3"
+  uid: 942726e4-9207-44c7-bdbc-1e1cd045f68e
 spec:
   architectures:
   - amd64
   containers:
   - capabilities:
+    - CHOWN
     - DAC_OVERRIDE
     - DAC_READ_SEARCH
     - NET_ADMIN
+    - SETGID
+    - SETPCAP
+    - SETUID
+    - SYS_ADMIN
     endpoints:
-    - direction: inbound
-      endpoint: :10080/readyz
-      headers:
-        Connection:
-        - close
-        Host:
-        - 10.244.0.8:10080
-        - 10.244.1.13:10080
-      internal: false
-      methods:
-      - GET
     - direction: inbound
       endpoint: :10080/livez
       headers:
         Connection:
         - close
         Host:
-        - 10.244.0.8:10080
-        - 10.244.1.13:10080
+        - 10.244.1.12:10080
       internal: false
       methods:
       - GET
     execs:
     - args:
       - /usr/local/bin/entrypoint
-      - webhook-server
-      - --certs-dir=/tmp/k8s-webhook-server/serving-certs/
+      - operator
       path: /usr/local/bin/entrypoint
     - args:
       - /usr/local/bin/dynatrace-operator
-      - webhook-server
-      - --certs-dir=/tmp/k8s-webhook-server/serving-certs/
+      - operator
+      path: /usr/local/bin/dynatrace-operator
+    - args:
+      - /usr/local/bin/dynatrace-operator
+      - startup-probe
       path: /usr/local/bin/dynatrace-operator
     identifiedCallStacks: null
     imageID: public.ecr.aws/dynatrace/dynatrace-operator@sha256:14ff416ed28b09a1ac719cf71b88ec91b15b04654592c9d64e7bf48d4511d1c8
     imageTag: public.ecr.aws/dynatrace/dynatrace-operator:v1.6.1
-    name: webhook
+    name: operator
     opens:
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/hosts
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -82,7 +81,31 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
+      path: /etc/resolv.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/kernel/cap_last_cap
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/maps
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/mountinfo
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/setgroups
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -90,36 +113,18 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_20.2356384563/ca.crt
+      path: /proc/⋯/task/14/fd
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_20.2356384563/token
+      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_21.2743558122/ca.crt
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_21.2693438710/ca.crt
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_21.2693438710/token
+      path: /run/secrets/kubernetes.io/serviceaccount/..2025_08_07_15_58_21.2743558122/token
     - flags:
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-    - flags:
-      - O_CLOEXEC
-      - O_CREAT
-      - O_RDONLY
-      - O_TRUNC
-      - O_WRONLY
-      path: /tmp/k8s-webhook-server/serving-certs/tls.crt
-    - flags:
-      - O_CLOEXEC
-      - O_CREAT
-      - O_RDONLY
-      - O_TRUNC
-      - O_WRONLY
-      path: /tmp/k8s-webhook-server/serving-certs/tls.key
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -175,6 +180,7 @@ spec:
     - capset
     - chdir
     - clone
+    - clone3
     - close
     - close_range
     - connect
@@ -185,6 +191,7 @@ spec:
     - eventfd2
     - execve
     - exit
+    - exit_group
     - faccessat2
     - fchown
     - fcntl
@@ -201,13 +208,13 @@ spec:
     - getpid
     - getppid
     - getrandom
+    - getrlimit
     - getsockname
     - getsockopt
     - gettid
     - getuid
-    - inotify_add_watch
-    - inotify_init1
     - ioctl
+    - keyctl
     - listen
     - lseek
     - madvise
@@ -234,7 +241,9 @@ spec:
     - set_tid_address
     - setgid
     - setgroups
+    - setns
     - setrlimit
+    - setsid
     - setsockopt
     - setuid
     - sigaltstack
@@ -243,5 +252,6 @@ spec:
     - sysinfo
     - tgkill
     - uname
+    - unshare
     - write
 status: {}
