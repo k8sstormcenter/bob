@@ -64,12 +64,10 @@ helm-install-no-bob:
 .PHONY: helm-install
 helm-install: kubescape storage
 	@echo "Installing webapp with BoB configuration ..."
-	helm pull oci://ghcr.io/k8sstormcenter/mywebapp 
-	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=false --set bob.ignore=true
-	rm -rf mywebapp-0.1.0.tgz
-	HASH=$$(kubectl get rs -n webapp -o jsonpath='{.items[0].metadata.labels.pod-template-hash}')
-	@echo "The template has is ${HASH}"
-	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0  --namespace webapp --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get rs -n webapp -o jsonpath='{.items[0].metadata.labels.pod-template-hash}')
+	#helm pull oci://ghcr.io/k8sstormcenter/mywebapp
+	#helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true --set bob.ignore=false
+	#rm -rf mywebapp-0.1.0.tgz
+	helm upgrade --install webapp mywebapp-chart --namespace webapp --create-namespace --values mywebapp-chart/values.yaml
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
@@ -149,7 +147,7 @@ attack:
 kubescape: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values.yaml
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.29.0 -n honey --create-namespace --values kubescape/values.yaml
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
@@ -160,7 +158,7 @@ kubescape:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.28.0 -n honey --create-namespace --values kubescape/values_vendor.yaml
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version 1.29.0 -n honey --create-namespace --values kubescape/values_vendor.yaml
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
@@ -192,4 +190,9 @@ helm: ## Download helm if required
 	curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
 		&& chmod +x get_helm.sh &&./get_helm.sh
 HELM = $(shell which helm)
+
+
+.PHONY: template
+template:
+	go run src/main.go testdata/parameterstudy/oneagent/operatorbobk8somni61.yaml src/config.yaml 6.1.0  myoneagent/bob-dyna-operator.yaml
 

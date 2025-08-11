@@ -1,0 +1,8 @@
+# bob-templater/config.yaml
+workloadName: '{{ include "dynatrace-operator.fullname" . }}'
+namespace: '{{ .Release.Namespace }}'
+templateHash: '{{ .Values.bob.templateHash }}'
+ips:
+  "10.244.1.12": '{{ .Values.podIP | default "127.0.0.1" }}' # Pod IPs are tricky, this is an example
+ports:
+  "10080": '{{ .Values.service.port }}'

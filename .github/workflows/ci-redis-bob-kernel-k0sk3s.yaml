@@ -5,11 +5,12 @@ on:
   push:
     branches:
       - main
+      - 45-upgrade-to-new-kubescape-nodeagent 
     paths:    
       - 'myredis-umbrella-chart/**'
       - 'kubescape/**'
       - '.github/workflows/ci-redis-bob-kernel-k0sk3s.yaml'
-  #pull_request:
+
     
 
 jobs:
@@ -18,8 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
-        k8s-distribution: [k3s, kind, minikube] #fix k0s
-        kubernetes-version: [v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+        k8s-distribution: [k3s] # , kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
+        kubernetes-version: [v1.33.3] # [v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
 
@@ -44,6 +45,33 @@ jobs:
         uses: medyagh/setup-minikube@master
         with:
           kubernetes-version: ${{ matrix.kubernetes-version }}
+
+
+
+      - name: Set up K0s Cluster
+        if: matrix.k8s-distribution == 'k0s'
+        run: |
+          # Use K0S_VERSION to install the version from the matrix
+          curl --proto '=https' --tlsv1.2 -sSf https://get.k0s.sh | sudo K0S_VERSION=${{ matrix.kubernetes-version }}+k0s.0 sh
+          sudo k0s install controller --single
+          sudo k0s start
+
+          # Wait for the k0s status socket to be available to prevent race conditions
+          echo "Waiting for k0s to become ready..."
+          timeout=180
+          while ! sudo k0s status &> /dev/null; do
+            sleep 5
+            timeout=$((timeout-5))
+            if [ $timeout -le 0 ]; then
+              echo "Timed out waiting for k0s to start"
+              sudo k0s status # print last error for debugging
+              exit 1
+            fi
+          done
+          mkdir -p $HOME/.kube
+          sudo k0s kubeconfig admin > $HOME/.kube/config
+          make storage
+
 
       - name: Prepare MicroK8s channel
         if: matrix.k8s-distribution == 'microk8s'

@@ -1,0 +1,22 @@
+nodeAgent:
+  config:
+    maxLearningPeriod: 5m
+    learningPeriod: 2m 
+    updatePeriod: 10000m 
+    ruleCooldown:
+      ruleCooldownDuration: 0h
+      ruleCooldownAfterCount: 1000000000
+      ruleCooldownOnProfileFailure: false
+      ruleCooldownMaxSize: 20000
+  env:
+    - name: RUNTIME_PATH
+      value: /run/k0s/containerd.sock
+capabilities:
+  runtimeDetection: enable
+  networkEventsStreaming: disable
+alertCRD:
+  installDefault: true
+  scopeClustered: true
+clusterName: bobexample
+ksNamespace: honey
+excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,honey,storm,lightening,cert-manager,openebs,kube-flannel,ingress-nginx,olm,pl,px-operator"
