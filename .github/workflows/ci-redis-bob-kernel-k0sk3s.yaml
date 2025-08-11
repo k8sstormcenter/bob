@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
-        k8s-distribution: [k3s,  k0s] # , kind, minikube] #fix k0s
+        k8s-distribution: [k3s] # , kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
         kubernetes-version: [v1.33.3] # [v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 

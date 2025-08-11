@@ -1,0 +1,182 @@
+name: Create Redis Bill of Behaviour on different Kernels, Kubernetes Versions, Kubernetes Distros and OSs
+
+
+on:
+  push:
+    branches:
+      - main
+      - 45-upgrade-to-new-kubescape-nodeagent 
+    paths:    
+      - 'myredis-umbrella-chart/**'
+      - 'kubescape/**'
+      - '.github/workflows/ci-redis-bob-kernel-k0sk3s.yaml'
+
+    
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04 ,ubuntu-24.04]
+        k8s-distribution: [k3s] # , kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
+        kubernetes-version: [v1.33.3] # [v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
+    runs-on: ${{ matrix.os }}
+
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kind Cluster
+        if: matrix.k8s-distribution == 'kind'
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+
+      - name: Set up k3s Cluster
+        if: matrix.k8s-distribution == 'k3s'
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+
+      - name: Set up Minikube Cluster
+        if: matrix.k8s-distribution == 'minikube'
+        uses: medyagh/setup-minikube@master
+        with:
+          kubernetes-version: ${{ matrix.kubernetes-version }}
+
+
+
+      - name: Set up K0s Cluster
+        if: matrix.k8s-distribution == 'k0s'
+        run: |
+          # Use K0S_VERSION to install the version from the matrix
+          curl --proto '=https' --tlsv1.2 -sSf https://get.k0s.sh | sudo K0S_VERSION=${{ matrix.kubernetes-version }}+k0s.0 sh
+          sudo k0s install controller --single
+          sudo k0s start
+
+          # Wait for the k0s status socket to be available to prevent race conditions
+          echo "Waiting for k0s to become ready..."
+          timeout=180
+          while ! sudo k0s status &> /dev/null; do
+            sleep 5
+            timeout=$((timeout-5))
+            if [ $timeout -le 0 ]; then
+              echo "Timed out waiting for k0s to start"
+              sudo k0s status # print last error for debugging
+              exit 1
+            fi
+          done
+          mkdir -p $HOME/.kube
+          sudo k0s kubeconfig admin > $HOME/.kube/config
+          make storage
+
+
+      - name: Prepare MicroK8s channel
+        if: matrix.k8s-distribution == 'microk8s'
+        run: |
+          K8S_MAJOR_MINOR=$(echo "${{ matrix.kubernetes-version }}" | cut -d. -f1,2 | sed 's/v//')
+          echo "MICROK8S_CHANNEL=${K8S_MAJOR_MINOR}/stable" >> $GITHUB_ENV
+
+      - name: Set up MicroK8s Cluster
+        if: matrix.k8s-distribution == 'microk8s'
+        uses: balchua/microk8s-actions@v0.3.2
+        with:
+          channel: ${{ env.MICROK8S_CHANNEL }}
+          addons: '["dns", "hostpath-storage"]'
+
+      - name: Verify function of k8s, kubectl, and helm
+        run: |
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+
+          helm version
+          helm list
+
+      - name: Install kubescape
+        run: |
+          make kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+
+
+
+
+      - name: Run helm install for redis
+        run: |
+          helm dependency update myredis-umbrella-chart/redis-bob/
+          helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=false
+          kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
+          kubectl logs -n bob pods/bob-redis-master-0 redis 
+          kubectl logs -n honey -l app=node-agent 
+          sleep 15
+
+
+      - name: Run helm test
+        continue-on-error: true
+        run: |
+          make helm-redis-test
+          echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=operator
+          #kubectl get applicationprofile -n bob -o yaml
+          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+          sleep 25
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
+          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+    
+
+              kubectl logs -n honey -l app=node-agent 
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
+          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+
+      - name: Export Redis ApplicationProfile
+        id: export_bob
+        run: |
+          echo "Waiting for Redis ApplicationProfile to be generated..."
+          
+          # First, get the statefulset's current controller revision name
+          CONTROLLER_REVISION=$(kubectl get statefulset -n bob bob-redis-master -o jsonpath='{.status.currentRevision}')
+          if [ -z "$CONTROLLER_REVISION" ]; then
+            echo "::error::Could not get statefulset controller revision."
+            exit 1
+          fi
+          echo "StatefulSet current revision is $CONTROLLER_REVISION"
+          
+          # The profile name is expected to be 'statefulset-<controller-revision-name>'
+          PROFILE_NAME="statefulset-${CONTROLLER_REVISION}"
+          echo "Expected ApplicationProfile name is $PROFILE_NAME"
+
+          # Wait for the profile to be created by Kubescape's node-agent.
+          # A simple loop with a timeout is more robust here.
+          timeout=600 # 10 minutes
+          while ! kubectl get applicationprofile.spdx.softwarecomposition.kubescape.io -n bob "$PROFILE_NAME" &> /dev/null; do
+            sleep 15; timeout=$((timeout-15))
+            if [ $timeout -le 0 ]; then
+              echo "::error::Timed out waiting for ApplicationProfile '$PROFILE_NAME' to be created."
+              echo "Listing available profiles in namespace bob:"; kubectl get applicationprofile -n bob; exit 1
+            fi
+          done
+          echo "ApplicationProfile '$PROFILE_NAME' found."
+          
+          echo "Exporting ApplicationProfile: $PROFILE_NAME"
+          mkdir -p bob-artifact
+          kubectl get applicationprofile -n bob "$PROFILE_NAME" -o yaml > bob-artifact/bob-redis.yaml
+          echo "✅ ApplicationProfile exported to bob-artifact/bob-redis.yaml"
+
+      - name: Upload Redis BoB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: redis-bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+          path: bob-artifact/bob-redis.yaml
+          
+
+
