@@ -30,32 +30,34 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Get chart info and package
-        id: chart_info
-        run: |          
-          CHART_NAME=$(yq '.name' mywebapp-chart/Chart.yaml)
-          CHART_VERSION=$(yq '.version' mywebapp-chart/Chart.yaml)
-          echo "name=$CHART_NAME" >> $GITHUB_OUTPUT
-          echo "version=$CHART_VERSION" >> $GITHUB_OUTPUT
-          helm package mywebapp-chart
-
-      - name: Push Helm chart and get digest
-        id: push
+      - name: Package Helm chart
         run: |
-          CHART_FILE="${{ steps.chart_info.outputs.name }}-${{ steps.chart_info.outputs.version }}.tgz"          
-          PUSH_OUTPUT=$(helm push "$CHART_FILE" oci://ghcr.io/k8sstormcenter)
-          echo "Push command output: $PUSH_OUTPUT"
-          # Extract the digest from the output
-          DIGEST=$(echo "$PUSH_OUTPUT" | grep "Digest:" | awk '{print $2}')
-          if [ -z "$DIGEST" ]; then
-            echo "::error::Failed to get digest from helm push output."
-            exit 1
-          fi
+          helm package mywebapp-chart
+          export CHART_VERSION=$(yq '.version' mywebapp-chart/Chart.yaml)
+          export CHART_NAME=$(yq '.name' mywebapp-chart/Chart.yaml)
+          echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
+          echo "CHART_NAME=$CHART_NAME" >> $GITHUB_ENV
+      - name: Install oras
+        run: |
+          curl -LO https://github.com/oras-project/oras/releases/download/v1.1.0/oras_1.1.0_linux_amd64.tar.gz
+          tar -xzf oras_1.1.0_linux_amd64.tar.gz oras
+          sudo mv oras /usr/local/bin/
+      - name: Get chart digest
+        id: digest
+        run: |
+          DIGEST=$(oras manifest fetch --descriptor ghcr.io/k8sstormcenter/${CHART_NAME}:${CHART_VERSION} | jq -r .digest)
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "DIGEST=$DIGEST" >> $GITHUB_ENV
 
+
+
+      - name: Push Helm chart to OCI registry
+        run: |
+          helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
+          
       - name: Sign Helm chart with Cosign
         env:
           # COSIGN_EXPERIMENTAL is required for signing non-image OCI artifacts like Helm charts
           COSIGN_EXPERIMENTAL: "1"
         run: |          
-          cosign sign --yes "ghcr.io/k8sstormcenter/${{ steps.chart_info.outputs.name }}@${{ steps.push.outputs.digest }}"
+          cosign sign --yes "ghcr.io/k8sstormcenter/${CHART_NAME}-${CHART_VERSION}"
