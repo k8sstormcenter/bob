@@ -64,9 +64,10 @@ helm-install-no-bob:
 .PHONY: helm-install
 helm-install: kubescape storage
 	@echo "Installing webapp with BoB configuration ..."
-	helm pull oci://ghcr.io/k8sstormcenter/mywebapp@sha256:1f35668f2db47ec3e6c34ad597df3decfe3046d5e01963b46f2a73dcf041c5d5 
-	helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true --set bob.ignore=false
-	rm -rf mywebapp-0.1.0.tgz
+	#helm pull oci://ghcr.io/k8sstormcenter/mywebapp
+	#helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true --set bob.ignore=false
+	#rm -rf mywebapp-0.1.0.tgz
+	helm upgrade --install webapp mywebapp-chart --namespace webapp --create-namespace --values
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
