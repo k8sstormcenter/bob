@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
-        k8s-distribution: [k3s] # [k3s, kind, minikube] #, microk8s]  #fix k0s
+        k8s-distribution: [k3s, k0s ] #, kind, minikube] #, microk8s]  #fix k0s
         kubernetes-version: [v1.33.3] # [v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
@@ -57,6 +57,7 @@ jobs:
           done
           mkdir -p $HOME/.kube
           sudo k0s kubeconfig admin > $HOME/.kube/config
+          make storage
 
 
       - name: Set up k3s Cluster
@@ -96,7 +97,7 @@ jobs:
 
       - name: Execute kubescape
         run: |
-          make storage kubescape
+          make  kubescape
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=node-agent
