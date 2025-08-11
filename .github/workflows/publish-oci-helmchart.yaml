@@ -54,10 +54,10 @@ jobs:
       - name: Push Helm chart to OCI registry
         run: |
           helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
-          
+
       - name: Sign Helm chart with Cosign
         env:
           # COSIGN_EXPERIMENTAL is required for signing non-image OCI artifacts like Helm charts
           COSIGN_EXPERIMENTAL: "1"
         run: |          
-          cosign sign --yes "ghcr.io/k8sstormcenter/${CHART_NAME}-${CHART_VERSION}"
+          cosign sign --yes "ghcr.io/k8sstormcenter/${CHART_NAME}@${DIGEST}"
