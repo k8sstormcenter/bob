@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
-        k8s-distribution: [k3s] # , kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
+        k8s-distribution: [k3s, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
         kubernetes-version: [v1.33.3] # [v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] # we already tested v1.32.0 and for some reason k3s download of v1.28.0 fails
     runs-on: ${{ matrix.os }}
 
@@ -123,20 +123,12 @@ jobs:
         continue-on-error: true
         run: |
           make helm-redis-test
-          echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
-          #kubectl get applicationprofile -n bob -o yaml
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
           sleep 25
           kubectl logs -n honey -l app=node-agent 
-          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
-          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
-    
-
-              kubectl logs -n honey -l app=node-agent 
-          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
-          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+          kubectl logs -l app=node-agent -n honey 
 
       - name: Export Redis ApplicationProfile
         id: export_bob
@@ -169,14 +161,14 @@ jobs:
           
           echo "Exporting ApplicationProfile: $PROFILE_NAME"
           mkdir -p bob-artifact
-          kubectl get applicationprofile -n bob "$PROFILE_NAME" -o yaml > bob-artifact/bob-redis.yaml
+          kubectl get applicationprofile -n bob "$PROFILE_NAME" -o yaml > bob-artifact/bob-redis-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
           echo "✅ ApplicationProfile exported to bob-artifact/bob-redis.yaml"
 
       - name: Upload Redis BoB artifact
         uses: actions/upload-artifact@v4
         with:
           name: redis-bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
-          path: bob-artifact/bob-redis.yaml
+          path: bob-artifact/bob-redis-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
           
 
 
