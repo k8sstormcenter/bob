@@ -92,15 +92,14 @@ it doesnt require loading anything into the LSM. LSMs have a totally different l
 
 **THE MOST IMPORTANT DIFFERENCE is UX, granularity and timeing** and this enables transferring it between systems and making it transparent to users
 
-| Function    | LSM     | Seccomp   | BoB |
-|===|===|===|===|
-Real-Time     | x       | ✅        |  ✅|
-Can be recorded |  ✅   | ✅        | ✅|
-HumanReadable | x       |  ✅       | ✅|
-Network Calls L7 |x     | x         | ✅|
-FileOpens      |  ✅      | x        | ✅|  
- TODO: finish this
+## Example comparison of seccomp with BoB (for redis)
 
+Profile	|Total Syscalls|	In BoB Not in RuntimeDefault|	In RuntimeDefault, Not in BoB|
+--|--|--|--|
+Redis Superset BoB|	128	|8	|N/A|
+K8s RuntimeDefault|	~315 |	N/A|	~195|
+
+We are currently investigating why we see some (8-10) syscalls from the runc, it is a misattribution in the recording. So, while this is a technical problem that needs solving, we believe it to be solvable and expect there to be less than 128 syscalls in the final redis-profile.
 
 ## Origin Story
 
