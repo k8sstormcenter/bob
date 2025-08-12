@@ -196,3 +196,22 @@ HELM = $(shell which helm)
 template:
 	go run src/main.go testdata/parameterstudy/oneagent/operatorbobk8somni61.yaml src/config.yaml 6.1.0  myoneagent/bob-dyna-operator.yaml
 
+.PHONY: compare-bobs
+compare-bobs:
+	@if [ -z "$(BOB_DIR1)" ] || [ -z "$(BOB_DIR2)" ]; then \
+		echo "Usage: make compare-bobs BOB_DIR1=<path/to/dir1> BOB_DIR2=<path/to/dir2>"; \
+		exit 1; \
+	fi
+	@echo "Comparing BoBs in $(BOB_DIR1) and $(BOB_DIR2)..."
+	@./testdata/compare.sh $(BOB_DIR1) $(BOB_DIR2)
+
+
+.PHONY: superset-bob
+superset-bob:
+	@if [ -z "$(INPUT_DIR)" ] || [ -z "$(OUTPUT_FILE)" ]; then \
+		echo "Usage: make superset-bob INPUT_DIR=<path/to/bobs> OUTPUT_FILE=<path/to/superset.yaml>"; \
+		exit 1; \
+	fi
+	@echo "Creating superset BoB from $(INPUT_DIR) into $(OUTPUT_FILE)..."
+	@./testdata/superset.sh $(INPUT_DIR) $(OUTPUT_FILE)
+
