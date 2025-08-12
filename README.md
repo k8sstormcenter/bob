@@ -93,13 +93,24 @@ it doesnt require loading anything into the LSM. LSMs have a totally different l
 **THE MOST IMPORTANT DIFFERENCE is UX, granularity and timeing** and this enables transferring it between systems and making it transparent to users
 
 ## Example comparison of seccomp with BoB (for redis)
+For the KV-database `redis` in its most popular Helm-Chart, we traced out the superset of all syscalls across many k8s-versions/distros. In K8s, there is a `RuntimeDefault` seccomp profile that disallows the most dangerous syscalls. Since, it is the best-known security feature, we
+compare the 195 allowed syscalls from the default with the 128 from the BoB profile.
+Generally speaking, a BoB profile will have a lower number of syscalls than a seccomp profile.
 
 Profile	|Total Syscalls|	In BoB Not in RuntimeDefault|	In RuntimeDefault, Not in BoB|
 --|--|--|--|
 Redis Superset BoB|	128	|8	|N/A|
 K8s RuntimeDefault|	~315 |	N/A|	~195|
 
-We are currently investigating why we see some (8-10) syscalls from the runc, it is a misattribution in the recording. So, while this is a technical problem that needs solving, we believe it to be solvable and expect there to be less than 128 syscalls in the final redis-profile.
+WIP: We are currently investigating why we see some (8-10) syscalls from the runc, it is a misattribution in the recording. So, while this is a technical problem that needs solving, we believe it to be solvable and expect there to be less than 128 syscalls in the final redis-profile.
+
+
+Additionally to syscalls: a BoB contains fileopens, execs, capabilities and network endpoints/methods. This is reminiscent of Apparmour profiles and network-policies.
+It is theoretically possible to convert a BoB into an Apparmour profile, a seccomp profile and a set of network-policies.
+
+Which way the community will go in terms of using the information contained in a bob, such that it can be enforced at runtime, remains to be seen.
+
+A BoB, is first of all a `vehicle` to transport the information of the runtime behavior. And only secondly, the runtime-anomaly generation method. The fact, that kubescape can rather straightforwardly do both, is a very lucky coincidence.
 
 ## Origin Story
 
