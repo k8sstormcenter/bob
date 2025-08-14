@@ -245,6 +245,7 @@ jobs:
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
           cp all-bobs/superset-bob.yaml ./myredis-umbrella-chart/redis-bob/templates/bob.yaml
+          helm dependency update myredis-umbrella-chart/redis-bob/
           helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
           kubectl logs -n bob pods/bob-redis-master-0 redis 
           kubectl logs -n honey -l app=node-agent 

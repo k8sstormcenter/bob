@@ -2,18 +2,18 @@ apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
   name: statefulset-bob-redis-master-668c4559b4
-  namespace: null
+  namespace: bob
   annotations:
     kubescape.io/completion: complete
     kubescape.io/status: completed
     kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-StatefulSet/name-bob-redis-master-668c4559b4
     kubescape.io/wlid: wlid://cluster-bobexample/namespace-bob/statefulset-bob-redis-master
   labels:
-    kubescape.io/workload-api-group: null
-    kubescape.io/workload-api-version: null
-    kubescape.io/workload-kind: null
-    kubescape.io/workload-name: null
-    kubescape.io/workload-namespace: null
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: StatefulSet
+    kubescape.io/workload-name: bob-redis-master
+    kubescape.io/workload-namespace: bob
 spec:
   architectures:
   - amd64
