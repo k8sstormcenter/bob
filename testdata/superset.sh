@@ -30,6 +30,7 @@ all_execs_json="[]"
 all_opens_json="[]"
 all_endpoints_json="[]"
 
+
 for file in "${FILES[@]}"; do
   norm_file=$(mktemp)
   yq eval '
@@ -49,6 +50,10 @@ for file in "${FILES[@]}"; do
 
   syscalls=$(yq '.spec.containers[0].syscalls[]' "$norm_file" 2>/dev/null || true)
   capabilities=$(yq '.spec.containers[0].capabilities[]' "$norm_file" 2>/dev/null || true)
+  imageID=$(yq '.spec.containers[0].imageID' "$norm_file" 2>/dev/null || true)
+  imageTag=$(yq '.spec.containers[0].imageTag' "$norm_file" 2>/dev/null || true)
+  name=$(yq '.spec.containers[0].name' "$norm_file" 2>/dev/null || true)
+  architecture=$(yq '.spec.architectures[0]' "$norm_file" 2>/dev/null || true)
 
   execs_json=$(yq -o=json '.spec.containers[0].execs' "$norm_file" 2>/dev/null || echo "[]")
   opens_json=$(yq -o=json '.spec.containers[0].opens' "$norm_file" 2>/dev/null || echo "[]")
@@ -86,19 +91,22 @@ metadata:
     kubescape.io/status: ready
 spec:
   architectures:
-    - amd64
+  - $architecture
   containers:
-    - name: redis
-      syscalls:
-$(for s in "${superset_syscalls[@]}"; do echo "        - $s"; done)
-      capabilities:
-$(for c in "${superset_capabilities[@]}"; do echo "        - $c"; done)
-      endpoints:
-$(echo "$superset_endpoints" | sed 's/^/        /')
-      execs:
-$(echo "$superset_execs" | sed 's/^/        /')
-      opens:
-$(echo "$superset_opens" | sed 's/^/        /')
+  - capabilities:
+$(for c in "${superset_capabilities[@]}"; do echo "    - $c"; done)
+    endpoints:
+$(echo "$superset_endpoints" | sed 's/^/    /')
+    execs:
+$(echo "$superset_execs" | sed 's/^/    /')
+    identifiedCallStacks: $identifiedCallStacks
+    imageID: $imageID
+    imageTag: $imageTag
+    name: $name
+    opens:
+$(echo "$superset_opens" | sed 's/^/    /')
+    syscalls:
+$(for s in "${superset_syscalls[@]}"; do echo "    - $s"; done)
 EOF
 
 echo "Superset arrays written to '$OUTPUT_FILE'" 
