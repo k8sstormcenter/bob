@@ -44,7 +44,11 @@ for file in "${FILES[@]}"; do
     .spec.containers[0].capabilities |= (. // [] | sort | unique) |
     .spec.containers[0].syscalls |= (. // [] | sort | unique) |
     .spec.containers[0].execs |= (. // [] | unique_by(.path)) |
-    .spec.containers[0].opens |= (. // [] | unique_by(.path)) |
+    .spec.containers[0].opens |= (
+      . // []
+      | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "*"))
+      | unique_by(.path)
+    ) |
     .spec.containers[0].endpoints |= (. // [] | sort | unique)
   ' "$file" > "$norm_file"
 
@@ -54,6 +58,7 @@ for file in "${FILES[@]}"; do
   imageTag=$(yq '.spec.containers[0].imageTag' "$norm_file" 2>/dev/null || true)
   name=$(yq '.spec.containers[0].name' "$norm_file" 2>/dev/null || true)
   architecture=$(yq '.spec.architectures[0]' "$norm_file" 2>/dev/null || true)
+  identifiedCallStacks=$(yq '.spec.containers[0].identifiedCallStacks' "$norm_file" 2>/dev/null || true)
 
   execs_json=$(yq -o=json '.spec.containers[0].execs' "$norm_file" 2>/dev/null || echo "[]")
   opens_json=$(yq -o=json '.spec.containers[0].opens' "$norm_file" 2>/dev/null || echo "[]")
@@ -78,8 +83,36 @@ superset_capabilities=($(printf "%s\n" "${all_capabilities[@]}" | sort -u))
 superset_execs=$(echo "$all_execs_json" | yq -P '.')
 superset_opens=$(echo "$all_opens_json" | yq -P '.')
 superset_endpoints=$(echo "$all_endpoints_json" | yq -P '.')
+if [ "$(echo "$all_endpoints_json" | jq 'length')" -eq 0 ]; then
+  endpoints_yaml="null"
+else
+  endpoints_yaml=$(echo "$all_endpoints_json" | yq -P '.' | sed 's/^/      /')
+fi
 
-# Todo: make it formatted and idented like a real application profile
+indent_execs() {
+  while IFS= read -r line; do
+    if [[ "$line" =~ "- args" ]]; then
+      echo "    $line"
+    elif [[ "$line" =~ "path" ]]; then
+      echo "    $line"  
+    else
+      echo "  $line"
+    fi
+  done
+}
+
+indent_opens() {
+  while IFS= read -r line; do
+    if [[ "$line" =~ "- flags" ]]; then
+      echo "    $line"
+    elif [[ "$line" =~ "path" ]]; then
+      echo "    $line"  
+    else
+      echo "  $line"
+    fi
+  done      
+}
+
 cat <<EOF > "$OUTPUT_FILE"
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
@@ -95,18 +128,17 @@ spec:
   containers:
   - capabilities:
 $(for c in "${superset_capabilities[@]}"; do echo "    - $c"; done)
-    endpoints:
-$(echo "$superset_endpoints" | sed 's/^/    /')
+    endpoints: $endpoints_yaml
     execs:
-$(echo "$superset_execs" | sed 's/^/    /')
+$(echo "$superset_execs" | indent_execs)
     identifiedCallStacks: $identifiedCallStacks
     imageID: $imageID
     imageTag: $imageTag
     name: $name
     opens:
-$(echo "$superset_opens" | sed 's/^/    /')
+$(echo "$superset_opens" | indent_opens)
     syscalls:
 $(for s in "${superset_syscalls[@]}"; do echo "    - $s"; done)
 EOF
 
-echo "Superset arrays written to '$OUTPUT_FILE'" 
+echo "Superset arrays written to '$OUTPUT_FILE'"
