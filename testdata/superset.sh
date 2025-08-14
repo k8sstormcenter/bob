@@ -49,7 +49,8 @@ for file in "${FILES[@]}"; do
       | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "*"))
       | unique_by(.path)
     ) |
-    .spec.containers[0].endpoints |= (. // [] | sort | unique)
+    .spec.containers[0].endpoints |= (. // [] | sort | unique)|
+    .spec.containers[0].rules |= (. // [] | sort | unique)
   ' "$file" > "$norm_file"
 
   syscalls=$(yq '.spec.containers[0].syscalls[]' "$norm_file" 2>/dev/null || true)
@@ -59,10 +60,21 @@ for file in "${FILES[@]}"; do
   name=$(yq '.spec.containers[0].name' "$norm_file" 2>/dev/null || true)
   architecture=$(yq '.spec.architectures[0]' "$norm_file" 2>/dev/null || true)
   identifiedCallStacks=$(yq '.spec.containers[0].identifiedCallStacks' "$norm_file" 2>/dev/null || true)
+  apiGroup=$(yq '.metadata.annotations."kubescape.io/workload-api-group"' "$norm_file" 2>/dev/null || true)
+  apiVersion=$(yq '.metadata.annotations."kubescape.io/workload-api-version"' "$norm_file" 2>/dev/null || true)
+  kind=$(yq '.metadata.annotations."kubescape.io/workload-kind"' "$norm_file" 2>/dev/null || true)
+  workloadname=$(yq '.metadata.annotations."kubescape.io/workload-name"' "$norm_file" 2>/dev/null || true)
+  namespace=$(yq '.metadata.annotations."kubescape.io/workload-namespace"' "$norm_file" 2>/dev/null || true)
+  instanceid=$(yq '.metadata.annotations."kubescape.io/instance-id"' "$norm_file" 2>/dev/null || true)
+  wlid=$(yq '.metadata.annotations."kubescape.io/wlid"' "$norm_file" 2>/dev/null || true)
+  name=$(yq '.metadata.name' "$norm_file" 2>/dev/null || true)
+
 
   execs_json=$(yq -o=json '.spec.containers[0].execs' "$norm_file" 2>/dev/null || echo "[]")
   opens_json=$(yq -o=json '.spec.containers[0].opens' "$norm_file" 2>/dev/null || echo "[]")
   endpoints_json=$(yq -o=json '.spec.containers[0].endpoints' "$norm_file" 2>/dev/null || echo "[]")
+  rules_json=$(yq -o=json '.spec.containers[0].rulePolicies' "$norm_file" 2>/dev/null || echo "[]")
+
 
   # Merge execs
   all_execs_json=$(jq -s 'add | unique_by(.path)' <(echo "$all_execs_json") <(echo "$execs_json"))
@@ -117,11 +129,19 @@ cat <<EOF > "$OUTPUT_FILE"
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: superset-bob
-  namespace: bob
+  name: $name
+  namespace: $namespace
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/status: ready
+    kubescape.io/status: completed
+    kubescape.io/instance-id: $instanceid
+    kubescape.io/wlid: $wlid
+  labels:
+    kubescape.io/workload-api-group: $apiGroup
+    kubescape.io/workload-api-version: $apiVersion
+    kubescape.io/workload-kind: $kind
+    kubescape.io/workload-name: $workloadname
+    kubescape.io/workload-namespace: $namespace
 spec:
   architectures:
   - $architecture
@@ -142,3 +162,5 @@ $(for s in "${superset_syscalls[@]}"; do echo "    - $s"; done)
 EOF
 
 echo "Superset arrays written to '$OUTPUT_FILE'"
+#    rulePolicies:
+#$(for r in "${rules_json[@]}"; do echo "     $r"; done)

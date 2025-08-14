@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 47-retest-for-repeatability 
+      - 44-bobctl-can-take-applicationprofile-and-parametrize-it-into-a-helm-syntax
     paths:    
       - 'myredis-umbrella-chart/**'
       - 'kubescape/**'
@@ -218,3 +218,67 @@ jobs:
         with:
           name: redis-bobs-collection
           path: redis-bobs.tar.gz
+
+      - name: Test superset Bob on kin
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:v1.33.0
+        run: |
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+          helm version
+          helm list
+          make kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+          cp all-bobs/superset-bob.yaml ./myredis-umbrella-chart/redis-bob/templates/bob.yaml
+          helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
+          kubectl logs -n bob pods/bob-redis-master-0 redis 
+          kubectl logs -n honey -l app=node-agent 
+          sleep 30
+
+      - name: Run helm test
+        continue-on-error: true
+        run: |
+          make helm-redis-test
+          echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=operator
+          #kubectl get applicationprofile -n bob -o yaml
+          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+          sleep 25
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
+          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+          if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
+            echo "🤔 Didnt find anything, nodeagent is struggeling, here are some logs"
+            kubectl logs -n honey -l app=kubescape
+            kubectl logs -n honey -l app=node-agent
+            kubectl logs -n honey -l app=storage
+            kubectl logs -n honey -l app=kubevuln
+            kubectl logs -n honey -l app=operator
+            kubectl logs -n webapp webapp
+          else
+          echo "Found $count anomalies"
+          if [ "$count" -ne 5 ]; then
+            echo "❌ Expected 5 anomalies, but found $count"
+            echo ::set-output name=status::failure
+          fi
+          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" > /tmp/anomalyobserved.json
+          jq -r '.BaseRuntimeMetadata.alertName' /tmp/anomalyobserved.json | sort > /tmp/actual_alerts.txt
+          jq -r '.BaseRuntimeMetadata.alertName' ./testdata/redis_attack_raw.json | sort > /tmp/expected_alerts.txt
+          if ! diff -u /tmp/expected_alerts.txt /tmp/actual_alerts.txt; then
+            echo "❌ Alert names do not match expected!"
+          else
+            echo "✅ Alert names match expected."
+            echo ::set-output name=status::success
+          fi
+
+
+        
