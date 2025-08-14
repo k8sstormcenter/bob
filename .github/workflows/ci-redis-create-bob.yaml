@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
         k8s-distribution: [k3s, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
-        kubernetes-version: [v1.33.3, v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] 
+        kubernetes-version: [v1.33.2, v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] 
     runs-on: ${{ matrix.os }}
 
 
@@ -45,7 +45,9 @@ jobs:
         uses: medyagh/setup-minikube@master
         with:
           kubernetes-version: ${{ matrix.kubernetes-version }}
-
+      - name: Set up Minikube Cluster
+        if: matrix.k8s-distribution == 'minikube'
+        run: make storage
 
       - name: Set up K0s Cluster
         if: matrix.k8s-distribution == 'k0s'
@@ -194,6 +196,9 @@ jobs:
     needs: build
     if: always() # Run even if some matrix jobs fail, to collect successful BoBs
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download all BoB artifacts
         uses: actions/download-artifact@v4
         with:
