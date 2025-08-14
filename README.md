@@ -93,9 +93,9 @@ it doesnt require loading anything into the LSM. LSMs have a totally different l
 **THE MOST IMPORTANT DIFFERENCE is UX, granularity and timeing** and this enables transferring it between systems and making it transparent to users
 
 ## Example comparison of seccomp with BoB (for redis)
-For the KV-database `redis` in its most popular Helm-Chart, we traced out the superset of all syscalls across many k8s-versions/distros. In K8s, there is a [`RuntimeDefault` seccomp](https://github.com/moby/profiles/blob/main/seccomp/default.json) profile that disallows the most dangerous syscalls. Since, it is the best-known security feature, we
+For the KV-database `redis` in its most popular Helm-Chart, we traced out the superset of all syscalls across many k8s-versions/distros. In K8s, there is a [`RuntimeDefault` seccomp](https://github.com/moby/profiles/blob/main/seccomp/default.json) [profile](https://github.com/containerd/containerd/blob/main/contrib/seccomp/seccomp_default.go) depending on the containerruntime that disallows the most dangerous syscalls. Since, it is the best-known security feature, we
 compare the 195 allowed syscalls from the default with the 128 from the BoB profile.
-Generally speaking, a BoB profile will have a lower number of syscalls than a seccomp profile.
+Generally speaking, a BoB profile will have a lower number of syscalls than a seccomp profile. There are many discussions on the internet on how [seccomp is difficult across architecture](https://github.com/opencontainers/runc/issues/2151)s and known [issues](https://lwn.net/Articles/738694/).
 
 Profile	|Total Syscalls|	In BoB Not in RuntimeDefault|	In RuntimeDefault, Not in BoB|
 --|--|--|--|
