@@ -219,10 +219,12 @@ jobs:
           name: redis-bobs-collection
           path: redis-bobs.tar.gz
 
-      - name: Test superset Bob on kin
+      - name: setup kind
         uses: helm/kind-action@v1
         with:
           node_image: kindest/node:v1.33.0
+
+      - name: Test superset Bob on kind    
         run: |
           echo "kubeconfig: $KUBECONFIG"
           kubectl version
