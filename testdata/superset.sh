@@ -57,7 +57,7 @@ for file in "${FILES[@]}"; do
   capabilities=$(yq '.spec.containers[0].capabilities[]' "$norm_file" 2>/dev/null || true)
   imageID=$(yq '.spec.containers[0].imageID' "$norm_file" 2>/dev/null || true)
   imageTag=$(yq '.spec.containers[0].imageTag' "$norm_file" 2>/dev/null || true)
-  name=$(yq '.spec.containers[0].name' "$norm_file" 2>/dev/null || true)
+  containerName=$(yq '.spec.containers[0].name' "$norm_file" 2>/dev/null || true)
   architecture=$(yq '.spec.architectures[0]' "$norm_file" 2>/dev/null || true)
   identifiedCallStacks=$(yq '.spec.containers[0].identifiedCallStacks' "$norm_file" 2>/dev/null || true)
   apiGroup=$(yq '.metadata.labels."kubescape.io/workload-api-group"' "$norm_file" 2>/dev/null || true)
@@ -154,7 +154,7 @@ $(echo "$superset_execs" | indent_execs)
     identifiedCallStacks: $identifiedCallStacks
     imageID: $imageID
     imageTag: $imageTag
-    name: $name
+    name: $containerName
     opens:
 $(echo "$superset_opens" | indent_opens)
     syscalls:
