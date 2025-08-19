@@ -1,21 +1,21 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-    name: replicaset-{{ include "dynatrace-operator.fullname" . }}-{{ .Values.bob.templateHash }}
-    namespace: '{{ .Release.Namespace }}'
+    name: replicaset-dynatrace-operator-5d9b4d586d
+    namespace: dynatrace
     annotations:
         kubescape.io/completion: complete
-        kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-ReplicaSet/name-{{ include "{{ .Release.Namespace }}-operator.fullname" . }}-{{ .Values.bob.templateHash }}
+        kubescape.io/instance-id: apiVersion-apps/v1/namespace-dynatrace/kind-ReplicaSet/name-dynatrace-operator-5d9b4d586d
         kubescape.io/resource-size: "115"
         kubescape.io/status: completed
-        kubescape.io/wlid: wlid://cluster-bobexample/namespace-{{ .Release.Namespace }}/deployment-{{ include "{{ .Release.Namespace }}-operator.fullname" . }}
+        kubescape.io/wlid: wlid://cluster-bobexample/namespace-dynatrace/deployment-dynatrace-operator
     labels:
-        kubescape.io/instance-template-hash: '{{ .Values.bob.templateHash }}'
+        kubescape.io/instance-template-hash: 5d9b4d586d
         kubescape.io/workload-api-group: apps
         kubescape.io/workload-api-version: v1
         kubescape.io/workload-kind: Deployment
-        kubescape.io/workload-name: '{{ include "dynatrace-operator.fullname" . }}'
-        kubescape.io/workload-namespace: '{{ .Release.Namespace }}'
+        kubescape.io/workload-name: dynatrace-operator
+        kubescape.io/workload-namespace: dynatrace
         kubescape.io/workload-resource-version: "5438"
 spec:
     architectures:
@@ -34,12 +34,12 @@ spec:
             - SYS_ADMIN
           endpoints:
             - direction: inbound
-              endpoint: :{{ .Values.service.port }}/livez
+              endpoint: :10080/livez
               headers:
                 Connection:
                     - close
                 Host:
-                    - '{{ .Values.podIP | default "127.0.0.1" }}:{{ .Values.service.port }}'
+                    - 10.244.1.12:10080
               internal: false
               methods:
                 - GET

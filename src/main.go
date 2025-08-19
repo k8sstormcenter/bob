@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -13,7 +14,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// --- 1. Structs for ApplicationProfile YAML ---
+// Supported formats
+type ProfileFormat string
+
+const (
+	FormatKubescape ProfileFormat = "kubescape"
+	FormatNeuVector ProfileFormat = "neuvector"
+	FormatAppArmor  ProfileFormat = "apparmor"
+	FormatSeccomp   ProfileFormat = "seccomp"
+)
 
 type ApplicationProfile struct {
 	APIVersion string                 `yaml:"apiVersion"`
@@ -76,8 +85,9 @@ type TemplateConfig struct {
 
 // --- 3. Syscall to Kernel Version Database ---
 
-// A small, illustrative database. A real tool would have a more extensive list.
-// Maps syscall name to the minimum kernel version that supports it.
+// TODO: make this list complete
+// Maps syscall name to the minimum kernel version
+// Rationale: If youre going from a higher kernel version to a lower one, where syscalls dont exist yet, your profile likely wont work (in extreme cases, your app wont work)
 var syscallKernelVersions = map[string]string{
 	"accept4":      "2.6.28",
 	"clone3":       "5.3",
@@ -93,25 +103,67 @@ var syscallKernelVersions = map[string]string{
 	"rseq":         "4.18",
 	"setns":        "3.0",
 	"unshare":      "2.6.16",
-	"setpcap":      "2.6.24", // Not a syscall, but capability example
-	"sys_admin":    "2.2",    // Not a syscall, but capability example
+}
+
+var capabilityKernelVersions = map[string]string{
+	"setpcap":   "2.6.24",
+	"sys_admin": "2.2",
+}
+
+// a table of syscalls forbidden by the Defaults of different Runtimes
+// TODO: fill this out for crio containerd and moby
+var seccompDefault = map[string]string{
+	"containerd": "umount, clone",
+}
+
+var (
+	inputFile    string
+	outputFile   string
+	inputFormat  string
+	outputFormat string
+	inputKernel  string
+	outputKernel string
+	inputK8s     string
+	outputK8s    string
+	configFile   string
+)
+
+func init() {
+	flag.StringVar(&inputFile, "input", "", "Input profile file")
+	flag.StringVar(&outputFile, "output", "", "Output profile file")
+	flag.StringVar(&inputFormat, "input-format", "kubescape", "Input format: kubescape|neuvector|apparmor|seccomp")
+	flag.StringVar(&outputFormat, "output-format", "kubescape", "Output format: kubescape|neuvector|apparmor|seccomp")
+	flag.StringVar(&inputKernel, "input-kernel", "", "Input kernel version (e.g. 5.15.0)")
+	flag.StringVar(&outputKernel, "output-kernel", "", "Output kernel version (e.g. 6.1.0)")
+	flag.StringVar(&inputK8s, "input-k8s", "", "Input Kubernetes version (e.g. 1.28.0)")
+	flag.StringVar(&outputK8s, "output-k8s", "", "Output Kubernetes version (e.g. 1.30.0)")
+	flag.StringVar(&configFile, "config", "", "Input config file")
 }
 
 func main() {
-	if len(os.Args) != 5 {
-		fmt.Println("Usage: go run main.go <input-profile.yaml> <template-config.yaml> <target-kernel-version> <output-helm-template.yaml>")
+	flag.Parse()
+	if inputFile == "" || outputFile == "" {
+		fmt.Println("Usage: translate-profile --input <file> --output <file> [--input-format ...] [--output-format ...] [--input-kernel ...] [--output-kernel ...] [--input-k8s ...] [--output-k8s ...]")
 		os.Exit(1)
 	}
 
-	inputFile := os.Args[1]
-	configFile := os.Args[2]
-	targetKernel := os.Args[3]
-	outputFile := os.Args[4]
-
-	// --- Parse Inputs ---
-	profile, err := parseProfile(inputFile)
+	// 1. Parse input profile
+	var profile *ApplicationProfile
+	var err error
+	switch ProfileFormat(strings.ToLower(inputFormat)) {
+	case FormatKubescape:
+		profile, err = parseKubescapeProfile(inputFile)
+	case FormatNeuVector:
+		profile, err = parseNeuVectorProfile(inputFile)
+	case FormatAppArmor:
+		profile, err = parseAppArmorProfile(inputFile)
+	case FormatSeccomp:
+		profile, err = parseSeccompProfile(inputFile)
+	default:
+		log.Fatalf("Unsupported input format: %s", inputFormat)
+	}
 	if err != nil {
-		log.Fatalf("Error parsing profile: %v", err)
+		log.Fatalf("Error parsing input: %v", err)
 	}
 
 	config, err := parseConfig(configFile)
@@ -119,22 +171,37 @@ func main() {
 		log.Fatalf("Error parsing config: %v", err)
 	}
 
-	// --- Template the Profile ---
-	templatedProfile, err := templateProfile(profile, config, targetKernel)
+	// 2. Optionally, normalize/translate profile for kernel/k8s version
+	if outputKernel != "" {
+		for i := range profile.Spec.Containers {
+			profile.Spec.Containers[i].Syscalls = correctSyscalls(profile.Spec.Containers[i].Syscalls, outputKernel)
+		}
+	}
+	// 3. Write output in requested format
+	switch ProfileFormat(strings.ToLower(outputFormat)) {
+	case FormatKubescape:
+		//templatedProfile, err := templateKubescapeProfile(profile, config, outputKernel) // TODO find toggle to switch between HELM and other template engines
+		if err != nil {
+			log.Fatalf("Error templating profile: %v", err)
+		}
+		err = writeKubescapeProfile(outputFile, config, profile)
+	case FormatNeuVector:
+		err = writeNeuVectorProfile(outputFile, config, profile)
+	case FormatAppArmor:
+		err = writeAppArmorProfile(outputFile, config, profile)
+	case FormatSeccomp:
+		err = writeSeccompProfile(outputFile, config, profile)
+	default:
+		log.Fatalf("Unsupported output format: %s", outputFormat)
+	}
 	if err != nil {
-		log.Fatalf("Error templating profile: %v", err)
+		log.Fatalf("Error writing output: %v", err)
 	}
 
-	// --- Write Output ---
-	err = writeProfile(outputFile, templatedProfile)
-	if err != nil {
-		log.Fatalf("Error writing output profile: %v", err)
-	}
-
-	fmt.Printf("Successfully generated Helm template at %s\n", outputFile)
+	fmt.Printf("Successfully translated profile from %s to %s: %s\n", inputFormat, outputFormat, outputFile)
 }
 
-func parseProfile(filename string) (*ApplicationProfile, error) {
+func parseKubescapeProfile(filename string) (*ApplicationProfile, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -162,7 +229,7 @@ func parseConfig(filename string) (*TemplateConfig, error) {
 	return &config, nil
 }
 
-func writeProfile(filename string, profile *ApplicationProfile) error {
+func writeKubescapeProfile(filename string, config *TemplateConfig, profile *ApplicationProfile) error {
 	data, err := yaml.Marshal(profile)
 	if err != nil {
 		return err
@@ -177,7 +244,7 @@ func writeProfile(filename string, profile *ApplicationProfile) error {
 	return os.WriteFile(filename, data, 0644)
 }
 
-func templateProfile(profile *ApplicationProfile, config *TemplateConfig, targetKernel string) (*ApplicationProfile, error) {
+func templateKubescapeProfile(profile *ApplicationProfile, config *TemplateConfig, targetKernel string) (*ApplicationProfile, error) {
 	// --- Template Metadata ---
 	workloadName := profile.Metadata.Labels["kubescape.io/workload-name"]
 	templateHash := profile.Metadata.Labels["kubescape.io/instance-template-hash"]
@@ -309,4 +376,33 @@ func toInt(s string) int {
 		return 0
 	}
 	return i
+}
+
+func parseNeuVectorProfile(filename string) (*ApplicationProfile, error) {
+	// TODO: Implement NeuVector JSON/YAML parsing and mapping to ApplicationProfile
+	return nil, fmt.Errorf("NeuVector parsing not implemented")
+}
+
+func writeNeuVectorProfile(filename string, config *TemplateConfig, profile *ApplicationProfile) error {
+	// TODO: Implement serialization to NeuVector format
+	return fmt.Errorf("NeuVector output not implemented")
+}
+
+func parseAppArmorProfile(filename string) (*ApplicationProfile, error) {
+	// TODO: Implement AppArmor parsing and mapping to ApplicationProfile
+	return nil, fmt.Errorf("AppArmor parsing not implemented")
+}
+
+func writeAppArmorProfile(filename string, config *TemplateConfig, profile *ApplicationProfile) error {
+	// TODO: Implement serialization to AppArmor format
+	return fmt.Errorf("AppArmor output not implemented")
+}
+
+func parseSeccompProfile(filename string) (*ApplicationProfile, error) {
+	// TODO: Implement Seccomp parsing and mapping to ApplicationProfile
+	return nil, fmt.Errorf("Seccomp parsing not implemented")
+}
+func writeSeccompProfile(filename string, config *TemplateConfig, profile *ApplicationProfile) error {
+	// TODO: Implement serialization to Seccomp format
+	return fmt.Errorf("Seccomp output not implemented")
 }

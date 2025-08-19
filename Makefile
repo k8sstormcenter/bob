@@ -194,7 +194,7 @@ HELM = $(shell which helm)
 
 .PHONY: template
 template:
-	go run src/main.go testdata/parameterstudy/oneagent/operatorbobk8somni61.yaml src/config.yaml 6.1.0  myoneagent/bob-dyna-operator.yaml
+	go run src/main.go --input testdata/parameterstudy/oneagent/operatorbobk8somni61.yaml --config src/config.yaml --input-format kubescape --output-format kubescape --input-kernel 6.1.0 --output-kernel 5.15.0 --output myoneagent/bob-dyna-operator.yaml
 
 .PHONY: compare-bobs
 compare-bobs:
