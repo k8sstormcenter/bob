@@ -2,8 +2,7 @@ name: Publish Helm Chart to OCI Registry
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
     paths:
       - 'mywebapp-chart/**'
       - '.github/workflows/publish-oci-helmchart.yaml'
@@ -18,49 +17,31 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write # Required for keyless signing with Cosign
-
+      id-token: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - uses: sigstore/cosign-installer@v3
 
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-
-      - name: Set up Cosign
-        uses: sigstore/cosign-installer@v3
-
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Helm login (for helm push)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Docker login (for cosign)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Package Helm chart
         run: |
           helm package mywebapp-chart
-          export CHART_VERSION=$(yq '.version' mywebapp-chart/Chart.yaml)
-          export CHART_NAME=$(yq '.name' mywebapp-chart/Chart.yaml)
+          CHART_VERSION=$(yq '.version' mywebapp-chart/Chart.yaml)
+          CHART_NAME=$(yq '.name' mywebapp-chart/Chart.yaml)
           echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
           echo "CHART_NAME=$CHART_NAME" >> $GITHUB_ENV
-      - name: Install oras
-        run: |
-          curl -LO https://github.com/oras-project/oras/releases/download/v1.1.0/oras_1.1.0_linux_amd64.tar.gz
-          tar -xzf oras_1.1.0_linux_amd64.tar.gz oras
-          sudo mv oras /usr/local/bin/
-      - name: Get chart digest
-        id: digest
-        run: |
-          DIGEST=$(oras manifest fetch --descriptor ghcr.io/k8sstormcenter/${CHART_NAME}:${CHART_VERSION} | jq -r .digest)
-          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-          echo "DIGEST=$DIGEST" >> $GITHUB_ENV
-
-
 
       - name: Push Helm chart to OCI registry
         run: |
-          helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
+          helm push "${CHART_NAME}-${CHART_VERSION}.tgz" oci://ghcr.io/k8sstormcenter          
 
-      - name: Sign Helm chart with Cosign
+      - name: Sign Helm chart with Cosign (tag; digest auto-resolved)
         env:
-          # COSIGN_EXPERIMENTAL is required for signing non-image OCI artifacts like Helm charts
           COSIGN_EXPERIMENTAL: "1"
         run: |          
-          cosign sign --yes "ghcr.io/k8sstormcenter/${CHART_NAME}@${DIGEST}"
+          cosign sign --yes "ghcr.io/k8sstormcenter/${CHART_NAME}:${CHART_VERSION}"          
