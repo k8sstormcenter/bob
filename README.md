@@ -12,16 +12,13 @@ Image a software vendor (like a pharmaceutical company) distills all their knowl
 <img width="3124" height="2638" alt="bobverticalvendor" src="https://github.com/user-attachments/assets/b66e1510-c4c6-41b8-8f45-11ce98faf947" />
 
 That means the user receives a secure default runtime profile. They can customize it, or directly apply it for runtime detection. And which each update of the software,
-get an uptodate runtimeprofile: 
+get an uptodate runtimeprofile 🚨 New Design Kubescape 4.0 will support user-defined-profiles, here an example using the kubescape CRDs 🚨 
 ``` yaml
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  annotations:
-    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/deployment-{{ include "mywebapp.fullname" . }}  
-  labels:
-    kubescape.io/workload-name: {{ include "mywebapp.fullname" . }}                                 
-    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                                                                                         
+  name: bob-application123
+  namespace: {{ .Release.Namespace }}                                                                                                                      
 spec:
   architectures:
   - amd64
