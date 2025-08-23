@@ -265,7 +265,6 @@ jobs:
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
           sleep 25
           kubectl logs -n honey -l app=node-agent 
-          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
           count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
           if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
             kubectl logs -n honey -l app=kubescape
