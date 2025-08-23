@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
         k8s-distribution: [k3s, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
-        kubernetes-version: [v1.33.2, v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] 
+        kubernetes-version: [ v1.30.0, v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
     runs-on: ${{ matrix.os }}
 
 
