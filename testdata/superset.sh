@@ -29,6 +29,7 @@ all_capabilities=()
 all_execs_json="[]"
 all_opens_json="[]"
 all_endpoints_json="[]"
+all_rules_json="[]"
 
 
 for file in "${FILES[@]}"; do
@@ -56,6 +57,7 @@ for file in "${FILES[@]}"; do
   syscalls=$(yq '.spec.containers[0].syscalls[]' "$norm_file" 2>/dev/null || true)
   capabilities=$(yq '.spec.containers[0].capabilities[]' "$norm_file" 2>/dev/null || true)
   imageID=$(yq '.spec.containers[0].imageID' "$norm_file" 2>/dev/null || true)
+  imageID=$(echo "$imageID" | sed 's|^docker-pullable://|docker.io/|')
   imageTag=$(yq '.spec.containers[0].imageTag' "$norm_file" 2>/dev/null || true)
   containerName=$(yq '.spec.containers[0].name' "$norm_file" 2>/dev/null || true)
   architecture=$(yq '.spec.architectures[0]' "$norm_file" 2>/dev/null || true)
@@ -73,7 +75,8 @@ for file in "${FILES[@]}"; do
   execs_json=$(yq -o=json '.spec.containers[0].execs' "$norm_file" 2>/dev/null || echo "[]")
   opens_json=$(yq -o=json '.spec.containers[0].opens' "$norm_file" 2>/dev/null || echo "[]")
   endpoints_json=$(yq -o=json '.spec.containers[0].endpoints' "$norm_file" 2>/dev/null || echo "[]")
-  rules_json=$(yq -o=json '.spec.containers[0].rulePolicies' "$norm_file" 2>/dev/null || echo "[]")
+  rules_json=$(yq -o=json '.spec.containers[0].rulePolicies | select(. != null) | to_entries' "$norm_file" 2>/dev/null || echo "[]")
+
 
 
   # Merge execs
@@ -82,6 +85,10 @@ for file in "${FILES[@]}"; do
   all_opens_json=$(jq -s 'add | unique_by(.path)' <(echo "$all_opens_json") <(echo "$opens_json"))
   # Merge endpoints
   all_endpoints_json=$(jq -s 'add | unique' <(echo "$all_endpoints_json") <(echo "$endpoints_json"))
+  # Merge rules -> for each rule, we need to sort and unique them
+  all_rules_json=$(jq -s 'add' <(echo "$all_rules_json") <(echo "$rules_json"))
+
+
 
   all_syscalls+=($syscalls)
   all_capabilities+=($capabilities)
@@ -100,6 +107,15 @@ if [ "$(echo "$all_endpoints_json" | jq 'length')" -eq 0 ]; then
 else
   endpoints_yaml=$(echo "$all_endpoints_json" | yq -P '.' | sed 's/^/      /')
 fi
+superset_rules=$(echo "$all_rules_json" | jq '
+  group_by(.key) |
+  map({
+    key: .[0].key,
+    value: (map(.value.processAllowed // []) | add | unique | if length > 0 then {processAllowed: .} else {} end)
+  }) | from_entries
+' | yq -P '.')
+
+
 
 indent_execs() {
   while IFS= read -r line; do
@@ -124,6 +140,19 @@ indent_opens() {
     fi
   done      
 }
+
+indent_rules() {
+  while IFS= read -r line; do
+    if [[ "$line" =~ ":" ]]; then
+      echo "      $line"
+    else
+      echo "    $line"
+    fi
+  done
+}
+
+
+
 
 cat <<EOF > "$OUTPUT_FILE"
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
@@ -157,9 +186,62 @@ $(echo "$superset_execs" | indent_execs)
     name: $containerName
     opens:
 $(echo "$superset_opens" | indent_opens)
+    rulePolicies:
+$(echo "$superset_rules" | indent_rules)
+    seccompProfile:
+      spec:
+        defaultAction: ""
     syscalls:
 $(for s in "${superset_syscalls[@]}"; do echo "    - $s"; done)
 EOF
+
+OUTPUT_FILE="$OUTPUT_FILE".helm
+
+cat << EOF >> "$OUTPUT_FILE"
+{{- if .Values.bob.create }}
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-bob-redis-master-{{ .Values.bob.templateHash }}
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-bob-redis-master 
+  labels:
+    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: StatefulSet
+    kubescape.io/workload-name: bob-redis-master                      
+    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
+  name: statefulset-bob-redis-master-{{ .Values.bob.templateHash }}                                  
+  namespace: {{ .Release.Namespace }}                                                             
+  resourceVersion: "1" 
+spec:
+  architectures:
+  - $architecture
+  containers:
+  - capabilities:
+$(for c in "${superset_capabilities[@]}"; do echo "    - $c"; done)
+    endpoints: $endpoints_yaml
+    execs:
+$(echo "$superset_execs" | indent_execs)
+    identifiedCallStacks: $identifiedCallStacks
+    imageID: $imageID
+    imageTag: $imageTag
+    name: $containerName
+    opens:
+$(echo "$superset_opens" | indent_opens)
+    rulePolicies:
+$(echo "$superset_rules" | indent_rules)
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+$(for s in "${superset_syscalls[@]}"; do echo "    - $s"; done)
+{{- end }}
+EOF
+
 
 echo "Superset arrays written to '$OUTPUT_FILE'"
 #    rulePolicies:

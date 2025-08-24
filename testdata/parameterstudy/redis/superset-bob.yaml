@@ -45,13 +45,13 @@ spec:
       path: /opt/bitnami/scripts/start-scripts/start-master.sh
     - args:
       - /usr/bin/cp
-      - /opt/bitnami/redis/mounted-etc/redis.conf
-      - /opt/bitnami/redis/etc/redis.conf
+      - /opt/bitnami/redis/mounted-etc/master.conf
+      - /opt/bitnami/redis/etc/master.conf
       path: /usr/bin/cp
     identifiedCallStacks: null
-    imageID: docker-pullable://bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
+    imageID: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
     imageTag: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
-    name: statefulset-bob-redis-master-668c4559b4
+    name: redis
     opens:
     - flags:
       - O_RDONLY
@@ -67,16 +67,16 @@ spec:
       - O_TRUNC
       path: /data/appendonlydir/temp-appendonly.aof.manifest
     - flags:
+      - O_CREAT
       - O_TRUNC
       - O_WRONLY
-      - O_CREAT
       path: /data/temp-rewriteaof-1.aof
     - flags:
       - O_RDONLY
       path: /dev/urandom
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /etc/ld.so.cache
     - flags:
       - O_RDONLY
@@ -90,10 +90,10 @@ spec:
       - O_RDONLY
       path: /etc/ssl/openssl.cnf
     - flags:
+      - O_RDONLY
       - O_WRONLY
       - O_CREAT
       - O_EXCL
-      - O_RDONLY
       path: /opt/bitnami/redis/etc/master.conf
     - flags:
       - O_WRONLY
@@ -136,8 +136,8 @@ spec:
       - O_RDONLY
       path: /proc/⋯/stat
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /proc/⋯/task/1/fd
     - flags:
       - O_RDONLY
@@ -186,8 +186,8 @@ spec:
       - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libssl.so.3
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
     - flags:
       - O_RDONLY
@@ -197,6 +197,43 @@ spec:
       - O_RDONLY
       - O_CLOEXEC
       path: /usr/share/zoneinfo/Etc/UTC
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - bash
+        - cp
+        - redis-server
+        - start-master.sh
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004:
+        processAllowed:
+        - start-master.sh
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
     syscalls:
     - accept4
     - access
@@ -229,7 +266,6 @@ spec:
     - faccessat2
     - fadvise64
     - fchdir
-    - fchmod
     - fchmodat
     - fchown
     - fchownat
@@ -253,7 +289,6 @@ spec:
     - getppid
     - getrandom
     - getrlimit
-    - getrusage
     - getsockname
     - gettid
     - getuid
@@ -268,6 +303,7 @@ spec:
     - mknodat
     - mmap
     - mount
+    - mount_setattr
     - mprotect
     - munmap
     - nanosleep
@@ -296,7 +332,9 @@ spec:
     - set_tid_address
     - setgid
     - setgroups
+    - sethostname
     - setitimer
+    - setrlimit
     - setsid
     - setsockopt
     - setuid
@@ -316,6 +354,4 @@ spec:
     - unshare
     - utimensat
     - wait4
-    - waitid
     - write
-    - writev
