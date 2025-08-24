@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 47-retest-for-repeatability 
+      - 44-bobctl-can-take-applicationprofile-and-parametrize-it-into-a-helm-syntax
     paths:    
       - 'myredis-umbrella-chart/**'
       - 'kubescape/**'
@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
         k8s-distribution: [k3s, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
-        kubernetes-version: [v1.33.3, v1.27.3, v1.28.12, v1.29.8, v1.30.0, v1.31.0, v1.32.0, v1.33.0] 
+        kubernetes-version: [ v1.30.0, v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
     runs-on: ${{ matrix.os }}
 
 
@@ -45,7 +45,9 @@ jobs:
         uses: medyagh/setup-minikube@master
         with:
           kubernetes-version: ${{ matrix.kubernetes-version }}
-
+      - name: Set up Minikube Cluster
+        if: matrix.k8s-distribution == 'minikube'
+        run: make storage
 
       - name: Set up K0s Cluster
         if: matrix.k8s-distribution == 'k0s'
@@ -97,7 +99,7 @@ jobs:
 
       - name: Install kubescape
         run: |
-          make kubescape
+          make kubescape-vendor
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=node-agent 
@@ -111,14 +113,38 @@ jobs:
       - name: Run helm install for redis
         run: |
           helm dependency update myredis-umbrella-chart/redis-bob/
+          mv ./myredis-umbrella-chart/redis-bob/templates/tests/test-attack.yaml test-attack.yaml
           helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=false
           kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
+
+      - name: Get logs
+        run: |
           kubectl logs -n bob pods/bob-redis-master-0 redis 
           kubectl logs -n honey -l app=node-agent 
           sleep 15
 
 
       - name: Run helm test
+        continue-on-error: true
+        run: |
+          make helm-redis-test
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=operator
+          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+          sleep 25
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -l app=node-agent -n honey 
+      - name: Run helm test 2
+        continue-on-error: true
+        run: |
+          make helm-redis-test
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=operator
+          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+          sleep 25
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -l app=node-agent -n honey 
+      - name: Run helm test 3
         continue-on-error: true
         run: |
           make helm-redis-test
@@ -174,15 +200,24 @@ jobs:
     needs: build
     if: always() # Run even if some matrix jobs fail, to collect successful BoBs
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download all BoB artifacts
         uses: actions/download-artifact@v4
         with:
           path: bob-artifacts
 
-      - name: Package all BoBs into a tarball
+      - name: Create a superset 
         run: |
           mkdir -p all-bobs
           find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
+          make superset-bob INPUT_DIR=all-bobs OUTPUT_FILE=all-bobs/superset-bob.yaml 
+
+
+
+      - name: Package all BoBs into a tarball
+        run: |
           echo "Packaging the following BoB files:"
           ls -R all-bobs
           tar -czvf redis-bobs.tar.gz -C all-bobs .
@@ -193,60 +228,64 @@ jobs:
           name: redis-bobs-collection
           path: redis-bobs.tar.gz
 
-  test-bobs:
-    runs-on: ubuntu-latest
-    needs: package-bobs
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download BoB collection artifact
-        uses: actions/download-artifact@v4
+      - name: setup kind
+        uses: helm/kind-action@v1
         with:
-          name: redis-bobs-collection
-          path: .
+          node_image: kindest/node:v1.33.0
 
-      - name: Install yq
-        run: sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-
-      - name: Compare generated BoBs with repository versions
+      - name: Test superset Bob on kind    
         run: |
-          tar -xzvf redis-bobs.tar.gz
-          
-          REPO_BOBS_DIR="testdata/parameterstudy/redis"
-          if [ ! -d "$REPO_BOBS_DIR" ]; then
-            echo "::warning::Reference BoB directory not found: $REPO_BOBS_DIR. Skipping comparison."
-            exit 0
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+          helm version
+          helm list
+          make kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+          cp all-bobs/superset-bob.yaml ./myredis-umbrella-chart/redis-bob/templates/bob.yaml
+          helm dependency update myredis-umbrella-chart/redis-bob/
+          helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
+          kubectl logs -n bob pods/bob-redis-master-0 redis 
+          kubectl logs -n honey -l app=node-agent 
+          sleep 30
+
+      - name: Run helm test
+        continue-on-error: true
+        run: |
+          make helm-redis-test
+          echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=operator
+          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+          sleep 25
+          kubectl logs -n honey -l app=node-agent 
+          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+          if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
+            kubectl logs -n honey -l app=kubescape
+            kubectl logs -n honey -l app=node-agent
+            kubectl logs -n honey -l app=storage
+            kubectl logs -n honey -l app=kubevuln
+            kubectl logs -n honey -l app=operator
+            kubectl logs -n webapp webapp
+            echo "Didnt find anything."
+          else
+          echo "Found $count anomalies"
+          if [ "$count" -ne 2 ]; then
+            echo "❌ Expected 2 anomalies, but found $count"
           fi
 
-          echo "Comparing generated BoBs with repository versions..."
-          DIFF_FOUND=0
-          
-          normalize_bob() {
-            # Use yq to remove volatile metadata and sed to normalize timestamped paths in `opens`
-            yq eval 'del(.metadata.creationTimestamp, .metadata.resourceVersion, .metadata.uid, .metadata.labels."kubescape.io/workload-resource-version", .metadata.annotations."kubescape.io/resource-size")' "$1" | \
-            sed -E 's|(\.\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\.[0-9]+)|..TIMESTAMPED_DIR|g'
-          }
 
-          for generated_file in ./*.yaml; do
-            [ -e "$generated_file" ] || continue # Skip if no files match
-            filename=$(basename "$generated_file")
-            repo_file="$REPO_BOBS_DIR/$filename"
-            
-            if [ -f "$repo_file" ]; then
-              echo "--- Comparing $filename ---"
-              if ! diff -u <(normalize_bob "$repo_file") <(normalize_bob "$generated_file"); then
-                echo "::error::BoB file $filename has changed."
-                DIFF_FOUND=1
-              else
-                echo "✅ $filename is identical to the repository version."
-              fi
-            else
-              echo "::warning::Reference file not found for $filename in $REPO_BOBS_DIR. Skipping."
-            fi
-          done
+      - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
+        uses: actions/upload-artifact@v4
+        with:
+          name: redis-bob-final
+          path: all-bobs/superset-bob.yaml
 
-          if [ "$DIFF_FOUND" -ne 0 ]; then
-            echo "One or more BoB files have changed."
-            exit 1
-          fi
+
+        

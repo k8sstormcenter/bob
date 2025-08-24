@@ -33,19 +33,6 @@ spec:
       - /opt/bitnami/scripts/start-scripts/start-master.sh
       path: /bin/bash
     - args:
-      - /usr/bin/cp
-      - /opt/bitnami/redis/mounted-etc/master.conf
-      - /opt/bitnami/redis/etc/master.conf
-      path: /usr/bin/cp
-    - args:
-      - /opt/bitnami/scripts/start-scripts/start-master.sh
-      path: /opt/bitnami/scripts/start-scripts/start-master.sh
-    - args:
-      - /usr/bin/cp
-      - /opt/bitnami/redis/mounted-etc/redis.conf
-      - /opt/bitnami/redis/etc/redis.conf
-      path: /usr/bin/cp
-    - args:
       - /opt/bitnami/redis/bin/redis-server
       - --port
       - "6379"
@@ -56,6 +43,14 @@ spec:
       - --include
       - /opt/bitnami/redis/etc/master.conf
       path: /opt/bitnami/redis/bin/redis-server
+    - args:
+      - /opt/bitnami/scripts/start-scripts/start-master.sh
+      path: /opt/bitnami/scripts/start-scripts/start-master.sh
+    - args:
+      - /usr/bin/cp
+      - /opt/bitnami/redis/mounted-etc/master.conf
+      - /opt/bitnami/redis/etc/master.conf
+      path: /usr/bin/cp
     identifiedCallStacks: null
     imageID: {{ .Values.bob.imageID }}
     imageTag: {{ .Values.bob.imageTag }}
@@ -65,26 +60,26 @@ spec:
       - O_RDONLY
       path: /data/appendonlydir
     - flags:
-      - O_APPEND
-      - O_CREAT
       - O_WRONLY
+      - O_CREAT
+      - O_APPEND
       path: /data/appendonlydir/appendonly.aof.1.incr.aof
     - flags:
-      - O_CREAT
       - O_TRUNC
       - O_WRONLY
+      - O_CREAT
       path: /data/appendonlydir/temp-appendonly.aof.manifest
     - flags:
+      - O_WRONLY
       - O_CREAT
       - O_TRUNC
-      - O_WRONLY
       path: /data/temp-rewriteaof-1.aof
     - flags:
       - O_RDONLY
       path: /dev/urandom
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /etc/ld.so.cache
     - flags:
       - O_CLOEXEC
@@ -98,16 +93,16 @@ spec:
       - O_RDONLY
       path: /etc/ssl/openssl.cnf
     - flags:
+      - O_WRONLY
       - O_CREAT
       - O_EXCL
       - O_RDONLY
-      - O_WRONLY
       path: /opt/bitnami/redis/etc/master.conf
     - flags:
-      - O_CREAT
       - O_EXCL
       - O_RDONLY
       - O_WRONLY
+      - O_CREAT
       path: /opt/bitnami/redis/etc/redis.conf
     - flags:
       - O_RDONLY
@@ -121,11 +116,22 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /proc/⋯
+      path: /proc/filesystems
+    - flags:
+      - O_RDONLY
+      path: /proc/sys/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/sys/vm/overcommit_memory
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /proc/⋯/mounts
+      path: /proc/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/fd
     - flags:
       - O_RDONLY
       path: /proc/⋯/net/core/somaxconn
@@ -133,12 +139,12 @@ spec:
       - O_RDONLY
       path: /proc/⋯/stat
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /proc/⋯/task/1/fd
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /proc/⋯/vm/overcommit_memory
     - flags:
       - O_RDONLY
@@ -147,20 +153,20 @@ spec:
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/enabled
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libacl.so.1.1.2301
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libattr.so.1.1.2501
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libc.so.6
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libcrypto.so.3
     - flags:
       - O_CLOEXEC
@@ -175,27 +181,32 @@ spec:
       - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libselinux.so.1
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libssl.so.3
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/share/zoneinfo/Etc/UTC
     rulePolicies:
-      R0001: {}
+      R0001:
+        processAllowed:
+        - bash
+        - cp
+        - redis-server
+        - start-master.sh
       R0002: {}
       R0003: {}
       R0004: {}
@@ -210,7 +221,9 @@ spec:
       R1001: {}
       R1002: {}
       R1003: {}
-      R1004: {}
+      R1004:
+        processAllowed:
+        - start-master.sh
       R1005: {}
       R1006: {}
       R1007: {}
@@ -225,6 +238,7 @@ spec:
       spec:
         defaultAction: ""
     syscalls:
+    - accept4
     - access
     - arch_prctl
     - bind
@@ -232,24 +246,38 @@ spec:
     - capget
     - capset
     - chdir
+    - chmod
     - clone
+    - clone3
     - close
     - close_range
     - connect
     - copy_file_range
+    - dup
     - dup2
+    - dup3
     - epoll_create
+    - epoll_create1
     - epoll_ctl
     - epoll_pwait
     - epoll_wait
+    - eventfd2
     - execve
     - exit
     - exit_group
+    - faccessat
     - faccessat2
     - fadvise64
+    - fchdir
+    - fchmod
+    - fchmodat
     - fchown
+    - fchownat
     - fcntl
     - fdatasync
+    - fsconfig
+    - fsmount
+    - fsopen
     - fstat
     - fstatfs
     - fsync
@@ -264,26 +292,38 @@ spec:
     - getpid
     - getppid
     - getrandom
+    - getrlimit
+    - getsockname
     - gettid
     - getuid
     - ioctl
+    - keyctl
+    - linkat
     - listen
     - lseek
     - madvise
     - mkdir
+    - mkdirat
+    - mknodat
     - mmap
+    - mount
+    - mount_setattr
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
     - open
+    - open_tree
     - openat
+    - openat2
     - pipe2
+    - pivot_root
     - prctl
     - pread64
     - prlimit64
     - read
     - readlink
+    - readlinkat
     - recvfrom
     - rename
     - rseq
@@ -296,16 +336,28 @@ spec:
     - set_tid_address
     - setgid
     - setgroups
+    - sethostname
     - setitimer
+    - setrlimit
+    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
+    - stat
     - statfs
+    - statx
+    - symlinkat
     - sysinfo
+    - tgkill
     - tkill
     - umask
+    - umount2
     - uname
+    - unlinkat
+    - unshare
+    - utimensat
     - wait4
+    - waitid
     - write
 {{- end }}
