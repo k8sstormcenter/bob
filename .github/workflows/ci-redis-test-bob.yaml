@@ -99,7 +99,7 @@ jobs:
 
       - name: Install kubescape
         run: |
-          make kubescape_vendor
+          make kubescape-vendor
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=node-agent 
