@@ -4,19 +4,21 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-bob-redis-master-{{ .Values.bob.templateHash }}
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-StatefulSet/name-bob-redis-master-668c4559b4
+    kubescape.io/resource-size: "128"
     kubescape.io/status: completed
-    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-bob-redis-master 
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-bob/statefulset-bob-redis-master
+  creationTimestamp: "2025-08-11T19:43:25Z"
   labels:
-    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
-    kubescape.io/workload-name: bob-redis-master                      
-    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
-  name: statefulset-bob-redis-master-{{ .Values.bob.templateHash }}                                  
-  namespace: {{ .Release.Namespace }}                                                             
-  resourceVersion: "1" 
+    kubescape.io/workload-name: bob-redis-master
+    kubescape.io/workload-namespace: bob
+    kubescape.io/workload-resource-version: "1287"
+  name: statefulset-bob-redis-master-668c4559b4
+  namespace: bob
+  resourceVersion: "1"
 spec:
   architectures:
   - amd64

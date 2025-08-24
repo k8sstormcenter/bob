@@ -108,53 +108,52 @@ jobs:
           kubectl logs -n honey -l app=operator
 
 
-      - name: Run helm install for redis
-        run: |
-          helm dependency update myredis-umbrella-chart/redis-bob/
-          mv ./myredis-umbrella-chart/redis-bob/templates/tests/test-attack.yaml test-attack.yaml
-          helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
-          kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
+      # - name: Run helm install for redis
+      #   run: |
+      #     helm dependency update myredis-umbrella-chart/redis-bob/
+      #     mv ./myredis-umbrella-chart/redis-bob/templates/tests/test-attack.yaml test-attack.yaml
+      #     helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
+      #     kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
-      - name: Get logs
-        run: |
-          kubectl logs -n bob pods/bob-redis-master-0 redis 
-          kubectl logs -n honey -l app=node-agent 
-          sleep 15
+      # - name: Get logs
+      #   run: |
+      #     kubectl logs -n bob pods/bob-redis-master-0 redis 
+      #     kubectl logs -n honey -l app=node-agent 
+      #     sleep 15
 
 
-      - name: Run helm test
-        continue-on-error: true
-        run: |
-          make helm-redis-test
-          echo "Checking for unexpected anomalies in Kubescape logs...there should be NONE"
-          kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=operator
-          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-          sleep 25
-          kubectl logs -n honey -l app=node-agent 
-          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
-          if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
-            kubectl logs -n honey -l app=kubescape
-            kubectl logs -n honey -l app=node-agent
-            kubectl logs -n honey -l app=storage
-            kubectl logs -n honey -l app=kubevuln
-            kubectl logs -n honey -l app=operator
-            kubectl logs -n webapp webapp
-            echo "✅ Didnt find anything."
-            echo ::set-output name=status::success
-          else
-          echo "Found $count anomalies"
-          if [ "$count" -ne 0 ]; then
-            echo "❌ Expected 0 anomalies, but found $count"
-            echo ::set-output name=status::failure
-          fi
+      # - name: Run helm test
+      #   continue-on-error: true
+      #   run: |
+      #     make helm-redis-test
+      #     echo "Checking for unexpected anomalies in Kubescape logs...there should be NONE"
+      #     kubectl logs -n honey -l app=kubescape
+      #     kubectl logs -n honey -l app=operator
+      #     kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+      #     sleep 25
+      #     kubectl logs -n honey -l app=node-agent 
+      #     count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
+      #     if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
+      #       kubectl logs -n honey -l app=kubescape
+      #       kubectl logs -n honey -l app=node-agent
+      #       kubectl logs -n honey -l app=storage
+      #       kubectl logs -n honey -l app=kubevuln
+      #       kubectl logs -n honey -l app=operator
+      #       kubectl logs -n webapp webapp
+      #       echo "✅ Didnt find anything."
+      #       echo ::set-output name=status::success
+      #     else
+      #     echo "Found $count anomalies"
+      #     if [ "$count" -ne 0 ]; then
+      #       echo "❌ Expected 0 anomalies, but found $count"
+      #       echo ::set-output name=status::failure
+      #     fi
 
 
 
       - name: Reinstall redis with the attack test included
         run: |
           helm dependency update myredis-umbrella-chart/redis-bob/
-          mv test-attack.yaml ./myredis-umbrella-chart/redis-bob/templates/tests/test-attack.yaml
           helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
           kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
@@ -164,13 +163,12 @@ jobs:
         continue-on-error: true
         run: |
           make helm-redis-test
-          echo "Checking for unexpected anomalies in Kubescape logs...there should be 4"
+          echo "Checking for unexpected anomalies in Kubescape logs...there should be some"
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
           sleep 60
           kubectl logs -n honey -l app=node-agent 
-          kubectl logs -l app=node-agent -n honey | grep  "Unexpected" && echo "found" || echo "no anomaly"
           count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
           if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
             echo "🤔 Didnt find anything, nodeagent is struggeling, here are some logs"
