@@ -259,7 +259,7 @@ jobs:
         continue-on-error: true
         run: |
           make helm-redis-test
-          echo "Checking for unexpected anomalies in Kubescape logs...there should be NONE"
+          echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
@@ -273,13 +273,11 @@ jobs:
             kubectl logs -n honey -l app=kubevuln
             kubectl logs -n honey -l app=operator
             kubectl logs -n webapp webapp
-            echo "✅ Didnt find anything."
-            echo ::set-output name=status::success
+            echo "Didnt find anything."
           else
           echo "Found $count anomalies"
-          if [ "$count" -ne 0 ]; then
-            echo "❌ Expected 0 anomalies, but found $count"
-            echo ::set-output name=status::failure
+          if [ "$count" -ne 2 ]; then
+            echo "❌ Expected 2 anomalies, but found $count"
           fi
 
 

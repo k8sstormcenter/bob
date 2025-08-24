@@ -151,11 +151,14 @@ jobs:
 
 
 
-      - name: Reinstall redis with the attack test included
+      - name: Install Redis with the attack test included
         run: |
           helm dependency update myredis-umbrella-chart/redis-bob/
           helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
           kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
+          kubectl logs -n bob pods/bob-redis-master-0 redis 
+          kubectl logs -n honey -l app=node-agent 
+          sleep 30
 
 
 
