@@ -87,25 +87,7 @@ jobs:
           channel: ${{ env.MICROK8S_CHANNEL }}
           addons: '["dns", "hostpath-storage"]'
 
-      - name: Verify function of k8s, kubectl, and helm
-        run: |
-          echo "kubeconfig: $KUBECONFIG"
-          kubectl version
-          kubectl get pods --all-namespaces
-          uname -a
 
-          helm version
-          helm list
-
-      - name: Install kubescape
-        run: |
-          make kubescape
-          kubectl get all -A
-          kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent 
-          kubectl logs -n honey -l app=storage
-          kubectl logs -n honey -l app=kubevuln
-          kubectl logs -n honey -l app=operator
 
 
       # - name: Run helm install for redis
@@ -153,9 +135,21 @@ jobs:
 
       - name: Install Redis with the attack test included
         run: |
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+          helm version
+          helm list
+          make kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
           helm dependency update myredis-umbrella-chart/redis-bob/
           helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
-          kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
           kubectl logs -n bob pods/bob-redis-master-0 redis 
           kubectl logs -n honey -l app=node-agent 
           sleep 30

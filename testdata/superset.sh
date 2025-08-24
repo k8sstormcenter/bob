@@ -47,7 +47,7 @@ for file in "${FILES[@]}"; do
     .spec.containers[0].execs |= (. // [] | unique_by(.path)) |
     .spec.containers[0].opens |= (
       . // []
-      | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "*"))
+      | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "⋯"))
       | unique_by(.path)
     ) |
     .spec.containers[0].endpoints |= (. // [] | sort | unique)|

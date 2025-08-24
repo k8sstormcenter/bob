@@ -1,19 +1,22 @@
+{{- if .Values.bob.create }}
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: statefulset-bob-redis-master-668c4559b4
-  namespace: bob
   annotations:
     kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-bob-redis-master-{{ .Values.bob.templateHash }}
     kubescape.io/status: completed
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-StatefulSet/name-bob-redis-master-668c4559b4
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-bob/statefulset-bob-redis-master
+    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-bob-redis-master 
   labels:
+    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
-    kubescape.io/workload-name: bob-redis-master
-    kubescape.io/workload-namespace: bob
+    kubescape.io/workload-name: bob-redis-master                      
+    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
+  name: statefulset-bob-redis-master-{{ .Values.bob.templateHash }}                                  
+  namespace: {{ .Release.Namespace }}                                                             
+  resourceVersion: "1" 
 spec:
   architectures:
   - amd64
@@ -49,8 +52,8 @@ spec:
       - /opt/bitnami/redis/etc/master.conf
       path: /usr/bin/cp
     identifiedCallStacks: null
-    imageID: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
-    imageTag: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
+    imageID: {{ .Values.bob.imageID }}
+    imageTag: {{ .Values.bob.imageTag }}
     name: redis
     opens:
     - flags:
@@ -366,3 +369,4 @@ spec:
     - wait4
     - waitid
     - write
+{{- end }}
