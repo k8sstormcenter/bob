@@ -227,8 +227,8 @@ $(for c in "${superset_capabilities[@]}"; do echo "    - $c"; done)
     execs:
 $(echo "$superset_execs" | indent_execs)
     identifiedCallStacks: $identifiedCallStacks
-    imageID: $imageID
-    imageTag: $imageTag
+    imageID: {{ .Values.bob.imageID }}
+    imageTag: {{ .Values.bob.imageTag }}
     name: $containerName
     opens:
 $(echo "$superset_opens" | indent_opens)

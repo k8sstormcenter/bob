@@ -4,21 +4,19 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-StatefulSet/name-bob-redis-master-668c4559b4
-    kubescape.io/resource-size: "128"
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-{{ .Release.Namespace }}/kind-StatefulSet/name-bob-redis-master-{{ .Values.bob.templateHash }}
     kubescape.io/status: completed
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-bob/statefulset-bob-redis-master
-  creationTimestamp: "2025-08-11T19:43:25Z"
+    kubescape.io/wlid: wlid://cluster-{{ .Values.bob.clusterName }}/namespace-{{ .Release.Namespace }}/statefulset-bob-redis-master 
   labels:
+    kubescape.io/ignore: {{ .Values.bob.ignore | quote }}
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: StatefulSet
-    kubescape.io/workload-name: bob-redis-master
-    kubescape.io/workload-namespace: bob
-    kubescape.io/workload-resource-version: "1287"
-  name: statefulset-bob-redis-master-668c4559b4
-  namespace: bob
-  resourceVersion: "1"
+    kubescape.io/workload-name: bob-redis-master                      
+    kubescape.io/workload-namespace: {{ .Release.Namespace }}                                                               
+  name: statefulset-bob-redis-master-{{ .Values.bob.templateHash }}                                  
+  namespace: {{ .Release.Namespace }}                                                             
+  resourceVersion: "1" 
 spec:
   architectures:
   - amd64
@@ -54,8 +52,8 @@ spec:
       - /opt/bitnami/redis/etc/master.conf
       path: /usr/bin/cp
     identifiedCallStacks: null
-    imageID: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
-    imageTag: docker.io/bitnami/redis@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096
+    imageID: {{ .Values.bob.imageID }}
+    imageTag: {{ .Values.bob.imageTag }}
     name: redis
     opens:
     - flags:
@@ -67,14 +65,14 @@ spec:
       - O_APPEND
       path: /data/appendonlydir/appendonly.aof.1.incr.aof
     - flags:
+      - O_TRUNC
       - O_WRONLY
       - O_CREAT
-      - O_TRUNC
       path: /data/appendonlydir/temp-appendonly.aof.manifest
     - flags:
+      - O_WRONLY
       - O_CREAT
       - O_TRUNC
-      - O_WRONLY
       path: /data/temp-rewriteaof-1.aof
     - flags:
       - O_RDONLY
@@ -84,27 +82,27 @@ spec:
       - O_CLOEXEC
       path: /etc/ld.so.cache
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /etc/nsswitch.conf
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /etc/passwd
     - flags:
       - O_RDONLY
       path: /etc/ssl/openssl.cnf
     - flags:
-      - O_RDONLY
       - O_WRONLY
       - O_CREAT
       - O_EXCL
+      - O_RDONLY
       path: /opt/bitnami/redis/etc/master.conf
     - flags:
-      - O_WRONLY
-      - O_CREAT
       - O_EXCL
       - O_RDONLY
+      - O_WRONLY
+      - O_CREAT
       path: /opt/bitnami/redis/etc/redis.conf
     - flags:
       - O_RDONLY
@@ -116,8 +114,8 @@ spec:
       - O_RDONLY
       path: /opt/bitnami/scripts/start-scripts/*/start-master.sh
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /proc/filesystems
     - flags:
       - O_RDONLY
@@ -127,8 +125,8 @@ spec:
       - O_CLOEXEC
       path: /proc/sys/vm/overcommit_memory
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /proc/⋯
     - flags:
       - O_RDONLY
@@ -171,16 +169,16 @@ spec:
       - O_CLOEXEC
       path: /usr/lib/x86_64-linux-gnu/libcrypto.so.3
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libm.so.6
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2
     - flags:
       - O_RDONLY
@@ -271,6 +269,7 @@ spec:
     - faccessat2
     - fadvise64
     - fchdir
+    - fchmod
     - fchmodat
     - fchown
     - fchownat
@@ -294,7 +293,6 @@ spec:
     - getppid
     - getrandom
     - getrlimit
-    - getrusage
     - getsockname
     - gettid
     - getuid
@@ -360,6 +358,6 @@ spec:
     - unshare
     - utimensat
     - wait4
+    - waitid
     - write
-    - writev
 {{- end }}
