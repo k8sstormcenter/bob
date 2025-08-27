@@ -47,6 +47,8 @@ for file in "${FILES[@]}"; do
     .spec.containers[0].execs |= (. // [] | unique_by(.path)) |
     .spec.containers[0].opens |= (
       . // []
+      | map(.path |= sub("pod[0-9a-fA-F_\\-]+", "⋯"))   # normalize pod UID
+      | map(.path |= sub("cri-containerd-[0-9a-f]{64}\\.scope", "⋯.scope")) # normalize container ID
       | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "⋯"))
       | unique_by(.path)
     ) |
