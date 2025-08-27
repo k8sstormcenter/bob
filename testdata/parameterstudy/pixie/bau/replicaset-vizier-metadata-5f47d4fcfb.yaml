@@ -1,0 +1,75 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-metadata-5f47d4fcfb
+    kubescape.io/resource-size: "31"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-metadata
+  creationTimestamp: "2025-08-27T16:40:17Z"
+  labels:
+    kubescape.io/instance-template-hash: 5f47d4fcfb
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: vizier-metadata
+    kubescape.io/workload-namespace: pl
+    kubescape.io/workload-resource-version: "2285"
+  name: replicaset-vizier-metadata-5f47d4fcfb
+  namespace: pl
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities: null
+    endpoints: null
+    execs: null
+    identifiedCallStacks: null
+    imageID: gcr.io/pixie-oss/pixie-prod/vizier-metadata_server_image@sha256:3c2e07eeb209f53c982724173457c8650301e4b36e29d3d93e7196c6e56a7cc5
+    imageTag: gcr.io/pixie-oss/pixie-prod/vizier-metadata_server_image:0.14.15
+    name: app
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /certs/..2025_08_27_15_30_28.3873026201/client.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /certs/..2025_08_27_15_30_28.3873026201/client.key
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /var/run/secrets/kubernetes.io/serviceaccount/..2025_08_27_16_19_26.634665486/token
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - close
+    - connect
+    - epoll_ctl
+    - epoll_pwait
+    - fcntl
+    - fstat
+    - futex
+    - getpeername
+    - getpid
+    - getrandom
+    - getsockname
+    - getsockopt
+    - madvise
+    - nanosleep
+    - newfstatat
+    - openat
+    - read
+    - rt_sigreturn
+    - sched_yield
+    - setsockopt
+    - socket
+    - tgkill
+    - write
+status: {}
