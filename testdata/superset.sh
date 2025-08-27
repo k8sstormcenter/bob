@@ -101,11 +101,11 @@ superset_capabilities=($(printf "%s\n" "${all_capabilities[@]}" | sort -u))
 
 superset_execs=$(echo "$all_execs_json" | yq -P '.')
 superset_opens=$(echo "$all_opens_json" | yq -P '.')
-superset_endpoints=$(echo "$all_endpoints_json" | yq -P '.')
+nullflag=""
 if [ "$(echo "$all_endpoints_json" | jq 'length')" -eq 0 ]; then
-  endpoints_yaml="null"
+  nullflag="null"
 else
-  endpoints_yaml=$(echo "$all_endpoints_json" | yq -P '.' | sed 's/^/      /')
+  superset_endpoints=$(echo "$all_endpoints_json" | yq -P '.' )
 fi
 superset_rules=$(echo "$all_rules_json" | jq '
   group_by(.key) |
@@ -114,6 +114,20 @@ superset_rules=$(echo "$all_rules_json" | jq '
     value: (map(.value.processAllowed // []) | add | unique | if length > 0 then {processAllowed: .} else {} end)
   }) | from_entries
 ' | yq -P '.')
+
+
+indent_endpoints() {
+
+  while IFS= read -r line; do 
+    if [[ "$line" =~ ^- ]]; then   
+      echo "    $line"
+    elif  [[ "$line" = "null" ]]; then
+      :
+    else
+      echo "    $line"
+    fi
+  done
+}
 
 
 
@@ -177,7 +191,8 @@ spec:
   containers:
   - capabilities:
 $(for c in "${superset_capabilities[@]}"; do echo "    - $c"; done)
-    endpoints: $endpoints_yaml
+    endpoints: $nullflag
+$(echo "$superset_endpoints" |indent_endpoints)
     execs:
 $(echo "$superset_execs" | indent_execs)
     identifiedCallStacks: $identifiedCallStacks
@@ -223,8 +238,9 @@ spec:
   containers:
   - capabilities:
 $(for c in "${superset_capabilities[@]}"; do echo "    - $c"; done)
-    endpoints: $endpoints_yaml
-    execs:
+    endpoints: $nullflag
+$(echo "$superset_endpoints" |indent_endpoints)
+    execs: 
 $(echo "$superset_execs" | indent_execs)
     identifiedCallStacks: $identifiedCallStacks
     imageID: {{ .Values.bob.imageID }}
