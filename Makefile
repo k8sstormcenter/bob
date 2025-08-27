@@ -59,65 +59,35 @@ helm-install-no-bob:
 	rm -rf mywebapp-0.1.0.tgz
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
-
-
 .PHONY: helm-install
 helm-install: kubescape storage
 	@echo "Installing webapp with BoB configuration ..."
 	#helm pull oci://ghcr.io/k8sstormcenter/mywebapp
 	#helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true --set bob.ignore=false
 	#rm -rf mywebapp-0.1.0.tgz
-	helm upgrade --install webapp mywebapp-chart --namespace webapp --create-namespace --values mywebapp-chart/values.yaml
+	helm upgrade --install webapp mywebapp-chart --namespace webapp --create-namespace --values examples/mywebapp-chart/values.yaml
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
-
-.PHONY: nothing
-nothing:
-# for when we know the hash upfront:
-#helm upgrade --install bob -n bob --create-namespace --set bob.create=true ./myredis-umbrella-chart/redis-bob
-	#helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml
-	#kubectl annotate applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob meta.helm.sh/release-name- 
-	#kubectl annotate applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob meta.helm.sh/release-namespace-
-	#kubectl annotate --overwrite applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob kubescape.io/status='completed'
-    #helm repo update 
-	#helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob
-	#helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-') ./myredis-umbrella-chart/redis-bob
-
-
-	#helm dependency update myredis-umbrella-chart/redis-bob/
-	#helm repo update 
-	#helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
-	#helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false  --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')  ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
-	
 
 .PHONY: helm-redis
 helm-redis: 
 	@echo "Installing redis..."
-	helm dependency update myredis-umbrella-chart/redis-bob/
-	helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml
+	helm dependency update exmaples/myredis-umbrella-chart/redis-bob/
+	helm upgrade --install bob -n bob --create-namespace ./examples/myredis-umbrella-chart/redis-bob --values ./examples/myredis-umbrella-chart/redis-bob/values.yaml
 	-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
 
-
-
-.PHONY: helm-redis-compromise
+.PHONY: helm-redis-compromise #TODO this is a bit whimsical , come up with something better
 helm-redis-compromise: 	
 	@echo "Installing a compromised redis with original bob"
 	#kubectl delete -n bob applicationprofile statefulset-bob-redis-master-$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')
-	helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
+	helm upgrade --install bob -n bob --create-namespace ./examples/myredis-umbrella-chart/redis-bob --values ./examples/myredis-umbrella-chart/redis-bob/values_compromised.yaml
 	-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
 
 .PHONY: helm-redis-test
 helm-redis-test:
 	-helm test bob -n bob
-
-
-
-.PHONY: wipe-redis
-wipe-redis:
-	-$(HELM) uninstall -n bob bob
-	-kubectl delete namespace bob
 
 .PHONY: helm-test
 helm-test:
@@ -134,7 +104,7 @@ fwd:
 	-sudo kill -9 $$(sudo lsof -t -i :8080)
 	kubectl --namespace webapp port-forward $$(kubectl get pods --namespace webapp -l "app.kubernetes.io/name=mywebapp,app.kubernetes.io/instance=webapp" -o jsonpath="{.items[0].metadata.name}") 8080:80 &
 
-.PHONY: attack
+.PHONY: attack # this is only for the webapp
 attack:
 	curl 127.0.0.1:8080/ping.php?ip=1.1.1.1\;ls
 	curl  127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20/proc/self/mounts
@@ -170,8 +140,9 @@ kubescape-vendor:
 storage:
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
 	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
-	kubectl apply -f storage/sc.yaml
+	kubectl apply -f kubescape/storage/sc.yaml
 	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
 
 .PHONY: wipe
 wipe:
@@ -181,6 +152,12 @@ wipe:
 	-kubectl delete -f https://openebs.github.io/charts/openebs-lite-sc.yaml
 	-$(HELM) uninstall -n honey kubescape
 	-$(HELM) uninstall -n webapp webapp
+	-$(HELM) uninstall -n dynatrace dynatrace-operator
+	-kubectl delete namespace dynatrace
+	-$(HELM) uninstall -n bob bob
+	-kubectl delete namespace bob 
+	-$(HELM) uninstall webapp -n webapp
+
 
 
 
@@ -215,3 +192,19 @@ superset-bob:
 	@echo "Creating superset BoB from $(INPUT_DIR) into $(OUTPUT_FILE)..."
 	@./testdata/superset.sh $(INPUT_DIR) $(OUTPUT_FILE)
 
+
+.PHONY: nothing
+nothing:
+# for when we know the hash upfront:
+#helm upgrade --install bob -n bob --create-namespace --set bob.create=true ./myredis-umbrella-chart/redis-bob
+	#helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml
+	#kubectl annotate applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob meta.helm.sh/release-name- 
+	#kubectl annotate applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob meta.helm.sh/release-namespace-
+	#kubectl annotate --overwrite applicationprofile statefulset-bob-redis-master-668c4559b4  -n bob kubescape.io/status='completed'
+    #helm repo update 
+	#helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob
+	#helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-') ./myredis-umbrella-chart/redis-bob
+	#helm dependency update myredis-umbrella-chart/redis-bob/
+	#helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
+	#helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false  --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')  ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
+	
