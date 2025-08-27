@@ -147,13 +147,11 @@ storage:
 .PHONY: wipe
 wipe:
 	-sudo kill -9 $$(sudo lsof -t -i :8080)
-	-kubectl delete -f storage/sc.yaml
+	-kubectl delete -f kubescape/storage/sc.yaml
 	-kubectl delete -f https://openebs.github.io/charts/openebs-operator-lite.yaml
 	-kubectl delete -f https://openebs.github.io/charts/openebs-lite-sc.yaml
 	-$(HELM) uninstall -n honey kubescape
 	-$(HELM) uninstall -n webapp webapp
-	-$(HELM) uninstall -n dynatrace dynatrace-operator
-	-kubectl delete namespace dynatrace
 	-$(HELM) uninstall -n bob bob
 	-kubectl delete namespace bob 
 	-$(HELM) uninstall webapp -n webapp

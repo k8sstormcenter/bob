@@ -7,8 +7,9 @@ set -o pipefail
 
 NAMESPACES_TO_CHECK=(
   "olm:2"
-  "px-operator:4"
-  "pl:2"
+  "px-operator:5"
+  "pl:8"
+  "openebs:5"
 )
 
 TIMEOUT_SECONDS=1000 
