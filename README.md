@@ -97,8 +97,9 @@ Generally speaking, a BoB profile will have a lower number of syscalls than a se
 Profile	|Total Syscalls|	In BoB Not in RuntimeDefault|	In RuntimeDefault, Not in BoB|
 --|--|--|--|
 Redis Superset BoB|	128	|8	|N/A|
-K8s RuntimeDefault|	~315 |	N/A|	~195|
+K8s RuntimeDefault|	363 |	N/A|	~195|
 
+WIP: new and more detailed comparison for Redis is coming soon
 
 ## More elaborate Comparison of the shrinking attack surface if using NO| FULL | BAU profiles for CNCF Pixie
 | Profile                     | Capabilities                                                                 | Network | Opens (#) | Execs (#) | Allowed Syscalls (#) |
