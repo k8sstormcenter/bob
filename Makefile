@@ -72,7 +72,7 @@ helm-install: kubescape storage
 .PHONY: helm-redis
 helm-redis: 
 	@echo "Installing redis..."
-	helm dependency update exmaples/myredis-umbrella-chart/redis-bob/
+	helm dependency update example/myredis-umbrella-chart/redis-bob/
 	helm upgrade --install bob -n bob --create-namespace ./examples/myredis-umbrella-chart/redis-bob --values ./examples/myredis-umbrella-chart/redis-bob/values.yaml
 	-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
