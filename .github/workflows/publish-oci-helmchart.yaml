@@ -4,12 +4,9 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'mywebapp-chart/**'
+      - 'example/mywebapp-chart/**'
       - '.github/workflows/publish-oci-helmchart.yaml'
-  pull_request:
-    paths:
-      - 'mywebapp-chart/**'
-      - '.github/workflows/publish-oci-helmchart.yaml'
+
 
 jobs:
   publish-oci:
@@ -30,6 +27,7 @@ jobs:
 
       - name: Package Helm chart
         run: |
+          cd example
           helm package mywebapp-chart
           CHART_VERSION=$(yq '.version' mywebapp-chart/Chart.yaml)
           CHART_NAME=$(yq '.name' mywebapp-chart/Chart.yaml)

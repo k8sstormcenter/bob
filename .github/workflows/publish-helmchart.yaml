@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'mywebapp-chart/**'
+      - 'example/mywebapp-chart/**'
       - '.github/workflows/publish-helmchart.yaml'
 
 jobs:
@@ -23,6 +23,7 @@ jobs:
 
       - name: Package Helm chart
         run: |
+          cd example
           helm package mywebapp-chart
           mkdir -p helm-charts
           mv mywebapp-*.tgz helm-charts/

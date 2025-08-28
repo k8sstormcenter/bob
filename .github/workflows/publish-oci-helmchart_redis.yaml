@@ -34,7 +34,7 @@ jobs:
 
       - name: Package Helm chart
         run: |
-          cd myredis-umbrella-chart
+          cd example/myredis-umbrella-chart
           helm dependency update redis-bob
           helm package redis-bob
           export CHART_VERSION=$(yq '.version' redis-bob/Chart.yaml)
@@ -65,5 +65,5 @@ jobs:
 
       - name: Push Helm chart to OCI registry
         run: |
-          cd myredis-umbrella-chart
+          cd example/myredis-umbrella-chart
           helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://ghcr.io/k8sstormcenter
