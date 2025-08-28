@@ -1,0 +1,47 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-openebs/kind-DaemonSet/name-openebs-ndm-node-exporter-7cc6755d6d
+    kubescape.io/resource-size: "9"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-openebs/daemonset-openebs-ndm-node-exporter
+  creationTimestamp: "2025-08-27T15:30:27Z"
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: DaemonSet
+    kubescape.io/workload-name: openebs-ndm-node-exporter
+    kubescape.io/workload-namespace: openebs
+    kubescape.io/workload-resource-version: "1013"
+  name: daemonset-openebs-ndm-node-exporter-7cc6755d6d
+  namespace: openebs
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities: null
+    endpoints: null
+    execs: null
+    identifiedCallStacks: null
+    imageID: docker.io/openebs/node-disk-exporter@sha256:873d8bedbceac4d5cc7b01f1a0935ee9e1ddeeb25e7337fdc695fe774a3a952a
+    imageTag: docker.io/openebs/node-disk-exporter:2.1.0
+    name: node-disk-exporter
+    opens: null
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - close
+    - epoll_ctl
+    - epoll_pwait
+    - futex
+    - getrandom
+    - madvise
+    - nanosleep
+    - read
+    - write
+status: {}

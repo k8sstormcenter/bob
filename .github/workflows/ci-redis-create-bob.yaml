@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 55-create-systematic-cicd-pipeline-with-matrix-output-thats-are-easy-to-understand
+      - 54-compare-attacksurface-between-ready-and-initializing
     paths:    
       - 'myredis-umbrella-chart/**'
       - 'kubescape/**'
@@ -112,9 +112,9 @@ jobs:
 
       - name: Run helm install for redis
         run: |
-          helm dependency update myredis-umbrella-chart/redis-bob/
-          mv ./myredis-umbrella-chart/redis-bob/templates/tests/test-attack.yaml test-attack.yaml
-          helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=false
+          helm dependency update example/myredis-umbrella-chart/redis-bob/
+          mv ./example/myredis-umbrella-chart/redis-bob/templates/tests/test-attack.yaml test-attack.yaml
+          helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=false
           kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
       - name: Get logs
@@ -249,8 +249,8 @@ jobs:
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
           cp all-bobs/superset-bob.yaml ./myredis-umbrella-chart/redis-bob/templates/bob.yaml
-          helm dependency update myredis-umbrella-chart/redis-bob/
-          helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
+          helm dependency update example/myredis-umbrella-chart/redis-bob/
+          helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
           kubectl logs -n bob pods/bob-redis-master-0 redis 
           kubectl logs -n honey -l app=node-agent 
           sleep 30

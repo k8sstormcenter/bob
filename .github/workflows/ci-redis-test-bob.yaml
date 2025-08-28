@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 55-create-systematic-cicd-pipeline-with-matrix-output-thats-are-easy-to-understand
+      - 54-compare-attacksurface-between-ready-and-initializing
     paths:    
       - 'myredis-umbrella-chart/**'
       - 'kubescape/**'
@@ -88,51 +88,6 @@ jobs:
           addons: '["dns", "hostpath-storage"]'
 
 
-
-
-      # - name: Run helm install for redis
-      #   run: |
-      #     helm dependency update myredis-umbrella-chart/redis-bob/
-      #     mv ./myredis-umbrella-chart/redis-bob/templates/tests/test-attack.yaml test-attack.yaml
-      #     helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
-      #     kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
-
-      # - name: Get logs
-      #   run: |
-      #     kubectl logs -n bob pods/bob-redis-master-0 redis 
-      #     kubectl logs -n honey -l app=node-agent 
-      #     sleep 15
-
-
-      # - name: Run helm test
-      #   continue-on-error: true
-      #   run: |
-      #     make helm-redis-test
-      #     echo "Checking for unexpected anomalies in Kubescape logs...there should be NONE"
-      #     kubectl logs -n honey -l app=kubescape
-      #     kubectl logs -n honey -l app=operator
-      #     kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-      #     sleep 25
-      #     kubectl logs -n honey -l app=node-agent 
-      #     count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
-      #     if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
-      #       kubectl logs -n honey -l app=kubescape
-      #       kubectl logs -n honey -l app=node-agent
-      #       kubectl logs -n honey -l app=storage
-      #       kubectl logs -n honey -l app=kubevuln
-      #       kubectl logs -n honey -l app=operator
-      #       kubectl logs -n webapp webapp
-      #       echo "✅ Didnt find anything."
-      #       echo ::set-output name=status::success
-      #     else
-      #     echo "Found $count anomalies"
-      #     if [ "$count" -ne 0 ]; then
-      #       echo "❌ Expected 0 anomalies, but found $count"
-      #       echo ::set-output name=status::failure
-      #     fi
-
-
-
       - name: Install Redis with the attack test included
         run: |
           echo "kubeconfig: $KUBECONFIG"
@@ -148,8 +103,8 @@ jobs:
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
-          helm dependency update myredis-umbrella-chart/redis-bob/
-          helm upgrade --install bob -n bob --create-namespace ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
+          helm dependency update example/myredis-umbrella-chart/redis-bob/
+          helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
           kubectl logs -n bob pods/bob-redis-master-0 redis 
           kubectl logs -n honey -l app=node-agent 
           sleep 30
@@ -161,9 +116,6 @@ jobs:
         run: |
           make helm-redis-test
           echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
-          #kubectl logs -n honey -l app=kubescape
-          #kubectl logs -n honey -l app=operator
-          #kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
           sleep 60
           kubectl logs -n honey -l app=node-agent 
           count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
@@ -174,7 +126,6 @@ jobs:
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
           kubectl logs -n bob pods/bob-redis-master-0 redis 
-          # Test if the two syscalls are writev and getrusage
           syscalls=$(kubectl logs -l app=node-agent -n honey| grep "Unexpected"| jq )
 
 
@@ -205,7 +156,6 @@ jobs:
           echo "Expected:"
           cat /tmp/expected_alerts.tsv
 
-          # Compare
           unexpected_alerts=$(comm -23 /tmp/actual_alerts.tsv /tmp/expected_alerts.tsv)
           if [ -n "$unexpected_alerts" ]; then
             echo "::set-output name=status::failure"
