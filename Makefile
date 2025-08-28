@@ -65,15 +65,15 @@ helm-install: kubescape storage
 	#helm pull oci://ghcr.io/k8sstormcenter/mywebapp
 	#helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true --set bob.ignore=false
 	#rm -rf mywebapp-0.1.0.tgz
-	helm upgrade --install webapp mywebapp-chart --namespace webapp --create-namespace --values examples/mywebapp-chart/values.yaml
+	helm upgrade --install webapp example/mywebapp-chart --namespace webapp --create-namespace --values example/mywebapp-chart/values.yaml
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 
 .PHONY: helm-redis
 helm-redis: 
 	@echo "Installing redis..."
-	helm dependency update exmaples/myredis-umbrella-chart/redis-bob/
-	helm upgrade --install bob -n bob --create-namespace ./examples/myredis-umbrella-chart/redis-bob --values ./examples/myredis-umbrella-chart/redis-bob/values.yaml
+	helm dependency update example/myredis-umbrella-chart/redis-bob/
+	helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml
 	-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
 
@@ -81,7 +81,7 @@ helm-redis:
 helm-redis-compromise: 	
 	@echo "Installing a compromised redis with original bob"
 	#kubectl delete -n bob applicationprofile statefulset-bob-redis-master-$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')
-	helm upgrade --install bob -n bob --create-namespace ./examples/myredis-umbrella-chart/redis-bob --values ./examples/myredis-umbrella-chart/redis-bob/values_compromised.yaml
+	helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values_compromised.yaml
 	-kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
 
 

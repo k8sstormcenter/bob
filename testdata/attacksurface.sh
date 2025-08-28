@@ -39,10 +39,13 @@ for bfile in parameterstudy/pixie/super/*.yaml; do
   cfile=$(ls parameterstudy/pixie/bau/*"$core"*.yaml 2>/dev/null || true)
 
   if [[ -n "$cfile" ]]; then
-    summarize_profile "$bfile" "B:$bname"
-    summarize_profile "$cfile" "C:$(basename "$cfile" .yaml)"
+    echo "-----"
+    summarize_profile "$bfile" "$bname"
+    summarize_profile "$cfile" "BAU :$bname"
+    
   else
-    summarize_profile "$bfile" "B:$bname (no C match)"
+    summarize_profile "$bfile" "FULL:$bname"
+    echo "-----"
   fi
 done
 }| column -t -s '|'
