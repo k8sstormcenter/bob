@@ -101,31 +101,32 @@ K8s RuntimeDefault|	~315 |	N/A|	~195|
 
 
 ## More elaborate Comparison of the shrinking attack surface if using NO| FULL | BAU profiles for CNCF Pixie
-| Profile                     | Capabilities                                                                  | Network | Opens (#) | Execs (#) | Allowed Syscalls (#) |
-|-----------------------------|-------------------------------------------------------------------------------|---------|-----------|-----------|----------------------|
-| Kubernetes Default (v1.33)  | unconfined                                                                    | CNI     | unconfined| unconfined| 363                  |
-| FULL:catalogoperator        | CHOWN,DAC_OVERRIDE,DAC_READ_SEARCH,NET_ADMIN,SETGID,SETPCAP,SETUID,SYS_ADMIN  | 1       | 23        | 3         | 96                   |
-| FULL:catalogsource          | CHOWN,DAC_OVERRIDE,DAC_READ_SEARCH,NET_ADMIN,SETGID,SETPCAP,SETUID,SYS_ADMIN  | 0       | 19        | 2         | 106                  |
-| BAU :catalogsource          | CHOWN,DAC_OVERRIDE,DAC_READ_SEARCH,NET_ADMIN,SETGID,SETPCAP,SETUID,SYS_ADMIN  | 0       | 57        | 2         | 94                   |
-| FULL:certman                | DAC_OVERRIDE,DAC_READ_SEARCH                                                  | 0       | 8         | 1         | 65                   |
-| FULL:initjob                | DAC_OVERRIDE,DAC_READ_SEARCH                                                  | 0       | 10        | 1         | 100                  |
-| FULL:kelvin                 | DAC_OVERRIDE,DAC_READ_SEARCH,NET_ADMIN                                        | 0       | 97        | 1         | 76                   |
-| BAU :kelvin                 | none                                                                          | 0       | 0         | 0         | 22                   |
-| FULL:olmoperator            | DAC_OVERRIDE,DAC_READ_SEARCH,NET_ADMIN                                        | 1       | 8         | 1         | 63                   |
-| FULL:pem                    | BPF,DAC_READ_SEARCH,IPC_LOCK,NET_ADMIN,PERFMON,SYS_ADMIN,SYS_PTRACE,SYSLOG    | 0       | 390       | 1         | 122                  |
-| BAU :pem                    | BPF,DAC_READ_SEARCH,IPC_LOCK,NET_ADMIN,PERFMON,SYS_ADMIN,SYS_PTRACE           | 0       | 197       | 0         | 44                   |
-| FULL:pletcd                 | NET_ADMIN,NET_RAW,SETGID,SETPCAP,SETUID,SYS_ADMIN                             | 0       | 39        | 10        | 92                   |
-| BAU :pletcd                 | SETGID,SETPCAP,SETUID,SYS_ADMIN                                               | 0       | 37        | 2         | 53                   |
-| FULL:plnats                 | DAC_OVERRIDE,DAC_READ_SEARCH,NET_ADMIN                                        | 3       | 11        | 1         | 57                   |
-| BAU :plnats                 | none                                                                          | 1       | 1         | 0         | 19                   |
-| FULL:querybroker            | DAC_OVERRIDE,DAC_READ_SEARCH,FOWNER,NET_ADMIN                                 | 0       | 20        | 1         | 107                  |
-| BAU :querybroker            | DAC_OVERRIDE,FOWNER                                                           | 0       | 0         | 0         | 22                   |
-| FULL:viziercloudconnector   | DAC_OVERRIDE,DAC_READ_SEARCH,NET_ADMIN                                        | 0       | 18        | 1         | 70                   |
-| BAU :viziercloudconnector   | none                                                                          | 0       | 3         | 0         | 29                   |
-| FULL:viziermeta             | NET_ADMIN                                                                     | 0       | 16        | 1         | 65                   |
-| BAU :viziermeta             | none                                                                          | 0       | 3         | 0         | 24                   |
-| FULL:vizieroperator         | NET_ADMIN                                                                     | 1       | 13        | 1         | 104                  |
-| BAU :vizieroperator         | none                                                                          | 1       | 2         | 0         | 27                   |
+| Profile                     | Capabilities                                                                 | Network | Opens (#) | Execs (#) | Allowed Syscalls (#) |
+|-----------------------------|------------------------------------------------------------------------------|---------|-----------|-----------|----------------------|
+| Kubernetes Default (v1.33)  | unconfined                                                                   | CNI     | unconfined| unconfined| 363                  |
+| FULL:catalogoperator        | CHOWN,<br>DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN,<br>SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN | 1       | 23        | 3         | 96                   |
+| FULL:catalogsource          | CHOWN,<br>DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN,<br>SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN | 0       | 19        | 2         | 106                  |
+| BAU :catalogsource          | CHOWN,<br>DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN,<br>SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN | 0       | 57        | 2         | 94                   |
+| FULL:certman                | DAC_OVERRIDE,<br>DAC_READ_SEARCH                                             | 0       | 8         | 1         | 65                   |
+| FULL:initjob                | DAC_OVERRIDE,<br>DAC_READ_SEARCH                                             | 0       | 10        | 1         | 100                  |
+| FULL:kelvin                 | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN                               | 0       | 97        | 1         | 76                   |
+| BAU :kelvin                 | none                                                                         | 0       | 0         | 0         | 22                   |
+| FULL:olmoperator            | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN                               | 1       | 8         | 1         | 63                   |
+| FULL:pem                    | BPF,<br>DAC_READ_SEARCH,<br>IPC_LOCK,<br>NET_ADMIN,<br>PERFMON,<br>SYS_ADMIN,<br>SYS_PTRACE,<br>SYSLOG | 0       | 390       | 1         | 122                  |
+| BAU :pem                    | BPF,<br>DAC_READ_SEARCH,<br>IPC_LOCK,<br>NET_ADMIN,<br>PERFMON,<br>SYS_ADMIN,<br>SYS_PTRACE | 0       | 197       | 0         | 44                   |
+| FULL:pletcd                 | NET_ADMIN,<br>NET_RAW,<br>SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN        | 0       | 39        | 10        | 92                   |
+| BAU :pletcd                 | SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN                                  | 0       | 37        | 2         | 53                   |
+| FULL:plnats                 | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN                               | 3       | 11        | 1         | 57                   |
+| BAU :plnats                 | none                                                                         | 1       | 1         | 0         | 19                   |
+| FULL:querybroker            | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>FOWNER,<br>NET_ADMIN                    | 0       | 20        | 1         | 107                  |
+| BAU :querybroker            | DAC_OVERRIDE,<br>FOWNER                                                      | 0       | 0         | 0         | 22                   |
+| FULL:viziercloudconnector   | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN                               | 0       | 18        | 1         | 70                   |
+| BAU :viziercloudconnector   | none                                                                         | 0       | 3         | 0         | 29                   |
+| FULL:viziermeta             | NET_ADMIN                                                                    | 0       | 16        | 1         | 65                   |
+| BAU :viziermeta             | none                                                                         | 0       | 3         | 0         | 24                   |
+| FULL:vizieroperator         | NET_ADMIN                                                                    | 1       | 13        | 1         | 104                  |
+| BAU :vizieroperator         | none                                                                         | 1       | 2         | 0         | 27                   |
+
 
 
 
