@@ -27,12 +27,12 @@ releases:
   - name: kubescape
     namespace: honey
     chart: kubescape/kubescape-operator
-    version: "1.28.0" 
+    version: "1.29.0" 
     createNamespace: true
     wait: true
     timeout: 600
     values:
-      - ../kubescape/values.yaml
+      - ../../kubescape/values.yaml
     disableValidation: true
     hooks:
       - name: Apply localpath storage class
@@ -41,7 +41,7 @@ releases:
         args:
           - "apply"
           - "-f"
-          - "../storage/sc.yaml"
+          - "../../kubescape/storage/sc.yaml"
       - name: Set local-hostpath as default StorageClass
         args:
           - "patch"
@@ -55,7 +55,7 @@ releases:
         args:
           - "apply"
           - "-f"
-          - "../kubescape/runtimerules.yaml"
+          - "../../kubescape/runtimerules.yaml"
 
   - name: tetragon
     namespace: tetragon 
