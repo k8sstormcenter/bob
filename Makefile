@@ -56,7 +56,7 @@ tetragon:
 
 .PHONY: tetragon-test 
 tetragon-test:
-    cd honeycluster
+	cd honeycluster
 	make traces
 	make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
 	sleep 60
