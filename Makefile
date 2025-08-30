@@ -49,15 +49,14 @@ mac-prep:
 
 .PHONY: tetragon
 tetragon:
-    git clone https://github.com/k8sstormcenter/honeycluster.git
-	cd honeycluster
 	-$(HELM) repo add cilium https://helm.cilium.io
 	-$(HELM) repo update
-	-$(HELM) upgrade --install tetragon cilium/tetragon -n bob --create-namespace --values honeystack/tetragon/values.yaml
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n bob --create-namespace --values honeycluster/honeystack/tetragon/values.yaml
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=tetragon -n bob --timeout=5m 
 
 .PHONY: tetragon-test 
 tetragon-test:
+    cd honeycluster
 	make traces
 	make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
 	sleep 60
