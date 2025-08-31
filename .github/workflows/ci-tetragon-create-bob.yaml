@@ -132,8 +132,8 @@ jobs:
           cd honeycluster 
           make traces
           make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
-          sleep 60
-          make --makefile=Makefile_calibrate_kubehound remove-calibration-attack remove-calibration-traces
+          #sleep 60
+          #make --makefile=Makefile_calibrate_kubehound remove-calibration-attack remove-calibration-traces
           cd ..
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
@@ -146,18 +146,10 @@ jobs:
         id: export_bob
         run: |
           echo "Waiting for ApplicationProfile to be generated..."
-          
-          # First, get the deployment current controller revision name
-          CONTROLLER_REVISION_DS=$(kubectl get ds -n bob tetragon -o jsonpath='{.status.currentRevision}')
-          CONTROLLER_REVISION_RS=$(kubectl get rs -n bob tetragon-operator -o jsonpath='{.status.currentRevision}' )
-          if [ -z "$CONTROLLER_REVISION_DS" ]; then
-            echo "::error::Could not get statefulset/daemonset controller revision."
-            exit 1
-          fi
-          echo "Deamonset current revision is $CONTROLLER_REVISION"
+        
 
-          PROFILE_NAME_DS="daemonset-${CONTROLLER_REVISION_DS}"
-          PROFILE_NAME_RS="replicaset-${CONTROLLER_REVISION_RS}"
+          PROFILE_NAME_DS="daemonset-tetragon-57d4d4c88f"
+          PROFILE_NAME_RS="replicaset-tetragon-operator-67bd8776c7"
           echo "Expected ApplicationProfile name is $PROFILE_NAME_DS and $PROFILE_NAME_RS"
 
           timeout=600 # 10 minutes
