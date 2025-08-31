@@ -54,14 +54,6 @@ tetragon:
 	-$(HELM) upgrade --install tetragon cilium/tetragon -n bob --create-namespace --values honeycluster/honeystack/tetragon/values.yaml
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=tetragon -n bob --timeout=5m 
 
-.PHONY: tetragon-test 
-tetragon-test:
-	cd honeycluster
-	-make --makefile=./Makefile traces
-	-make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
-	sleep 60
-	-make --makefile=Makefile_calibrate_kubehound remove-calibration-attack remove-calibration-traces
-
 .PHONY: helm-install-no-bob
 helm-install-no-bob: 
 	@echo "Installing webapp without BoB configuration..."
