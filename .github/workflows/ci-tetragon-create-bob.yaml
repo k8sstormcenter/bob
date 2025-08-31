@@ -146,22 +146,13 @@ jobs:
         id: export_bob
         run: |
           echo "Waiting for ApplicationProfile to be generated..."
-        
+          sleep 60
 
           PROFILE_NAME_DS="daemonset-tetragon-57d4d4c88f"
           PROFILE_NAME_RS="replicaset-tetragon-operator-67bd8776c7"
           echo "Expected ApplicationProfile name is $PROFILE_NAME_DS and $PROFILE_NAME_RS"
 
-          timeout=600 # 10 minutes
-          while ! kubectl get applicationprofile.spdx.softwarecomposition.kubescape.io -n bob "$PROFILE_NAME_DS" &> /dev/null; do
-            sleep 15; timeout=$((timeout-15))
-            if [ $timeout -le 0 ]; then
-              echo "::error::Timed out waiting for ApplicationProfile '$PROFILE_NAME_DS' to be created."
-              echo "Listing available profiles in namespace bob:"; kubectl get applicationprofile -n bob; exit 1
-            fi
-          done
-          echo "ApplicationProfile '$PROFILE_NAME_DS' found."
-          
+
           echo "Exporting ApplicationProfile: $PROFILE_NAME_DS"
           mkdir -p bob-artifact
           kubectl get applicationprofile -n bob "$PROFILE_NAME_DS" -o yaml > bob-artifact/bob-tetragon-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
