@@ -57,10 +57,10 @@ tetragon:
 .PHONY: tetragon-test 
 tetragon-test:
 	cd honeycluster
-	make traces
-	make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
+	-make --makefile=./Makefile traces
+	-make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
 	sleep 60
-	make --makefile=Makefile_calibrate_kubehound remove-calibration-attack remove-calibration-traces
+	-make --makefile=Makefile_calibrate_kubehound remove-calibration-attack remove-calibration-traces
 
 .PHONY: helm-install-no-bob
 helm-install-no-bob: 
