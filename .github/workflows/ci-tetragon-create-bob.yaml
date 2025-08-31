@@ -129,12 +129,12 @@ jobs:
       - name: Run helm test
         continue-on-error: true
         run: |
-          git clone https://github.com/k8sstormcenter/honeycluster.git
           cd honeycluster 
           make traces
           make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
           sleep 60
           make --makefile=Makefile_calibrate_kubehound remove-calibration-attack remove-calibration-traces
+          cd ..
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
           kubectl get ds -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
