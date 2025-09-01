@@ -152,8 +152,8 @@ jobs:
           echo "Expected ApplicationProfile name is $PROFILE_NAME_DS and $PROFILE_NAME_RS"
 
           #we need to wait 10 min in total
-          sleep 530
-
+          sleep 100
+          kubectl get applicationprofile -A 
           echo "Exporting ApplicationProfile: $PROFILE_NAME_DS"
           mkdir -p bob-artifact
           kubectl get applicationprofile -n bob "$PROFILE_NAME_DS" -o yaml > bob-artifact/bob-tetragon-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
