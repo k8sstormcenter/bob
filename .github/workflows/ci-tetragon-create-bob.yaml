@@ -151,27 +151,16 @@ jobs:
           PROFILE_NAME_RS="replicaset-tetragon-operator-67bd8776c7"
           echo "Expected ApplicationProfile name is $PROFILE_NAME_DS and $PROFILE_NAME_RS"
 
-          while true; do
-             DS_EXISTS=$(kubectl get applicationprofile -n bob "$PROFILE_NAME_DS" --ignore-not-found)
-             RS_EXISTS=$(kubectl get applicationprofile -n bob "$PROFILE_NAME_RS" --ignore-not-found)
-
-          if [[ -n "$DS_EXISTS" && -n "$RS_EXISTS" ]]; then
-            echo "✅ Both ApplicationProfiles are present:"
-            echo "  - $PROFILE_NAME_DS"
-            echo "  - $PROFILE_NAME_RS"
-            break
-          fi
-
-          echo "⏳ Still waiting..."
-          sleep 5
-          done
-
+          #we need to wait 10 min in total
+          sleep 530
 
           echo "Exporting ApplicationProfile: $PROFILE_NAME_DS"
           mkdir -p bob-artifact
           kubectl get applicationprofile -n bob "$PROFILE_NAME_DS" -o yaml > bob-artifact/bob-tetragon-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
           kubectl get applicationprofile -n bob "$PROFILE_NAME_RS" -o yaml > bob-artifact/bob-tetragon-operator-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
           echo "✅ ApplicationProfile exported to bob-artifact/bob-tetragon.yaml"
+          kubectl get applicationprofile -n bob "$PROFILE_NAME_DS" -o yaml
+          kubectl get applicationprofile -n bob "$PROFILE_NAME_RS" -o yaml 
 
       - name: Upload BoB artifact
         uses: actions/upload-artifact@v4
