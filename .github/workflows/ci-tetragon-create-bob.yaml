@@ -144,7 +144,7 @@ jobs:
         id: export_bob
         run: |
           echo "Waiting for ApplicationProfile to be generated..."
-          sleep 150
+          sleep 180
           mkdir -p bob-artifact
           kubectl get applicationprofile -A 
           echo "✅ ApplicationProfile exported to bob-artifact/bob-tetragon.yaml"
@@ -183,7 +183,7 @@ jobs:
           mkdir -p grouped-bobs supersets
           shopt -s nullglob
 
-          for f in bob-artifacts/*.yaml; do
+          for f in $(find bob-artifacts -type f -name "*.yaml"); do
             base=$(basename "$f")
             itemtype=$(echo "$base" | cut -d'-' -f2) 
             itemname=$(echo "$base" | cut -d'-' -f3) 
