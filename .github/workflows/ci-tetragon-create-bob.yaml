@@ -155,15 +155,15 @@ jobs:
             pwd 
             mkdir -p bob-artifact
             ls -lah bob-artifact/*
-            gh workflow-artifact upload --name "bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}" "bob-artifact/bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml"
+            #gh workflow-artifact upload --name "bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}" "bob-artifact/bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml"
           done
 
 
-      # - name: Upload BoB artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
-      #     path: bob-artifact/bob-tetragon-*.yaml
+      - name: Upload BoB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+          path: bob-artifact/bob-*.yaml
 
   package-bobs:
     runs-on: ubuntu-latest
@@ -185,7 +185,14 @@ jobs:
 
           for f in bob-artifacts/*.yaml; do
             base=$(basename "$f")
-            item=$(echo "$base" | cut -d'-' -f2)  
+            itemtype=$(echo "$base" | cut -d'-' -f2) 
+            itemname=$(echo "$base" | cut -d'-' -f3) 
+            itemname2=$(echo "$base" | cut -d'-' -f4) 
+            if [[ "$itemname2" =~ ^[0-9a-f]{6,}$ ]]; then
+              item="${itemtype}-${itemname}"
+            else
+              item="${itemtype}-${itemname}-${itemname2}"
+            fi
             mkdir -p "grouped-bobs/$item"
             cp "$f" "grouped-bobs/$item/"
           done
