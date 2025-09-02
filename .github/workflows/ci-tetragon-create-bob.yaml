@@ -98,7 +98,7 @@ jobs:
 
       - name: Install kubescape
         run: |
-          make kubescape-vendor
+          make storage kubescape-vendor
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=node-agent 
@@ -132,8 +132,6 @@ jobs:
           cd honeycluster 
           make traces
           make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
-          #sleep 60
-          #make --makefile=Makefile_calibrate_kubehound remove-calibration-attack remove-calibration-traces
           cd ..
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
@@ -146,21 +144,15 @@ jobs:
         id: export_bob
         run: |
           echo "Waiting for ApplicationProfile to be generated..."
-
-          PROFILE_NAME_DS="daemonset-tetragon-57d4d4c88f"
-          PROFILE_NAME_RS="replicaset-tetragon-operator-67bd8776c7"
-          echo "Expected ApplicationProfile name is $PROFILE_NAME_DS and $PROFILE_NAME_RS"
-
-          #we need to wait 10 min in total
-          sleep 100
-          kubectl get applicationprofile -A 
-          echo "Exporting ApplicationProfile: $PROFILE_NAME_DS"
+          sleep 150
           mkdir -p bob-artifact
-          kubectl get applicationprofile -n bob "$PROFILE_NAME_DS" -o yaml > bob-artifact/bob-tetragon-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
-          kubectl get applicationprofile -n bob "$PROFILE_NAME_RS" -o yaml > bob-artifact/bob-tetragon-operator-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
+          kubectl get applicationprofile -A 
           echo "✅ ApplicationProfile exported to bob-artifact/bob-tetragon.yaml"
-          kubectl get applicationprofile -n bob "$PROFILE_NAME_DS" -o yaml
-          kubectl get applicationprofile -n bob "$PROFILE_NAME_RS" -o yaml 
+          for item in $(kubectl get applicationprofile -n bob -o jsonpath='{.items[*].metadata.name}'); do
+            kubectl get applicationprofile -n bob "$item" -o yaml
+            kubectl get applicationprofile -n bob "$item" -o yaml > "bob-artifact/bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml"
+          done
+
 
       - name: Upload BoB artifact
         uses: actions/upload-artifact@v4
