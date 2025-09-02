@@ -151,19 +151,24 @@ jobs:
           for item in $(kubectl get applicationprofile -n bob -o jsonpath='{.items[*].metadata.name}'); do
             kubectl get applicationprofile -n bob "$item" -o yaml
             kubectl get applicationprofile -n bob "$item" -o yaml > "bob-artifact/bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml"
+            echo "✅ ApplicationProfile exported to bob-artifact/bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml"
+            pwd 
+            mkdir -p bob-artifact
+            ls -lah bob-artifact/*
+            gh workflow-artifact upload --name "bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}" "bob-artifact/bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml"
           done
 
 
-      - name: Upload BoB artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
-          path: bob-artifact/bob-tetragon-*.yaml
+      # - name: Upload BoB artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+      #     path: bob-artifact/bob-tetragon-*.yaml
 
   package-bobs:
     runs-on: ubuntu-latest
     needs: build
-    if: always() # Run even if some matrix jobs fail, to collect successful BoBs
+    if: always() 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -173,19 +178,31 @@ jobs:
         with:
           path: bob-artifacts
 
-      - name: Create a superset 
+      - name: Group profiles by type and build supersets
         run: |
-          mkdir -p all-bobs
-          find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
-          make superset-bob INPUT_DIR=all-bobs OUTPUT_FILE=all-bobs/superset-bob.yaml 
+          mkdir -p grouped-bobs supersets
+          shopt -s nullglob
+
+          for f in bob-artifacts/*.yaml; do
+            base=$(basename "$f")
+            item=$(echo "$base" | cut -d'-' -f2)  
+            mkdir -p "grouped-bobs/$item"
+            cp "$f" "grouped-bobs/$item/"
+          done
+
+          for item in grouped-bobs/*; do
+            make superset-bob INPUT_DIR="$item" OUTPUT_FILE="supersets/${item}-superset.yaml"
+          done
+
+          ls -R grouped-bobs supersets
 
 
 
       - name: Package all BoBs into a tarball
         run: |
           echo "Packaging the following BoB files:"
-          ls -R all-bobs
-          tar -czvf bobs.tar.gz -C all-bobs .
+          ls -R grouped-bobs
+          tar -czvf bobs.tar.gz -C grouped-bobs .
 
       - name: Upload BoB tarball
         uses: actions/upload-artifact@v4
