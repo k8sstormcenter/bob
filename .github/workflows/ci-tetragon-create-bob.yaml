@@ -155,7 +155,6 @@ jobs:
             pwd 
             mkdir -p bob-artifact
             ls -lah bob-artifact/*
-            #gh workflow-artifact upload --name "bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}" "bob-artifact/bob-${item}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml"
           done
 
 
@@ -198,7 +197,8 @@ jobs:
           done
 
           for item in grouped-bobs/*; do
-            make superset-bob INPUT_DIR="$item" OUTPUT_FILE="supersets/${item}-superset.yaml"
+            group=$(basename "$item")
+            make superset-bob INPUT_DIR="$item" OUTPUT_FILE="supersets/${group}-superset.yaml"
           done
 
           ls -R grouped-bobs supersets
@@ -274,7 +274,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bob-final
-          path: all-bobs/superset-bob.yaml
+          path: supersets/*-superset.yaml
 
 
         
