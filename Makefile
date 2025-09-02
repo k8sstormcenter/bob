@@ -49,7 +49,10 @@ mac-prep:
 
 .PHONY: tetragon
 tetragon:
-	helm upgrade --install tetragon cilium/tetragon -n tetragon --create-namespace --version 1.4.1 --values ../honeycluster/honeystack/tetragon/values.yaml
+	-$(HELM) repo add cilium https://helm.cilium.io
+	-$(HELM) repo update
+	-$(HELM) upgrade --install tetragon cilium/tetragon -n bob --create-namespace --values honeycluster/honeystack/tetragon/values.yaml
+	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=tetragon -n bob --timeout=5m 
 
 .PHONY: helm-install-no-bob
 helm-install-no-bob: 
