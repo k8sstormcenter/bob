@@ -31,6 +31,58 @@ all_opens_json="[]"
 all_endpoints_json="[]"
 all_rules_json="[]"
 
+normalize_opens() {
+  jq 'map(
+    .path |= (
+      # normalize hashes / pod ids
+      gsub("[0-9a-f]{32,}"; "⋯") |
+      gsub("pod[0-9a-fA-F_\\-]+"; "⋯") |
+      gsub("cri-containerd-[0-9a-f]{64}\\.scope"; "⋯.scope") |
+      gsub("[0-9]+"; "⋯") |
+      gsub("/[^/]+\\.service"; "/*.service") |
+      gsub("/[^/]+\\.socket"; "/*.socket")
+    )
+  )
+  | unique_by(.path + ( .flags | tostring ))'
+}
+
+collapse_opens_with_globs() {
+  jq '
+    group_by(.path | split("/")[:-1] | join("/")) |
+    map(
+      if length > 3 then
+        (map(.path | split("/")[-1] | capture("\\.(?<ext>[^./]+)$")?.ext) | unique) as $exts
+        |
+        if ($exts | length) == 1 then
+          [{ flags: (.[0].flags),
+             path: ((.[0].path | split("/")[:-1] | join("/")) + "/*." + ($exts[0])) }]
+        else
+          [{ flags: (.[0].flags),
+             path: ((.[0].path | split("/")[:-1] | join("/")) + "/*") }]
+        end
+      else
+        .
+      end
+    )
+    | add
+  '
+}
+
+collapse_opens_events() {
+  jq '
+    group_by(.path | split("/")[:-1] | join("/")) |
+    map(
+      if length > 1 then
+        [{ flags: (.[0].flags),
+           path: (.[0].path | split("/")[:-1] | join("/") + "/*") }]
+      else
+        .
+      end
+    )
+    | add
+  '
+}
+
 
 for file in "${FILES[@]}"; do
   norm_file=$(mktemp)
@@ -85,6 +137,8 @@ for file in "${FILES[@]}"; do
   all_execs_json=$(jq -s 'add | unique_by(.path)' <(echo "$all_execs_json") <(echo "$execs_json"))
   # Merge opens
   all_opens_json=$(jq -s 'add | unique_by(.path)' <(echo "$all_opens_json") <(echo "$opens_json"))
+  all_opens_json=$(echo "$all_opens_json" | normalize_opens)
+  all_opens_json=$(echo "$all_opens_json" | collapse_opens_with_globs|collapse_opens_events)
   # Merge endpoints
   all_endpoints_json=$(jq -s 'add | unique' <(echo "$all_endpoints_json") <(echo "$endpoints_json"))
   # Merge rules -> for each rule, we need to sort and unique them
