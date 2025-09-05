@@ -23,6 +23,7 @@ declare -A GROUPSS
 
 for file in "$INPUT_DIR"/*.yaml; do
   [ -f "$file" ] || continue
+  [[ "$file" == *_bob.yaml ]] && continue
   name=$(yq '.metadata.name' "$file")
   echo $name
   shortname=$(echo "$name" | sed -E 's/-[0-9a-f]{6,}$//')   
@@ -35,8 +36,6 @@ for shortname in "${!GROUPSS[@]}"; do
   echo "Processing group: $shortname"
 
   FILES=(${GROUPSS[$shortname]})
-
-
 
 all_syscalls=()
 all_capabilities=()
@@ -127,14 +126,6 @@ for file in "${FILES[@]}"; do
     )
   ' -i "$norm_file"
 
-  syscalls=$(yq '.spec.containers[0].syscalls[]' "$norm_file" 2>/dev/null || true)
-  capabilities=$(yq '.spec.containers[0].capabilities[]' "$norm_file" 2>/dev/null || true)
-  imageID=$(yq '.spec.containers[0].imageID' "$norm_file" 2>/dev/null || true)
-  imageID=$(echo "$imageID" | sed 's|^docker-pullable://|docker.io/|')
-  imageTag=$(yq '.spec.containers[0].imageTag' "$norm_file" 2>/dev/null || true)
-  containerName=$(yq '.spec.containers[0].name' "$norm_file" 2>/dev/null || true)
-  architecture=$(yq '.spec.architectures[0]' "$norm_file" 2>/dev/null || true)
-  identifiedCallStacks=$(yq '.spec.containers[0].identifiedCallStacks' "$norm_file" 2>/dev/null || true)
   apiGroup=$(yq '.metadata.labels."kubescape.io/workload-api-group"' "$norm_file" 2>/dev/null || true)
   apiVersion=$(yq '.metadata.labels."kubescape.io/workload-api-version"' "$norm_file" 2>/dev/null || true)
   kind=$(yq '.metadata.labels."kubescape.io/workload-kind"' "$norm_file" 2>/dev/null || true)
@@ -142,8 +133,19 @@ for file in "${FILES[@]}"; do
   namespace=$(yq '.metadata.labels."kubescape.io/workload-namespace"' "$norm_file" 2>/dev/null || true)
   instanceid=$(yq '.metadata.annotations."kubescape.io/instance-id"' "$norm_file" 2>/dev/null || true)
   wlid=$(yq '.metadata.annotations."kubescape.io/wlid"' "$norm_file" 2>/dev/null || true)
-  name=$(yq '.metadata.name' "$norm_file" 2>/dev/null || true)
 
+
+  name=$(yq '.metadata.name' "$norm_file" 2>/dev/null || true)
+  imageID=$(yq '.spec.containers[0].imageID' "$norm_file" 2>/dev/null || true)
+  imageID=$(echo "$imageID" | sed 's|^docker-pullable://|docker.io/|')
+  imageTag=$(yq '.spec.containers[0].imageTag' "$norm_file" 2>/dev/null || true)
+  containerName=$(yq '.spec.containers[0].name' "$norm_file" 2>/dev/null || true)
+  architecture=$(yq '.spec.architectures[0]' "$norm_file" 2>/dev/null || true)
+  identifiedCallStacks=$(yq '.spec.containers[0].identifiedCallStacks' "$norm_file" 2>/dev/null || true)
+
+
+  syscalls=$(yq '.spec.containers[0].syscalls[]' "$norm_file" 2>/dev/null || true)
+  capabilities=$(yq '.spec.containers[0].capabilities[]' "$norm_file" 2>/dev/null || true)
 
   execs_json=$(yq -o=json '.spec.containers[].execs' "$norm_file" 2>/dev/null || echo "[]")
   opens_json=$(yq -o=json '.spec.containers[].opens' "$norm_file" 2>/dev/null || echo "[]")
@@ -158,13 +160,59 @@ for file in "${FILES[@]}"; do
   all_endpoints_json=$(jq -s 'add | unique' <(echo "$all_endpoints_json") <(echo "$endpoints_json"))
   all_rules_json=$(jq -s 'add' <(echo "$all_rules_json") <(echo "$rules_json"))
 
-
   all_syscalls+=($syscalls)
   all_capabilities+=($capabilities)
 
-  init_json=$(yq -o=json '.spec.initContainers // []' "$norm_file" 2>/dev/null || echo "[]")
-  all_init_json=$(jq -s 'add' <(echo "$all_init_json") <(echo "$init_json"))
+ ## TODO: add for multiple containers AND multiple initContainers
+ ## init_count=$(yq '.spec.initContainers | length' "$norm_file" 2>/dev/null || echo 0)
+ # for i in $(seq 0 $((init_count-1))); do
+has_init=$(yq e '.spec.initContainers | length' "$norm_file" 2>/dev/null || echo 0)
 
+if [ "$has_init" -gt 0 ]; then
+  yq eval '
+    .spec.initContainers? |= (
+    .capabilities |= (. // [] | sort | unique) |
+    .syscalls |= (. // [] | sort | unique) |
+    .execs |= (. // [] | unique_by(.path)) |
+    .opens |= (
+      . // []
+      | map(.path |= sub("pod[0-9a-fA-F_\\-]+", "⋯"))   
+      | map(.path |= sub("cri-containerd-[0-9a-f]{64}\\.scope", "⋯.scope")) 
+      | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "⋯"))
+      | unique_by(.path)
+    ) |
+    .endpoints |= (. // [] | sort | unique)|
+    .rules |= (. // [] | sort | unique)
+    )
+  ' -i "$norm_file"
+
+  init_imageID=$(yq '.spec.initContainers[].imageID' "$norm_file" 2>/dev/null || true)
+  init_imageID=$(echo "$init_imageID" | sed 's|^docker-pullable://|docker.io/|')
+  init_imageTag=$(yq '.spec.initContainers[].imageTag' "$norm_file" 2>/dev/null || true)
+  init_containerName=$(yq '.spec.initContainers[].name' "$norm_file" 2>/dev/null || true)
+  init_identifiedCallStacks=$(yq '.spec.initContainers[].identifiedCallStacks' "$norm_file" 2>/dev/null || true)
+
+  init_syscalls=$(yq '.spec.initContainers[].syscalls[]' "$norm_file" 2>/dev/null || true)
+  init_capabilities=$(yq '.spec.initContainers[].capabilities[]' "$norm_file" 2>/dev/null || true)
+
+  all_init_syscalls+=($init_syscalls)
+  all_init_capabilities+=($init_capabilities)
+  init_execs_json=$(yq -o=json '.spec.initContainers[].execs' "$norm_file" 2>/dev/null || echo "[]")
+  init_opens_json=$(yq -o=json '.spec.initContainers[].opens' "$norm_file" 2>/dev/null || echo "[]")
+  init_endpoints_json=$(yq -o=json '.spec.initContainers[].endpoints' "$norm_file" 2>/dev/null || echo "[]")
+  init_rules_json=$(yq -o=json '.spec.initContainers[].rulePolicies | select(. != null) | to_entries' "$norm_file" 2>/dev/null || echo "[]")
+
+
+  all_init_execs_json=$(jq -s 'add | unique_by(.path)' <(echo "$all_init_execs_json") <(echo "$init_execs_json"))
+  all_init_opens_json=$(jq -s 'add | unique_by(.path)' <(echo "$all_init_opens_json") <(echo "$init_opens_json"))
+  all_init_opens_json=$(echo "$all_init_opens_json" | normalize_opens)
+  all_init_opens_json=$(echo "$all_init_opens_json" | collapse_opens_with_globs|collapse_opens_events)
+  all_init_endpoints_json=$(jq -s 'add | unique' <(echo "$all_init_endpoints_json") <(echo "$init_endpoints_json"))
+  all_init_rules_json=$(jq -s 'map(. // []) | add' <(echo "$all_init_rules_json") <(echo "$init_rules_json"))
+
+  all_init_syscalls+=($init_syscalls)
+  all_init_capabilities+=($init_capabilities)
+fi
 
   rm "$norm_file"
 done
@@ -187,6 +235,28 @@ superset_rules=$(echo "$all_rules_json" | jq '
     value: (map(.value.processAllowed // []) | add | unique | if length > 0 then {processAllowed: .} else {} end)
   }) | from_entries
 ' | yq -P '.')
+
+
+
+superset_init_syscalls=($(printf "%s\n" "${all_init_syscalls[@]}" | sort -u))
+superset_init_capabilities=($(printf "%s\n" "${all_init_capabilities[@]}" | sort -u))
+
+superset_init_execs=$(echo "$all_init_execs_json" | yq -P '.')
+superset_init_opens=$(echo "$all_init_opens_json" | yq -P '.')
+init_nullflag=""
+if [ "$(echo "$all_init_endpoints_json" | jq 'length')" -eq 0 ]; then
+  init_nullflag="null"
+else
+  superset_init_endpoints=$(echo "$all_init_endpoints_json" | yq -P '.' )
+fi
+superset_init_rules=$(echo "$all_init_rules_json" | jq '
+  group_by(.key) |
+  map({
+    key: .[0].key,
+    value: (map(.value.processAllowed // []) | add | unique | if length > 0 then {processAllowed: .} else {} end)
+  }) | from_entries
+' | yq -P '.')
+
 
 
 indent_endpoints() {
@@ -282,7 +352,25 @@ $(echo "$superset_rules" | indent_rules)
     syscalls:
 $(for s in "${superset_syscalls[@]}"; do echo "    - $s"; done)
   initContainers:
-$(echo "$all_init_json" | jq -r '.[]' | yq -P | sed 's/^/    /' |  sed -E 's/^      - /    - /' | sed -E 's/^          -/      -/')
+  - capabilities:
+$(for c in "${superset_init_capabilities[@]}"; do echo "    - $c"; done)
+    endpoints: $nullflag
+$(echo "$superset_init_endpoints" |indent_endpoints)
+    execs:
+$(echo "$superset_init_execs" | indent_execs)
+    identifiedCallStacks: $init_identifiedCallStacks
+    imageID: $init_imageID
+    imageTag: $init_imageTag
+    name: $init_containerName
+    opens:
+$(echo "$superset_init_opens" | indent_opens)
+    rulePolicies:
+$(echo "$superset_init_rules" | indent_rules)
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+$(for s in "${superset_init_syscalls[@]}"; do echo "    - $s"; done)
 EOF
 
 OUTPUT_FILE="$OUTPUT_DIR/${shortname}_bob.helm"
