@@ -8,7 +8,7 @@ GO_VERSION ?= 1.24
 OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
 HELM = $(shell which helm)
 
-CURRENT_CONTEXT := $(shell kubectl config current-context)
+#CURRENT_CONTEXT := $(shell kubectl config current-context)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
@@ -192,6 +192,16 @@ superset-bob:
 	fi
 	@echo "Creating superset BoB from $(INPUT_DIR) into $(OUTPUT_FILE)..."
 	@./testdata/superset.sh $(INPUT_DIR) $(OUTPUT_FILE)
+
+
+.PHONY: super-perl
+super-perl:
+	@if [ -z "$(INPUT_DIR)" ] || [ -z "$(OUTPUT_FILE)" ]; then \
+		echo "Usage: make superset-bob INPUT_DIR=<path/to/bobs> OUTPUT_FILE=<path/to/superset.yaml>"; \
+		exit 1; \
+	fi
+	@echo "Creating superset BoB from $(INPUT_DIR) into $(OUTPUT_FILE)..."
+	@perl src/generalize.pl $(INPUT_DIR) $(OUTPUT_FILE)
 
 
 .PHONY: nothing
