@@ -31,7 +31,7 @@ spec:
     - direction: inbound
       endpoint: :8080/ping.php
       headers:
-        Host:
+        Host: # User accessible Overrides
         - {{ include "mywebapp.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}                          
       internal: false
       methods:
@@ -53,7 +53,7 @@ spec:
       - O_DIRECTORY
       - O_NONBLOCK
       - O_RDONLY
-      path: /etc/apache2/sites-enabled
+      path: /etc/apache2/* #globs that generalize UUIDs or well-known FS structures
     - flags:
       - O_CLOEXEC
       - O_RDONLY
