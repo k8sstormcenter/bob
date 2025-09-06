@@ -186,10 +186,6 @@ compare-bobs:
 
 .PHONY: superset-bob
 superset-bob:
-	@if [ -z "$(INPUT_DIR)" ] ; then \
-		echo "Usage: make superset-bob INPUT_DIR=<path/to/bobs> "; \
-		exit 1; \
-	fi
 	@echo "Creating superset BoB from $(INPUT_DIR) "
 	@./testdata/superset.sh $(INPUT_DIR)
 
