@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 62-retest-the-iximiuz-labs-after-folder-structure
+      - 66-migration-using-the-new-generalization-script-generate-redis-and-tetragons-bob-files-anew
     paths:    
       - '.github/workflows/ci-tetragon-create-bob.yaml'
       - 'Makefile'
@@ -176,40 +176,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: bob-artifacts
+          merge: true
 
       - name: Group profiles by type and build supersets
         run: |
-          mkdir -p grouped-bobs supersets
-          shopt -s nullglob
-
-          for f in $(find bob-artifacts -type f -name "*.yaml"); do
-            base=$(basename "$f")
-            itemtype=$(echo "$base" | cut -d'-' -f2) 
-            itemname=$(echo "$base" | cut -d'-' -f3) 
-            itemname2=$(echo "$base" | cut -d'-' -f4) 
-            if [[ "$itemname2" =~ ^[0-9a-f]{6,}$ ]]; then
-              item="${itemtype}-${itemname}"
-            else
-              item="${itemtype}-${itemname}-${itemname2}"
-            fi
-            mkdir -p "grouped-bobs/$item"
-            cp "$f" "grouped-bobs/$item/"
-          done
-
-          for item in grouped-bobs/*; do
-            group=$(basename "$item")
-            make superset-bob INPUT_DIR="$item" OUTPUT_FILE="supersets/${group}-superset.yaml"
-          done
-
-          ls -R grouped-bobs supersets
-
-
+          ls -lahR bob-artifacts
+          make superset-bob bob-artifacts/*
+          ls -R bob-artifacts 
 
       - name: Package all BoBs into a tarball
         run: |
           echo "Packaging the following BoB files:"
-          ls -R grouped-bobs
-          tar -czvf bobs.tar.gz -C grouped-bobs .
+          tar -czvf bobs.tar.gz -C bob-artifacts .
 
       - name: Upload BoB tarball
         uses: actions/upload-artifact@v4
@@ -274,7 +252,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bob-final
-          path: supersets/*-superset.yaml
+          path: bob-artifacts/**/*_bob.yaml
 
 
         
