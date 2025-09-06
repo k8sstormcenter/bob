@@ -3,8 +3,9 @@
 INPUT_DIR="$1"
 OUTPUT_DIR="$1"
 
-if [ -z "$INPUT_DIR" ] || [ -z "$OUTPUT_DIR" ]; then
-  echo "Usage: $0 <directory_with_bobs> <output_superset_file.yaml>"
+if [ -z "$INPUT_DIR" ] ; then
+  echo "You supplied $1"
+  echo "Usage: $0 <directory_with_bobs> "
   exit 1
 fi
 

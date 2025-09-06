@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - 66-migration-using-the-new-generalization-script-generate-redis-and-tetragons-bob-files-anew
     paths:    
       - 'example/myredis-umbrella-chart/**'
       - 'kubescape/**'
@@ -212,7 +213,6 @@ jobs:
           mkdir -p all-bobs
           find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
           make superset-bob INPUT_DIR=all-bobs 
-
 
 
       - name: Package all BoBs into a tarball
