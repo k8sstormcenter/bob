@@ -1,4 +1,5 @@
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
+###!/usr/local/bin/bash for Mac
 
 INPUT_DIR="$1"
 OUTPUT_DIR="$1"
