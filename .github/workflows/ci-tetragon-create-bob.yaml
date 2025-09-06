@@ -181,7 +181,7 @@ jobs:
       - name: Group profiles by type and build supersets
         run: |
           ls -lahR bob-artifacts
-          make superset-bob INPUT_DIR=bob-artifacts
+          ./testdata/superset.sh INPUT_DIR=bob-artifacts
 
       - name: Package all BoBs into a tarball
         run: |
