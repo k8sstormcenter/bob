@@ -213,7 +213,7 @@ jobs:
           mkdir -p all-bobs
           find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
           chmod +x ./testdata/superset.sh
-          ./testdata/superset.sh INPUT_DIR=all-bobs 
+          ./testdata/superset.sh all-bobs 
 
 
       - name: Package all BoBs into a tarball
