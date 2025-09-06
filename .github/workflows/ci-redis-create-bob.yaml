@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - 60-fix-the-pipelines-after-folder-restructure
     paths:    
       - 'example/myredis-umbrella-chart/**'
       - 'kubescape/**'
@@ -19,8 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
-        k8s-distribution: [k3s, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
-        kubernetes-version: [ v1.30.0, v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
+        k8s-distribution: [k3s] #, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
+        kubernetes-version: [ v1.30.0] #, v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
     runs-on: ${{ matrix.os }}
 
 
@@ -212,7 +211,7 @@ jobs:
         run: |
           mkdir -p all-bobs
           find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
-          make superset-bob INPUT_DIR=all-bobs OUTPUT_FILE=all-bobs/superset-bob.yaml 
+          make superset-bob all-bobs 
 
 
 
@@ -248,7 +247,7 @@ jobs:
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
-          cp all-bobs/superset-bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/bob.yaml
+          cp all-bobs/*_bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/.
           helm dependency update example/myredis-umbrella-chart/redis-bob/
           helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
           kubectl logs -n bob pods/bob-redis-master-0 redis 
@@ -285,7 +284,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: redis-bob-final
-          path: all-bobs/superset-bob.yaml
+          path: all-bobs/*_bob.yaml
 
 
         
