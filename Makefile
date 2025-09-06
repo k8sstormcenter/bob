@@ -186,12 +186,12 @@ compare-bobs:
 
 .PHONY: superset-bob
 superset-bob:
-	@if [ -z "$(INPUT_DIR)" ] || [ -z "$(OUTPUT_FILE)" ]; then \
-		echo "Usage: make superset-bob INPUT_DIR=<path/to/bobs> OUTPUT_FILE=<path/to/superset.yaml>"; \
+	@if [ -z "$(INPUT_DIR)" ] ; then \
+		echo "Usage: make superset-bob INPUT_DIR=<path/to/bobs> "; \
 		exit 1; \
 	fi
-	@echo "Creating superset BoB from $(INPUT_DIR) into $(OUTPUT_FILE)..."
-	@./testdata/superset.sh $(INPUT_DIR) $(OUTPUT_FILE)
+	@echo "Creating superset BoB from $(INPUT_DIR) "
+	@./testdata/superset.sh $(INPUT_DIR)
 
 
 .PHONY: super-perl
