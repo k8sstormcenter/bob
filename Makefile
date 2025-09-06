@@ -13,6 +13,7 @@ OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 GO_LDFLAGS := -s -w -X main.version=$(VERSION)
+REPO_ROOT := $(shell git rev-parse --show-toplevel)
 
 
 .PHONY: all
@@ -159,10 +160,6 @@ wipe:
 	-kubectl delete namespace bob 
 	-$(HELM) uninstall webapp -n webapp
 
-
-
-
-
 .PHONY: helm
 helm: ## Download helm if required
 	curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
@@ -176,10 +173,6 @@ template:
 
 .PHONY: compare-bobs
 compare-bobs:
-	@if [ -z "$(BOB_DIR1)" ] || [ -z "$(BOB_DIR2)" ]; then \
-		echo "Usage: make compare-bobs BOB_DIR1=<path/to/dir1> BOB_DIR2=<path/to/dir2>"; \
-		exit 1; \
-	fi
 	@echo "Comparing BoBs in $(BOB_DIR1) and $(BOB_DIR2)..."
 	@./testdata/compare.sh $(BOB_DIR1) $(BOB_DIR2)
 
@@ -187,15 +180,11 @@ compare-bobs:
 .PHONY: superset-bob
 superset-bob:
 	@echo "Creating superset BoB from $(INPUT_DIR) "
-	@./testdata/superset.sh $(INPUT_DIR)
+	$(REPO_ROOT)/testdata/superset.sh $(INPUT_DIR)
 
 
 .PHONY: super-perl
 super-perl:
-	@if [ -z "$(INPUT_DIR)" ] || [ -z "$(OUTPUT_FILE)" ]; then \
-		echo "Usage: make superset-bob INPUT_DIR=<path/to/bobs> OUTPUT_FILE=<path/to/superset.yaml>"; \
-		exit 1; \
-	fi
 	@echo "Creating superset BoB from $(INPUT_DIR) into $(OUTPUT_FILE)..."
 	@perl src/generalize.pl $(INPUT_DIR) $(OUTPUT_FILE)
 

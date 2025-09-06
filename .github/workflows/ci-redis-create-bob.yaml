@@ -211,7 +211,7 @@ jobs:
         run: |
           mkdir -p all-bobs
           find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
-          make superset-bob all-bobs 
+          make superset-bob INPUT_DIR=all-bobs 
 
 
 
