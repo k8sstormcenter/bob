@@ -380,7 +380,7 @@ for file in "${FILES[@]}"; do
           init_endpoints_json=$(yq -o=json ".spec.initContainers[$j].endpoints" "$norm_file" 2>/dev/null || echo "[]")
           init_rules_json=$(yq -o=json ".spec.initContainers[$j].rulePolicies | select(. != null) | to_entries" "$norm_file" 2>/dev/null || echo "[]")
 
-          all_init_execs_json["$initkey"]=$(jq -s 'add | unique_by(.path,(.args | join("|||")))' <(echo "${all_init_execs_json["$initkey"]:-[]}") <(echo "$init_execs_json"))
+          all_init_execs_json["$initkey"]=$(jq -s 'add | unique_by({path, args})' <(echo "${all_init_execs_json["$initkey"]:-[]}") <(echo "$init_execs_json"))
           all_init_opens_json["$initkey"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_opens_json["$initkey"]:-[]}")  <(echo "$init_opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
           all_init_endpoints_json["$initkey"]=$(jq -s 'add | unique' <(echo "${all_init_endpoints_json["$initkey"]:-[]}") <(echo "$init_endpoints_json"))
           all_init_rules_json["$initkey"]=$(jq -s 'map(. // []) | add' <(echo "${all_init_rules_json["$initkey"]:-[]}") <(echo "$init_rules_json"))
