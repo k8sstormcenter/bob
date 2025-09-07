@@ -125,12 +125,13 @@ collapse_opens_with_globs() {
     map(
       if length > 3 then
         (map(.path | split("/")[-1] | capture("\\.(?<ext>[^./]+)$")?.ext) | unique) as $exts
+        | (map(.flags) | add | unique | sort) as $flags
         |
         if ($exts | length) == 1 then
-          [{ flags: (.[0].flags),
+          [{ flags: $flags,
              path: ((.[0].path | split("/")[:-1] | join("/")) + "/*." + ($exts[0])) }]
         else
-          [{ flags: (.[0].flags),
+          [{ flags: $flags,
              path: ((.[0].path | split("/")[:-1] | join("/")) + "/*") }]
         end
       else
@@ -146,7 +147,9 @@ collapse_opens_events() {
     group_by(.path | split("/")[:-1] | join("/")) |
     map(
       if length > 1 then
-        [{ flags: (.[0].flags),
+        (map(.flags) | add | unique | sort) as $flags
+        |
+        [{ flags: $flags,
            path: (.[0].path | split("/")[:-1] | join("/") + "/*") }]
       else
         .
@@ -251,7 +254,7 @@ for file in "${FILES[@]}"; do
         yq eval '.spec.containers[$i] |= (
         .capabilities |= (. // [] | sort | unique) |
         .syscalls |= (. // [] | sort | unique) |
-        .execs |= (. // [] | unique_by(.path)) |
+        .execs |= (. // [] | unique_by(.path,(.args | join("|||")))) |
         .opens |= (
           . // []
           | map(.path |= sub("pod[0-9a-fA-F_\\-]+", "*"))   
@@ -300,10 +303,10 @@ for file in "${FILES[@]}"; do
         rules_json=$(yq -o=json ".spec.containers[$i].rulePolicies | select(. != null) | to_entries" "$norm_file" 2>/dev/null || echo "[]")
 
 
-        all_execs_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_execs_json["$key"]}") <(echo "$execs_json"))
-        all_opens_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_opens_json["$key"]}")  <(echo "$opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
-        all_endpoints_json["$key"]=$(jq -s 'add | unique' <(echo "${all_endpoints_json["$key"]}") <(echo "${endpoints_json:-"[]"}"))
-        all_rules_json["$key"]=$(jq -s 'add' <(echo "${all_rules_json["$key"]}") <(echo "$rules_json"))
+        all_execs_json["$key"]=$(jq -s 'add | unique_by(.path,(.args | join("|||")))' <(echo "${all_execs_json["$key"]:-[]}") <(echo "$execs_json"))
+        all_opens_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_opens_json["$key"]:-[]}")  <(echo "$opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
+        all_endpoints_json["$key"]=$(jq -s 'add | unique' <(echo "${all_endpoints_json["$key"]:-[]}") <(echo "${endpoints_json:-"[]"}"))
+        all_rules_json["$key"]=$(jq -s 'add' <(echo "${all_rules_json["$key"]:-[]}") <(echo "$rules_json"))
 
         all_syscalls["$key"]="${all_syscalls["$key"]} $syscalls"
         all_capabilities["$key"]="${all_capabilities["$key"]} $capabilities"
@@ -331,7 +334,7 @@ for file in "${FILES[@]}"; do
             .spec.initContainers[$j] |= (
             .capabilities |= (. // [] | sort | unique) |
             .syscalls |= (. // [] | sort | unique) |
-            .execs |= (. // [] | unique_by(.path)) |
+            .execs |= (. // [] | unique_by(.path,(.args | join("|||")))) |
             .opens |= (
               . // []
               | map(.path |= sub("pod[0-9a-fA-F_\\-]+", "*"))   
@@ -378,10 +381,10 @@ for file in "${FILES[@]}"; do
           init_endpoints_json=$(yq -o=json ".spec.initContainers[$j].endpoints" "$norm_file" 2>/dev/null || echo "[]")
           init_rules_json=$(yq -o=json ".spec.initContainers[$j].rulePolicies | select(. != null) | to_entries" "$norm_file" 2>/dev/null || echo "[]")
 
-          all_init_execs_json["$initkey"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_execs_json["$key"]:-[]}") <(echo "$init_execs_json"))
-          all_init_opens_json["$initkey"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_opens_json["$key"]:-[]}")  <(echo "$init_opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
-          all_init_endpoints_json["$initkey"]=$(jq -s 'add | unique' <(echo "${all_init_endpoints_json["$key"]:-[]}") <(echo "$init_endpoints_json"))
-          all_init_rules_json["$initkey"]=$(jq -s 'map(. // []) | add' <(echo "${all_init_rules_json["$key"]:-[]}") <(echo "$init_rules_json"))
+          all_init_execs_json["$initkey"]=$(jq -s 'add | unique_by(.path,(.args | join("|||")))' <(echo "${all_init_execs_json["$initkey"]:-[]}") <(echo "$init_execs_json"))
+          all_init_opens_json["$initkey"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_opens_json["$initkey"]:-[]}")  <(echo "$init_opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
+          all_init_endpoints_json["$initkey"]=$(jq -s 'add | unique' <(echo "${all_init_endpoints_json["$initkey"]:-[]}") <(echo "$init_endpoints_json"))
+          all_init_rules_json["$initkey"]=$(jq -s 'map(. // []) | add' <(echo "${all_init_rules_json["$initkey"]:-[]}") <(echo "$init_rules_json"))
 
         all_init_syscalls["$initkey"]="${all_init_syscalls["$initkey"]} $init_syscalls"
         all_init_capabilities["$initkey"]="${all_init_capabilities["$initkey"]} $init_capabilities"
@@ -427,8 +430,8 @@ spec:
   - $architecture
   containers:
 EOF
-echo "Container keys for $shortname: ${!keys[@]}"
-echo "InitContainer keys for $shortname: ${!initkeys[@]}"
+#echo "Container keys for $shortname: ${!keys[@]}"
+#echo "InitContainer keys for $shortname: ${!initkeys[@]}"
 ## Now loop over all container keys
 for key in "${!keys[@]}"; do
 cat <<EOF >> "$OUTPUT_FILE"
@@ -479,7 +482,7 @@ $(if [ "$(echo "${all_init_execs_json["$initkey"]:-[]}" | jq -r 'length')" -eq 0
     imageID: ${init_imageID["$initkey"]}
     imageTag: ${init_imageTag["$initkey"]}
     name: ${init_containerName["$initkey"]}
-$(if [ -z "${all_init_opens_json["$initkey"]}" ]; then
+$(if [ "$(echo "${all_init_opens_json["$initkey"]:-[]}" | jq -r 'length')" -eq 0 ]; then
     echo "    opens: null"
   else
     echo "    opens:"
