@@ -1,6 +1,6 @@
-#!/usr/local/bin/bash 
+#!/usr/bin/env bash
 
-bla= ###!/usr/bin/env bash
+bla= ###!/usr/local/bin/bash
 set -u
 #set -xe
 
