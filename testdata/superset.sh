@@ -162,7 +162,6 @@ declare -A imageID
 declare -A imageTag
 declare -A containerName
 declare -A identifiedCallStacks
-declare -A nullflag
 declare -A all_execs_json        
 declare -A all_opens_json
 declare -A all_endpoints_json
@@ -178,17 +177,16 @@ declare -A superset_syscalls
 declare -A superset_capabilities 
 
 declare -A initkeys
-declare -A initimageID
-declare -A initimageTag
-declare -A initcontainerName
-declare -A initidentifiedCallStacks
-declare -A initnullflag
-declare -A init_execs_json
-declare -A init_opens_json
-declare -A init_endpoints_json
-declare -A init_rules_json
-declare -A init_syscalls
-declare -A init_capabilities
+declare -A init_imageID
+declare -A init_imageTag
+declare -A init_containerName
+declare -A init_identifiedCallStacks
+declare -A all_init_execs_json
+declare -A all_init_opens_json
+declare -A all_init_endpoints_json
+declare -A all_init_rules_json
+declare -A all_init_syscalls
+declare -A all_init_capabilities
 
 declare -A superset_init_execs
 declare -A superset_init_open
@@ -226,7 +224,6 @@ for file in "${FILES[@]}"; do
   container_count=$(yq '.spec.containers | length' "$norm_file")
       for i in $(seq 0 $((container_count-1))); do
       
-
         yq eval '.spec.containers[$i] |= (
         .capabilities |= (. // [] | sort | unique) |
         .syscalls |= (. // [] | sort | unique) |
@@ -253,7 +250,6 @@ for file in "${FILES[@]}"; do
         : "${imageTag["$key"]:=""}"
         : "${containerName["$key"]:=""}"
         : "${identifiedCallStacks["$key"]:=""}"
-        : "${nullflag["$key"]:=""}"
         : "${all_execs_json["$key"]:="[]"}"
         : "${all_opens_json["$key"]:="[]"}"
         : "${all_endpoints_json["$key"]:="[]"}"
@@ -294,12 +290,7 @@ for file in "${FILES[@]}"; do
 
     superset_execs["$key"]=$(echo "${all_execs_json["$key"]}" | yq -P '.')
     superset_open["$key"]=$(echo "${all_opens_json["$key"]}" | yq -P '.')
-    nullflag["$key"]=""
-    if [ "$(echo "${all_endpoints_json["$key"]}" | jq -r 'length')" -eq 0 ]; then
-      nullflag["$key"]="null"
-    else
-      superset_endpoints["$key"]=$(echo "${all_endpoints_json["$key"]}" | yq -P '.' )
-    fi
+    superset_endpoints["$key"]=$(echo "${all_endpoints_json["$key"]}" | yq -P '.' )
     superset_rules["$key"]=$(echo "${all_rules_json["$key"]}" | jq '
       group_by(.key) | map({
         key: .[0].key, value: (map(.value.processAllowed // []) | add | unique | if length > 0 then {processAllowed: .} else {} end)
@@ -308,10 +299,10 @@ for file in "${FILES[@]}"; do
 
   init_container_count=$(yq '.spec.initContainers // [] | length' "$norm_file")
       for i in $(seq 0 $((init_container_count-1))); do
-      echo "Taking on initContainer $i" $(yq ".spec.initContainers[$i].imageID" "$norm_file" 2>/dev/null)
         if [ "$init_container_count" -eq 0 ]; then
           continue
         fi
+      echo "Taking on initContainer $i" $(yq ".spec.initContainers[$i].imageID" "$norm_file" 2>/dev/null)
           yq eval '
             .spec.initContainers[$i] |= (
             .capabilities |= (. // [] | sort | unique) |
@@ -329,14 +320,12 @@ for file in "${FILES[@]}"; do
             )
           ' -i "$norm_file"
         initcontainerName=$(yq -r ".spec.initContainers[$i].name // \"\" " "$norm_file" 2>/dev/null || true)
-        echo $initcontainerName
-        key="${initcontainerName//-/}" 
+        key="${initcontainerName//-/_}" 
         echo $key "for initContainer"
         : "${init_imageID["$key"]:=""}"
         : "${init_imageTag["$key"]:=""}"
         : "${init_containerName["$key"]:=""}"
         : "${init_identifiedCallStacks["$key"]:=""}"
-        : "${init_nullflag["$key"]:=""}"
         : "${all_init_execs_json["$key"]:="[]"}"
         : "${all_init_opens_json["$key"]:="[]"}"
         : "${all_init_endpoints_json["$key"]:="[]"}"
@@ -346,7 +335,7 @@ for file in "${FILES[@]}"; do
         : "${superset_init_syscalls["$key"]:=[]}"
         : "${superset_init_capabilities["$key"]:=""}"
         : "${superset_init_execs["$key"]:=""}"
-        : "${superset_init_opens["$key"]:=""}"
+        : "${superset_init_open["$key"]:=""}"
         : "${superset_init_endpoints["$key"]:=""}"
         : "${superset_init_rules["$key"]:=""}"
         : "${initkeys["$key"]:=""}"
@@ -365,26 +354,22 @@ for file in "${FILES[@]}"; do
           init_endpoints_json=$(yq -o=json ".spec.initContainers[$i].endpoints" "$norm_file" 2>/dev/null || echo "[]")
           init_rules_json=$(yq -o=json ".spec.initContainers[$i].rulePolicies | select(. != null) | to_entries" "$norm_file" 2>/dev/null || echo "[]")
 
-          all_init_execs_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "$all_init_execs_json") <(echo "$init_execs_json"))
+          all_init_execs_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_execs_json["$key"]}") <(echo "$init_execs_json"))
           all_init_opens_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_opens_json["$key"]}")  <(echo "$init_opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
-          all_init_endpoints_json["$key"]=$(jq -s 'add | unique' <(echo "$all_init_endpoints_json") <(echo "$init_endpoints_json"))
-          all_init_rules_json["$key"]=$(jq -s 'map(. // []) | add' <(echo "$all_init_rules_json") <(echo "$init_rules_json"))
+          all_init_endpoints_json["$key"]=$(jq -s 'add | unique' <(echo "${all_init_endpoints_json["$key"]}") <(echo "$init_endpoints_json"))
+          all_init_rules_json["$key"]=$(jq -s 'map(. // []) | add' <(echo "${all_init_rules_json["$key"]}") <(echo "$init_rules_json"))
 
         all_init_syscalls["$key"]="${all_init_syscalls["$key"]} $init_syscalls"
         all_init_capabilities["$key"]="${all_init_capabilities["$key"]} $init_capabilities"
 
-    superset_init_syscalls["$key"]=($(printf "%s\n" "${all_init_syscalls["$key"]}" | sort -u))
-    superset_init_capabilities["$key"]=($(printf "%s\n" "${all_init_capabilities["$key"]}" | sort -u))
+    superset_init_syscalls["$key"]=$(printf "%s\n" ${all_init_syscalls["$key"]} | sort -u)
+    superset_init_capabilities["$key"]=$(printf "%s\n" ${all_init_capabilities["$key"]} | sort -u)
 
-    superset_init_execs["$key"]=$(echo "$all_init_execs_json["$key"]" | yq -P '.')
-    superset_init_open["$key"]=$(echo "$all_init_opens_json["$key"]" | yq -P '.')
-    init_nullflag["$key"]=""
-    if [ "$(echo "$all_init_endpoints_json["$key"]" | jq 'length')" -eq 0 ]; then
-      init_nullflag["$key"]="null"
-    else
-      superset_init_endpoints=$(echo "$all_init_endpoints_json" | yq -P '.' )
-    fi
-    superset_init_rules=$(echo "$all_init_rules_json" | jq '
+  
+    superset_init_execs["$key"]=$(echo "${all_init_execs_json["$key"]}" | yq -P '.')
+    superset_init_open["$key"]=$(echo "${all_init_opens_json["$key"]}" | yq -P '.')
+    superset_init_endpoints["$key"]=$(echo "${all_init_endpoints_json["$key"]}" | yq -P '.' )
+    superset_init_rules["$key"]=$(echo "${all_init_rules_json["$key"]}" | jq '
       group_by(.key) | map({
         key: .[0].key, value: (map(.value.processAllowed // []) | add | unique | if length > 0 then {processAllowed: .} else {} end)
       }) | from_entries' | yq -P '.')
@@ -422,7 +407,7 @@ EOF
 for key in "${!keys[@]}"; do
 cat <<EOF >> "$OUTPUT_FILE"
   - $(print_yaml_list_or_null_inline "capabilities" ${superset_capabilities["$key"]})
-$(if [ "${nullflag["$key"]}" = "null" ]; then
+$(if [ "$(echo "${all_endpoints_json["$key"]}" | jq -r 'length')" -eq 0 ]; then
     echo "    endpoints: null"
   else
     echo "    endpoints:"
@@ -445,32 +430,48 @@ $(print_yaml_list_or_null_inline "    syscalls" ${superset_syscalls["$key"]})
 EOF
 done
 ## Now loop over all initContainer keys
-# only add initContainers block if data exists
-for key in "${!initkeys[@]}"; do
-if [ "${#superset_init_capabilities["$key"]}" -gt 0 ] || [ "${#superset_init_syscalls["$key"]}" -gt 0 ]  ; then
+if [ "$init_container_count" -gt 0 ];  then
 cat <<EOF >> "$OUTPUT_FILE"
   initContainers:
-  - capabilities: print_yaml_list_or_null ${superset_capabilities["$key"]}
-    endpoints: ${init_nullflag["$key"]}
-$(echo "${superset_init_endpoints["$key"]}" | indent_endpoints)
-    execs:
-$(echo "${superset_init_execs["$key"]}" | indent_execs)
+EOF
+for key in "${!initkeys[@]}"; do
+cat <<EOF >> "$OUTPUT_FILE"
+  - $(print_yaml_list_or_null_inline "capabilities" ${superset_init_capabilities["$key"]})
+$(if [ "$(echo "${all_init_endpoints_json["$key"]}" | jq -r 'length')" -eq 0 ]; then
+    echo "    endpoints: null"
+  else
+    echo "    endpoints:"
+    echo "${superset_init_endpoints["$key"]}" | indent_endpoints | sed -E '/^[[:space:]]*$/d'
+  fi)
+$(if [ "$(echo "${all_init_execs_json["$key"]}" | jq -r 'length')" -eq 0 ]; then
+    echo "    execs: null"
+  else
+    echo "    execs:"
+    echo "${superset_init_execs["$key"]}" | indent_execs | sed -E '/^[[:space:]]*$/d'
+  fi)
     identifiedCallStacks: ${init_identifiedCallStacks["$key"]}
     imageID: ${init_imageID["$key"]}
     imageTag: ${init_imageTag["$key"]}
     name: ${init_containerName["$key"]}
-    opens:
-$(echo "${superset_init_opens["$key"]}" | indent_opens)
-    rulePolicies:
-$(echo "${superset_init_rules["$key"]}" | indent_rules)
+$(if [ -z "${all_init_opens_json["$key"]}" ]; then
+    echo "    opens: null"
+  else
+    echo "    opens:"
+    echo "${superset_init_open["$key"]}" | indent_opens | sed -E '/^[[:space:]]*$/d'
+  fi)
+$(if [ "$(echo "${all_init_rules_json["$key"]}" | jq -r 'length')" -eq 0 ]; then #TODO: fix if null
+    echo "    rulePolicies: {}"
+    else
+    echo "    rulePolicies:"
+    echo "${superset_init_rules["$key"]}" | indent_rules
+  fi)
     seccompProfile:
       spec:
         defaultAction: ""
-    syscalls:
-$(printf "%s\n" ${superset_init_syscalls["$key"]} | sed 's/^/    - /')s
+$(print_yaml_list_or_null_inline "    syscalls" ${superset_init_syscalls["$key"]})
 EOF
-fi
 done
+fi
 
 echo "Superset arrays written to '$OUTPUT_FILE'"
 
