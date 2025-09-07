@@ -459,7 +459,7 @@ $(if [ -z "${all_init_opens_json["$key"]}" ]; then
     echo "    opens:"
     echo "${superset_init_open["$key"]}" | indent_opens | sed -E '/^[[:space:]]*$/d'
   fi)
-$(if [ "$(echo "${all_init_rules_json["$key"]}" | jq -r 'length')" -eq 0 ]; then #TODO: fix if null
+$(if [ "$(echo "${all_init_rules_json["$key"]:-[]}" | jq -r 'length')" -eq 0 ]; then #TODO: fix if null
     echo "    rulePolicies: {}"
     else
     echo "    rulePolicies:"
