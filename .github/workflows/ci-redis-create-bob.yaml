@@ -209,13 +209,22 @@ jobs:
         with:
           path: bob-artifacts
 
-      - name: Create a superset 
+      # - name: Create a superset 
+      #   run: |
+      #     mkdir -p all-bobs
+      #     find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
+      #     chmod +x ./testdata/superset.sh
+      #     ./testdata/superset.sh all-bobs 
+
+      - name: Create a superset
         run: |
           mkdir -p all-bobs
           find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
-          chmod +x ./testdata/superset.sh
-          ./testdata/superset.sh all-bobs 
+          chmod +x ./run-superset-in-container.sh
+          ./run-superset-in-container.sh all-bobs
 
+      - name: Print attacksurface report
+        run: cat all-bobs/attacksurface.md
 
       - name: Package all BoBs into a tarball
         run: |
@@ -249,6 +258,7 @@ jobs:
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
+          rm ./example/myredis-umbrella-chart/redis-bob/templates/bob.yaml
           cp all-bobs/*_bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/.
           helm dependency update example/myredis-umbrella-chart/redis-bob/
           helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
@@ -287,6 +297,8 @@ jobs:
         with:
           name: redis-bob-final
           path: all-bobs/*_bob.yaml
+
+
 
 
         

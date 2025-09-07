@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-bla= ###!/usr/local/bin/bash
-set -u
 #set -xe
 
 INPUT_DIR="$1"
