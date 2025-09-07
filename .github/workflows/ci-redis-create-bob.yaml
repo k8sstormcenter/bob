@@ -220,8 +220,8 @@ jobs:
         run: |
           mkdir -p all-bobs
           find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
-          chmod +x ./run-superset-in-container.sh
-          ./run-superset-in-container.sh all-bobs
+          chmod +x ./src/bashhelpers/envwrap.sh
+          ./src/bashhelpers/envwrap.sh all-bobs
 
       - name: Print attacksurface report
         run: cat all-bobs/attacksurface.md
