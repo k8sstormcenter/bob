@@ -94,10 +94,10 @@ For the KV-database `redis` in its most popular Helm-Chart, we traced out the su
 compare the 195 allowed syscalls from the default with the 128 from the BoB profile.
 Generally speaking, a BoB profile will have a lower number of syscalls than a seccomp profile. There are many discussions on the internet on how [seccomp is difficult across architecture](https://github.com/opencontainers/runc/issues/2151)s and known [issues](https://lwn.net/Articles/738694/).
 
-Profile	|Total Syscalls|	In BoB Not in RuntimeDefault|	In RuntimeDefault, Not in BoB|
---|--|--|--|
-Redis Superset BoB|	128	|8	|N/A|
-K8s RuntimeDefault|	363 |	N/A|	~195|
+
+| Component                   | Container         | Type          | Capabilities                        | Net    | Opens  | Execs  | Syscalls |
+|-----------------------------|------------------|--------------|-------------------------------------|--------|--------|--------|----------|
+| rs-bob-redis-master         | redis            | container    | DAC_OVERRIDE<br>DAC_READ_SEARCH<br>NET_ADMIN | 0      | 17     | 5      | 99       |
 
 WIP: new and more detailed comparison for Redis is coming soon
 
