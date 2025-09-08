@@ -84,8 +84,12 @@ spec:
 
 ## FAQ
 Q: Isnt this the same as SELINUX/APPARMOR profiles?   
+
 A: Just like eBPF extends the Kernel, the above Profile are a superset of `seccomp` (Profiles incl FileAccess, Execs, ImageHashes, NetworkEndpoints and Capabilities) and can work real-time with user-space applications. In this example
 it doesnt require loading anything into the LSM. LSMs have a totally different life-cycle and granularity than applications. 
+<img width="1334" height="665" alt="Screenshot 2025-09-08 at 09 47 48" src="https://github.com/user-attachments/assets/e3389c14-1472-478e-93bd-96880312911f" />
+
+
 
 **THE MOST IMPORTANT DIFFERENCE is UX, granularity and timeing** and this enables transferring it between systems and making it transparent to users
 
