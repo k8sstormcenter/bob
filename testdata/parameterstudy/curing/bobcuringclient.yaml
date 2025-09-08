@@ -1,0 +1,186 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-curious/kind-ReplicaSet/name-curing-client-6bdd958cdb
+    kubescape.io/resource-size: "97"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-curious/deployment-curing-client
+  creationTimestamp: "2025-09-08T18:58:59Z"
+  labels:
+    kubescape.io/instance-template-hash: 6bdd958cdb
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: curing-client
+    kubescape.io/workload-namespace: curious
+    kubescape.io/workload-resource-version: "10542"
+  name: replicaset-curing-client-6bdd958cdb
+  namespace: curious
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - IPC_LOCK
+    endpoints: null
+    execs:
+    - args:
+      - ./client
+      path: ./client
+    identifiedCallStacks: null
+    imageID: ghcr.io/entlein/curiousclient@sha256:9e090b14c35651c2580f00f204dc7c2704e7dc6650a5c91fe513526e6cd3e9d8
+    imageTag: ghcr.io/entlein/curiousclient:latest
+    name: client
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /app/config.json
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/hosts
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/machine-id
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/nsswitch.conf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/resolv.conf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - client
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030:
+        processAllowed:
+        - client-16
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - arch_prctl
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clock_gettime
+    - clone
+    - close
+    - close_range
+    - connect
+    - dup3
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - epoll_wait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat
+    - faccessat2
+    - fchdir
+    - fchmodat
+    - fchown
+    - fchownat
+    - fcntl
+    - fsconfig
+    - fsmount
+    - fsopen
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getpeername
+    - getpid
+    - getppid
+    - getrlimit
+    - getsockname
+    - getsockopt
+    - gettid
+    - io_uring_enter
+    - io_uring_register
+    - io_uring_setup
+    - keyctl
+    - madvise
+    - mkdirat
+    - mknodat
+    - mmap
+    - mount
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open_tree
+    - openat
+    - openat2
+    - pipe2
+    - pivot_root
+    - prctl
+    - prlimit64
+    - read
+    - readlinkat
+    - recvfrom
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsid
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - statfs
+    - statx
+    - symlinkat
+    - tgkill
+    - tkill
+    - umask
+    - umount2
+    - unlinkat
+    - write
+status: {}
