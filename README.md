@@ -94,12 +94,12 @@ it doesnt require loading anything into the LSM. LSMs have a totally different l
 **THE MOST IMPORTANT DIFFERENCE is UX, granularity and timeing** and this enables transferring it between systems and making it transparent to users
 
 ## Example comparison of seccomp with BoB (for redis)
-For the KV-database `redis` in its most popular Helm-Chart, we traced out the superset of all syscalls across many k8s-versions/distros. In K8s, there is a [`RuntimeDefault` seccomp](https://github.com/moby/profiles/blob/main/seccomp/default.json) [profile](https://github.com/containerd/containerd/blob/main/contrib/seccomp/seccomp_default.go) depending on the containerruntime that disallows the most dangerous syscalls. Since, it is the best-known security feature, we
-compare the 195 allowed syscalls from the default with the 128 from the BoB profile.
+For the KV-database `redis` in its most popular Helm-Chart, we traced out the superset of all syscalls across many k8s-versions/distros. In K8s, there is a [`RuntimeDefault` seccomp](https://github.com/moby/profiles/blob/main/seccomp/default.json) [profile](https://github.com/containerd/containerd/blob/main/contrib/seccomp/seccomp_default.go) depending on the containerruntime that disallows the most dangerous syscalls. These approx 40 syscalls will remain disallowed (an SBoB does not interfere with Seccomp at the moment). Additionally,
+the SBoB allowlists 99 syscalls, meaning the resulting difference will be detected as anomaly.
 Generally speaking, a BoB profile will have a lower number of syscalls than a seccomp profile. There are many discussions on the internet on how [seccomp is difficult across architecture](https://github.com/opencontainers/runc/issues/2151)s and known [issues](https://lwn.net/Articles/738694/).
 
-### These summaries are output by the github workflow
-(a script that summarizes what the profile allows if each of the workloads is annotated with said SBoB profile)  WARNING: those scripts may not be accurate for complex deployments
+### An SBoB is a generalized and customizable Application Profile that alerts on anything not allowlisted
+(The following summaries are output by the github workflow script that summarizes what the profile allows if each of the workloads is annotated with said SBoB profile)  WARNING: those scripts may not be accurate for complex deployments
 
 | Component                   | Container         | Type          | Capabilities                        | Net    | Opens  | Execs  | Syscalls |
 |-----------------------------|------------------|--------------|-------------------------------------|--------|--------|--------|----------|
