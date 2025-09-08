@@ -1,5 +1,12 @@
 # Software Bill of Behaviour - Tooling `bobctl`
 
+> **DISCLAIMER:**  
+> The scripts are currently for rapid prototyping to iterate on a design the community will accept.  
+> The regex is **not stable**—do **not** rely on AI for these profiles.  
+> If you want to use them for your software:  
+> **Run the scripts, then use your eyes to fix what the regex messed up.**
+> Once the code is stable, (and if there is expressed interest/acceptance/funding etc) I ll create proper tooling
+
 <img width="623" height="440" alt="PNG image" src="https://github.com/user-attachments/assets/a85b5168-ffff-4aef-a8f1-cd3f551d69e7" />
 
 
