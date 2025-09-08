@@ -79,6 +79,8 @@ print_yaml_list_or_null_inline() {
   fi
 }
 
+
+## TODO: debug this further, you need to rewrite this properly
 normalize_opens() {
   jq 'map(
     .path |= (
@@ -87,8 +89,7 @@ normalize_opens() {
       gsub("(/bin/)[^/]+.*"; "\\1*") |
       gsub("[0-9a-f]{64}"; "*") |
       gsub("/[^/]+\\.service"; "/*.service") |
-      gsub("/proc/[^/]+/task/[^/]+/fd.*"; "/proc/*/task/*/fd")|
-      gsub("/proc/[^/]+/stat"; "/proc/**")
+      gsub("/proc/[^/]+/task/[^/]+/fd.*"; "/proc/*/task/*/fd")
     )
   )
   | unique_by(.path + ( .flags | tostring ))'
