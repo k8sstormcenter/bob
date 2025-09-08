@@ -94,12 +94,20 @@ For the KV-database `redis` in its most popular Helm-Chart, we traced out the su
 compare the 195 allowed syscalls from the default with the 128 from the BoB profile.
 Generally speaking, a BoB profile will have a lower number of syscalls than a seccomp profile. There are many discussions on the internet on how [seccomp is difficult across architecture](https://github.com/opencontainers/runc/issues/2151)s and known [issues](https://lwn.net/Articles/738694/).
 
+### These summaries are output by the github workflow
+(a script that summarizes what the profile allows if each of the workloads is annotated with said SBoB profile)  WARNING: those scripts may not be accurate for complex deployments
 
 | Component                   | Container         | Type          | Capabilities                        | Net    | Opens  | Execs  | Syscalls |
 |-----------------------------|------------------|--------------|-------------------------------------|--------|--------|--------|----------|
 | rs-bob-redis-master         | redis            | container    | DAC_OVERRIDE<br>DAC_READ_SEARCH<br>NET_ADMIN | 0      | 17     | 5      | 99       |
 
-WIP: new and more detailed comparison for Redis is coming soon
+| Component                   | Container         | Type          | Capabilities                        | Net    | Opens  | Execs  | Syscalls |
+|-----------------------------|------------------|--------------|-------------------------------------|--------|--------|--------|----------|
+| rs-tetragon-operator        | tetragon-operator | container    | NET_ADMIN                           | 10     | 8      | 1      | 92       |
+| rs-tetragon                 | export-stdout    | container    | none                                | 0      | 5      | 2      | 84       |
+| rs-tetragon                 | tetragon         | container    | BPF<br>DAC_OVERRIDE<br>DAC_READ_SEARCH<br>NET_ADMIN<br>PERFMON<br>SYSLOG<br>SYS_ADMIN<br>SYS_PTRACE | 0      | 49     | 1      | 100      |
+
+
 
 ## More elaborate Comparison of the shrinking attack surface if using NO| FULL | BAU profiles for CNCF Pixie
 | Profile                     | Capabilities                                                                 | Network | Opens (#) | Execs (#) | Allowed Syscalls (#) |
