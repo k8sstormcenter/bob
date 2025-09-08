@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 66-migration-using-the-new-generalization-script-generate-redis-and-tetragons-bob-files-anew
+      - 70-regex-for-file-opens-broken
     paths:    
       - '.github/workflows/ci-tetragon-create-bob.yaml'
       - 'Makefile'
@@ -200,12 +200,54 @@ jobs:
           name: bobs-collection
           path: bobs.tar.gz
 
+      - name: setup kind
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:v1.33.0
+
+      - name: Test superset Bob on kind    
+        run: |
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+          helm version
+          helm list
+          make kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+
+      - name: Run helm install for application
+        run: |
+          git clone https://github.com/k8sstormcenter/honeycluster.git
+          chmod +x ./src/bashhelpers/bobapply.sh
+          ./src/bashhelpers/bobapply.sh
+          make tetragon
+          sleep 30
+          kubectl logs -n honey -l app=node-agent 
+
+      - name: Run positive test
+        continue-on-error: true
+        run: |
+          cd honeycluster 
+          make traces
+          make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
+          cd ..
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=operator
+          sleep 25
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -l app=node-agent -n honey 
 
       - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
         uses: actions/upload-artifact@v4
         with:
           name: bob-final
-          path: bob-artifacts/**/*_bob.yaml
+          path: all-bobs/*_bob.yaml
 
 
         
