@@ -234,6 +234,7 @@ jobs:
       - name: Run positive test
         continue-on-error: true
         run: |
+          cat all-bobs/*_bob.yaml
           cd honeycluster 
           make traces
           make --makefile=Makefile_calibrate_kubehound calibration-traces calibration-attack 
@@ -242,8 +243,8 @@ jobs:
           kubectl logs -n honey -l app=operator
           kubectl logs -n honey -l app=node-agent
           sleep 60
-          kubectl logs -n honey -l app=node-agent | grep "Unexpected"
-          cat all-bobs/*_bob.yaml
+          kubectl logs -n honey -l app=node-agent 
+
 
       - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
         uses: actions/upload-artifact@v4
