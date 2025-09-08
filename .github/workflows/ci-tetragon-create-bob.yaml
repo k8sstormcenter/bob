@@ -240,9 +240,10 @@ jobs:
           cd ..
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
-          sleep 25
-          kubectl logs -n honey -l app=node-agent 
-          kubectl logs -l app=node-agent -n honey 
+          kubectl logs -n honey -l app=node-agent
+          sleep 60
+          kubectl logs -n honey -l app=node-agent | grep "Unexpected"
+          cat all-bobs/*_bob.yaml
 
       - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
         uses: actions/upload-artifact@v4
