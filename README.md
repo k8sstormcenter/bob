@@ -103,9 +103,20 @@ Generally speaking, a BoB profile will have a lower number of syscalls than a se
 ### An SBoB is a generalized and customizable Application Profile that alerts on anything not allowlisted
 (The following summaries are output by the github workflow script that summarizes what the profile allows if each of the workloads is annotated with said SBoB profile)  WARNING: those scripts may not be accurate for complex deployments
 
+#### For redis (in standalone form)
+using the bitnami chart: For a DB, the user will need to supply network-ranges that are allowed.
+
 | Component                   | Container         | Type          | Capabilities                        | Net    | Opens  | Execs  | Syscalls |
 |-----------------------------|------------------|--------------|-------------------------------------|--------|--------|--------|----------|
 | rs-bob-redis-master         | redis            | container    | DAC_OVERRIDE<br>DAC_READ_SEARCH<br>NET_ADMIN | 0      | 17     | 5      | 99       |
+
+Applications of type DB are security sensitive, as they often store juicy content. The most interesting thing to anomaly detect is which `outbound network` connections are happening (exfiltration).
+
+
+If you are interested in using eBPF to monitor querys, see this course how [our friends from pixie](https://labs.iximiuz.com/courses/discoverebpf-0d7c6c54/lesson-1#dbs) achieve such observability.
+
+#### For Tetragon (an OpenSource CNCF Security eBPF tool)
+
 
 | Component                   | Container         | Type          | Capabilities                        | Net    | Opens  | Execs  | Syscalls |
 |-----------------------------|------------------|--------------|-------------------------------------|--------|--------|--------|----------|
