@@ -5,10 +5,11 @@ on:
   push:
     branches:
       - main
-      - 62-retest-the-iximiuz-labs-after-folder-structure
+      - 66-migration-using-the-new-generalization-script-generate-redis-and-tetragons-bob-files-anew
     paths:    
       - '.github/workflows/ci-tetragon-create-bob.yaml'
       - 'Makefile'
+      - 'testdata/superset.sh'
 
     
 
@@ -19,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
         k8s-distribution: [k3s, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
-        kubernetes-version: [ v1.33.2]  #v1.30.0, v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
+        kubernetes-version: [ v1.33.2, v1.30.0, v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
     runs-on: ${{ matrix.os }}
 
 
@@ -176,40 +177,22 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: bob-artifacts
+          merge-multiple: true
 
-      - name: Group profiles by type and build supersets
+      - name: Create a superset
         run: |
-          mkdir -p grouped-bobs supersets
-          shopt -s nullglob
+          mkdir -p all-bobs
+          find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
+          chmod +x ./src/bashhelpers/envwrap.sh
+          ./src/bashhelpers/envwrap.sh all-bobs
 
-          for f in $(find bob-artifacts -type f -name "*.yaml"); do
-            base=$(basename "$f")
-            itemtype=$(echo "$base" | cut -d'-' -f2) 
-            itemname=$(echo "$base" | cut -d'-' -f3) 
-            itemname2=$(echo "$base" | cut -d'-' -f4) 
-            if [[ "$itemname2" =~ ^[0-9a-f]{6,}$ ]]; then
-              item="${itemtype}-${itemname}"
-            else
-              item="${itemtype}-${itemname}-${itemname2}"
-            fi
-            mkdir -p "grouped-bobs/$item"
-            cp "$f" "grouped-bobs/$item/"
-          done
-
-          for item in grouped-bobs/*; do
-            group=$(basename "$item")
-            make superset-bob INPUT_DIR="$item" OUTPUT_FILE="supersets/${group}-superset.yaml"
-          done
-
-          ls -R grouped-bobs supersets
-
-
+      - name: Print attacksurface report
+        run: cat all-bobs/attacksurface.md
 
       - name: Package all BoBs into a tarball
         run: |
           echo "Packaging the following BoB files:"
-          ls -R grouped-bobs
-          tar -czvf bobs.tar.gz -C grouped-bobs .
+          tar -czvf bobs.tar.gz -C bob-artifacts .
 
       - name: Upload BoB tarball
         uses: actions/upload-artifact@v4
@@ -217,64 +200,12 @@ jobs:
           name: bobs-collection
           path: bobs.tar.gz
 
-      # - name: setup kind
-      #   uses: helm/kind-action@v1
-      #   with:
-      #     node_image: kindest/node:v1.33.0
-
-      # - name: Test superset Bob on kind    
-      #   run: |
-      #     echo "kubeconfig: $KUBECONFIG"
-      #     kubectl version
-      #     kubectl get pods --all-namespaces
-      #     uname -a
-      #     helm version
-      #     helm list
-      #     make kubescape
-      #     kubectl get all -A
-      #     kubectl logs -n honey -l app=kubescape
-      #     kubectl logs -n honey -l app=node-agent 
-      #     kubectl logs -n honey -l app=storage
-      #     kubectl logs -n honey -l app=kubevuln
-      #     kubectl logs -n honey -l app=operator
-      #     cp all-bobs/superset-bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/bob.yaml
-      #     helm dependency update example/myredis-umbrella-chart/redis-bob/
-      #     helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
-      #     kubectl logs -n bob pods/bob-redis-master-0 redis 
-      #     kubectl logs -n honey -l app=node-agent 
-      #     sleep 30
-
-      # - name: Run helm test
-      #   continue-on-error: true
-      #   run: |
-      #     make helm-redis-test
-      #     echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
-      #     kubectl logs -n honey -l app=kubescape
-      #     kubectl logs -n honey -l app=operator
-      #     kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-      #     sleep 25
-      #     kubectl logs -n honey -l app=node-agent 
-      #     count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
-      #     if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
-      #       kubectl logs -n honey -l app=kubescape
-      #       kubectl logs -n honey -l app=node-agent
-      #       kubectl logs -n honey -l app=storage
-      #       kubectl logs -n honey -l app=kubevuln
-      #       kubectl logs -n honey -l app=operator
-      #       kubectl logs -n webapp webapp
-      #       echo "Didnt find anything."
-      #     else
-      #     echo "Found $count anomalies"
-      #     if [ "$count" -ne 2 ]; then
-      #       echo "❌ Expected 2 anomalies, but found $count"
-      #     fi
-
 
       - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
         uses: actions/upload-artifact@v4
         with:
           name: bob-final
-          path: supersets/*-superset.yaml
+          path: bob-artifacts/**/*_bob.yaml
 
 
         

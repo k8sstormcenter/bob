@@ -5,11 +5,12 @@ on:
   push:
     branches:
       - main
-      - 60-fix-the-pipelines-after-folder-restructure
+      - 66-migration-using-the-new-generalization-script-generate-redis-and-tetragons-bob-files-anew
     paths:    
       - 'example/myredis-umbrella-chart/**'
       - 'kubescape/**'
       - '.github/workflows/ci-redis-create-bob.yaml'
+      - 'testdata/superset.sh'
 
     
 
@@ -208,13 +209,15 @@ jobs:
         with:
           path: bob-artifacts
 
-      - name: Create a superset 
+      - name: Create a superset
         run: |
           mkdir -p all-bobs
           find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
-          make superset-bob INPUT_DIR=all-bobs OUTPUT_FILE=all-bobs/superset-bob.yaml 
+          chmod +x ./src/bashhelpers/envwrap.sh
+          ./src/bashhelpers/envwrap.sh all-bobs
 
-
+      - name: Print attacksurface report
+        run: cat all-bobs/attacksurface.md
 
       - name: Package all BoBs into a tarball
         run: |
@@ -248,7 +251,8 @@ jobs:
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
-          cp all-bobs/superset-bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/bob.yaml
+          rm ./example/myredis-umbrella-chart/redis-bob/templates/bob.yaml
+          cp all-bobs/*_bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/.
           helm dependency update example/myredis-umbrella-chart/redis-bob/
           helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
           kubectl logs -n bob pods/bob-redis-master-0 redis 
@@ -285,7 +289,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: redis-bob-final
-          path: all-bobs/superset-bob.yaml
+          path: all-bobs/*_bob.yaml
+
+
 
 
         
