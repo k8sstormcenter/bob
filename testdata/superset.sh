@@ -87,8 +87,7 @@ normalize_opens() {
       gsub("(/bin/)[^/]+.*"; "\\1*") |
       gsub("[0-9a-f]{64}"; "*") |
       gsub("/[^/]+\\.service"; "/*.service") |
-      gsub("/proc/[^/]+/task/[^/]+/fd.*"; "/proc/*/task/*/fd")|
-      gsub("/proc/[^/]+/stat"; "/proc/⋯/stat")
+      gsub("/proc/[^/]+/task/[^/]+/fd.*"; "/proc/*/task/*/fd")
     )
   )
   | unique_by(.path + ( .flags | tostring ))'
