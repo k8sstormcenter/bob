@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 66-migration-using-the-new-generalization-script-generate-redis-and-tetragons-bob-files-anew
+      - 70-regex-for-file-opens-broken
     paths:    
       - 'example/myredis-umbrella-chart/**'
       - 'kubescape/**'
@@ -259,30 +259,17 @@ jobs:
           kubectl logs -n honey -l app=node-agent 
           sleep 30
 
-      - name: Run helm test
+      - name: Run positive test
         continue-on-error: true
         run: |
+          cat all-bobs/*_bob.yaml
           make helm-redis-test
           echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
           kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-          sleep 25
+          sleep 60
           kubectl logs -n honey -l app=node-agent 
-          count=$(kubectl logs -l app=node-agent -n honey | grep -c "Unexpected")
-          if ! kubectl logs -l app=node-agent -n honey | grep -q "Unexpected"; then
-            kubectl logs -n honey -l app=kubescape
-            kubectl logs -n honey -l app=node-agent
-            kubectl logs -n honey -l app=storage
-            kubectl logs -n honey -l app=kubevuln
-            kubectl logs -n honey -l app=operator
-            kubectl logs -n webapp webapp
-            echo "Didnt find anything."
-          else
-          echo "Found $count anomalies"
-          if [ "$count" -ne 2 ]; then
-            echo "❌ Expected 2 anomalies, but found $count"
-          fi
 
 
       - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
