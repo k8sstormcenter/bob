@@ -129,8 +129,7 @@ collapse_opens_with_globs() {
           [{ flags: $flags,
              path: ((.[0].path | split("/")[:-1] | join("/")) + "/*." + ($exts[0])) }]
         else
-          [{ flags: $flags,
-             path: ((.[0].path | split("/")[:-1] | join("/")) + "/*") }]
+          [{ flags: $flags, path: ((.[0].path | split("/")[:-1] | join("/")) + "/**") }]
         end
       else
         .
@@ -139,6 +138,9 @@ collapse_opens_with_globs() {
     | add
   '
 }
+
+
+
 collapse_opens_events() {
   jq '
     . // [] |
@@ -165,9 +167,7 @@ for file in "$INPUT_DIR"/*.yaml; do
   [ -f "$file" ] || continue
   [[ "$file" == *_bob.yaml ]] && continue
   name=$(yq '.metadata.name' "$file")
-  #echo $name
   shortname=$(echo "$name" | sed -E 's/-[0-9a-f]{6,}$//')   
-  #echo $shortname
   GROUPSS["$shortname"]+="$file "
 done
 
