@@ -5,10 +5,16 @@
 
 We introduce the “Bill of Behavior” (BoB): a vendor-supplied profile detailing known benign runtime behaviors for software, designed to be distributed directly within OCI artifacts. 
 Generated using eBPF, a BoB codifies expected syscalls, file access patterns, network communications, and capabilities. 
-This empowers powerful, signature-less anomaly detection, allowing end-users to infer malicious activity or tampering in third-party software without the current burden of authoring and maintaining custom security policies.
+This empowers two things:
+- **for the supply chain at deploy-time** (possibly in a staging env): we can use a detailed and highly specific such profile to verify an installer at client side to exclude tampering (see the npm incident from sept 8)
+- **for continuous anomaly detection at runtime**: allowing end-users to infer malicious activity, to shrink their false positive noise and to have a vendor-supplied behavioural baseline, the generalized and more lightweight profile is used.
+
+  
+We foresee a benefit for the end-user in shifting authoring and maintaining custom security policies from the recipient, who does not have in-depth knowledge of the software to the vendor, who (should) have the knowledge.
 
 Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
-<img width="3124" height="2638" alt="bobverticalvendor" src="https://github.com/user-attachments/assets/b66e1510-c4c6-41b8-8f45-11ce98faf947" />
+<img width="3226" height="2744" alt="bobboth" src="https://github.com/user-attachments/assets/2c38ee76-39e6-461e-a8c7-1f7d969d7e6a" />
+
 
 That means the user receives a secure default runtime profile. They can customize it, or directly apply it for runtime detection. And which each update of the software,
 get an uptodate runtimeprofile
@@ -112,12 +118,12 @@ spec:
       ...
 ```
 
-<img width="3133" height="2637" alt="bobverticalcustomer" src="https://github.com/user-attachments/assets/7e3b045c-8c63-4948-9748-21d62125823a" />
+
 
 ## FAQ
 Q: Isnt this the same as SELINUX/APPARMOR profiles?   
 
-A: Just like eBPF extends the Kernel, the above Profile are a superset of `seccomp` (Profiles incl FileAccess, Execs, ImageHashes, NetworkEndpoints and Capabilities) and can work real-time with user-defined profiles, but it doesnt require loading anything into the LSM. LSMs have a totally different life-cycle and granularity than applications. 
+A: Just like eBPF extends the Kernel, the above Profile are a superset of (Lists of recorded activity like incl FileAccess, Execs, ImageHashes, NetworkEndpoints, SystemCalls and Capabilities) and can work real-time with user-defined profiles, but it doesnt require loading anything into the LSM. LSMs have a totally different life-cycle and granularity than applications. 
 <img width="1334" height="665" alt="Screenshot 2025-09-08 at 09 47 48" src="https://github.com/user-attachments/assets/e3389c14-1472-478e-93bd-96880312911f" />
 
 **THE MOST IMPORTANT DIFFERENCE is UX, granularity and timeing** and this enables transferring it between systems and making it transparent to users
