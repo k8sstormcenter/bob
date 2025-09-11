@@ -12,7 +12,7 @@ This empowers two things:
   
 We foresee a massive scale benefit for the end-user, who does not have in-depth knowledge of the software by shifting authoring and maintaining custom security policies to the vendor, who knows their own software, has the test cases and can judge what part of the policies should be generalized.
 
-Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
+Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` . Just like a `Container Beipackzettel` 🌡️📦📃🩻
 <img width="3226" height="2744" alt="bobboth" src="https://github.com/user-attachments/assets/2c38ee76-39e6-461e-a8c7-1f7d969d7e6a" />
 
 
