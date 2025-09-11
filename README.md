@@ -1,4 +1,4 @@
-# Software Bill of Behaviour - Tooling `bobctl`
+# Software Bill of Behavior - Tooling `bobctl`
 
 
 <img width="623" height="440" alt="PNG image" src="https://github.com/user-attachments/assets/a85b5168-ffff-4aef-a8f1-cd3f551d69e7" />
