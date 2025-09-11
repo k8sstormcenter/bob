@@ -1,10 +1,6 @@
 # Software Bill of Behaviour - Tooling `bobctl`
 
-> **DISCLAIMER:**  
-> The scripts are currently for rapid prototyping to iterate on a design the community will accept.  
-> The regex is **not stable**—do **not** rely on AI for these profiles.   If you want to use them for your software:  
-> **Run the scripts, then use your eyes to fix what the regex messed up.**
-> Once the code is stable, (and if there is expressed interest/acceptance/funding etc) I ll create proper tooling
+
 
 <img width="623" height="440" alt="PNG image" src="https://github.com/user-attachments/assets/a85b5168-ffff-4aef-a8f1-cd3f551d69e7" />
 
@@ -14,7 +10,33 @@ We introduce the “Bill of Behavior” (BoB): a vendor-supplied profile detaili
 Generated using eBPF, a BoB codifies expected syscalls, file access patterns, network communications, and capabilities. 
 This empowers powerful, signature-less anomaly detection, allowing end-users to infer malicious activity or tampering in third-party software without the current burden of authoring and maintaining complex, custom security rules.
 
-Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
+````markdown
+## Table of Contents
+
+1. [Introduction](#software-bill-of-behaviour---tooling-bobctl)
+2. [Bill of Behavior (BoB) Overview](#bill-of-behavior-bob-overview)
+3. [Vendor Example: ApplicationProfile CRD](#vendor-example-applicationprofile-crd)
+4. [FAQ](#faq)
+5. [Example Comparison: Seccomp vs BoB](#example-comparison-of-seccomp-with-bob-for-redis)
+    - [For redis (in standalone form)](#for-redis-in-standalone-form)
+    - [For Tetragon (OpenSource CNCF Security eBPF tool)](#for-tetragon-an-opensource-cncf-security-ebpf-tool)
+    - [Comparison for CNCF Pixie](#more-elaborate-comparison-of-the-shrinking-attack-surface-if-using-no-full-bau-profiles-for-cncf-pixie)
+6. [BoB as a Transport and Enforcement Mechanism](#bob-as-a-transport-and-enforcement-mechanism)
+7. [Origin Story](#origin-story)
+8. [Understanding the Use Cases](#understanding-the-use-cases)
+    - [Runtime Anomalies](#1-runtime-anomalies)
+    - [Supply Chain Anomalies](#2-supply-chain-anomalies)
+9. [Try it Out in a Live Lab](#try-it-out-in-a-live-lab)
+10. [Demo: Deploy an Application](#demo-deploy-a-application)
+11. [Generate Traffic of Benign Behaviour](#generate-traffic-of-benign-behaviour)
+12. [Create a Repeatable Positive Test](#create-a-repeatable-positive-test)
+13. [Generate Runtime Attack](#generate-runtime-attack-normal-attack-that-abuses-cve)
+14. [Generate Supply Chain Attack (WIP)](#generate-supply-chain-attack)
+15. [License](#license-is-apache-20)
+````
+
+
+Imagine a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` , so that users (like patients) get access to how the software (medicine) behaves in their system (body), and how it will interact (be counterindicated) positively or negatively with other components.
 <img width="3124" height="2638" alt="bobverticalvendor" src="https://github.com/user-attachments/assets/b66e1510-c4c6-41b8-8f45-11ce98faf947" />
 
 That means the user receives a secure default runtime profile. They can customize it, or directly apply it for runtime detection. And which each update of the software,
