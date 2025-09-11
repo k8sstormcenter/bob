@@ -10,7 +10,7 @@ This empowers two things:
 - **for continuous anomaly detection at runtime**: allowing end-users to infer malicious activity, to shrink their false positive noise and to have a vendor-supplied behavioural baseline, the generalized and more lightweight profile is used.
 
   
-We foresee a benefit for the end-user in shifting authoring and maintaining custom security policies from the recipient, who does not have in-depth knowledge of the software to the vendor, who (should) have the knowledge.
+We foresee a massive scale benefit for the end-user, who does not have in-depth knowledge of the software by shifting authoring and maintaining custom security policies to the vendor, who knows their own software, has the test cases and can judge what part of the policies should be generalized.
 
 Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
 <img width="3226" height="2744" alt="bobboth" src="https://github.com/user-attachments/assets/2c38ee76-39e6-461e-a8c7-1f7d969d7e6a" />
