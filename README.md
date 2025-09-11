@@ -5,7 +5,10 @@
 
 We introduce the “Bill of Behavior” (BoB): a vendor-supplied profile detailing known benign runtime behaviors for software, designed to be distributed directly within OCI artifacts. 
 Generated using eBPF, a BoB codifies expected syscalls, file access patterns, network communications, and capabilities. 
-This empowers powerful, signature-less anomaly detection, allowing end-users to infer malicious activity or tampering in third-party software without the current burden of authoring and maintaining custom security policies.
+This empowers two things:
+** for the supply chain at deploy-time (possibly in a staging env), we can use a detailed and highly specific such profile to verify an installer at client side to exclude tampering (see the npm incident from sept 8)
+** for continuous anomaly detection at runtime, allowing end-users to infer malicious activity, to shrink their false positive noise and to have a vendor-supplied behavioural baseline, the generalized and more lightweight profile is used.
+We foresee a benefit for the end-user in shifting authoring and maintaining custom security policies from the recipient, who does not have in-depth knowledge of the software to the vendor, who (should) have the knowledge.
 
 Image a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` 
 <img width="3124" height="2638" alt="bobverticalvendor" src="https://github.com/user-attachments/assets/b66e1510-c4c6-41b8-8f45-11ce98faf947" />
