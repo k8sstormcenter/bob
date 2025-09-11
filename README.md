@@ -23,14 +23,14 @@ get an uptodate runtimeprofile
 
 ## Table of Contents
 
-1. [Introduction](#software-bill-of-behaviour---tooling-bobctl)
-2. [Bill of Behavior (BoB) Overview](#software-bill-of-behaviour---tooling-bobctl)
-3. [Vendor Example: ApplicationProfile CRD](#software-bill-of-behaviour---tooling-bobctl)
+1. [Introduction](#software-bill-of-behavior---tooling-bobctl)
+2. [Bill of Behavior (BoB) Overview](#software-bill-of-behavior---tooling-bobctl)
+3. [A generalized ApplicationProfile](#software-bill-of-behavior---tooling-bobctl)
 4. [FAQ](#faq)
 5. [Example Comparison: Seccomp vs BoB](#example-comparison-of-seccomp-with-bob-for-redis)
     - [For redis (in standalone form)](#for-redis-in-standalone-form)
     - [For Tetragon (OpenSource CNCF Security eBPF tool)](#for-tetragon-an-opensource-cncf-security-ebpf-tool)
-    - [Comparison for CNCF Pixie](#more-elaborate-comparison-of-the-shrinking-attack-surface-if-using-no-full-bau-profiles-for-cncf-pixie)
+    - [Comparison of Deploy- vs Run-time for Pixie (OpenSource CNCF Observability eBPF suite)](#more-elaborate-comparison-of-the-shrinking-attack-surface-if-using-no-full-bau-profiles-for-cncf-pixie)
 6. [BoB as a Transport and Enforcement Mechanism](#bob-as-a-transport-and-enforcement-mechanism)
 7. [Origin Story](#origin-story)
 8. [Understanding the Use Cases](#understanding-the-use-cases)
