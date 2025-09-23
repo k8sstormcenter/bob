@@ -15,6 +15,7 @@ We foresee a massive scale benefit for the end-user, who does not have in-depth 
 
 Imagine a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` . Just like a `Container Beipackzettel` 🌡️📦📃🩻
 <img width="3226" height="2744" alt="bobboth" src="https://github.com/user-attachments/assets/2c38ee76-39e6-461e-a8c7-1f7d969d7e6a" />
+<img width="3226" height="2744" alt="BoBverticalboth_registered" src="https://github.com/user-attachments/assets/4696c374-289b-4449-9a5d-81f3682c01a2" />
 
 
 That means the user receives a secure default runtime profile. They can customize it, or directly apply it for runtime detection. And which each update of the software,
