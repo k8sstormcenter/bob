@@ -1,0 +1,240 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-bob/kind-ReplicaSet/name-tetragon-operator-58c6ddf88
+    kubescape.io/resource-size: "104"
+    kubescape.io/status: ready
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-bob/deployment-tetragon-operator
+  creationTimestamp: "2025-09-10T16:46:00Z"
+  labels:
+    kubescape.io/instance-template-hash: 58c6ddf88
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: tetragon-operator
+    kubescape.io/workload-namespace: bob
+    kubescape.io/workload-resource-version: "1005"
+  name: replicaset-tetragon-operator-58c6ddf88
+  namespace: bob
+  resourceVersion: "1"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - NET_ADMIN
+    endpoints:
+    - direction: inbound
+      endpoint: :8081/readyz
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.244.0.16:8081
+      internal: false
+      methods:
+      - GET
+    - direction: inbound
+      endpoint: :8081/healthz
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.244.0.16:8081
+      internal: false
+      methods:
+      - GET
+    execs:
+    - args:
+      - /usr/bin/tetragon-operator
+      - serve
+      - --config-dir=/etc/tetragon/operator.conf.d/
+      - --metrics-bind-address=:2113
+      path: /usr/bin/tetragon-operator
+    identifiedCallStacks: null
+    imageID: quay.io/cilium/tetragon-operator@sha256:022e99336812198f8dc46c3fbc05cff8ca1cb1938ca9b78b0a66a68556c06d20
+    imageTag: quay.io/cilium/tetragon-operator:v1.5.0
+    name: tetragon-operator
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/force-update-crds
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/leader-election
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/leader-election-lease-duration
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/leader-election-namespace
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/leader-election-renew-deadline
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/leader-election-retry-period
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/skip-crd-creation
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/skip-pod-info-crd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/tetragon/operator.conf.d/..2025_09_10_16_42_47.1508167440/skip-tracing-policy-crd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/bin/tetragon-operator
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /var/run/secrets/kubernetes.io/serviceaccount/..2025_09_10_16_42_47.4207980585/ca.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/..2025_09_10_16_42_47.4207980585/token
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - tetragon-operat
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clone
+    - close
+    - close_range
+    - connect
+    - copy_file_range
+    - dup
+    - dup2
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat2
+    - fadvise64
+    - fcntl
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
+    - getpgrp
+    - getpid
+    - getppid
+    - getrandom
+    - getsockname
+    - getsockopt
+    - gettid
+    - getuid
+    - ioctl
+    - listen
+    - lseek
+    - madvise
+    - mkdir
+    - mmap
+    - mount
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - pipe2
+    - prctl
+    - pread64
+    - prlimit64
+    - read
+    - readlink
+    - readlinkat
+    - recvfrom
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - statfs
+    - sysinfo
+    - tgkill
+    - uname
+    - wait4
+    - write
+status: {}
