@@ -111,172 +111,175 @@ jobs:
 
 
 
-      - name: Run helm install for redis
+      - name: Run helm install for harbor
         run: |
-          helm dependency update example/myredis-umbrella-chart/redis-bob/
-          mv ./example/myredis-umbrella-chart/redis-bob/templates/tests/test-attack.yaml test-attack.yaml
-          helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=false
-          kubectl wait --for=condition=ready pod -n bob -l app.kubernetes.io/instance=bob
+          make sample-app
 
       - name: Get logs
-        run: |
-          kubectl logs -n bob pods/bob-redis-master-0 redis 
-          kubectl logs -n honey -l app=node-agent 
+        run: | 
           sleep 15
+          kubectl logs -n honey -l app=node-agent 
 
+
+      - name: Get Harbor NodePort and port-forward
+        run: |
+          # Get the NodePort for Harbor HTTP
+          NODEPORT=$(kubectl get svc harbor -n harbor -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
+          echo "Harbor NodePort is $NODEPORT"
+          kubectl port-forward --namespace harbor svc/harbor $NODEPORT:8585 &
+          sleep 5
 
       - name: Run helm test
         continue-on-error: true
         run: |
-          make helm-redis-test
+          echo "Harbor12345" | docker login 127.0.0.1:8585 -u admin --password-stdin
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
-          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
           sleep 25
           kubectl logs -n honey -l app=node-agent 
           kubectl logs -l app=node-agent -n honey 
-      - name: Run helm test 2
-        continue-on-error: true
-        run: |
-          make helm-redis-test
-          kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=operator
-          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-          sleep 25
-          kubectl logs -n honey -l app=node-agent 
-          kubectl logs -l app=node-agent -n honey 
-      - name: Run helm test 3
-        continue-on-error: true
-        run: |
-          make helm-redis-test
-          kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=operator
-          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-          sleep 25
-          kubectl logs -n honey -l app=node-agent 
-          kubectl logs -l app=node-agent -n honey 
+  #     - name: Run helm test 2
+  #       continue-on-error: true
+  #       run: |
+  #         make helm-redis-test
+  #         kubectl logs -n honey -l app=kubescape
+  #         kubectl logs -n honey -l app=operator
+  #         kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+  #         sleep 25
+  #         kubectl logs -n honey -l app=node-agent 
+  #         kubectl logs -l app=node-agent -n honey 
+  #     - name: Run helm test 3
+  #       continue-on-error: true
+  #       run: |
+  #         make helm-redis-test
+  #         kubectl logs -n honey -l app=kubescape
+  #         kubectl logs -n honey -l app=operator
+  #         kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+  #         sleep 25
+  #         kubectl logs -n honey -l app=node-agent 
+  #         kubectl logs -l app=node-agent -n honey 
 
-      - name: Export Redis ApplicationProfile
-        id: export_bob
-        run: |
-          echo "Waiting for Redis ApplicationProfile to be generated..."
+  #     - name: Export Redis ApplicationProfile
+  #       id: export_bob
+  #       run: |
+  #         echo "Waiting for Redis ApplicationProfile to be generated..."
           
-          # First, get the statefulset's current controller revision name
-          CONTROLLER_REVISION=$(kubectl get statefulset -n bob bob-redis-master -o jsonpath='{.status.currentRevision}')
-          if [ -z "$CONTROLLER_REVISION" ]; then
-            echo "::error::Could not get statefulset controller revision."
-            exit 1
-          fi
-          echo "StatefulSet current revision is $CONTROLLER_REVISION"
+  #         # First, get the statefulset's current controller revision name
+  #         CONTROLLER_REVISION=$(kubectl get statefulset -n bob bob-redis-master -o jsonpath='{.status.currentRevision}')
+  #         if [ -z "$CONTROLLER_REVISION" ]; then
+  #           echo "::error::Could not get statefulset controller revision."
+  #           exit 1
+  #         fi
+  #         echo "StatefulSet current revision is $CONTROLLER_REVISION"
           
-          # The profile name is expected to be 'statefulset-<controller-revision-name>'
-          PROFILE_NAME="statefulset-${CONTROLLER_REVISION}"
-          echo "Expected ApplicationProfile name is $PROFILE_NAME"
+  #         # The profile name is expected to be 'statefulset-<controller-revision-name>'
+  #         PROFILE_NAME="statefulset-${CONTROLLER_REVISION}"
+  #         echo "Expected ApplicationProfile name is $PROFILE_NAME"
 
-          # Wait for the profile to be created by Kubescape's node-agent.
-          # A simple loop with a timeout is more robust here.
-          timeout=600 # 10 minutes
-          while ! kubectl get applicationprofile.spdx.softwarecomposition.kubescape.io -n bob "$PROFILE_NAME" &> /dev/null; do
-            sleep 15; timeout=$((timeout-15))
-            if [ $timeout -le 0 ]; then
-              echo "::error::Timed out waiting for ApplicationProfile '$PROFILE_NAME' to be created."
-              echo "Listing available profiles in namespace bob:"; kubectl get applicationprofile -n bob; exit 1
-            fi
-          done
-          echo "ApplicationProfile '$PROFILE_NAME' found."
+  #         # Wait for the profile to be created by Kubescape's node-agent.
+  #         # A simple loop with a timeout is more robust here.
+  #         timeout=600 # 10 minutes
+  #         while ! kubectl get applicationprofile.spdx.softwarecomposition.kubescape.io -n bob "$PROFILE_NAME" &> /dev/null; do
+  #           sleep 15; timeout=$((timeout-15))
+  #           if [ $timeout -le 0 ]; then
+  #             echo "::error::Timed out waiting for ApplicationProfile '$PROFILE_NAME' to be created."
+  #             echo "Listing available profiles in namespace bob:"; kubectl get applicationprofile -n bob; exit 1
+  #           fi
+  #         done
+  #         echo "ApplicationProfile '$PROFILE_NAME' found."
           
-          echo "Exporting ApplicationProfile: $PROFILE_NAME"
-          mkdir -p bob-artifact
-          kubectl get applicationprofile -n bob "$PROFILE_NAME" -o yaml > bob-artifact/bob-redis-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
-          echo "✅ ApplicationProfile exported to bob-artifact/bob-redis.yaml"
+  #         echo "Exporting ApplicationProfile: $PROFILE_NAME"
+  #         mkdir -p bob-artifact
+  #         kubectl get applicationprofile -n bob "$PROFILE_NAME" -o yaml > bob-artifact/bob-redis-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
+  #         echo "✅ ApplicationProfile exported to bob-artifact/bob-redis.yaml"
 
-      - name: Upload Redis BoB artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: redis-bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
-          path: bob-artifact/bob-redis-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
+  #     - name: Upload Redis BoB artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: redis-bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+  #         path: bob-artifact/bob-redis-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
 
-  package-bobs:
-    runs-on: ubuntu-latest
-    needs: build
-    if: always() # Run even if some matrix jobs fail, to collect successful BoBs
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # package-bobs:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   if: always() # Run even if some matrix jobs fail, to collect successful BoBs
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Download all BoB artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: bob-artifacts
+  #     - name: Download all BoB artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         path: bob-artifacts
 
-      - name: Create a superset
-        run: |
-          mkdir -p all-bobs
-          find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
-          chmod +x ./src/bashhelpers/envwrap.sh
-          ./src/bashhelpers/envwrap.sh all-bobs
+  #     - name: Create a superset
+  #       run: |
+  #         mkdir -p all-bobs
+  #         find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
+  #         chmod +x ./src/bashhelpers/envwrap.sh
+  #         ./src/bashhelpers/envwrap.sh all-bobs
 
-      - name: Print attacksurface report
-        run: cat all-bobs/attacksurface.md
+  #     - name: Print attacksurface report
+  #       run: cat all-bobs/attacksurface.md
 
-      - name: Package all BoBs into a tarball
-        run: |
-          echo "Packaging the following BoB files:"
-          ls -R all-bobs
-          tar -czvf redis-bobs.tar.gz -C all-bobs .
+  #     - name: Package all BoBs into a tarball
+  #       run: |
+  #         echo "Packaging the following BoB files:"
+  #         ls -R all-bobs
+  #         tar -czvf redis-bobs.tar.gz -C all-bobs .
 
-      - name: Upload BoB tarball
-        uses: actions/upload-artifact@v4
-        with:
-          name: redis-bobs-collection
-          path: redis-bobs.tar.gz
+  #     - name: Upload BoB tarball
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: redis-bobs-collection
+  #         path: redis-bobs.tar.gz
 
-      - name: setup kind
-        uses: helm/kind-action@v1
-        with:
-          node_image: kindest/node:v1.33.0
+  #     - name: setup kind
+  #       uses: helm/kind-action@v1
+  #       with:
+  #         node_image: kindest/node:v1.33.0
 
-      - name: Test superset Bob on kind    
-        run: |
-          echo "kubeconfig: $KUBECONFIG"
-          kubectl version
-          kubectl get pods --all-namespaces
-          uname -a
-          helm version
-          helm list
-          make kubescape
-          kubectl get all -A
-          kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent 
-          kubectl logs -n honey -l app=storage
-          kubectl logs -n honey -l app=kubevuln
-          kubectl logs -n honey -l app=operator
-          rm ./example/myredis-umbrella-chart/redis-bob/templates/bob.yaml
-          cp all-bobs/*_bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/.
-          helm dependency update example/myredis-umbrella-chart/redis-bob/
-          helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
-          kubectl logs -n bob pods/bob-redis-master-0 redis 
-          kubectl logs -n honey -l app=node-agent 
-          sleep 30
+  #     - name: Test superset Bob on kind    
+  #       run: |
+  #         echo "kubeconfig: $KUBECONFIG"
+  #         kubectl version
+  #         kubectl get pods --all-namespaces
+  #         uname -a
+  #         helm version
+  #         helm list
+  #         make kubescape
+  #         kubectl get all -A
+  #         kubectl logs -n honey -l app=kubescape
+  #         kubectl logs -n honey -l app=node-agent 
+  #         kubectl logs -n honey -l app=storage
+  #         kubectl logs -n honey -l app=kubevuln
+  #         kubectl logs -n honey -l app=operator
+  #         rm ./example/myredis-umbrella-chart/redis-bob/templates/bob.yaml
+  #         cp all-bobs/*_bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/.
+  #         helm dependency update example/myredis-umbrella-chart/redis-bob/
+  #         helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
+  #         kubectl logs -n bob pods/bob-redis-master-0 redis 
+  #         kubectl logs -n honey -l app=node-agent 
+  #         sleep 30
 
-      - name: Run positive test
-        continue-on-error: true
-        run: |
-          cat all-bobs/*_bob.yaml
-          make helm-redis-test
-          echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
-          kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=operator
-          kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
-          sleep 60
-          kubectl logs -n honey -l app=node-agent 
+  #     - name: Run positive test
+  #       continue-on-error: true
+  #       run: |
+  #         cat all-bobs/*_bob.yaml
+  #         make helm-redis-test
+  #         echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
+  #         kubectl logs -n honey -l app=kubescape
+  #         kubectl logs -n honey -l app=operator
+  #         kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+  #         sleep 60
+  #         kubectl logs -n honey -l app=node-agent 
 
 
-      - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
-        uses: actions/upload-artifact@v4
-        with:
-          name: redis-bob-final
-          path: all-bobs/*_bob.yaml
+  #     - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: redis-bob-final
+  #         path: all-bobs/*_bob.yaml
 
 
 
