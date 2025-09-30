@@ -189,6 +189,10 @@ super-perl:
 	@perl src/generalize.pl $(INPUT_DIR) $(OUTPUT_FILE)
 
 
+.PHONY: sample-app
+sample-app:
+	$(MAKE) --makefile=examples/myharbor/Makefile install-helm install-harbor
+
 .PHONY: nothing
 nothing:
 # for when we know the hash upfront:
