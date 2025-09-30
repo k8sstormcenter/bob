@@ -191,7 +191,7 @@ super-perl:
 
 .PHONY: sample-app
 sample-app:
-	$(MAKE) --makefile=examples/myharbor/Makefile install-helm install-harbor
+	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor
 
 .PHONY: nothing
 nothing:
