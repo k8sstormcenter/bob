@@ -245,7 +245,7 @@ jobs:
       - name: Package all BoBs into a tarball
         run: |
           echo "Packaging the following BoB files:"
-          tar -czvf bobs.tar.gz -C bob-artifacts .
+          tar -czvf bobs.tar.gz -C all-bobs .
 
       - name: Upload BoB tarball
         uses: actions/upload-artifact@v4
