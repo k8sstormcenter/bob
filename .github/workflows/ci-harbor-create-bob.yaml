@@ -196,7 +196,7 @@ jobs:
       - name: Start Harbor E2E Container
         run: |
           cd harbor-upstream/tests/e2e_setup
-          ./e2e_container.sh
+          script -q -c "./e2e_container.sh" /dev/null
 
       - name: Copy CA Certs
         run: |
