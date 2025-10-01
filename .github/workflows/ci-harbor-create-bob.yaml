@@ -128,7 +128,7 @@ jobs:
           ##NODEPORT=$(kubectl get svc harbor -n harbor -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
           ##echo "Harbor NodePort is $NODEPORT"
           kubectl port-forward --namespace harbor svc/harbor 30002:80 &
-          kubectl port-forward --namespace harbor svc/harbor 30003:443 &
+         # kubectl port-forward --namespace harbor svc/harbor 30003:443 &
 
 # harbor        harbor                        NodePort    10.43.206.65    <none>        80:30002/TCP             2m3s
 # harbor        harbor-core                   ClusterIP   10.43.215.127   <none>        80/TCP                   2m3s
