@@ -411,19 +411,8 @@ cat <<EOF > "$OUTPUT_FILE"
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: $name
+  name: $shortname
   namespace: $namespace
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/instance-id: $instanceid
-    kubescape.io/wlid: $wlid
-  labels:
-    kubescape.io/workload-api-group: $apiGroup
-    kubescape.io/workload-api-version: $apiVersion
-    kubescape.io/workload-kind: $kind
-    kubescape.io/workload-name: $workloadname
-    kubescape.io/workload-namespace: $namespace
 spec:
   architectures:
   - $architecture

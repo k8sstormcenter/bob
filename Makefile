@@ -193,6 +193,14 @@ super-perl:
 sample-app:
 	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor
 
+.PHONY: sample-app-bob
+sample-app-bob: sample-app
+	kubectl apply -f all-bobs/*_bob.yaml
+	@for f in all-bobs/*_bob.yaml; do \
+		shortname=$$(basename $$f | sed 's/_bob.yaml$$//'); \
+		kubectl label --overwrite -n harbor $$(kubectl get $(echo $$shortname | cut -d'-' -f1) -n harbor | awk '/^$(echo $$shortname | cut -d'-' -f1)/ {print $$1}') kubescape.io/user-defined-profile=$$shortname; \
+	done
+
 .PHONY: nothing
 nothing:
 # for when we know the hash upfront:
@@ -207,4 +215,4 @@ nothing:
 	#helm dependency update myredis-umbrella-chart/redis-bob/
 	#helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
 	#helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false  --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')  ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
-	
+

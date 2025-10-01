@@ -258,39 +258,27 @@ jobs:
         with:
           node_image: kindest/node:v1.33.0
 
-  #     - name: Upload BoB tarball
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: redis-bobs-collection
-  #         path: redis-bobs.tar.gz
 
-  #     - name: setup kind
-  #       uses: helm/kind-action@v1
-  #       with:
-  #         node_image: kindest/node:v1.33.0
-
-  #     - name: Test superset Bob on kind    
-  #       run: |
-  #         echo "kubeconfig: $KUBECONFIG"
-  #         kubectl version
-  #         kubectl get pods --all-namespaces
-  #         uname -a
-  #         helm version
-  #         helm list
-  #         make kubescape
-  #         kubectl get all -A
-  #         kubectl logs -n honey -l app=kubescape
-  #         kubectl logs -n honey -l app=node-agent 
-  #         kubectl logs -n honey -l app=storage
-  #         kubectl logs -n honey -l app=kubevuln
-  #         kubectl logs -n honey -l app=operator
-  #         rm ./example/myredis-umbrella-chart/redis-bob/templates/bob.yaml
-  #         cp all-bobs/*_bob.yaml ./example/myredis-umbrella-chart/redis-bob/templates/.
-  #         helm dependency update example/myredis-umbrella-chart/redis-bob/
-  #         helm upgrade --install bob -n bob --create-namespace ./example/myredis-umbrella-chart/redis-bob --values ./example/myredis-umbrella-chart/redis-bob/values.yaml --set bob.create=true
-  #         kubectl logs -n bob pods/bob-redis-master-0 redis 
-  #         kubectl logs -n honey -l app=node-agent 
-  #         sleep 30
+      - name: Test superset Bob on kind    
+        run: |
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+          helm version
+          helm list
+          make kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+          make sample-app-bob
+          sleep 30
+          kubectl logs -n bob pods/bob-redis-master-0 redis 
+          kubectl logs -n honey -l app=node-agent 
+   
 
   #     - name: Run positive test
   #       continue-on-error: true
