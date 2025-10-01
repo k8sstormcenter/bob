@@ -172,11 +172,26 @@ jobs:
         run: |
           git clone https://github.com/goharbor/harbor.git harbor-upstream
 
-      - name: Prepare Harbor E2E Setup
+
+      - name: Fill robotvars.py with runtime values
         run: |
           cd harbor-upstream/tests/e2e_setup
-          cp robotvars.sample.py robotvars.py
-          # TODO: Update robotvars.py with your custom file (add a step to upload or patch as needed)
+          cat <<EOF > robotvars.py
+          SCANNER_ENDPOINT = "http://127.0.0.1:8081"
+          ES_ENDPOINT =  "http://127.0.0.1:9200"
+          WEBHOOK_ENDPOINT =  "http://127.0.0.1:8084"
+          DISTRIBUTION_ENDPOINT =  "http://127.0.0.1:8080"
+          DOCKER_USER =   "admin"
+          DOCKER_PWD =  "Harbor12345"
+          DRAGONFLY_AUTH_TOKEN =  "dummy_token"
+          ip = "127.0.0.1"
+          LOCAL_REGISTRY =  "registry.goharbor.io"
+          LOCAL_REGISTRY_NAMESPACE =   "harbor-ci"
+          HARBOR_PASSWORD =   "Harbor12345"
+          OIDC_HOSTNAME =  "nightly-oidc.harbor.io"
+          http_get_ca =  "true"
+          ip1 = ""
+          EOF
 
       - name: Start Harbor E2E Container
         run: |
