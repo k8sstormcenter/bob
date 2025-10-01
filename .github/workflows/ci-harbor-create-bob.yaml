@@ -172,9 +172,9 @@ jobs:
           echo ${HARBOR_SRC_FOLDER}
           docker run --privileged -v /var/log/harbor:/var/log/harbor -v /etc/hosts:/etc/hosts -v ${HARBOR_SRC_FOLDER}:/drone -v ${HARBOR_SRC_FOLDER}/tests/harbor_ca.crt:/ca/ca.crt -v /dev/shm:/dev/shm -e NETWORK_TYPE=public -w /drone registry.goharbor.io/harbor-ci/goharbor/harbor-e2e-engine:latest-ui /bin/bash
 
-      - name: Copy CA Certs
-        run: |
-          cp /ca/ca.crt /ca/harbor_ca.crt
+      #- name: Copy CA Certs
+      #  run: |
+      #    cp /ca/ca.crt /ca/harbor_ca.crt
       - name: Run Robot Setup Test
         run: |
           robot -V harbor-upstream/tests/e2e_setup/robotvars.py harbor-upstream/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot
