@@ -127,13 +127,13 @@ jobs:
           # Get the NodePort for Harbor HTTP
           NODEPORT=$(kubectl get svc harbor -n harbor -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
           echo "Harbor NodePort is $NODEPORT"
-          kubectl port-forward --namespace harbor svc/harbor $NODEPORT:8585 &
+          kubectl port-forward --namespace harbor svc/harbor $NODEPORT:80 &
           sleep 5
 
       - name: Run helm test
         continue-on-error: true
         run: |
-          echo "Harbor12345" | docker login 127.0.0.1:8585 -u admin --password-stdin
+          echo "Harbor12345" | docker login 127.0.0.1:30002 -u admin --password-stdin
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
           sleep 25
