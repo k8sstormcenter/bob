@@ -256,7 +256,7 @@ jobs:
       - name: Set up k3s Cluster
         uses: jupyterhub/action-k3s-helm@v4
         with:
-          k3s-version: v1.30.0+k3s1
+          k3s-version: v1.32.0+k3s1
 
 
       - name: Test superset Bob on kind    
@@ -282,7 +282,7 @@ jobs:
           sleep 30
           kubectl logs -n honey -l app=node-agent 
           kubectl port-forward --namespace harbor svc/harbor 30002:80 &
-          echo "Harbor12345" | docker login 127.0.0.1:30002 -u admin --password-stdin || echo "true"
+          echo "Harbor12345" | docker login http://127.0.0.1:30002 -u admin --password-stdin || echo "true"
           sleep 30
           kubectl logs -n honey -l app=node-agent 
    
@@ -306,98 +306,3 @@ jobs:
   #         name: redis-bob-final
   #         path: all-bobs/*_bob.yaml
 
-
-# #   - accept4
-#     - access
-#     - arch_prctl
-#     - bind
-#     - brk
-#     - capget
-#     - capset
-#     - chdir
-#     - clone
-#     - close
-#     - connect
-#     - copy_file_range
-#     - dup2
-#     - dup3
-#     - epoll_create1
-#     - epoll_ctl
-#     - epoll_pwait
-#     - eventfd2
-#     - execve
-#     - exit_group
-#     - faccessat2
-#     - fchdir
-#     - fchown
-#     - fchownat
-#     - fcntl
-#     - fstat
-#     - fstatfs
-#     - futex
-#     - getcwd
-#     - getdents64
-#     - getegid
-#     - geteuid
-#     - getgid
-#     - getpeername
-#     - getpgrp
-#     - getpid
-#     - getppid
-#     - getrandom
-#     - getrlimit
-#     - getsockname
-#     - getsockopt
-#     - gettid
-#     - getuid
-#     - ioctl
-#     - keyctl
-#     - listen
-#     - lseek
-#     - madvise
-#     - mkdirat
-#     - mknodat
-#     - mmap
-#     - mount
-#     - mprotect
-#     - munmap
-#     - nanosleep
-#     - newfstatat
-#     - openat
-#     - pipe2
-#     - pivot_root
-#     - prctl
-#     - pread64
-#     - prlimit64
-#     - read
-#     - readlinkat
-#     - recvfrom
-#     - rseq
-#     - rt_sigaction
-#     - rt_sigprocmask
-#     - rt_sigreturn
-#     - sched_getaffinity
-#     - sched_yield
-#     - sendto
-#     - set_robust_list
-#     - set_tid_address
-#     - setgid
-#     - setgroups
-#     - setsid
-#     - setsockopt
-#     - setuid
-#     - sigaltstack
-#     - socket
-#     - statfs
-#     - symlinkat
-#     - sysinfo
-#     - tgkill
-#     - umask
-#     - umount2
-#     - uname
-#     - unlinkat
-#     - unshare
-#     - wait4
-#     - write
-
-        
