@@ -1,15 +1,18 @@
 expose:
   type: nodePort
   tls:
-    enabled: false
+    enabled: true
   nodePort:
     name: harbor
     ports:
       http:
         port: 80
         nodePort: 30002
+      https:
+        port: 443
+        nodePort: 30003
 
-externalURL: http://127.0.0.1:30002
+externalURL: https://127.0.0.1:443
 
 persistence:
   enabled: true
