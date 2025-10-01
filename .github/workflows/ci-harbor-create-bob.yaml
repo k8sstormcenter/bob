@@ -208,7 +208,7 @@ jobs:
         id: export_bob
         run: |
           chmod +x ./src/bashhelpers/grabprofiles.sh
-          ./src/bashhelpers/grabprofiles.sh "harbor:8"
+          ./src/bashhelpers/grabprofiles.sh "harbor:8" "${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}"
 
 
       - name: Upload Harbor BoB artifact
