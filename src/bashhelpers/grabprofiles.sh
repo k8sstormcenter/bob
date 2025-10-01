@@ -1,19 +1,19 @@
 #!/bin/bash
 
 
-set -e 
-set -o pipefail 
+set -e
+set -o pipefail
 
+# Usage: ./grabprofiles.sh "harbor:8 px-operator:5"
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 \"namespace1:count1 namespace2:count2 ...\""
+  exit 1
+fi
 
-NAMESPACES_TO_CHECK=(
-  "olm:2"
-  "px-operator:5"
-  "pl:8"
-  "openebs:5"
-)
+NAMESPACES_TO_CHECK=($1)
 
-TIMEOUT_SECONDS=1000 
-SLEEP_INTERVAL=15   
+TIMEOUT_SECONDS=1000
+SLEEP_INTERVAL=15
 
 for ns_info in "${NAMESPACES_TO_CHECK[@]}"; do
   NAMESPACE=$(echo "$ns_info" | cut -d: -f1)
