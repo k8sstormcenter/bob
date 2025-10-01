@@ -2,7 +2,7 @@ NAMESPACE := harbor
 HELM_REPO := https://helm.goharbor.io
 HELM_CHART := harbor/harbor
 HELM_RELEASE := harbor
-VALUES_FILE := ./cncf/harbor/values.yaml
+VALUES_FILE := ./example/myharbor/values.yaml
 .EXPORT_ALL_VARIABLES:
 
 .PHONY: all install-helm install-harbor clean
