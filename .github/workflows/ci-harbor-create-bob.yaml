@@ -254,7 +254,6 @@ jobs:
           path: bobs.tar.gz
 
       - name: Set up k3s Cluster
-        if: matrix.k8s-distribution == 'k3s'
         uses: jupyterhub/action-k3s-helm@v4
         with:
           k3s-version: v1.30.0+k3s1
