@@ -128,7 +128,7 @@ jobs:
           NODEPORT=$(kubectl get svc harbor -n harbor -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
           echo "Harbor NodePort is $NODEPORT"
           kubectl port-forward --namespace harbor svc/harbor $NODEPORT:80 &
-          kubectl port-forward --namespace harbor svc/harbor $NODEPORT:443 &
+          kubectl port-forward --namespace harbor svc/harbor 443:$NODEPORT &
 
 
       - name: Run helm test
