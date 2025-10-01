@@ -1,7 +1,9 @@
 expose:
   type: nodePort
   tls:
-    enabled: true
+    enabled: false
+    auto:
+      commonName: "127.0.0.1"
   nodePort:
     name: harbor
     ports:
