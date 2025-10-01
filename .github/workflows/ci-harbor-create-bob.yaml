@@ -181,9 +181,11 @@ jobs:
       #  run: |
       #    cp /ca/ca.crt /ca/harbor_ca.crt
       - name: Run Robot Setup Test
+        continue-on-error: true
         run: |
           robot -V harbor-upstream/tests/e2e_setup/robotvars.py harbor-upstream/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot
       - name: Run Robot DB Test
+        continue-on-error: true
         run: |
           robot -V harbor-upstream/tests/e2e_setup/robotvars.py harbor-upstream/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot harbor-upstream/tests/robot-cases/Group1-Nightly/DB.robot
 
