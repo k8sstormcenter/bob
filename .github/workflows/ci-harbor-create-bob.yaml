@@ -145,34 +145,6 @@ jobs:
       - name: Clone Harbor Upstream Repo
         run: |
           git clone https://github.com/goharbor/harbor.git harbor-upstream
-      - name: Prepare Harbor E2E Setup
-        run: |
-          cd harbor-upstream/tests/e2e_setup
-          cp robotvars.sample.py robotvars.py
-          # TODO: Update robotvars.py with your custom file (add a step to upload or patch as needed)
-      - name: Start Harbor E2E Container
-        run: |
-          cd harbor-upstream/tests/e2e_setup
-          ./e2e_container.sh
-      - name: Copy CA Certs
-        run: |
-          cp /ca/ca.crt /ca/harbor_ca.crt
-      - name: Run Robot Setup Test
-        run: |
-          robot -V harbor-upstream/tests/e2e_setup/robotvars.py harbor-upstream/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot
-      - name: Run Robot DB Test
-        run: |
-          robot -V harbor-upstream/tests/e2e_setup/robotvars.py harbor-upstream/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot harbor-upstream/tests/robot-cases/Group1-Nightly/DB.robot
-
-      - name: Install Robot Framework
-        run: |
-          pip install robotframework
-
-      - name: Clone Harbor Upstream Repo
-        run: |
-          git clone https://github.com/goharbor/harbor.git harbor-upstream
-
-
       - name: Fill robotvars.py with runtime values
         run: |
           cd harbor-upstream/tests/e2e_setup
@@ -203,14 +175,13 @@ jobs:
       - name: Copy CA Certs
         run: |
           cp /ca/ca.crt /ca/harbor_ca.crt
-
       - name: Run Robot Setup Test
         run: |
           robot -V harbor-upstream/tests/e2e_setup/robotvars.py harbor-upstream/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot
-
       - name: Run Robot DB Test
         run: |
           robot -V harbor-upstream/tests/e2e_setup/robotvars.py harbor-upstream/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot harbor-upstream/tests/robot-cases/Group1-Nightly/DB.robot
+
 #     - name: Run helm test 2
 #       continue-on-error: true
 #       run: |
