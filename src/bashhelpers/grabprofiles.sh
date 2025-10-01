@@ -52,7 +52,7 @@ for ns_info in "${NAMESPACES_TO_CHECK[@]}"; do
   PROFILE_NAMES=$(kubectl get applicationprofile.spdx.softwarecomposition.kubescape.io -n "$NAMESPACE" -o json | jq -r '.items[] | select(.metadata.annotations."kubescape.io/status" == "completed") | .metadata.name')
 
 
-  EXPORT_DIR="$NAMESPACE-profiles"
+  EXPORT_DIR="bob-artifact"
   mkdir -p "$EXPORT_DIR"
   echo "Exporting profiles to directory: '$EXPORT_DIR'"
 

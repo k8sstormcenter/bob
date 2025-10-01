@@ -204,47 +204,59 @@ jobs:
 
 
 
-      - name: Export Redis ApplicationProfile
+      - name: Export Harbor ApplicationProfile
         id: export_bob
         run: |
-          chmod +x ./src/bashhelpers/grapprofiles.sh
-          ./src/bashhelpers/grapprofiles.sh "harbor:8"
+          chmod +x ./src/bashhelpers/grabprofiles.sh
+          ./src/bashhelpers/grabprofiles.sh "harbor:8"
 
 
-  #     - name: Upload Redis BoB artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: redis-bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
-  #         path: bob-artifact/bob-redis-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}.yaml
+      - name: Upload Harbor BoB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: harbor-bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+          path: bob-artifact/*.yaml
 
-  # package-bobs:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   if: always() # Run even if some matrix jobs fail, to collect successful BoBs
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  package-bobs:
+    runs-on: ubuntu-latest
+    needs: build
+    if: always() 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Download all BoB artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         path: bob-artifacts
+      - name: Download all BoB artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: bob-artifacts
+          merge-multiple: true
 
-  #     - name: Create a superset
-  #       run: |
-  #         mkdir -p all-bobs
-  #         find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
-  #         chmod +x ./src/bashhelpers/envwrap.sh
-  #         ./src/bashhelpers/envwrap.sh all-bobs
+      - name: Create a superset
+        run: |
+          mkdir -p all-bobs
+          find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
+          chmod +x ./src/bashhelpers/envwrap.sh
+          ./src/bashhelpers/envwrap.sh all-bobs
+          cat all-bobs/*_bob.yaml
 
-  #     - name: Print attacksurface report
-  #       run: cat all-bobs/attacksurface.md
+      - name: Print attacksurface report
+        run: cat all-bobs/attacksurface.md
 
-  #     - name: Package all BoBs into a tarball
-  #       run: |
-  #         echo "Packaging the following BoB files:"
-  #         ls -R all-bobs
-  #         tar -czvf redis-bobs.tar.gz -C all-bobs .
+      - name: Package all BoBs into a tarball
+        run: |
+          echo "Packaging the following BoB files:"
+          tar -czvf bobs.tar.gz -C bob-artifacts .
+
+      - name: Upload BoB tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: bobs-collection
+          path: bobs.tar.gz
+
+      - name: setup kind
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:v1.33.0
 
   #     - name: Upload BoB tarball
   #       uses: actions/upload-artifact@v4
