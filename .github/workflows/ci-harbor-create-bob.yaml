@@ -196,7 +196,9 @@ jobs:
       - name: Start Harbor E2E Container
         run: |
           cd harbor-upstream/tests/e2e_setup
-          script -q -c "./e2e_container.sh" /dev/null
+          HARBOR_SRC_FOLDER=$(realpath ../../)    
+          echo ${HARBOR_SRC_FOLDER}
+          docker run --privileged -v /var/log/harbor:/var/log/harbor -v /etc/hosts:/etc/hosts -v ${HARBOR_SRC_FOLDER}:/drone -v ${HARBOR_SRC_FOLDER}/tests/harbor_ca.crt:/ca/ca.crt -v /dev/shm:/dev/shm -e NETWORK_TYPE=public -w /drone registry.goharbor.io/harbor-ci/goharbor/harbor-e2e-engine:latest-ui /bin/bash
 
       - name: Copy CA Certs
         run: |
