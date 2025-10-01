@@ -1,0 +1,104 @@
+# AppArmor profile for statefulset-harbor-database
+profile statefulset-harbor-database-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /bin/sh
+  /bin/sh \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /docker-entrypoint.sh
+  /docker-entrypoint.sh \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /docker-healthcheck.sh
+  /docker-healthcheck.sh \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /usr/bin/initdb
+  /usr/bin/initdb \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /usr/bin/locale
+  /usr/bin/locale \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /usr/bin/pg_ctl
+  /usr/bin/pg_ctl \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /usr/bin/postgres
+  /usr/bin/postgres \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /usr/bin/psql
+  /usr/bin/psql \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /usr/bin/whoami
+  /usr/bin/whoami \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+  # Executable: /usr/pgsql/15/bin/postgres
+  /usr/pgsql/15/bin/postgres \{
+    capability CHOWN,
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability SETGID,
+    capability SETPCAP,
+    capability SETUID,
+    capability SYS_ADMIN,
+  }
+}

@@ -1,0 +1,46 @@
+# AppArmor profile for replicaset-harbor-core
+profile replicaset-harbor-core-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /harbor/entrypoint.sh
+  /harbor/entrypoint.sh \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /harbor/harbor_core
+  /harbor/harbor_core \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /harbor/install_cert.sh
+  /harbor/install_cert.sh \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/cp
+  /usr/bin/cp \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/dirname
+  /usr/bin/dirname \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/find
+  /usr/bin/find \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/grep
+  /usr/bin/grep \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+}

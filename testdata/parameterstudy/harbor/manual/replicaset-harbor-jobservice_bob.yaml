@@ -1,0 +1,351 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: replicaset-harbor-jobservice
+  namespace: harbor
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    endpoints:
+    - direction: inbound
+      endpoint: :80/api/v1/jobs
+      headers:
+        Accept-Encoding:
+          - gzip
+        Host:
+          - harbor-jobservice
+      internal: false
+      methods:
+        - POST
+    - direction: inbound
+      endpoint: :80/api/v1/stats
+      headers:
+        Accept-Encoding:
+          - gzip
+        Host:
+          - harbor-jobservice
+      internal: false
+      methods:
+        - GET
+    - direction: inbound
+      endpoint: :8080/api/v1/stats
+      headers:
+        Connection:
+          - close
+        Host:
+          - 10.42.0.20:8080
+      internal: false
+      methods:
+        - GET
+    - direction: outbound
+      endpoint: :80/api/v2.0/internalconfig
+      headers:
+        Accept-Encoding:
+          - gzip
+        Host:
+          - harbor-core:80
+      internal: false
+      methods:
+        - GET
+    - direction: outbound
+      endpoint: :80/service/notifications/tasks/1
+      headers:
+        Accept-Encoding:
+          - gzip
+        Host:
+          - harbor-core:80
+      internal: false
+      methods:
+        - POST
+    - direction: outbound
+      endpoint: :80/service/notifications/tasks/2
+      headers:
+        Accept-Encoding:
+          - gzip
+        Host:
+          - harbor-core:80
+      internal: false
+      methods:
+        - POST
+    execs:
+    - args:
+      - /harbor/entrypoint.sh
+      path: /harbor/entrypoint.sh
+    - args:
+      - /harbor/harbor_jobservice
+      - -c
+      - /etc/jobservice/config.yml
+      path: /harbor/harbor_jobservice
+    - args:
+      - /harbor/install_cert.sh
+      path: /harbor/install_cert.sh
+    - args:
+      - /usr/bin/cp
+      - /etc/pki/tls/certs/ca-bundle.crt
+      - /harbor/ca-bundle.crt.original
+      path: /usr/bin/cp
+    - args:
+      - /usr/bin/cp
+      - /harbor/ca-bundle.crt.original
+      - /etc/pki/tls/certs/ca-bundle.crt
+      path: /usr/bin/cp
+    - args:
+      - /usr/bin/dirname
+      - /harbor/install_cert.sh
+      path: /usr/bin/dirname
+    - args:
+      - /usr/bin/find
+      - /etc/harbor/ssl
+      - -maxdepth
+      - "2"
+      - -name
+      - ca.crt
+      path: /usr/bin/find
+    - args:
+      - /usr/bin/grep
+      - -q
+      - Photon
+      - /etc/lsb-release
+      path: /usr/bin/grep
+    identifiedCallStacks: null
+    imageID: docker.io/goharbor/harbor-jobservice@sha256:c31385fbb17c2186e071945e462e1042deb6be2abd02492ca6c96498e602b4f3
+    imageTag: docker.io/goharbor/harbor-jobservice:v2.14.0
+    name: jobservice
+    opens:
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/**
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/jobservice/config.yml
+    - flags:
+      - O_RDONLY
+      - O_RDWR
+      - O_CREAT
+      - O_TRUNC
+      path: /etc/pki/tls/certs/ca-bundle.crt
+    - flags:
+      - O_CLOEXEC
+      - O_CREAT
+      - O_RDONLY
+      - O_RDWR
+      - O_TRUNC
+      path: /harbor/**
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/*/task/*/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/maps
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /sys/devices/system/cpu/online
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/**
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/locale/en_US.UTF-8/LC_CTYPE
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/share/locale/locale.alias
+    - flags:
+      - O_RDONLY
+      path: /usr/share/zoneinfo/UTC
+    - flags:
+      - O_RDONLY
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /var/log/jobs
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - cp
+        - dirname
+        - entrypoint.sh
+        - find
+        - grep
+        - harbor_jobservi
+        - install_cert.sh
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - chmod
+    - clock_gettime
+    - clone
+    - close
+    - close_range
+    - connect
+    - copy_file_range
+    - dup
+    - dup2
+    - dup3
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - epoll_wait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat
+    - faccessat2
+    - fadvise64
+    - fallocate
+    - fchdir
+    - fchmodat
+    - fchown
+    - fchownat
+    - fcntl
+    - fdatasync
+    - fsconfig
+    - fsmount
+    - fsopen
+    - fstat
+    - fstatfs
+    - fsync
+    - ftruncate
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
+    - getpgrp
+    - getpid
+    - getppid
+    - getrandom
+    - getrusage
+    - getsockname
+    - getsockopt
+    - gettid
+    - gettimeofday
+    - getuid
+    - ioctl
+    - keyctl
+    - kill
+    - listen
+    - lseek
+    - madvise
+    - mkdir
+    - mkdirat
+    - mknodat
+    - mmap
+    - mount
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open_tree
+    - openat
+    - openat2
+    - pipe2
+    - pivot_root
+    - poll
+    - prctl
+    - pread64
+    - prlimit64
+    - pselect6
+    - pwrite64
+    - pwritev
+    - read
+    - readlink
+    - readlinkat
+    - recvfrom
+    - recvmsg
+    - rename
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - sendto
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setitimer
+    - setns
+    - setsid
+    - setsockopt
+    - setuid
+    - shmat
+    - shmctl
+    - shmdt
+    - shmget
+    - sigaltstack
+    - signalfd4
+    - socket
+    - statfs
+    - statx
+    - symlinkat
+    - sync_file_range
+    - sysinfo
+    - tgkill
+    - tkill
+    - truncate
+    - umask
+    - umount2
+    - uname
+    - unlink
+    - unlinkat
+    - unshare
+    - wait4
+    - write

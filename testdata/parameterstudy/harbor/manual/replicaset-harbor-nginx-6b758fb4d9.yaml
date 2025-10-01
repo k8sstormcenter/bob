@@ -1,0 +1,239 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-harbor/kind-ReplicaSet/name-harbor-nginx-6b758fb4d9
+    kubescape.io/resource-size: "103"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-harbor/deployment-harbor-nginx
+  creationTimestamp: "2025-10-01T13:13:45Z"
+  labels:
+    kubescape.io/instance-template-hash: 6b758fb4d9
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: harbor-nginx
+    kubescape.io/workload-namespace: harbor
+    kubescape.io/workload-resource-version: "954"
+  name: replicaset-harbor-nginx-6b758fb4d9
+  namespace: harbor
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    endpoints:
+    - direction: outbound
+      endpoint: :80/
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.42.0.13
+      internal: false
+      methods:
+      - GET
+    - direction: inbound
+      endpoint: :8080/
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.42.0.13:8080
+      internal: false
+      methods:
+      - GET
+    execs:
+    - args:
+      - /usr/sbin/nginx
+      - -g
+      - daemon off;
+      path: /usr/sbin/nginx
+    identifiedCallStacks: null
+    imageID: docker.io/goharbor/nginx-photon@sha256:577d0bf214d8e86b4ecff79647aa5b639abb9eb21bdee216af47b002a2cef08a
+    imageTag: docker.io/goharbor/nginx-photon:v2.14.0
+    name: nginx
+    opens:
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/hosts
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/ld.so.cache
+    - flags:
+      - O_RDONLY
+      path: /etc/nginx/nginx.conf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/nsswitch.conf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/resolv.conf
+    - flags:
+      - O_RDONLY
+      path: /etc/ssl/distro.cnf
+    - flags:
+      - O_RDONLY
+      path: /etc/ssl/openssl.cnf
+    - flags:
+      - O_RDONLY
+      path: /etc/ssl/provider_default.cnf
+    - flags:
+      - O_RDONLY
+      path: /etc/ssl/user.cnf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /sys/devices/system/cpu/online
+    - flags:
+      - O_CREAT
+      - O_TRUNC
+      - O_RDWR
+      path: /tmp/nginx.pid
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/libc.so.6
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libcrypt.so.1.1.0
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libcrypto.so.3
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libpcre2-8.so.0.11.0
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libssl.so.3
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libz.so.1.2.13
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - nginx
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clock_gettime
+    - clone
+    - close
+    - close_range
+    - connect
+    - dup2
+    - epoll_create
+    - epoll_ctl
+    - epoll_pwait
+    - epoll_wait
+    - eventfd2
+    - execve
+    - exit
+    - faccessat2
+    - fchown
+    - fcntl
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - geteuid
+    - getpid
+    - getppid
+    - getsockname
+    - getsockopt
+    - gettid
+    - gettimeofday
+    - ioctl
+    - listen
+    - lseek
+    - mkdir
+    - mmap
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - pipe2
+    - poll
+    - prctl
+    - pread64
+    - prlimit64
+    - pwrite64
+    - read
+    - recvfrom
+    - recvmsg
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - rt_sigsuspend
+    - sendmmsg
+    - sendmsg
+    - sendto
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - socketpair
+    - sysinfo
+    - tkill
+    - uname
+    - write
+    - writev
+status: {}

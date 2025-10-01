@@ -1,0 +1,46 @@
+# AppArmor profile for statefulset-harbor-trivy
+profile statefulset-harbor-trivy-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /home/scanner/bin/scanner-trivy
+  /home/scanner/bin/scanner-trivy \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /home/scanner/entrypoint.sh
+  /home/scanner/entrypoint.sh \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /home/scanner/install_cert.sh
+  /home/scanner/install_cert.sh \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/cp
+  /usr/bin/cp \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/dirname
+  /usr/bin/dirname \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/find
+  /usr/bin/find \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/grep
+  /usr/bin/grep \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+}
