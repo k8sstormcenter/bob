@@ -282,7 +282,7 @@ jobs:
           sleep 30
           kubectl logs -n honey -l app=node-agent 
           kubectl port-forward --namespace harbor svc/harbor 30002:80 &
-          echo "Harbor12345" | docker login 127.0.0.1 -u admin --password-stdin || echo "true"
+          echo "Harbor12345" | docker login 127.0.0.1:30002 -u admin --password-stdin || echo "true"
           sleep 30
           kubectl logs -n honey -l app=node-agent 
    
