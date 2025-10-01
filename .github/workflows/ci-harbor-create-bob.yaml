@@ -139,9 +139,13 @@ jobs:
           sleep 25
           kubectl logs -n honey -l app=node-agent 
           kubectl logs -l app=node-agent -n honey 
-      - name: Install Robot Framework
+
+      - name: Install Robot Framework libraries
         run: |
-          pip install robotframework
+          pip install robotframework-sshlibrary robotframework-seleniumlibrary robotframework-jsonlibrary hurry
+
+
+
       - name: Clone Harbor Upstream Repo
         run: |
           git clone https://github.com/goharbor/harbor.git harbor-upstream
@@ -160,6 +164,7 @@ jobs:
           LOCAL_REGISTRY =  "registry.goharbor.io"
           LOCAL_REGISTRY_NAMESPACE =   "harbor-ci"
           HARBOR_PASSWORD =   "Harbor12345"
+          HARBOR_ADMIN = "admin"
           OIDC_HOSTNAME =  "nightly-oidc.harbor.io"
           http_get_ca =  "true"
           ip1 = ""
