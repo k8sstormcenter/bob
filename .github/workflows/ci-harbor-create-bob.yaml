@@ -22,7 +22,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04 ,ubuntu-24.04]
         k8s-distribution: [k3s] #, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
-        kubernetes-version: [ v1.30.0 ] #, v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
+        kubernetes-version: [ v1.30.0 , v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
     runs-on: ${{ matrix.os }}
 
 
@@ -277,6 +277,12 @@ jobs:
           make sample-app-bob
           sleep 30
           kubectl logs -n honey -l app=node-agent 
+          sleep 30
+          kubectl logs -n honey -l app=node-agent 
+          sleep 30
+          kubectl logs -n honey -l app=node-agent 
+          sleep 30
+          kubectl logs -n honey -l app=node-agent 
    
 
   #     - name: Run positive test
@@ -299,6 +305,97 @@ jobs:
   #         path: all-bobs/*_bob.yaml
 
 
-
+# #   - accept4
+#     - access
+#     - arch_prctl
+#     - bind
+#     - brk
+#     - capget
+#     - capset
+#     - chdir
+#     - clone
+#     - close
+#     - connect
+#     - copy_file_range
+#     - dup2
+#     - dup3
+#     - epoll_create1
+#     - epoll_ctl
+#     - epoll_pwait
+#     - eventfd2
+#     - execve
+#     - exit_group
+#     - faccessat2
+#     - fchdir
+#     - fchown
+#     - fchownat
+#     - fcntl
+#     - fstat
+#     - fstatfs
+#     - futex
+#     - getcwd
+#     - getdents64
+#     - getegid
+#     - geteuid
+#     - getgid
+#     - getpeername
+#     - getpgrp
+#     - getpid
+#     - getppid
+#     - getrandom
+#     - getrlimit
+#     - getsockname
+#     - getsockopt
+#     - gettid
+#     - getuid
+#     - ioctl
+#     - keyctl
+#     - listen
+#     - lseek
+#     - madvise
+#     - mkdirat
+#     - mknodat
+#     - mmap
+#     - mount
+#     - mprotect
+#     - munmap
+#     - nanosleep
+#     - newfstatat
+#     - openat
+#     - pipe2
+#     - pivot_root
+#     - prctl
+#     - pread64
+#     - prlimit64
+#     - read
+#     - readlinkat
+#     - recvfrom
+#     - rseq
+#     - rt_sigaction
+#     - rt_sigprocmask
+#     - rt_sigreturn
+#     - sched_getaffinity
+#     - sched_yield
+#     - sendto
+#     - set_robust_list
+#     - set_tid_address
+#     - setgid
+#     - setgroups
+#     - setsid
+#     - setsockopt
+#     - setuid
+#     - sigaltstack
+#     - socket
+#     - statfs
+#     - symlinkat
+#     - sysinfo
+#     - tgkill
+#     - umask
+#     - umount2
+#     - uname
+#     - unlinkat
+#     - unshare
+#     - wait4
+#     - write
 
         
