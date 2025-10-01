@@ -196,7 +196,7 @@ sample-app:
 
 .PHONY: sample-app-bob
 sample-app-bob: 	
-	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor
+	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor-bob
 	./src/bashhelpers/bobapply.sh all-bobs harbor
 	@kubectl wait --for=condition=ready pod -l app=harbor -n harbor --timeout=600s
 

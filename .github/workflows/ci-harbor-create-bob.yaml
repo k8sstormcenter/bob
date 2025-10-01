@@ -258,10 +258,8 @@ jobs:
         with:
           k3s-version: v1.32.0+k3s1
 
-
       - name: Test superset Bob on kind    
         run: |
-          echo "kubeconfig: $KUBECONFIG"
           kubectl version
           kubectl get pods --all-namespaces
           uname -a
