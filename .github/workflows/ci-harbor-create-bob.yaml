@@ -116,19 +116,20 @@ jobs:
         run: |
           make sample-app
 
-      - name: Get logs
+      - name: Get Nodeagent logs
         run: | 
-          sleep 15
           kubectl logs -n honey -l app=node-agent 
 
 
       - name: Get Harbor NodePort and port-forward
+        continue-on-error: true
         run: |
           # Get the NodePort for Harbor HTTP
           NODEPORT=$(kubectl get svc harbor -n harbor -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
           echo "Harbor NodePort is $NODEPORT"
           kubectl port-forward --namespace harbor svc/harbor $NODEPORT:80 &
-          sleep 5
+          kubectl port-forward --namespace harbor svc/harbor $NODEPORT:443 &
+
 
       - name: Run helm test
         continue-on-error: true
@@ -136,19 +137,14 @@ jobs:
           echo "Harbor12345" | docker login 127.0.0.1:30002 -u admin --password-stdin
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
-          sleep 25
           kubectl logs -n honey -l app=node-agent 
           kubectl logs -l app=node-agent -n honey 
-
-      - name: Install Robot Framework libraries
-        run: |
-          pip install robotframework-sshlibrary robotframework-seleniumlibrary robotframework-jsonlibrary hurry hurry.filesize
-
 
 
       - name: Clone Harbor Upstream Repo
         run: |
           git clone https://github.com/goharbor/harbor.git harbor-upstream
+
       - name: Fill robotvars.py with runtime values
         run: |
           cd harbor-upstream/tests/e2e_setup
@@ -188,6 +184,7 @@ jobs:
             -w /drone \
             registry.goharbor.io/harbor-ci/goharbor/harbor-e2e-engine:latest-ui tail -f /dev/null
 
+          docker exec harbor-e2e cp /ca/ca.crt /ca/harbor_ca.crt
           # Run Robot Setup Test inside the container
           docker exec harbor-e2e robot -V /drone/tests/e2e_setup/robotvars.py /drone/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot || true
 
