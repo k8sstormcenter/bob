@@ -253,10 +253,11 @@ jobs:
           name: bobs-collection
           path: bobs.tar.gz
 
-      - name: setup kind
-        uses: helm/kind-action@v1
+      - name: Set up k3s Cluster
+        if: matrix.k8s-distribution == 'k3s'
+        uses: jupyterhub/action-k3s-helm@v4
         with:
-          node_image: kindest/node:v1.33.0
+          k3s-version: v1.30.0+k3s1
 
 
       - name: Test superset Bob on kind    
@@ -276,7 +277,6 @@ jobs:
           kubectl logs -n honey -l app=operator
           make sample-app-bob
           sleep 30
-          kubectl logs -n bob pods/bob-redis-master-0 redis 
           kubectl logs -n honey -l app=node-agent 
    
 

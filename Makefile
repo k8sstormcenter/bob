@@ -192,14 +192,17 @@ super-perl:
 .PHONY: sample-app
 sample-app:
 	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor
+	@kubectl wait --for=condition=ready pod -l app=harbor -n harbor --timeout=600s
 
 .PHONY: sample-app-bob
-sample-app-bob: sample-app
+sample-app-bob: 	
+	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor
 	kubectl apply -f all-bobs/*_bob.yaml
 	@for f in all-bobs/*_bob.yaml; do \
 		shortname=$$(basename $$f | sed 's/_bob.yaml$$//'); \
 		kubectl label --overwrite -n harbor $$(kubectl get $(echo $$shortname | cut -d'-' -f1) -n harbor | awk '/^$(echo $$shortname | cut -d'-' -f1)/ {print $$1}') kubescape.io/user-defined-profile=$$shortname; \
 	done
+	@kubectl wait --for=condition=ready pod -l app=harbor -n harbor --timeout=600s
 
 .PHONY: nothing
 nothing:

@@ -15,7 +15,7 @@ install-helm:
 
 install-harbor:
 	@helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) --namespace $(NAMESPACE) -f $(VALUES_FILE) --create-namespace
-	@kubectl wait --for=condition=ready pod -l app=harbor -n harbor --timeout=600s
+	
 
 clean:
 	@helm uninstall $(HELM_RELEASE) --namespace $(NAMESPACE) || true
