@@ -1,13 +1,42 @@
 core:
   podLabels:
     kubescape.io/user-defined-profile: "harbor-core"
+trivy:
+  podLabels:
+    kubescape.io/user-defined-profile: "harbor-trivy"
+database:
+  type: internal
+  internal:
+    password: "root123"
+  podLabels:
+    kubescape.io/user-defined-profile: "harbor-database"
+exporter:
+  podLabels:
+    kubescape.io/user-defined-profile: "harbor-exporter"
+jobservice:
+  podLabels:
+    kubescape.io/user-defined-profile: "harbor-jobservice"
+nginx:
+  podLabels:
+    kubescape.io/user-defined-profile: "harbor-nginx"
+portal:
+  podLabels:
+    kubescape.io/user-defined-profile: "harbor-portal"
+redis:
+  internal:
+    password: "redis123"
+  podLabels:
+    kubescape.io/user-defined-profile: "harbor-redis"
+registry:
+  podLabels:
+    kubescape.io/user-defined-profile: "harbor-registry"
 
 expose:
   type: nodePort
-  tls:
-    enabled: false
-    auto:
-      commonName: "127.0.0.1"
+#  tls:
+#    enabled: false
+ #   auto:
+ #     commonName: "127.0.0.1"
   nodePort:
     name: harbor
     ports:

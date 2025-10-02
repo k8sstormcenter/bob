@@ -2,7 +2,7 @@ apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
   name: curing-client
-  namespace: curious
+  namespace: cure
 spec:
   architectures:
   - amd64
@@ -15,8 +15,8 @@ spec:
       - ./client
       path: ./client
     identifiedCallStacks: null
-    imageID: ghcr.io/entlein/curiousclient@sha256:9e090b14c35651c2580f00f204dc7c2704e7dc6650a5c91fe513526e6cd3e9d8
-    imageTag: ghcr.io/entlein/curiousclient:latest
+    #imageID: ghcr.io/entlein/curiousclient@sha256:9e090b14c35651c2580f00f204dc7c2704e7dc6650a5c91fe513526e6cd3e9d8
+    #imageTag: ghcr.io/entlein/curiousclient:latest
     name: client
     opens:
     - flags:
