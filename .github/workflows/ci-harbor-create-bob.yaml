@@ -116,6 +116,18 @@ jobs:
         run: |
           make sample-app
 
+      - name: Debug Harbor pod status
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n harbor -o wide
+          echo ""
+          echo "=== Pod Describe (showing events) ==="
+          kubectl describe pods -n harbor
+          echo ""
+          echo "=== Events in harbor namespace ==="
+          kubectl get events -n harbor --sort-by='.lastTimestamp'
+
       - name: Get Nodeagent logs
         run: | 
           kubectl logs -n honey -l app=node-agent 
