@@ -156,72 +156,104 @@ spec:
     name: core
     opens:
     - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /etc/**
-    - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /etc/core/app.conf
     - flags:
-      - O_CREAT
-      - O_TRUNC
       - O_RDONLY
-      - O_RDWR
+      - O_CLOEXEC
+      path: /etc/hosts
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/lsb-release
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /etc/pki/tls/certs/ca-bundle.crt
     - flags:
-      - O_CLOEXEC
-      - O_CREAT
       - O_RDONLY
-      - O_RDWR
-      - O_TRUNC
-      path: /harbor/**
+      - O_CLOEXEC
+      path: /etc/⋯
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /harbor/ca-bundle.crt.original
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/entrypoint.sh
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/harbor_core
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/install_cert.sh
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /harbor/migrations/postgresql
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /harbor/migrations/postgresql/*.sql
-    - flags:
       - O_CLOEXEC
-      - O_RDONLY
-      path: /harbor/views/*
+      path: /harbor/migrations/postgresql/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
+      path: /harbor/views
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/views/404.tpl
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/views/reset-password-mail.tpl
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /proc/⋯/maps
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
       path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /sys/devices/system/cpu/online
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /usr/lib/**
+      - O_CLOEXEC
+      path: /usr/lib/libhistory.so.8.2
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libz.so.1.2.13
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /usr/lib/locale/en_US.UTF-8/LC_CTYPE
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /usr/share/locale/locale.alias
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/share/zoneinfo/UTC
     rulePolicies:
       R0001:

@@ -95,57 +95,38 @@ normalize_opens() {
   | unique_by(.path + ( .flags | tostring ))'
 }
 
-
-
-collapse_opens_with_globs() {
-  jq '
-    # Split all paths into segments
-    [ .[] | .path | split("/") ] as $all_segments
-    # For each position, count occurrences of each segment
-    | [range(0; ($all_segments | map(length) | max))] as $positions
-    | reduce $positions[] as $pos (
-        {};
-        . + (
-          ($all_segments | map(.[ $pos ] // null) | group_by(.) | map({ (.[0]): length }) | add)
-        )
-      ) as $counts
-    # Now, for each item, replace segments with ⋯ if count > 3 at that position
-    | map(
-        .path |= (
-          split("/") as $segs
-          | [range(0; $segs | length)] as $idxs
-          | [ $idxs[] | ($counts[ $segs[.] ] > 3 ? "⋯" : $segs[.] ) ] | join("/")
-        )
-    )
-    | unique_by(.path + ( .flags | tostring ))
-  '
-}
-
-
-
 collapse_opens_events() {
   jq '
-    # Split all paths into segments
-    [ .[] | .path | split("/") ] as $all_segments
-    # For each position, count occurrences of each segment (including ellipsis)
-    | [range(0; ($all_segments | map(length) | max))] as $positions
-    | reduce $positions[] as $pos (
-        {};
-        . + (
-          ($all_segments | map(.[ $pos ] // null) | group_by(.) | map({ (.[0]): length }) | add)
-        )
-      ) as $counts
-    # For each item, replace segments with ⋯ if count > 3 at that position (including ⋯ itself)
-    | map(
-        .path |= (
-          split("/") as $segs
-          | [range(0; $segs | length)] as $idxs
-          | [ $idxs[] | ($counts[ $segs[.] ] > 3 ? "⋯" : $segs[.] ) ] | join("/")
-        )
-    )
-    | unique_by(.path + ( .flags | tostring ))
-  '
+    # Group all entries by identical flags
+    group_by(.flags)[] as $group
+    | (.[0].flags) as $flags
+
+    # Split path into segments
+    | ($group | map({
+        segments: (.path | split("/") | map(select(. != "")))
+      })) as $split
+
+    # Compute parent paths (all segments except last)
+    | ($split | map(.segments[:-1] | join("/"))) as $parents
+
+    # Count occurrences of each parent path
+    | ($parents | group_by(.) | map({ (.[0]): length }) | add) as $parent_counts
+
+    # Rewrite each path based on parent counts
+    | $split
+      | map({
+          flags: $flags,
+          path: (
+            if ($parent_counts[.segments[:-1] | join("/")] // 0) > 3
+            then (.segments[:-1] + ["⋯"]) | join("/") | "/" + .
+            else .segments | join("/") | "/" + .
+            end
+          )
+        })
+  ' | jq -s 'flatten | unique_by([.path, .flags])'
 }
+
+
 
 ## this is the most outer loop - the grouploop
 
@@ -289,7 +270,7 @@ for file in "${FILES[@]}"; do
         rules_json=$(yq -o=json ".spec.containers[$i].rulePolicies | select(. != null) | to_entries" "$norm_file" 2>/dev/null || echo "[]")
 
         all_execs_json["$key"]=$(jq -s 'add | unique_by({path, args})' <(echo "${all_execs_json["$key"]:-[]}") <(echo "$execs_json"))
-        all_opens_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_opens_json["$key"]:-[]}")  <(echo "$opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
+        all_opens_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_opens_json["$key"]:-[]}")  <(echo "$opens_json") | normalize_opens  |  collapse_opens_events)
         all_endpoints_json["$key"]=$(jq -s 'add | unique' <(echo "${all_endpoints_json["$key"]:-[]}") <(echo "${endpoints_json:-"[]"}"))
         all_rules_json["$key"]=$(jq -s 'add' <(echo "${all_rules_json["$key"]:-[]}") <(echo "$rules_json"))
 
@@ -367,7 +348,7 @@ for file in "${FILES[@]}"; do
           init_rules_json=$(yq -o=json ".spec.initContainers[$j].rulePolicies | select(. != null) | to_entries" "$norm_file" 2>/dev/null || echo "[]")
 
           all_init_execs_json["$initkey"]=$(jq -s 'add | unique_by({path, args})' <(echo "${all_init_execs_json["$initkey"]:-[]}") <(echo "$init_execs_json"))
-          all_init_opens_json["$initkey"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_opens_json["$initkey"]:-[]}")  <(echo "$init_opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
+          all_init_opens_json["$initkey"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_opens_json["$initkey"]:-[]}")  <(echo "$init_opens_json") | normalize_opens  |  collapse_opens_events)
           all_init_endpoints_json["$initkey"]=$(jq -s 'add | unique' <(echo "${all_init_endpoints_json["$initkey"]:-[]}") <(echo "$init_endpoints_json"))
           all_init_rules_json["$initkey"]=$(jq -s 'map(. // []) | add' <(echo "${all_init_rules_json["$initkey"]:-[]}") <(echo "$init_rules_json"))
 

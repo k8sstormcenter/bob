@@ -26,25 +26,28 @@ spec:
       - O_RDONLY
       path: /dev/urandom
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /etc/*
+      path: /etc/ld.so.cache
     - flags:
       - O_RDONLY
-      path: /etc/ssl/*.cnf
+      path: /etc/redis.conf
     - flags:
       - O_RDONLY
-      - O_CLOEXEC
-      path: /proc/*/task/*/fd
-    - flags:
-      - O_RDONLY
-      path: /proc/⋯/*
+      path: /etc/ssl/⋯
     - flags:
       - O_RDONLY
       path: /proc/⋯/net/core/somaxconn
     - flags:
       - O_RDONLY
-      - O_CLOEXEC
+      path: /proc/⋯/smaps
+    - flags:
+      - O_RDONLY
+      path: /proc/⋯/stat
+    - flags:
+      - O_RDONLY
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_RDONLY
       path: /proc/⋯/vm/overcommit_memory
     - flags:
       - O_RDONLY
@@ -53,16 +56,16 @@ spec:
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/enabled
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /usr/lib/**
+      path: /usr/lib/liblz4.so.1.9.4
+    - flags:
+      - O_RDONLY
+      path: /usr/lib/⋯
     - flags:
       - O_RDONLY
       path: /var/lib/redis
     - flags:
-      - O_WRONLY
-      - O_CREAT
-      - O_TRUNC
+      - O_RDONLY
       path: /var/lib/redis/temp-11.rdb
     rulePolicies:
       R0001:

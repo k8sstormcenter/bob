@@ -120,62 +120,90 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/**
+      path: /etc/hosts
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /etc/jobservice/config.yml
     - flags:
+      - O_CLOEXEC
       - O_RDONLY
-      - O_RDWR
-      - O_CREAT
-      - O_TRUNC
+      path: /etc/ld.so.cache
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/lsb-release
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/nsswitch.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/passwd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /etc/pki/tls/certs/ca-bundle.crt
     - flags:
       - O_CLOEXEC
-      - O_CREAT
       - O_RDONLY
-      - O_RDWR
-      - O_TRUNC
-      path: /harbor/**
+      path: /etc/resolv.conf
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
+      - O_RDONLY
+      path: /harbor/ca-bundle.crt.original
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/entrypoint.sh
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/harbor_jobservice
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/install_cert.sh
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /proc/⋯/maps
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /proc/⋯/net/core/somaxconn
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /sys/devices/system/cpu/online
     - flags:
+      - O_CLOEXEC
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /usr/lib/**
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
       path: /usr/lib/locale/en_US.UTF-8/LC_CTYPE
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/⋯
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /usr/share/locale/locale.alias
     - flags:
+      - O_CLOEXEC
       - O_RDONLY
       path: /usr/share/zoneinfo/UTC
     - flags:
-      - O_RDONLY
-      - O_DIRECTORY
       - O_CLOEXEC
+      - O_RDONLY
       path: /var/log/jobs
     rulePolicies:
       R0001:

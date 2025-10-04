@@ -79,44 +79,57 @@ spec:
     name: trivy
     opens:
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /etc/**
+      - O_CLOEXEC
+      path: /etc/lsb-release
     - flags:
       - O_RDONLY
-      - O_RDWR
-      - O_CREAT
-      - O_TRUNC
+      - O_CLOEXEC
       path: /etc/pki/tls/certs/ca-bundle.crt
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /home/scanner\1*
-    - flags:
-      - O_CREAT
-      - O_RDONLY
-      - O_RDWR
-      - O_TRUNC
-      path: /home/scanner/*
+      path: /etc/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
+      path: /home/scanner/bin/scanner-trivy
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/scanner/ca-bundle.crt.original
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/scanner/entrypoint.sh
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/scanner/install_cert.sh
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /proc/⋯/net/core/somaxconn
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /usr/lib/**
+      - O_CLOEXEC
+      path: /usr/lib/libncursesw.so.6.4
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /usr/lib/locale/en_US.UTF-8/LC_CTYPE
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC

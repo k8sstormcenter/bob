@@ -71,54 +71,78 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/**
+      path: /etc/ld.so.cache
     - flags:
+      - O_CLOEXEC
       - O_RDONLY
-      - O_RDWR
-      - O_CREAT
-      - O_TRUNC
+      path: /etc/lsb-release
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/nsswitch.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/passwd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /etc/pki/tls/certs/ca-bundle.crt
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /etc/registry/config.yml
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /etc/registryctl/config.yml
     - flags:
       - O_CLOEXEC
-      - O_CREAT
       - O_RDONLY
-      - O_RDWR
-      - O_TRUNC
-      path: /home/harbor/**
+      path: /home/harbor/ca-bundle.crt.original
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
+      - O_RDONLY
+      path: /home/harbor/harbor_registryctl
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
+      path: /home/harbor/install_cert.sh
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /home/harbor/start.sh
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /proc/⋯/maps
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /proc/⋯/net/core/somaxconn
     - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_CLOEXEC
       - O_RDONLY
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /usr/lib/**
+      path: /usr/lib/libz.so.1.2.13
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
       path: /usr/lib/locale/en_US.UTF-8/LC_CTYPE
     - flags:
-      - O_RDONLY
       - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/⋯
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /usr/share/locale/locale.alias
     rulePolicies:
       R0001:
@@ -325,25 +349,37 @@ spec:
     name: registry
     opens:
     - flags:
+      - O_RDONLY
       - O_CLOEXEC
-      - O_RDONLY
-      path: /etc/**
+      path: /etc/lsb-release
     - flags:
-      - O_TRUNC
       - O_RDONLY
-      - O_RDWR
-      - O_CREAT
+      - O_CLOEXEC
       path: /etc/pki/tls/certs/ca-bundle.crt
     - flags:
+      - O_RDONLY
       - O_CLOEXEC
-      - O_RDONLY
-      path: /etc/registry/*
+      path: /etc/registry/config.yml
     - flags:
-      - O_CREAT
       - O_RDONLY
-      - O_RDWR
-      - O_TRUNC
-      path: /home/harbor/*
+      - O_CLOEXEC
+      path: /etc/registry/passwd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/harbor/ca-bundle.crt.original
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/harbor/entrypoint.sh
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/harbor/install_cert.sh
     - flags:
       - O_RDONLY
       - O_CLOEXEC
@@ -351,22 +387,27 @@ spec:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
-    - flags:
-      - O_RDONLY
-      - O_CLOEXEC
       path: /proc/⋯/net/core/somaxconn
     - flags:
       - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
       path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     - flags:
-      - O_CLOEXEC
       - O_RDONLY
-      path: /usr/lib/**
+      - O_CLOEXEC
+      path: /usr/lib/libhistory.so.8.2
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /usr/lib/locale/en_US.UTF-8/LC_CTYPE
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC

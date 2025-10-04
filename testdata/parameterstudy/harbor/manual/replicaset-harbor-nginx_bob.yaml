@@ -45,30 +45,47 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /etc/**
+      path: /etc/hosts
     - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/ld.so.cache
+    - flags:
+      - O_CLOEXEC
       - O_RDONLY
       path: /etc/nginx/nginx.conf
     - flags:
-      - O_RDONLY
-      path: /etc/ssl/*.cnf
-    - flags:
-      - O_RDONLY
       - O_CLOEXEC
-      path: /proc/*/task/*/fd
-    - flags:
       - O_RDONLY
+      path: /etc/nsswitch.conf
+    - flags:
       - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/resolv.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/ssl/⋯
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
       path: /sys/devices/system/cpu/online
     - flags:
-      - O_CREAT
-      - O_TRUNC
-      - O_RDWR
+      - O_CLOEXEC
+      - O_RDONLY
       path: /tmp/nginx.pid
     - flags:
       - O_CLOEXEC
       - O_RDONLY
-      path: /usr/lib/**
+      path: /usr/lib/libc.so.6
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/⋯
     rulePolicies:
       R0001:
         processAllowed:

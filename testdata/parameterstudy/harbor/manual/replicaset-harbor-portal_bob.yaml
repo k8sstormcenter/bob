@@ -51,30 +51,35 @@ spec:
       path: /etc/ld.so.cache
     - flags:
       - O_RDONLY
-      path: /etc/nginx/*
-    - flags:
-      - O_RDONLY
-      path: /etc/ssl/*.cnf
-    - flags:
       - O_CLOEXEC
+      path: /etc/nginx/mime.types
+    - flags:
       - O_RDONLY
-      path: /proc/*/task/*/fd
+      - O_CLOEXEC
+      path: /etc/nginx/nginx.conf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/ssl/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
     - flags:
       - O_RDONLY
       - O_CLOEXEC
       path: /sys/devices/system/cpu/online
     - flags:
-      - O_TRUNC
-      - O_RDWR
-      - O_CREAT
+      - O_RDONLY
+      - O_CLOEXEC
       path: /tmp/nginx.pid
     - flags:
+      - O_RDONLY
       - O_CLOEXEC
-      - O_RDONLY
-      path: /usr/lib/**
+      path: /usr/lib/⋯
     - flags:
-      - O_NONBLOCK
       - O_RDONLY
+      - O_CLOEXEC
       path: /usr/share/nginx/html/index.html
     rulePolicies:
       R0001:
