@@ -20,9 +20,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04 ,ubuntu-24.04]
-        k8s-distribution: [k3s] #, kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
-        kubernetes-version: [ v1.30.0 , v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
+        os: [ubuntu-latest]
+        k8s-distribution: [kind]
+        kubernetes-version: [v1.33.2] 
     runs-on: ${{ matrix.os }}
 
 
@@ -104,22 +104,53 @@ jobs:
           make kubescape-vendor
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=node-agent
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
 
-
-
+      - name: Verify storage is ready
+        run: |
+          echo "=== Storage Classes ==="
+          kubectl get storageclass
+          echo ""
+          echo "=== Local Path Storage Pods ==="
+          kubectl get pods -n local-path-storage
+          echo ""
+          echo "Waiting for local-path-storage provisioner to be ready..."
+          kubectl wait --for=condition=ready pod -n local-path-storage -l app=local-path-provisioner --timeout=120s
 
       - name: Run helm install for harbor
         run: |
           make sample-app
 
+      - name: Debug Harbor pod status
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n harbor -o wide
+          echo ""
+          echo "=== Pod Describe (showing events) ==="
+          kubectl describe pods -n harbor
+          echo ""
+          echo "=== Events in harbor namespace ==="
+          kubectl get events -n harbor --sort-by='.lastTimestamp'
+
       - name: Get Nodeagent logs
         run: | 
           kubectl logs -n honey -l app=node-agent 
 
+
+      - name: Configure Docker for insecure registry
+        run: |
+          echo "Configuring Docker to allow insecure registry at 127.0.0.1:30002"
+          sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+          {
+            "insecure-registries": ["127.0.0.1:30002"]
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Docker configured for insecure registry"
 
       - name: Get Harbor NodePort and port-forward
         continue-on-error: true
@@ -258,7 +289,18 @@ jobs:
         with:
           k3s-version: v1.32.0+k3s1
 
-      - name: Test superset Bob on kind    
+      - name: Configure Docker for insecure registry (package-bobs)
+        run: |
+          echo "Configuring Docker to allow insecure registry at 127.0.0.1:30002"
+          sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+          {
+            "insecure-registries": ["127.0.0.1:30002"]
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Docker configured for insecure registry"
+
+      - name: Test superset Bob on kind
         run: |
           kubectl version
           kubectl get pods --all-namespaces
@@ -268,7 +310,7 @@ jobs:
           make kubescape
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=node-agent
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator

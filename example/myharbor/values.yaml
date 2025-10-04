@@ -18,13 +18,13 @@ persistence:
   resourcePolicy: "keep"
   persistentVolumeClaim:
     registry:
-      storageClass: "local-path"
+      storageClass: "standard"
       size: 5Gi
     database:
-      storageClass: "local-path"
+      storageClass: "standard"
       size: 1Gi
     redis:
-      storageClass: "local-path"
+      storageClass: "standard"
       size: 1Gi
 
 harborAdminPassword: "Harbor12345"
