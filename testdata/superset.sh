@@ -84,60 +84,40 @@ print_yaml_list_or_null_inline() {
 normalize_opens() {
   jq 'map(
     .path |= (
-      gsub("[0-9a-f]{32,}"; "*") |
-      gsub("-[0-9a-fA-F_\\-]{4,}+"; "*") |
-      gsub("(/bin/)[^/]+.*"; "\\1*") |
-      gsub("[0-9a-f]{64}"; "*") |
-      gsub("/[^/]+\\.service"; "/*.service") |
-      gsub("/proc/[^/]+/task/[^/]+/fd.*"; "/proc/*/task/*/fd")
+      gsub("[0-9a-f]{32,}"; "⋯") |
+      gsub("-[0-9a-fA-F_\\-]{4,}+"; "⋯") |
+      gsub("(/bin/)[^/]+.⋯"; "\\1⋯") |
+      gsub("[0-9a-f]{64}"; "⋯") |
+      gsub("/[^/]+\\.service"; "/⋯.service") |
+      gsub("/proc/[^/]+/task/[^/]+/fd.⋯"; "/proc/⋯/task/⋯/fd")
     )
   )
   | unique_by(.path + ( .flags | tostring ))'
 }
 
-# normalize_opens() {
-#   jq 'map(
-#     .path |= (
-#       gsub("[0-9a-f]{32,}"; "⋯") |
-#       gsub("pod[0-9a-fA-F_\\-]+"; "⋯") |
-#       gsub("/var/log/pods/[^/]+/"; "/var/log/pods/⋯/") |
-#       gsub("/[a-z0-9]{8,}(-[a-z0-9]{4,}){2,}/"; "/⋯/") |
-#       gsub("/[a-z0-9]{16,}/"; "/⋯/") |
-#       gsub("/pods/[^/]+/"; "/pods/⋯/")|
-#       gsub("cri-containerd-[0-9a-f]{64}\\.scope"; "⋯.scope") |
-#       gsub("/[^/]+\\.service"; "/*.service") |
-#       gsub("/[^/]+\\.socket"; "/*.socket")|
-#       gsub("/[^/]+\\.(log|out|err)$"; "/⋯.\\1")|
-#       gsub("[0-9]+"; "⋯")|
-#       gsub("⋯+/?"; "⋯/") |
-#       gsub("/[.-]+⋯"; "/⋯") |
-#       gsub("(/⋯)+/"; "/⋯/") |
-#       gsub("⋯+/?"; "⋯/") 
-#     )
-#   )
-#   | unique_by(.path + ( .flags | tostring ))'
-# }
+
 
 collapse_opens_with_globs() {
   jq '
-    . // [] |
-    group_by(.path | split("/")[:-1] | join("/")) |
-    map(
-      if length > 3 then
-        (map(.path | split("/")[-1] | capture("\\.(?<ext>[^./]+)$")?.ext) | unique) as $exts
-        | (map(.flags) | add | unique | sort) as $flags
-        |
-        if ($exts | length) == 1 then
-          [{ flags: $flags,
-             path: ((.[0].path | split("/")[:-1] | join("/")) + "/*." + ($exts[0])) }]
-        else
-          [{ flags: $flags, path: ((.[0].path | split("/")[:-1] | join("/")) + "/**") }]
-        end
-      else
-        .
-      end
+    # Split all paths into segments
+    [ .[] | .path | split("/") ] as $all_segments
+    # For each position, count occurrences of each segment
+    | [range(0; ($all_segments | map(length) | max))] as $positions
+    | reduce $positions[] as $pos (
+        {};
+        . + (
+          ($all_segments | map(.[ $pos ] // null) | group_by(.) | map({ (.[0]): length }) | add)
+        )
+      ) as $counts
+    # Now, for each item, replace segments with ⋯ if count > 3 at that position
+    | map(
+        .path |= (
+          split("/") as $segs
+          | [range(0; $segs | length)] as $idxs
+          | [ $idxs[] | ($counts[ $segs[.] ] > 3 ? "⋯" : $segs[.] ) ] | join("/")
+        )
     )
-    | add
+    | unique_by(.path + ( .flags | tostring ))
   '
 }
 
@@ -145,19 +125,25 @@ collapse_opens_with_globs() {
 
 collapse_opens_events() {
   jq '
-    . // [] |
-    group_by(.path | split("/")[:-1] | join("/")) |
-    map(
-      if length > 1 then
-        (map(.flags) | add | unique | sort) as $flags
-        |
-        [{ flags: $flags,
-           path: (.[0].path | split("/")[:-1] | join("/") + "/*") }]
-      else
-        .
-      end
+    # Split all paths into segments
+    [ .[] | .path | split("/") ] as $all_segments
+    # For each position, count occurrences of each segment (including ellipsis)
+    | [range(0; ($all_segments | map(length) | max))] as $positions
+    | reduce $positions[] as $pos (
+        {};
+        . + (
+          ($all_segments | map(.[ $pos ] // null) | group_by(.) | map({ (.[0]): length }) | add)
+        )
+      ) as $counts
+    # For each item, replace segments with ⋯ if count > 3 at that position (including ⋯ itself)
+    | map(
+        .path |= (
+          split("/") as $segs
+          | [range(0; $segs | length)] as $idxs
+          | [ $idxs[] | ($counts[ $segs[.] ] > 3 ? "⋯" : $segs[.] ) ] | join("/")
+        )
     )
-    | add
+    | unique_by(.path + ( .flags | tostring ))
   '
 }
 
@@ -257,9 +243,9 @@ for file in "${FILES[@]}"; do
         .execs |= (. // [] ) |
         .opens |= (
           . // []
-          | map(.path |= sub("pod[0-9a-fA-F_\\-]+", "*"))   
-          | map(.path |= sub("cri-containerd-[0-9a-f]{64}\\.scope", "*.scope")) 
-          | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "*"))
+          | map(.path |= sub("pod[0-9a-fA-F_\\-]+", "⋯"))   
+          | map(.path |= sub("cri-containerd-[0-9a-f]{64}\\.scope", "⋯.scope")) 
+          | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "⋯"))
           | unique_by(.path)
         ) |
         .endpoints |= (. // [] | sort | unique)|
