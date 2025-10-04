@@ -15,10 +15,10 @@ install-helm:
 	@helm repo update
 
 install-harbor:
-	@helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) --namespace $(NAMESPACE) -f $(VALUES_FILE) --create-namespace
+	@helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) --namespace $(NAMESPACE) -f $(VALUES_FILE) --create-namespace --timeout 3m
 	
 install-harbor-bob:
-	@helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) --namespace $(NAMESPACE) -f $(VALUES_BOB_FILE) --create-namespace
+	@helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) --namespace $(NAMESPACE) -f $(VALUES_BOB_FILE) --create-namespace --timeout 3m
 	
 clean:
 	@helm uninstall $(HELM_RELEASE) --namespace $(NAMESPACE) || true
