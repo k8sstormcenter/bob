@@ -33,10 +33,8 @@ registry:
 
 expose:
   type: nodePort
-#  tls:
-#    enabled: false
- #   auto:
- #     commonName: "127.0.0.1"
+  tls:
+    enabled: false
   nodePort:
     name: harbor
     ports:
@@ -44,20 +42,20 @@ expose:
         port: 80
         nodePort: 30002
 
-externalURL: https://127.0.0.1:30002
+externalURL: http://127.0.0.1:30002
 
 persistence:
   enabled: true
   resourcePolicy: "keep"
   persistentVolumeClaim:
     registry:
-      storageClass: "local-path"
+      storageClass: "standard"
       size: 5Gi
     database:
-      storageClass: "local-path"
+      storageClass: "standard"
       size: 1Gi
     redis:
-      storageClass: "local-path"
+      storageClass: "standard"
       size: 1Gi
 
 harborAdminPassword: "Harbor12345"

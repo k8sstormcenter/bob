@@ -141,6 +141,17 @@ jobs:
           kubectl logs -n honey -l app=node-agent 
 
 
+      - name: Configure Docker for insecure registry
+        run: |
+          echo "Configuring Docker to allow insecure registry at 127.0.0.1:30002"
+          sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+          {
+            "insecure-registries": ["127.0.0.1:30002"]
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Docker configured for insecure registry"
+
       - name: Get Harbor NodePort and port-forward
         continue-on-error: true
         run: |
@@ -278,7 +289,18 @@ jobs:
         with:
           k3s-version: v1.32.0+k3s1
 
-      - name: Test superset Bob on kind    
+      - name: Configure Docker for insecure registry (package-bobs)
+        run: |
+          echo "Configuring Docker to allow insecure registry at 127.0.0.1:30002"
+          sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+          {
+            "insecure-registries": ["127.0.0.1:30002"]
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Docker configured for insecure registry"
+
+      - name: Test superset Bob on kind
         run: |
           kubectl version
           kubectl get pods --all-namespaces
@@ -288,7 +310,7 @@ jobs:
           make kubescape
           kubectl get all -A
           kubectl logs -n honey -l app=kubescape
-          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -n honey -l app=node-agent
           kubectl logs -n honey -l app=storage
           kubectl logs -n honey -l app=kubevuln
           kubectl logs -n honey -l app=operator
