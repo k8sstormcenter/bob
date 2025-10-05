@@ -1,0 +1,568 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-harbor/kind-ReplicaSet/name-harbor-core-5cc8db468f
+    kubescape.io/resource-size: "181"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-harbor/deployment-harbor-core
+  creationTimestamp: "2025-10-01T13:13:45Z"
+  labels:
+    kubescape.io/instance-template-hash: 5cc8db468f
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: harbor-core
+    kubescape.io/workload-namespace: harbor
+    kubescape.io/workload-resource-version: "909"
+  name: replicaset-harbor-core-5cc8db468f
+  namespace: harbor
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    endpoints:
+    - direction: outbound
+      endpoint: :8080/probe/healthy
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-trivy:8080
+      internal: false
+      methods:
+      - GET
+    - direction: outbound
+      endpoint: :80/
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-portal
+      internal: false
+      methods:
+      - GET
+    - direction: inbound
+      endpoint: :80/api/v2.0/internalconfig
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-core:80
+      internal: false
+      methods:
+      - GET
+    - direction: outbound
+      endpoint: :80/api/v1/stats
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-jobservice
+      internal: false
+      methods:
+      - GET
+    - direction: outbound
+      endpoint: :80/api/v1/jobs
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-jobservice
+      internal: false
+      methods:
+      - POST
+    - direction: outbound
+      endpoint: :8080/api/health
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-registry:8080
+      internal: false
+      methods:
+      - GET
+    - direction: inbound
+      endpoint: :8080/api/v2.0/ping
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.42.0.11:8080
+      internal: false
+      methods:
+      - GET
+    - direction: outbound
+      endpoint: :5000/
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-registry:5000
+      internal: false
+      methods:
+      - GET
+    - direction: inbound
+      endpoint: :80/service/notifications/tasks/1
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-core:80
+      internal: false
+      methods:
+      - POST
+    - direction: inbound
+      endpoint: :80/service/notifications/tasks/2
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - harbor-core:80
+      internal: false
+      methods:
+      - POST
+    execs:
+    - args:
+      - /usr/bin/dirname
+      - /harbor/install_cert.sh
+      path: /usr/bin/dirname
+    - args:
+      - /usr/bin/cp
+      - /harbor/ca-bundle.crt.original
+      - /etc/pki/tls/certs/ca-bundle.crt
+      path: /usr/bin/cp
+    - args:
+      - /harbor/harbor_core
+      path: /harbor/harbor_core
+    - args:
+      - /harbor/entrypoint.sh
+      path: /harbor/entrypoint.sh
+    - args:
+      - /harbor/install_cert.sh
+      path: /harbor/install_cert.sh
+    - args:
+      - /usr/bin/cp
+      - /etc/pki/tls/certs/ca-bundle.crt
+      - /harbor/ca-bundle.crt.original
+      path: /usr/bin/cp
+    - args:
+      - /usr/bin/find
+      - /etc/harbor/ssl
+      - -maxdepth
+      - "2"
+      - -name
+      - ca.crt
+      path: /usr/bin/find
+    - args:
+      - /usr/bin/grep
+      - -q
+      - Photon
+      - /etc/lsb-release
+      path: /usr/bin/grep
+    identifiedCallStacks: null
+    imageID: docker.io/goharbor/harbor-core@sha256:0ce3d295ff74d669fbbf5b1da43135a8bc2950177a8fb5432f588ed43ee79d82
+    imageTag: docker.io/goharbor/harbor-core:v2.14.0
+    name: core
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/core/app.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/hosts
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/ld.so.cache
+    - flags:
+      - O_RDONLY
+      path: /etc/lsb-release
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/nsswitch.conf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/passwd
+    - flags:
+      - O_CREAT
+      - O_TRUNC
+      - O_RDONLY
+      - O_RDWR
+      path: /etc/pki/tls/certs/ca-bundle.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/resolv.conf
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_TRUNC
+      - O_RDONLY
+      path: /harbor/ca-bundle.crt.original
+    - flags:
+      - O_RDONLY
+      path: /harbor/entrypoint.sh
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/harbor_core
+    - flags:
+      - O_RDONLY
+      path: /harbor/install_cert.sh
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      - O_DIRECTORY
+      path: /harbor/migrations/postgresql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0001_initial_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0002_1.7.0_schema.up.sql
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/migrations/postgresql/0003_add_replication_op_uuid.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0004_1.8.0_schema.up.sql
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/migrations/postgresql/0005_1.8.2_schema.up.sql
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/migrations/postgresql/0010_1.9.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0011_1.9.1_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0012_1.9.4_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0015_1.10.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0030_2.0.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0031_2.0.3_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0040_2.1.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0041_2.1.4_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0050_2.2.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0051_2.2.1_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0052_2.2.2_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0053_2.2.3_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0060_2.3.0_schema.up.sql
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/migrations/postgresql/0061_2.3.4_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0070_2.4.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0071_2.4.2_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0080_2.5.0_schema.up.sql
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/migrations/postgresql/0081_2.5.2_schema.up.sql
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/migrations/postgresql/0082_2.5.3_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0090_2.6.0_schema.up.sql
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/migrations/postgresql/0091_2.6.2_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0100_2.7.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0110_2.8.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0111_2.8.1_schema.up.sql
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /harbor/migrations/postgresql/0120_2.9.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0130_2.10.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0140_2.11.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0150_2.12.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0160_2.13.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/migrations/postgresql/0170_2.14.0_schema.up.sql
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/views
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/views/404.tpl
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /harbor/views/reset-password-mail.tpl
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/maps
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /sys/devices/system/cpu/online
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libc.so.6
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libcrypt.so.1.1.0
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libcrypto.so.3
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/libhistory.so.8.2
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libncursesw.so.6.4
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libreadline.so.8.2
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libssl.so.3
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libtinfo.so.6.4
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/libz.so.1.2.13
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/locale/en_US.UTF-8/LC_CTYPE
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/share/locale/locale.alias
+    - flags:
+      - O_RDONLY
+      path: /usr/share/zoneinfo/UTC
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - cp
+        - dirname
+        - entrypoint.sh
+        - find
+        - grep
+        - harbor_core
+        - install_cert.sh
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clock_gettime
+    - clone
+    - close
+    - close_range
+    - connect
+    - copy_file_range
+    - dup2
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat2
+    - fchown
+    - fcntl
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
+    - getpgrp
+    - getpid
+    - getppid
+    - getrandom
+    - getsockname
+    - getsockopt
+    - gettid
+    - gettimeofday
+    - getuid
+    - ioctl
+    - listen
+    - lseek
+    - madvise
+    - mmap
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - pipe2
+    - prctl
+    - pread64
+    - prlimit64
+    - read
+    - readlinkat
+    - recvfrom
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - sendto
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - statfs
+    - sysinfo
+    - tgkill
+    - tkill
+    - umask
+    - uname
+    - wait4
+    - write
+status: {}

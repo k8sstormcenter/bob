@@ -1,0 +1,257 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: statefulset-harbor-trivy
+  namespace: harbor
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    endpoints:
+    - direction: inbound
+      endpoint: :8080/probe/healthy
+      headers:
+        Accept-Encoding:
+          - gzip
+        Connection:
+          - close
+        Host:
+          - 10.42.0.23:8080
+          - harbor-trivy:8080
+      internal: false
+      methods:
+        - GET
+    - direction: inbound
+      endpoint: :8080/probe/ready
+      headers:
+        Connection:
+          - close
+        Host:
+          - 10.42.0.23:8080
+      internal: false
+      methods:
+        - GET
+    execs:
+    - args:
+      - /home/scanner/bin/scanner-trivy
+      path: /home/scanner/bin/scanner-trivy
+    - args:
+      - /home/scanner/entrypoint.sh
+      path: /home/scanner/entrypoint.sh
+    - args:
+      - /home/scanner/install_cert.sh
+      path: /home/scanner/install_cert.sh
+    - args:
+      - /usr/bin/cp
+      - /etc/pki/tls/certs/ca-bundle.crt
+      - /home/scanner/ca-bundle.crt.original
+      path: /usr/bin/cp
+    - args:
+      - /usr/bin/cp
+      - /home/scanner/ca-bundle.crt.original
+      - /etc/pki/tls/certs/ca-bundle.crt
+      path: /usr/bin/cp
+    - args:
+      - /usr/bin/dirname
+      - /home/scanner/install_cert.sh
+      path: /usr/bin/dirname
+    - args:
+      - /usr/bin/find
+      - /etc/harbor/ssl
+      - -maxdepth
+      - "2"
+      - -name
+      - ca.crt
+      path: /usr/bin/find
+    - args:
+      - /usr/bin/grep
+      - -q
+      - Photon
+      - /etc/lsb-release
+      path: /usr/bin/grep
+    identifiedCallStacks: null
+    imageID: docker.io/goharbor/trivy-adapter-photon@sha256:ac04556fe3c25a9e136eba1392046c65994e91f3c706ba16464d2ef97ddf783a
+    imageTag: docker.io/goharbor/trivy-adapter-photon:v2.14.0
+    name: trivy
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/lsb-release
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/pki/tls/certs/ca-bundle.crt
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/scanner/bin/scanner-trivy
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/scanner/ca-bundle.crt.original
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/scanner/entrypoint.sh
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/scanner/install_cert.sh
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/⋯/fd
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/libncursesw.so.6.4
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/locale/en_US.UTF-8/LC_CTYPE
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/share/locale/locale.alias
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - cp
+        - dirname
+        - entrypoint.sh
+        - find
+        - grep
+        - install_cert.sh
+        - scanner-trivy
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - clock_gettime
+    - clone
+    - close
+    - close_range
+    - connect
+    - copy_file_range
+    - dup2
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat2
+    - fchown
+    - fcntl
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
+    - getpgrp
+    - getpid
+    - getppid
+    - getsockname
+    - getsockopt
+    - gettid
+    - gettimeofday
+    - getuid
+    - ioctl
+    - listen
+    - lseek
+    - madvise
+    - mkdirat
+    - mmap
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - pipe2
+    - prctl
+    - pread64
+    - prlimit64
+    - read
+    - readlinkat
+    - recvfrom
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsockopt
+    - setuid
+    - sigaltstack
+    - socket
+    - statfs
+    - sysinfo
+    - tgkill
+    - tkill
+    - umask
+    - uname
+    - wait4
+    - write

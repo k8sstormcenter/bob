@@ -1,55 +1,90 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: curing-client
-  namespace: cure
+  name: replicaset-harbor-portal
+  namespace: harbor
 spec:
   architectures:
   - amd64
   containers:
   - capabilities:
-    - IPC_LOCK
-    endpoints: null
+    - DAC_OVERRIDE
+    - DAC_READ_SEARCH
+    endpoints:
+    - direction: inbound
+      endpoint: :80/
+      headers:
+        Accept-Encoding:
+          - gzip
+        Connection:
+          - close
+        Host:
+          - 10.42.0.13
+          - harbor-portal
+      internal: false
+      methods:
+        - GET
+    - direction: inbound
+      endpoint: :8080/
+      headers:
+        Connection:
+          - close
+        Host:
+          - 10.42.0.12:8080
+      internal: false
+      methods:
+        - GET
     execs:
     - args:
-      - ./client
-      path: ./client
+      - /usr/sbin/nginx
+      - -g
+      - daemon off;
+      path: /usr/sbin/nginx
     identifiedCallStacks: null
-    #imageID: ghcr.io/entlein/curiousclient@sha256:9e090b14c35651c2580f00f204dc7c2704e7dc6650a5c91fe513526e6cd3e9d8
-    #imageTag: ghcr.io/entlein/curiousclient:latest
-    name: client
+    imageID: docker.io/goharbor/harbor-portal@sha256:acfd27abbe0a403f61a04e991a6141958393ad34f44dba629f80e6a56cb143a9
+    imageTag: docker.io/goharbor/harbor-portal:v2.14.0
+    name: portal
     opens:
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /app/config.json
+      path: /etc/ld.so.cache
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/hosts
-    - flags:
-      - O_CLOEXEC
-      - O_RDONLY
-      path: /etc/machine-id
+      path: /etc/nginx/mime.types
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/nsswitch.conf
+      path: /etc/nginx/nginx.conf
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /etc/resolv.conf
+      path: /etc/ssl/⋯
     - flags:
       - O_RDONLY
       - O_CLOEXEC
-      path: /proc/⋯/task/1/fd
+      path: /proc/⋯/task/⋯/fd
     - flags:
       - O_RDONLY
-      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+      - O_CLOEXEC
+      path: /sys/devices/system/cpu/online
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/nginx.pid
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/⋯
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/share/nginx/html/index.html
     rulePolicies:
       R0001:
         processAllowed:
-        - client
+        - nginx
       R0002: {}
       R0003: {}
       R0004: {}
@@ -74,14 +109,15 @@ spec:
       R1011: {}
       R1012: {}
       R1015: {}
-      R1030:
-        processAllowed:
-        - client-16
+      R1030: {}
     seccompProfile:
       spec:
         defaultAction: ""
     syscalls:
+    - accept4
+    - access
     - arch_prctl
+    - bind
     - brk
     - capget
     - capset
@@ -90,81 +126,61 @@ spec:
     - clone
     - close
     - close_range
-    - connect
-    - dup3
-    - epoll_create1
+    - dup2
+    - epoll_create
     - epoll_ctl
     - epoll_pwait
     - epoll_wait
     - eventfd2
     - execve
-    - exit
-    - exit_group
-    - faccessat
     - faccessat2
-    - fchdir
-    - fchmodat
     - fchown
-    - fchownat
     - fcntl
-    - fsconfig
-    - fsmount
-    - fsopen
     - fstat
     - fstatfs
     - futex
     - getcwd
     - getdents64
-    - getpeername
+    - geteuid
     - getpid
     - getppid
-    - getrlimit
-    - getsockname
-    - getsockopt
     - gettid
-    - io_uring_enter
-    - io_uring_register
-    - io_uring_setup
-    - keyctl
-    - madvise
-    - mkdirat
-    - mknodat
+    - gettimeofday
+    - ioctl
+    - listen
+    - mkdir
     - mmap
-    - mount
     - mprotect
     - munmap
     - nanosleep
     - newfstatat
-    - open_tree
     - openat
-    - openat2
     - pipe2
-    - pivot_root
     - prctl
+    - pread64
     - prlimit64
+    - pwrite64
     - read
-    - readlinkat
     - recvfrom
+    - recvmsg
+    - rseq
     - rt_sigaction
     - rt_sigprocmask
     - rt_sigreturn
-    - sched_getaffinity
-    - sched_yield
+    - rt_sigsuspend
+    - sendmsg
+    - set_robust_list
     - set_tid_address
     - setgid
     - setgroups
-    - setsid
     - setsockopt
     - setuid
     - sigaltstack
     - socket
-    - statfs
-    - statx
-    - symlinkat
+    - socketpair
+    - sysinfo
     - tgkill
     - tkill
-    - umask
-    - umount2
-    - unlinkat
+    - uname
     - write
-status: {}
+    - writev

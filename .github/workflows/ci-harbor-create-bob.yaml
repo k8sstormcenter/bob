@@ -1,0 +1,340 @@
+name: Create Harbor Bill of Behaviour on different Kernels, Kubernetes Versions, Kubernetes Distros and OSs
+
+
+on:
+  push:
+    branches:
+      - main
+      - 79-create-bob-for-harbor
+    paths:    
+      - 'example/myharbor/**'
+      - 'kubescape/**'
+      - '.github/workflows/ci-harbor-create-bob.yaml'
+      - 'testdata/superset.sh'
+      - 'Makefile'
+
+    
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04 ,ubuntu-24.04]
+        k8s-distribution: [k3s , kind, minikube] #fix k0s => it is simply not reporting any anomalies IG is never loaded
+        kubernetes-version: [ v1.30.0 , v1.31.0, v1.32.0, v1.33.0, v1.33.2] 
+    runs-on: ${{ matrix.os }}
+
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kind Cluster
+        if: matrix.k8s-distribution == 'kind'
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+
+      - name: Set up k3s Cluster
+        if: matrix.k8s-distribution == 'k3s'
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+      - name: Set up k3s Storage
+        if: matrix.k8s-distribution == 'k3s'
+        run: make storage
+
+      - name: Set up Minikube Cluster
+        if: matrix.k8s-distribution == 'minikube'
+        uses: medyagh/setup-minikube@master
+        with:
+          kubernetes-version: ${{ matrix.kubernetes-version }}
+      - name: Set up Minikube Storage
+        if: matrix.k8s-distribution == 'minikube'
+        run: make storage
+
+      - name: Set up K0s Cluster
+        if: matrix.k8s-distribution == 'k0s'
+        run: |
+          # Use K0S_VERSION to install the version from the matrix
+          curl --proto '=https' --tlsv1.2 -sSf https://get.k0s.sh | sudo K0S_VERSION=${{ matrix.kubernetes-version }}+k0s.0 sh
+          sudo k0s install controller --single
+          sudo k0s start
+
+          # Wait for the k0s status socket to be available to prevent race conditions
+          echo "Waiting for k0s to become ready..."
+          timeout=180
+          while ! sudo k0s status &> /dev/null; do
+            sleep 5
+            timeout=$((timeout-5))
+            if [ $timeout -le 0 ]; then
+              echo "Timed out waiting for k0s to start"
+              sudo k0s status # print last error for debugging
+              exit 1
+            fi
+          done
+          mkdir -p $HOME/.kube
+          sudo k0s kubeconfig admin > $HOME/.kube/config
+          make storage
+
+
+      - name: Prepare MicroK8s channel
+        if: matrix.k8s-distribution == 'microk8s'
+        run: |
+          K8S_MAJOR_MINOR=$(echo "${{ matrix.kubernetes-version }}" | cut -d. -f1,2 | sed 's/v//')
+          echo "MICROK8S_CHANNEL=${K8S_MAJOR_MINOR}/stable" >> $GITHUB_ENV
+
+      - name: Set up MicroK8s Cluster
+        if: matrix.k8s-distribution == 'microk8s'
+        uses: balchua/microk8s-actions@v0.3.2
+        with:
+          channel: ${{ env.MICROK8S_CHANNEL }}
+          addons: '["dns", "hostpath-storage"]'
+
+      - name: Verify function of k8s, kubectl, and helm
+        run: |
+          echo "kubeconfig: $KUBECONFIG"
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+
+          helm version
+          helm list
+
+      - name: Install kubescape
+        run: |
+          make kubescape-vendor
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+
+      # - name: Verify storage is ready
+      #   run: |
+      #     echo "=== Storage Classes ==="
+      #     kubectl get storageclass
+      #     echo ""
+      #     echo "=== Local Path Storage Pods ==="
+      #     kubectl get pods -n local-path-storage
+      #     echo ""
+      #     echo "Waiting for local-path-storage provisioner to be ready..."
+      #     kubectl wait --for=condition=ready pod -n local-path-storage -l app=local-path-provisioner --timeout=120s
+
+      - name: Run helm install for harbor
+        run: |
+          make sample-app
+
+      - name: Debug Harbor pod status
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n harbor -o wide
+          echo ""
+          echo "=== Pod Describe (showing events) ==="
+          kubectl describe pods -n harbor
+          echo ""
+          echo "=== Events in harbor namespace ==="
+          kubectl get events -n harbor --sort-by='.lastTimestamp'
+
+      - name: Get Nodeagent logs
+        run: | 
+          kubectl logs -n honey -l app=node-agent 
+
+
+      - name: Configure Docker for insecure registry
+        run: |
+          echo "Configuring Docker to allow insecure registry at 127.0.0.1:30002"
+          sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+          {
+            "insecure-registries": ["127.0.0.1:30002"]
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Docker configured for insecure registry"
+
+      - name: Get Harbor NodePort and port-forward
+        continue-on-error: true
+        run: |
+          kubectl port-forward --namespace harbor svc/harbor 30002:80 &
+
+      - name: Run helm test
+        continue-on-error: true
+        run: |
+          echo "Harbor12345" | docker login http://127.0.0.1:30002 -u admin --password-stdin
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=operator
+          kubectl logs -n honey -l app=node-agent 
+          kubectl logs -l app=node-agent -n honey 
+
+
+      - name: Clone Harbor Upstream Repo
+        run: |
+          git clone https://github.com/goharbor/harbor.git harbor-upstream
+
+      - name: Fill robotvars.py with runtime values
+        run: |
+          cd harbor-upstream/tests/e2e_setup
+          cat <<EOF > robotvars.py
+          SCANNER_ENDPOINT = "http://127.0.0.1:8081"
+          ES_ENDPOINT =  "http://127.0.0.1:9200"
+          WEBHOOK_ENDPOINT =  "http://127.0.0.1:8084"
+          DISTRIBUTION_ENDPOINT =  "http://127.0.0.1:8080"
+          DOCKER_USER =   "admin"
+          DOCKER_PWD =  "Harbor12345"
+          DRAGONFLY_AUTH_TOKEN =  "dummy_token"
+          ip = "127.0.0.1"
+          LOCAL_REGISTRY =  "registry.goharbor.io"
+          LOCAL_REGISTRY_NAMESPACE =   "harbor-ci"
+          HARBOR_PASSWORD =   "Harbor12345"
+          HARBOR_ADMIN = "admin"
+          OIDC_HOSTNAME =  "nightly-oidc.harbor.io"
+          http_get_ca =  "true"
+          ip1 = ""
+          EOF
+
+
+
+      - name: Start Harbor E2E Container and Run Robot Tests
+        continue-on-error: true
+        run: |
+          cd harbor-upstream/tests/e2e_setup
+          HARBOR_SRC_FOLDER=$(realpath ../../)
+          echo ${HARBOR_SRC_FOLDER}
+          docker run --privileged --name harbor-e2e -d \
+            -v /var/log/harbor:/var/log/harbor \
+            -v /etc/hosts:/etc/hosts \
+            -v ${HARBOR_SRC_FOLDER}:/drone \
+            -v ${HARBOR_SRC_FOLDER}/tests/harbor_ca.crt:/ca/ca.crt \
+            -v /dev/shm:/dev/shm \
+            -e NETWORK_TYPE=public \
+            -w /drone \
+            registry.goharbor.io/harbor-ci/goharbor/harbor-e2e-engine:latest-ui tail -f /dev/null
+
+          docker exec harbor-e2e cp /ca/ca.crt /ca/harbor_ca.crt
+          # Run Robot Setup Test inside the container
+          docker exec harbor-e2e robot -V /drone/tests/e2e_setup/robotvars.py /drone/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot || true
+
+          # Run Robot DB Test inside the container
+          docker exec harbor-e2e robot -V /drone/tests/e2e_setup/robotvars.py /drone/tests/robot-cases/Group1-Nightly/Setup_Nightly.robot /drone/tests/robot-cases/Group1-Nightly/DB.robot || true
+
+          # Optionally stop and remove the container
+          docker stop harbor-e2e && docker rm harbor-e2e
+          cd ../../..
+
+
+
+      - name: Export Harbor ApplicationProfile
+        id: export_bob
+        run: |
+          chmod +x ./src/bashhelpers/grabprofiles.sh
+          ./src/bashhelpers/grabprofiles.sh "harbor:8" "${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}"
+
+
+      - name: Upload Harbor BoB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: harbor-bob-profile-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+          path: bob-artifact/*.yaml
+
+  package-bobs:
+    runs-on: ubuntu-latest
+    needs: build
+    if: always() 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all BoB artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: bob-artifacts
+          merge-multiple: true
+
+      - name: Create a superset
+        run: |
+          mkdir -p all-bobs
+          find bob-artifacts -type f -name "*.yaml" -exec cp {} all-bobs/ \;
+          chmod +x ./src/bashhelpers/envwrap.sh
+          ./src/bashhelpers/envwrap.sh all-bobs
+          cat all-bobs/*_bob.yaml
+
+      - name: Print attacksurface report
+        run: cat all-bobs/attacksurface.md
+
+      - name: Package all BoBs into a tarball
+        run: |
+          echo "Packaging the following BoB files:"
+          tar -czvf bobs.tar.gz -C all-bobs .
+
+      - name: Upload BoB tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: bobs-collection
+          path: bobs.tar.gz
+
+      - name: Set up k3s Cluster
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: v1.32.0+k3s1
+
+      - name: Configure Docker for insecure registry (package-bobs)
+        run: |
+          echo "Configuring Docker to allow insecure registry at 127.0.0.1:30002"
+          sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+          {
+            "insecure-registries": ["127.0.0.1:30002"]
+          }
+          EOF
+          sudo systemctl restart docker
+          echo "Docker configured for insecure registry"
+
+      - name: Test superset Bob on kind
+        run: |
+          make storage
+          kubectl version
+          kubectl get pods --all-namespaces
+          uname -a
+          helm version
+          helm list
+          make kubescape
+          kubectl get all -A
+          kubectl logs -n honey -l app=kubescape
+          kubectl logs -n honey -l app=node-agent
+          kubectl logs -n honey -l app=storage
+          kubectl logs -n honey -l app=kubevuln
+          kubectl logs -n honey -l app=operator
+          make sample-app-bob
+          sleep 30
+          kubectl logs -n honey -l app=node-agent 
+          sleep 30
+          kubectl logs -n honey -l app=node-agent 
+          sleep 30
+          kubectl logs -n honey -l app=node-agent 
+          kubectl port-forward --namespace harbor svc/harbor 30002:80 &
+          echo "Harbor12345" | docker login http://127.0.0.1:30002 -u admin --password-stdin || echo "true"
+          sleep 30
+          kubectl logs -n honey -l app=node-agent 
+   
+
+  #     - name: Run positive test
+  #       continue-on-error: true
+  #       run: |
+  #         cat all-bobs/*_bob.yaml
+  #         make helm-redis-test
+  #         echo "Checking for unexpected anomalies in Kubescape logs...there should be 2"
+  #         kubectl logs -n honey -l app=kubescape
+  #         kubectl logs -n honey -l app=operator
+  #         kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-'
+  #         sleep 60
+  #         kubectl logs -n honey -l app=node-agent 
+
+
+  #     - name: Upload superset BoB as the new final (and tested) Bill of Behavior 
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: redis-bob-final
+  #         path: all-bobs/*_bob.yaml
+

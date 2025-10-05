@@ -84,82 +84,49 @@ print_yaml_list_or_null_inline() {
 normalize_opens() {
   jq 'map(
     .path |= (
-      gsub("[0-9a-f]{32,}"; "*") |
-      gsub("-[0-9a-fA-F_\\-]{4,}+"; "*") |
-      gsub("(/bin/)[^/]+.*"; "\\1*") |
-      gsub("[0-9a-f]{64}"; "*") |
-      gsub("/[^/]+\\.service"; "/*.service") |
-      gsub("/proc/[^/]+/task/[^/]+/fd.*"; "/proc/*/task/*/fd")
+      gsub("[0-9a-f]{32,}"; "⋯") |
+      gsub("-[0-9a-fA-F_\\-]{4,}+"; "⋯") |
+      gsub("(/bin/)[^/]+.⋯"; "\\1⋯") |
+      gsub("[0-9a-f]{64}"; "⋯") |
+      gsub("/[^/]+\\.service"; "/⋯.service") |
+      gsub("/proc/[^/]+/task/[^/]+/fd"; "/proc/⋯/task/⋯/fd")
     )
   )
   | unique_by(.path + ( .flags | tostring ))'
 }
 
-# normalize_opens() {
-#   jq 'map(
-#     .path |= (
-#       gsub("[0-9a-f]{32,}"; "⋯") |
-#       gsub("pod[0-9a-fA-F_\\-]+"; "⋯") |
-#       gsub("/var/log/pods/[^/]+/"; "/var/log/pods/⋯/") |
-#       gsub("/[a-z0-9]{8,}(-[a-z0-9]{4,}){2,}/"; "/⋯/") |
-#       gsub("/[a-z0-9]{16,}/"; "/⋯/") |
-#       gsub("/pods/[^/]+/"; "/pods/⋯/")|
-#       gsub("cri-containerd-[0-9a-f]{64}\\.scope"; "⋯.scope") |
-#       gsub("/[^/]+\\.service"; "/*.service") |
-#       gsub("/[^/]+\\.socket"; "/*.socket")|
-#       gsub("/[^/]+\\.(log|out|err)$"; "/⋯.\\1")|
-#       gsub("[0-9]+"; "⋯")|
-#       gsub("⋯+/?"; "⋯/") |
-#       gsub("/[.-]+⋯"; "/⋯") |
-#       gsub("(/⋯)+/"; "/⋯/") |
-#       gsub("⋯+/?"; "⋯/") 
-#     )
-#   )
-#   | unique_by(.path + ( .flags | tostring ))'
-# }
-
-collapse_opens_with_globs() {
-  jq '
-    . // [] |
-    group_by(.path | split("/")[:-1] | join("/")) |
-    map(
-      if length > 3 then
-        (map(.path | split("/")[-1] | capture("\\.(?<ext>[^./]+)$")?.ext) | unique) as $exts
-        | (map(.flags) | add | unique | sort) as $flags
-        |
-        if ($exts | length) == 1 then
-          [{ flags: $flags,
-             path: ((.[0].path | split("/")[:-1] | join("/")) + "/*." + ($exts[0])) }]
-        else
-          [{ flags: $flags, path: ((.[0].path | split("/")[:-1] | join("/")) + "/**") }]
-        end
-      else
-        .
-      end
-    )
-    | add
-  '
-}
-
-
-
 collapse_opens_events() {
   jq '
-    . // [] |
-    group_by(.path | split("/")[:-1] | join("/")) |
-    map(
-      if length > 1 then
-        (map(.flags) | add | unique | sort) as $flags
-        |
-        [{ flags: $flags,
-           path: (.[0].path | split("/")[:-1] | join("/") + "/*") }]
-      else
-        .
-      end
-    )
-    | add
-  '
+    # Group all entries by identical flags
+    group_by(.flags)[] as $group
+    | (.[0].flags) as $flags
+
+    # Split path into segments
+    | ($group | map({
+        segments: (.path | split("/") | map(select(. != "")))
+      })) as $split
+
+    # Compute parent paths (all segments except last)
+    | ($split | map(.segments[:-1] | join("/"))) as $parents
+
+    # Count occurrences of each parent path
+    | ($parents | group_by(.) | map({ (.[0]): length }) | add) as $parent_counts
+
+    # Rewrite each path based on parent counts
+    | $split
+      | map({
+          flags: $flags,
+          path: (
+            if ($parent_counts[.segments[:-1] | join("/")] // 0) > 3
+            then (.segments[:-1] + ["⋯"]) | join("/") | "/" + .
+            else .segments | join("/") | "/" + .
+            end
+          )
+        })
+  ' | jq -s 'flatten | unique_by([.path, .flags])'
 }
+
+
 
 ## this is the most outer loop - the grouploop
 
@@ -257,9 +224,9 @@ for file in "${FILES[@]}"; do
         .execs |= (. // [] ) |
         .opens |= (
           . // []
-          | map(.path |= sub("pod[0-9a-fA-F_\\-]+", "*"))   
-          | map(.path |= sub("cri-containerd-[0-9a-f]{64}\\.scope", "*.scope")) 
-          | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "*"))
+          | map(.path |= sub("pod[0-9a-fA-F_\\-]+", "⋯"))   
+          | map(.path |= sub("cri-containerd-[0-9a-f]{64}\\.scope", "⋯.scope")) 
+          | map(.path |= sub("\\.\\.[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}\\.[0-9]+", "⋯"))
           | unique_by(.path)
         ) |
         .endpoints |= (. // [] | sort | unique)|
@@ -303,7 +270,7 @@ for file in "${FILES[@]}"; do
         rules_json=$(yq -o=json ".spec.containers[$i].rulePolicies | select(. != null) | to_entries" "$norm_file" 2>/dev/null || echo "[]")
 
         all_execs_json["$key"]=$(jq -s 'add | unique_by({path, args})' <(echo "${all_execs_json["$key"]:-[]}") <(echo "$execs_json"))
-        all_opens_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_opens_json["$key"]:-[]}")  <(echo "$opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
+        all_opens_json["$key"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_opens_json["$key"]:-[]}")  <(echo "$opens_json") | normalize_opens  |  collapse_opens_events)
         all_endpoints_json["$key"]=$(jq -s 'add | unique' <(echo "${all_endpoints_json["$key"]:-[]}") <(echo "${endpoints_json:-"[]"}"))
         all_rules_json["$key"]=$(jq -s 'add' <(echo "${all_rules_json["$key"]:-[]}") <(echo "$rules_json"))
 
@@ -381,7 +348,7 @@ for file in "${FILES[@]}"; do
           init_rules_json=$(yq -o=json ".spec.initContainers[$j].rulePolicies | select(. != null) | to_entries" "$norm_file" 2>/dev/null || echo "[]")
 
           all_init_execs_json["$initkey"]=$(jq -s 'add | unique_by({path, args})' <(echo "${all_init_execs_json["$initkey"]:-[]}") <(echo "$init_execs_json"))
-          all_init_opens_json["$initkey"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_opens_json["$initkey"]:-[]}")  <(echo "$init_opens_json") | normalize_opens  | collapse_opens_with_globs | collapse_opens_events)
+          all_init_opens_json["$initkey"]=$(jq -s 'add | unique_by(.path)' <(echo "${all_init_opens_json["$initkey"]:-[]}")  <(echo "$init_opens_json") | normalize_opens  |  collapse_opens_events)
           all_init_endpoints_json["$initkey"]=$(jq -s 'add | unique' <(echo "${all_init_endpoints_json["$initkey"]:-[]}") <(echo "$init_endpoints_json"))
           all_init_rules_json["$initkey"]=$(jq -s 'map(. // []) | add' <(echo "${all_init_rules_json["$initkey"]:-[]}") <(echo "$init_rules_json"))
 
@@ -411,19 +378,8 @@ cat <<EOF > "$OUTPUT_FILE"
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
-  name: $name
+  name: $shortname
   namespace: $namespace
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/instance-id: $instanceid
-    kubescape.io/wlid: $wlid
-  labels:
-    kubescape.io/workload-api-group: $apiGroup
-    kubescape.io/workload-api-version: $apiVersion
-    kubescape.io/workload-kind: $kind
-    kubescape.io/workload-name: $workloadname
-    kubescape.io/workload-namespace: $namespace
 spec:
   architectures:
   - $architecture

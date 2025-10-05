@@ -1,19 +1,21 @@
 #!/bin/bash
 
 
-set -e 
-set -o pipefail 
+set -e
+set -o pipefail
 
 
-NAMESPACES_TO_CHECK=(
-  "olm:2"
-  "px-operator:5"
-  "pl:8"
-  "openebs:5"
-)
+# Usage: ./grabprofiles.sh "harbor:8 px-operator:5" matrixelement
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 \"namespace1:count1 namespace2:count2 ...\" matrixelement"
+  exit 1
+fi
 
-TIMEOUT_SECONDS=1000 
-SLEEP_INTERVAL=15   
+NAMESPACES_TO_CHECK=($1)
+MATRIX_ELEMENT="$2"
+
+TIMEOUT_SECONDS=1000
+SLEEP_INTERVAL=15
 
 for ns_info in "${NAMESPACES_TO_CHECK[@]}"; do
   NAMESPACE=$(echo "$ns_info" | cut -d: -f1)
@@ -52,12 +54,12 @@ for ns_info in "${NAMESPACES_TO_CHECK[@]}"; do
   PROFILE_NAMES=$(kubectl get applicationprofile.spdx.softwarecomposition.kubescape.io -n "$NAMESPACE" -o json | jq -r '.items[] | select(.metadata.annotations."kubescape.io/status" == "completed") | .metadata.name')
 
 
-  EXPORT_DIR="$NAMESPACE-profiles"
+  EXPORT_DIR="bob-artifact"
   mkdir -p "$EXPORT_DIR"
   echo "Exporting profiles to directory: '$EXPORT_DIR'"
 
   for profile_name in $PROFILE_NAMES; do
-    OUTPUT_FILE="${EXPORT_DIR}/${profile_name}.yaml"
+    OUTPUT_FILE="${EXPORT_DIR}/${profile_name}-${MATRIX_ELEMENT}.yaml"
     echo "-> Exporting profile '$profile_name' to '$OUTPUT_FILE'..."
     kubectl get applicationprofile -n "$NAMESPACE" "$profile_name" -o yaml > "$OUTPUT_FILE"
     echo "   Successfully exported '$OUTPUT_FILE'."

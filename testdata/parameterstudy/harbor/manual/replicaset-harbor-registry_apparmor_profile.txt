@@ -1,0 +1,74 @@
+# AppArmor profile for replicaset-harbor-registry
+profile replicaset-harbor-registry-profile flags=(attach_disconnected,mediate_deleted) {
+  #include <tunables/global>
+  # Executable: /home/harbor/harbor_registryctl
+  /home/harbor/harbor_registryctl \{
+    capability NET_ADMIN,
+  }
+  # Executable: /home/harbor/install_cert.sh
+  /home/harbor/install_cert.sh \{
+    capability NET_ADMIN,
+  }
+  # Executable: /home/harbor/start.sh
+  /home/harbor/start.sh \{
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/cp
+  /usr/bin/cp \{
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/dirname
+  /usr/bin/dirname \{
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/find
+  /usr/bin/find \{
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/grep
+  /usr/bin/grep \{
+    capability NET_ADMIN,
+  }
+  # Executable: /home/harbor/entrypoint.sh
+  /home/harbor/entrypoint.sh \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /home/harbor/install_cert.sh
+  /home/harbor/install_cert.sh \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/cp
+  /usr/bin/cp \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/dirname
+  /usr/bin/dirname \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/find
+  /usr/bin/find \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/grep
+  /usr/bin/grep \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+  # Executable: /usr/bin/registry_DO_NOT_USE_GC
+  /usr/bin/registry_DO_NOT_USE_GC \{
+    capability DAC_OVERRIDE,
+    capability DAC_READ_SEARCH,
+    capability NET_ADMIN,
+  }
+}
