@@ -41,13 +41,16 @@ jobs:
         uses: jupyterhub/action-k3s-helm@v4
         with:
           k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+      - name: Set up k3s Storage
+        if: matrix.k8s-distribution == 'k3s'
+        run: make storage
 
       - name: Set up Minikube Cluster
         if: matrix.k8s-distribution == 'minikube'
         uses: medyagh/setup-minikube@master
         with:
           kubernetes-version: ${{ matrix.kubernetes-version }}
-      - name: Set up Minikube Cluster
+      - name: Set up Minikube Storage
         if: matrix.k8s-distribution == 'minikube'
         run: make storage
 
