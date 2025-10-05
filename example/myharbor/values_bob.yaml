@@ -1,35 +1,35 @@
 core:
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-core"
+    kubescape.io/user-defined-profile: "replicaset-harbor-core"
 trivy:
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-trivy"
+    kubescape.io/user-defined-profile: "statefulset-harbor-trivy"
 database:
   type: internal
   internal:
     password: "root123"
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-database"
+    kubescape.io/user-defined-profile: "statefulset-harbor-database"
 exporter:
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-exporter"
+    kubescape.io/user-defined-profile: "replicaset-harbor-exporter"
 jobservice:
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-jobservice"
+    kubescape.io/user-defined-profile: "replicaset-harbor-jobservice"
 nginx:
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-nginx"
+    kubescape.io/user-defined-profile: "replicaset-harbor-nginx"
 portal:
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-portal"
+    kubescape.io/user-defined-profile: "replicaset-harbor-portal"
 redis:
   internal:
     password: "redis123"
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-redis"
+    kubescape.io/user-defined-profile: "statefulset-harbor-redis"
 registry:
   podLabels:
-    kubescape.io/user-defined-profile: "harbor-registry"
+    kubescape.io/user-defined-profile: "replicaset-harbor-registry"
 
 expose:
   type: nodePort
