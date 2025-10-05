@@ -158,24 +158,12 @@ jobs:
       - name: Get Harbor NodePort and port-forward
         continue-on-error: true
         run: |
-          # Get the NodePort for Harbor HTTP
-          ##NODEPORT=$(kubectl get svc harbor -n harbor -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
-          ##echo "Harbor NodePort is $NODEPORT"
           kubectl port-forward --namespace harbor svc/harbor 30002:80 &
-         # kubectl port-forward --namespace harbor svc/harbor 30003:443 &
 
-# harbor        harbor                        NodePort    10.43.206.65    <none>        80:30002/TCP             2m3s
-# harbor        harbor-core                   ClusterIP   10.43.215.127   <none>        80/TCP                   2m3s
-# harbor        harbor-database               ClusterIP   10.43.71.207    <none>        5432/TCP                 2m3s
-# harbor        harbor-jobservice             ClusterIP   10.43.46.213    <none>        80/TCP                   2m3s
-# harbor        harbor-portal                 ClusterIP   10.43.185.95    <none>        80/TCP                   2m3s
-# harbor        harbor-redis                  ClusterIP   10.43.121.95    <none>        6379/TCP                 2m3s
-# harbor        harbor-registry               ClusterIP   10.43.225.174   <none>        5000/TCP,8080/TCP        2m3s
-# harbor        harbor-trivy                  ClusterIP   10.43.246.115   <none>        8080/TCP                 2m3s
       - name: Run helm test
         continue-on-error: true
         run: |
-          echo "Harbor12345" | docker login 127.0.0.1:30002 -u admin --password-stdin
+          echo "Harbor12345" | docker login http://127.0.0.1:30002 -u admin --password-stdin
           kubectl logs -n honey -l app=kubescape
           kubectl logs -n honey -l app=operator
           kubectl logs -n honey -l app=node-agent 
@@ -305,6 +293,7 @@ jobs:
 
       - name: Test superset Bob on kind
         run: |
+          make storage
           kubectl version
           kubectl get pods --all-namespaces
           uname -a
