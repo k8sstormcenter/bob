@@ -460,29 +460,29 @@ fi
 echo "Superset arrays written to '$OUTPUT_FILE'"
 
 
-APPARMOR_FILE="$OUTPUT_DIR/${shortname}_apparmor_profile.txt"
-echo "# AppArmor profile for $shortname" > "$APPARMOR_FILE"
-echo "profile ${shortname}-profile flags=(attach_disconnected,mediate_deleted) {" >> "$APPARMOR_FILE"
-echo "  #include <tunables/global>" >> "$APPARMOR_FILE"
+# APPARMOR_FILE="$OUTPUT_DIR/${shortname}_apparmor_profile.txt"
+# echo "# AppArmor profile for $shortname" > "$APPARMOR_FILE"
+# echo "profile ${shortname}-profile flags=(attach_disconnected,mediate_deleted) {" >> "$APPARMOR_FILE"
+# echo "  #include <tunables/global>" >> "$APPARMOR_FILE"
 
 
-for key in "${!keys[@]}"; do
-  caplist="${superset_capabilities["$key"]}"
-  execs_yaml="${superset_execs["$key"]}"
-  exec_paths=$(echo "$execs_yaml" | yq -r '.[] | .path' 2>/dev/null | sort -u)
-  for exec_path in $exec_paths; do
-    [ -z "$exec_path" ] && continue
-    echo "  # Executable: $exec_path" >> "$APPARMOR_FILE"
-    echo "  $exec_path \{" >> "$APPARMOR_FILE"
-    for cap in $caplist; do
-      [ -z "$cap" ] && continue
-      echo "    capability ${cap}," >> "$APPARMOR_FILE"
-    done
-    echo "  }" >> "$APPARMOR_FILE"
-  done
-done
-echo "}" >> "$APPARMOR_FILE"
-echo "AppArmor profile written to '$APPARMOR_FILE'"
+# for key in "${!keys[@]}"; do
+#   caplist="${superset_capabilities["$key"]}"
+#   execs_yaml="${superset_execs["$key"]}"
+#   exec_paths=$(echo "$execs_yaml" | yq -r '.[] | .path' 2>/dev/null | sort -u)
+#   for exec_path in $exec_paths; do
+#     [ -z "$exec_path" ] && continue
+#     echo "  # Executable: $exec_path" >> "$APPARMOR_FILE"
+#     echo "  $exec_path \{" >> "$APPARMOR_FILE"
+#     for cap in $caplist; do
+#       [ -z "$cap" ] && continue
+#       echo "    capability ${cap}," >> "$APPARMOR_FILE"
+#     done
+#     echo "  }" >> "$APPARMOR_FILE"
+#   done
+# done
+# echo "}" >> "$APPARMOR_FILE"
+# echo "AppArmor profile written to '$APPARMOR_FILE'"
 
 
 done
