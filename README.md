@@ -99,7 +99,7 @@ spec:
       - O_DIRECTORY
       - O_NONBLOCK
       - O_RDONLY
-      path: /etc/apache2/* #globs that generalize UUIDs or well-known FS structures
+      path: /etc/apache2/⋯ #globs that generalize UUIDs or well-known FS structures
     - flags:
       - O_CLOEXEC
       - O_RDONLY
