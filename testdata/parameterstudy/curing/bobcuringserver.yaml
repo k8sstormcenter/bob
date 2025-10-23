@@ -69,21 +69,34 @@ spec:
     syscalls:
     - accept4
     - arch_prctl
+    - brk 
     - bind
     - capget
     - capset
     - chdir
     - clock_gettime
     - clone
+    - clone3
     - close
     - close_range
+    - copy_file_range
+    - connect 
+    - dup3 
     - epoll_create1
     - epoll_ctl
     - epoll_pwait
     - eventfd2
     - execve
     - exit
+    - exit_group 
+    - faccessat 
     - faccessat2
+    - fchdir
+    - fchmodat
+    - fchown
+    - fchownat
+    - fsconfig
+    - fsmount
     - fcntl
     - fstat
     - fstatfs
@@ -91,19 +104,38 @@ spec:
     - getcwd
     - getdents64
     - getpid
+    - getpeername
     - getppid
+    - getrandom
+    - getrlimit
+    - getsockopt
     - getsockname
     - gettid
+    - ioctl
+    - keyctl 
     - listen
     - madvise
+    - mkdirat
+    - mknodat
+    - mount
+    - mprotect
     - mmap
     - munmap
     - nanosleep
     - newfstatat
     - openat
+    - open_tree
+    - openat
+    - openat2 
     - prctl
+    - pipe
+    - pipe2
+    - pread64
     - prlimit64
     - read
+    - readlink
+    - readlinkat
+    - rseq
     - recvfrom
     - rt_sigaction
     - rt_sigprocmask
@@ -111,6 +143,14 @@ spec:
     - sched_getaffinity
     - sched_yield
     - setgid
+    - set_robust_list
+    - set_tid_address
+    - setns
+    - setsid
+    - statfs 
+    - statx 
+    - symlink
+    - symlinkat
     - setgroups
     - setsockopt
     - setuid
@@ -119,6 +159,11 @@ spec:
     - socket
     - tgkill
     - tkill
+    - umask
+    - umount2
+    - unlink
+    - unlinkat
+    - unshare
     - uname
     - write
 
