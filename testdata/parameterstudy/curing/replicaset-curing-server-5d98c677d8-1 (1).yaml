@@ -1,0 +1,169 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-cure/kind-ReplicaSet/name-curing-server-5d98c677d8
+    kubescape.io/resource-size: "87"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-cure/deployment-curing-server
+  creationTimestamp: "2025-10-12T21:06:44Z"
+  labels:
+    kubescape.io/instance-template-hash: 5d98c677d8
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: curing-server
+    kubescape.io/workload-namespace: cure
+    kubescape.io/workload-resource-version: "9691"
+  name: replicaset-curing-server-5d98c677d8
+  namespace: cure
+  resourceVersion: "1"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities:
+    - NET_ADMIN
+    endpoints: null
+    execs:
+    - args:
+      - ./server
+      path: ./server
+    identifiedCallStacks: null
+    imageID: quay.io/benarmosec/curing@sha256:6b369d2a9c23f558653fb36c622c4938d0318013d557d046a93fb04b3dae2f3a
+    imageTag: quay.io/benarmosec/curing:1.3-server
+    name: server
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /app/commands.json
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /app/config.json
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/net/core/somaxconn
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /proc/⋯/task/1/fd
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    rulePolicies:
+      R0001:
+        processAllowed:
+        - server
+      R0002: {}
+      R0003: {}
+      R0004: {}
+      R0005: {}
+      R0006: {}
+      R0007: {}
+      R0008: {}
+      R0009: {}
+      R0010: {}
+      R0011: {}
+      R1000: {}
+      R1001: {}
+      R1002: {}
+      R1003: {}
+      R1004: {}
+      R1005: {}
+      R1006: {}
+      R1007: {}
+      R1008: {}
+      R1009: {}
+      R1010: {}
+      R1011: {}
+      R1012: {}
+      R1015: {}
+      R1030: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - arch_prctl
+    - bind
+    - capget
+    - capset
+    - chdir
+    - clock_gettime
+    - clone
+    - close
+    - close_range
+    - dup3
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat
+    - faccessat2
+    - fchdir
+    - fchmodat
+    - fchownat
+    - fcntl
+    - fsconfig
+    - fsmount
+    - fsopen
+    - fstat
+    - fstatfs
+    - futex
+    - getcwd
+    - getdents64
+    - getpid
+    - getppid
+    - getsockname
+    - gettid
+    - keyctl
+    - listen
+    - madvise
+    - mkdirat
+    - mknodat
+    - mmap
+    - mount
+    - mprotect
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open_tree
+    - openat
+    - openat2
+    - pivot_root
+    - prctl
+    - prlimit64
+    - read
+    - readlinkat
+    - recvfrom
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsid
+    - setsockopt
+    - setuid
+    - shutdown
+    - sigaltstack
+    - socket
+    - statfs
+    - statx
+    - symlinkat
+    - tgkill
+    - tkill
+    - umask
+    - umount2
+    - unlinkat
+    - write
+status: {}

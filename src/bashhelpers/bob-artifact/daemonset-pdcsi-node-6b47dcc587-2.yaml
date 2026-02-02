@@ -1,0 +1,70 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-kube-system/kind-DaemonSet/name-pdcsi-node-6b47dcc587
+    kubescape.io/resource-size: "19"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-kube-system/daemonset-pdcsi-node
+  creationTimestamp: "2025-12-14T17:59:45Z"
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: DaemonSet
+    kubescape.io/workload-name: pdcsi-node
+    kubescape.io/workload-namespace: kube-system
+    kubescape.io/workload-resource-version: "1765720664757503021"
+  name: daemonset-pdcsi-node-6b47dcc587
+  namespace: kube-system
+  resourceVersion: "6"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities: null
+    endpoints: null
+    execs: null
+    identifiedCallStacks: null
+    imageID: europe-west1-artifactregistry.gcr.io/gke-release/gke-release/csi-node-driver-registrar@sha256:4ae50172740cc284e41b6c18786da645b2df60d1721759d3e9b9c1a108c95a77
+    imageTag: europe-west1-artifactregistry.gcr.io/gke-release/gke-release/csi-node-driver-registrar@sha256:4ae50172740cc284e41b6c18786da645b2df60d1721759d3e9b9c1a108c95a77
+    name: csi-driver-registrar
+    opens: null
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - futex
+    - nanosleep
+  - capabilities: null
+    endpoints: null
+    execs: null
+    identifiedCallStacks: null
+    imageID: europe-west1-artifactregistry.gcr.io/gke-release/gke-release/gcp-compute-persistent-disk-csi-driver@sha256:6d77d3847e228b9298cd78a54c4600eaccd819cd648fd13268d7eecaa419bd52
+    imageTag: europe-west1-artifactregistry.gcr.io/gke-release/gke-release/gcp-compute-persistent-disk-csi-driver@sha256:6d77d3847e228b9298cd78a54c4600eaccd819cd648fd13268d7eecaa419bd52
+    name: gce-pd-driver
+    opens: null
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - close
+    - epoll_ctl
+    - epoll_pwait
+    - futex
+    - getpid
+    - getsockname
+    - getsockopt
+    - madvise
+    - nanosleep
+    - newfstatat
+    - read
+    - rt_sigreturn
+    - sched_yield
+    - statfs
+    - tgkill
+    - write
+status: {}

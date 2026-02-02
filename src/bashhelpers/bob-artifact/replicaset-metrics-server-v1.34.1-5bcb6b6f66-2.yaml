@@ -1,0 +1,61 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-kube-system/kind-ReplicaSet/name-metrics-server-v1.34.1-5bcb6b6f66
+    kubescape.io/resource-size: "20"
+    kubescape.io/status: completed
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-kube-system/deployment-metrics-server-v1.34.1
+  creationTimestamp: "2025-12-14T18:01:17Z"
+  labels:
+    kubescape.io/instance-template-hash: 5bcb6b6f66
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: metrics-server-v1.34.1
+    kubescape.io/workload-namespace: kube-system
+    kubescape.io/workload-resource-version: "1765715259295103022"
+  name: replicaset-metrics-server-v1.34.1-5bcb6b6f66
+  namespace: kube-system
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities: null
+    endpoints: null
+    execs: null
+    identifiedCallStacks: null
+    imageID: europe-west1-artifactregistry.gcr.io/gke-release/gke-release/metrics-server@sha256:6d492cdefe6ca4b4582f37318b70fb2098cb35058f04128fb9f5a4cf9bd73243
+    imageTag: europe-west1-artifactregistry.gcr.io/gke-release/gke-release/metrics-server@sha256:6d492cdefe6ca4b4582f37318b70fb2098cb35058f04128fb9f5a4cf9bd73243
+    name: metrics-server
+    opens:
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /var/run/secrets/kubernetes.io/serviceaccount/..2025_12_14_17_17_29.2465107839/token
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - accept4
+    - close
+    - epoll_ctl
+    - epoll_pwait
+    - fcntl
+    - fstat
+    - futex
+    - getpid
+    - getrandom
+    - getsockname
+    - nanosleep
+    - openat
+    - read
+    - rt_sigreturn
+    - sched_yield
+    - setsockopt
+    - tgkill
+    - write
+status: {}
