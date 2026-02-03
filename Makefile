@@ -15,6 +15,8 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 GO_LDFLAGS := -s -w -X main.version=$(VERSION)
 REPO_ROOT := $(shell git rev-parse --show-toplevel)
+WEBAPP_POD := $(shell kubectl get pods --namespace webapp -l "app.kubernetes.io/name=mywebapp,app.kubernetes.io/instance=webapp" -o jsonpath="{.items[0].metadata.name}")
+
 
 
 .PHONY: all
@@ -109,6 +111,17 @@ fwd:
 	-sudo kill -9 $$(sudo lsof -t -i :8080)
 	kubectl --namespace webapp port-forward $$(kubectl get pods --namespace webapp -l "app.kubernetes.io/name=mywebapp,app.kubernetes.io/instance=webapp" -o jsonpath="{.items[0].metadata.name}") 8080:80 &
 
+.PHONY: fileopenattack
+fileopenattack:
+	kubectl exec -n webapp $(WEBAPP_POD) -- cat /etc/apache2/apache2.conf
+	kubectl exec -n webapp $(WEBAPP_POD) -- touch /tmp/pwned
+	kubectl exec -n webapp $(WEBAPP_POD) -- echo hi > /tmp/pwned
+	kubectl exec -n webapp $(WEBAPP_POD) -- cat /tmp/pwned
+	kubectl exec -n webapp $(WEBAPP_POD) -- rm /tmp/pwned
+
+
+
+
 .PHONY: attack # this is only for the webapp
 attack:
 	curl 127.0.0.1:8080/ping.php?ip=1.1.1.1\;ls
@@ -133,7 +146,7 @@ kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
-	-kubectl apply  -f kubescape/runtimerules.yaml
+	-kubectl apply  -f kubescape/default-rules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
 	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
@@ -151,20 +164,10 @@ kubescape-vendor:
 	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
 
 
-.PHONY: storage
-storage:
-	kubectl apply -f https://openebs.github.io/charts/openebs-operator-lite.yaml
-	kubectl apply -f https://openebs.github.io/charts/openebs-lite-sc.yaml
-	kubectl apply -f kubescape/storage/sc.yaml
-	kubectl patch storageclass local-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-
 
 .PHONY: wipe
 wipe:
 	-sudo kill -9 $$(sudo lsof -t -i :8080)
-	-kubectl delete -f kubescape/storage/sc.yaml
-	-kubectl delete -f https://openebs.github.io/charts/openebs-operator-lite.yaml
-	-kubectl delete -f https://openebs.github.io/charts/openebs-lite-sc.yaml
 	-$(HELM) uninstall -n honey kubescape
 	-$(HELM) uninstall -n webapp webapp
 	-$(HELM) uninstall -n bob bob
@@ -225,4 +228,3 @@ nothing:
 	#helm dependency update myredis-umbrella-chart/redis-bob/
 	#helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
 	#helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false  --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')  ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
-
