@@ -5,6 +5,9 @@ BUILD_DIR := bin
 GO ?= go
 GO_VERSION ?= 1.24
 KUBESCAPE_CHART_VER ?= 1.30.2
+GHCR_ORG ?= k8sstormcenter
+STORAGE_TAG ?=
+NODEAGENT_TAG ?=
 
 OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
 HELM = $(shell which helm)
@@ -142,15 +145,34 @@ kubescape-orig:
 
 
 .PHONY: kubescape
-kubescape: 
-	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
-	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
-	-kubectl apply  -f kubescape/default-rules.yaml
-	sleep 5
-	-kubectl rollout restart -n honey ds node-agent
-	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
-	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
+kubescape:
+	@if [ -z "$(STORAGE_TAG)" ]; then \
+		echo "Auto-detecting newest storage tag from ghcr.io/$(GHCR_ORG) ..."; \
+		STORAGE_TAG=$$(./scripts/fetch-newest-tag.sh $(GHCR_ORG)/storage); \
+	else \
+		STORAGE_TAG="$(STORAGE_TAG)"; \
+	fi && \
+	if [ -z "$(NODEAGENT_TAG)" ]; then \
+		echo "Auto-detecting newest node-agent tag from ghcr.io/$(GHCR_ORG) ..."; \
+		NODEAGENT_TAG=$$(./scripts/fetch-newest-tag.sh $(GHCR_ORG)/node-agent); \
+	else \
+		NODEAGENT_TAG="$(NODEAGENT_TAG)"; \
+	fi && \
+	echo "Using storage:$${STORAGE_TAG}  node-agent:$${NODEAGENT_TAG}" && \
+	$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/ || true && \
+	$(HELM) repo update && \
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator \
+		--version $(KUBESCAPE_CHART_VER) -n honey --create-namespace \
+		--values kubescape/values.yaml \
+		--set storage.image.repository=ghcr.io/$(GHCR_ORG)/storage \
+		--set storage.image.tag=$${STORAGE_TAG} \
+		--set nodeAgent.image.repository=ghcr.io/$(GHCR_ORG)/node-agent \
+		--set nodeAgent.image.tag=$${NODEAGENT_TAG} && \
+	kubectl apply -f kubescape/default-rules.yaml && \
+	sleep 5 && \
+	kubectl rollout restart -n honey ds node-agent && \
+	kubectl wait --for=condition=ready pod -l app=kubevuln -n honey --timeout 120s && \
+	kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout 120s
 
 .PHONY: kubescape-vendor
 kubescape-vendor: 
