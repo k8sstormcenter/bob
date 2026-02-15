@@ -186,6 +186,3 @@ echo "Waiting for rollout to complete..."
 kubectl rollout status deployment webapp-mywebapp -n webapp
 echo
 
-echo "Verifying the new profile is being used..."
-kubectl logs -l app=node-agent -n honey --tail=50 | grep "webapp-profile" || echo "Profile not found in recent logs yet. It may take a moment."
-echo
