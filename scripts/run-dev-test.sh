@@ -1,12 +1,6 @@
 #!/bin/bash
 set -e
 
-rm -rf bobctl
-git clone https://github.com/k8sstormcenter/bobctl.git
-cd bobctl
-git checkout test/localtestbuild
-
-
 
 read -p "Please enter the image tag for storage : " IMAGE_TAG
 read -p "Please enter the image tag for node-agent: " NIMAGE_TAG
