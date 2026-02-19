@@ -1,15 +1,15 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: "wildcardopen02"
+    tag: "dev-e07cb14"
 
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: "04"
+    tag: "dev-e07cb14"
   config:
-    maxLearningPeriod: 10m
-    learningPeriod: 5m 
+    maxLearningPeriod: 2m
+    learningPeriod: 2m 
     updatePeriod: 10000m 
     ruleCooldown:
       ruleCooldownDuration: 0h
@@ -25,5 +25,3 @@ alertCRD:
 clusterName: bobexample
 ksNamespace: honey
 excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,kubeconfig,gmp-system,gmp-public,storm,lightening,cert-manager,kube-flannel,ingress-nginx,olm,px-operator,honey"
-linuxAudit:
-  enabled: true
