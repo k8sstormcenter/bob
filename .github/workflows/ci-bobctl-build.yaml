@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-          token: ${{ secrets.PRIVATE_REPO_PAT }}
+          token: ${{ secrets.BOB_PRIVATE_DEPLOY_KEY }}
 
       # The go.mod replace directive: ../../storage relative to pkg/
       - name: Clone storage dependency

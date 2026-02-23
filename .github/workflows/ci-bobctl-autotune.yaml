@@ -69,6 +69,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
 
       - name: Download bobctl binary
         uses: actions/download-artifact@v4
