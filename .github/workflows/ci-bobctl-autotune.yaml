@@ -22,12 +22,11 @@ jobs:
     name: Build bobctl
     runs-on: ubuntu-latest
     steps:
-    steps:
       - name: Checkout repo and private submodules
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-          token: ${{ secrets.PRIVATE_REPO_PAT }}
+          token: ${{ secrets.BOB_PRIVATE_DEPLOY_KEY }}
 
       - name: Clone storage dependency
         run: |
