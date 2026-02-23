@@ -22,13 +22,12 @@ jobs:
     name: Build bobctl
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout outer repo (without submodules)
+    steps:
+      - name: Checkout repo and private submodules
         uses: actions/checkout@v4
-
-      - name: Clone pkg submodule
-        run: |
-          rm -rf pkg
-          git clone --depth 1 https://x-access-token:${{ secrets.PRIVATE_REPO_PAT }}@github.com/entlein/bob.git pkg
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
 
       - name: Clone storage dependency
         run: |

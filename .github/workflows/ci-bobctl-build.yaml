@@ -19,16 +19,11 @@ jobs:
     name: Build & vet
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout outer repo (without submodules)
+      - name: Checkout repo and private submodules
         uses: actions/checkout@v4
-
-      # Clone the private submodule manually using a PAT.
-      # The .gitmodules points pkg/ to git@github.com:entlein/bob.git
-      # which the default GITHUB_TOKEN cannot access.
-      - name: Clone pkg submodule
-        run: |
-          rm -rf pkg
-          git clone --depth 1 https://x-access-token:${{ secrets.PRIVATE_REPO_PAT }}@github.com/entlein/bob.git pkg
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
 
       # The go.mod replace directive: ../../storage relative to pkg/
       - name: Clone storage dependency
