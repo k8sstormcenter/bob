@@ -27,7 +27,7 @@ jobs:
 
       - name: Clone storage dependency
         run: |
-          git clone --depth 1 https://github.com/k8sstormcenter/storage.git ../storage
+          git clone --depth 1 --branch feature/tuning https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Verify layout
         run: |
