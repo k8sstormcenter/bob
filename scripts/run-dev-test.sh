@@ -64,13 +64,20 @@ make helm-install-no-bob
 
 make fwd
 
-echo "Waiting for ApplicationProfile to be ready..."
-while ! kubectl get applicationprofiles.spdx.softwarecomposition.kubescape.io replicaset-webapp-mywebapp-c8bdd6944 -n webapp &> /dev/null; do
-  echo "Waiting for ApplicationProfile replicaset-webapp-mywebapp-c8bdd6944 in namespace webapp..."
-  sleep 5
-done
+echo "Waiting for ApplicationProfiles to reach completed status..."
+bobctl learn -n webapp --timeout 10m
 
 echo "ApplicationProfile is ready. Exporting to webapp-profile.yaml..."
 kubectl get applicationprofiles.spdx.softwarecomposition.kubescape.io replicaset-webapp-mywebapp-c8bdd6944 -n webapp -o yaml > webapp-profile.yaml
 echo "ApplicationProfile exported successfully to webapp-profile.yaml"
 echo
+
+# Optional: run automated iterative tuning
+# bobctl autotune \
+#   --profile replicaset-webapp-mywebapp-c8bdd6944 \
+#   -n webapp \
+#   --url http://localhost:8081 \
+#   --alertmanager-url http://localhost:9093 \
+#   --ks-namespace honey \
+#   --max-iterations 10 \
+#   -v

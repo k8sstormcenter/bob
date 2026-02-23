@@ -1,0 +1,42 @@
+name: CI - bobctl build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pkg/**'
+      - '.github/workflows/ci-bobctl-build.yaml'
+  pull_request:
+    paths:
+      - 'pkg/**'
+      - '.github/workflows/ci-bobctl-build.yaml'
+
+jobs:
+  build:
+    name: Build & vet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: pkg/go.sum
+
+      - name: go vet
+        run: |
+          cd pkg
+          go vet ./...
+
+      - name: Build bobctl
+        run: |
+          cd pkg
+          go build -o ../bin/bobctl ./main.go
+
+      - name: Verify help output
+        run: |
+          bin/bobctl --help
+          bin/bobctl autotune --help

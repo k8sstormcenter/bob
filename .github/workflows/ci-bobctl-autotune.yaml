@@ -1,0 +1,201 @@
+name: CI - bobctl autotune
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pkg/**'
+      - 'kubescape/**'
+      - 'example/mywebapp-chart/**'
+      - '.github/workflows/ci-bobctl-autotune.yaml'
+      - 'Makefile'
+  pull_request:
+    paths:
+      - 'pkg/**'
+      - 'kubescape/**'
+      - 'example/mywebapp-chart/**'
+      - '.github/workflows/ci-bobctl-autotune.yaml'
+      - 'Makefile'
+
+jobs:
+  build:
+    name: Build bobctl
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: pkg/go.sum
+
+      - name: Build bobctl
+        run: |
+          cd pkg
+          go build -o ../bin/bobctl ./main.go
+
+      - name: Upload bobctl binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: bobctl
+          path: bin/bobctl
+
+  autotune:
+    name: Autotune webapp (${{ matrix.os }}, ${{ matrix.k8s-distribution }})
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        k8s-distribution: [k3s]
+        kubernetes-version: [v1.33.3]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download bobctl binary
+        uses: actions/download-artifact@v4
+        with:
+          name: bobctl
+          path: bin
+
+      - name: Make bobctl executable
+        run: chmod +x bin/bobctl
+
+      - name: Set up k3s cluster
+        if: matrix.k8s-distribution == 'k3s'
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+
+      - name: Set up Kind cluster
+        if: matrix.k8s-distribution == 'kind'
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+
+      - name: Verify cluster
+        run: |
+          kubectl version
+          kubectl get nodes
+          uname -a
+          helm version
+
+      - name: Install kubescape
+        run: make kubescape
+
+      - name: Install webapp
+        run: |
+          make helm-install-no-bob
+          kubectl wait --for=condition=available --timeout=120s deployment/webapp-mywebapp -n webapp
+
+      - name: Wait for kubescape components
+        run: |
+          kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=storage -n honey --timeout=180s
+
+      - name: Port-forward webapp
+        run: |
+          kubectl --namespace webapp port-forward svc/webapp-mywebapp 8081:80 &
+          sleep 3
+          curl -sf http://localhost:8081/ > /dev/null && echo "Webapp reachable" || echo "Webapp not yet reachable"
+
+      - name: Port-forward alertmanager
+        run: |
+          kubectl -n honey port-forward svc/alertmanager 9093:9093 &
+          sleep 2
+
+      - name: Wait for profile learning
+        run: |
+          bin/bobctl learn -n webapp --timeout 10m -v
+
+      - name: Discover profile name
+        id: profile
+        run: |
+          PROFILE=$(kubectl get applicationprofiles -n webapp -o jsonpath='{.items[0].metadata.name}')
+          echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
+          echo "Discovered profile: $PROFILE"
+
+      - name: Run autotune
+        id: autotune
+        continue-on-error: true
+        run: |
+          bin/bobctl autotune \
+            --profile "${{ steps.profile.outputs.name }}" \
+            -n webapp \
+            --url http://localhost:8081 \
+            --alertmanager-url http://localhost:9093 \
+            --ks-namespace honey \
+            --max-iterations 10 \
+            --learn-timeout 5m \
+            -v 2>&1 | tee /tmp/autotune-output.txt
+
+      - name: Collect diagnostics
+        if: always()
+        run: |
+          echo "--- Node-agent logs ---"
+          kubectl logs -n honey -l app=node-agent --tail=100 || true
+          echo "--- Storage logs ---"
+          kubectl logs -n honey -l app=storage --tail=50 || true
+          echo "--- Alertmanager alerts ---"
+          curl -sf http://localhost:9093/api/v2/alerts?active=true | jq '.[].labels' 2>/dev/null || echo "No alerts or alertmanager unreachable"
+
+      - name: Prepare result artifact
+        if: always()
+        run: |
+          KERNEL_VERSION=$(uname -r)
+          mkdir -p results
+          cat << EOF > results/summary.json
+          {
+            "os": "${{ matrix.os }}",
+            "k8s_distribution": "${{ matrix.k8s-distribution }}",
+            "kubernetes_version": "${{ matrix.kubernetes-version }}",
+            "kernel_version": "$KERNEL_VERSION",
+            "profile": "${{ steps.profile.outputs.name }}",
+            "autotune_exit_code": "${{ steps.autotune.outcome }}"
+          }
+          EOF
+          cp /tmp/autotune-output.txt results/ 2>/dev/null || true
+
+      - name: Upload result artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: result-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+          path: results/
+
+  summarize:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: autotune
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate summary table
+        run: |
+          echo '### bobctl autotune — Matrix Results' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '| OS | K8s Distro | K8s Version | Kernel | Profile | Autotune |' >> $GITHUB_STEP_SUMMARY
+          echo '|----|------------|-------------|--------|---------|----------|' >> $GITHUB_STEP_SUMMARY
+
+          for dir in artifacts/result-*; do
+            if [ -f "$dir/summary.json" ]; then
+              OS=$(jq -r '.os' "$dir/summary.json")
+              K8S_DISTRO=$(jq -r '.k8s_distribution' "$dir/summary.json")
+              K8S_VERSION=$(jq -r '.kubernetes_version' "$dir/summary.json")
+              KERNEL=$(jq -r '.kernel_version' "$dir/summary.json")
+              PROFILE=$(jq -r '.profile' "$dir/summary.json")
+              EXIT=$(jq -r '.autotune_exit_code' "$dir/summary.json")
+              if [ "$EXIT" == "success" ]; then STATUS="Pass"; else STATUS="$EXIT"; fi
+              echo "| $OS | $K8S_DISTRO | $K8S_VERSION | $KERNEL | \`$PROFILE\` | $STATUS |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
