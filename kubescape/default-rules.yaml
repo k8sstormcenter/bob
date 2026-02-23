@@ -717,3 +717,30 @@ spec:
         - syscalls
         - io_uring
         - applicationprofile
+    - description: >-
+        Detects plaintext exec API calls intercepted from kubelet TLS
+        connections, indicating potential unauthorized command execution via the
+        kubelet API.
+      enabled: true
+      expressions:
+        message: >-
+          'Kubelet TLS exec request intercepted: ' + event.tlsData + ' (len='
+          + string(event.tlsDataLen) + ', type=' + string(event.tlsEventType) +
+          ') in ' + event.comm + '.'
+        ruleExpression:
+          - eventType: kubelet_tls
+            expression: 'true'
+        uniqueId: event.comm + '_' + string(event.tlsEventType)
+      id: R1031
+      isTriggerAlert: true
+      mitreTactic: TA0002
+      mitreTechnique: T1609
+      name: Kubelet TLS Exec Request Detected
+      profileDependency: 0
+      severity: 8
+      supportPolicy: false
+      tags:
+        - kubelet
+        - tls
+        - exec
+        - container_administration_command

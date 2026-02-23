@@ -60,14 +60,9 @@ spec:
       - apache2-foreground
       path: /usr/local/bin/docker-php-entrypoint
     - args:
+      - /usr/bin/touch
       - '*'
       path: /usr/bin/touch
-    - args:
-      - '*'
-      path: /bin/cat
-    - args:
-      - '*'
-      path: /bin/echo
     identifiedCallStacks: null
     imageID: ghcr.io/k8sstormcenter/webapp@sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b
     imageTag: ghcr.io/k8sstormcenter/webapp@sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b
