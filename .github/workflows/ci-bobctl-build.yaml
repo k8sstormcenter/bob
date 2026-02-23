@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - feature/tuning
     paths:
       - 'pkg/**'
-      - '.github/workflows/ci-bobctl-build.yaml'
+      - '.github/workflows/**'
+  workflow_dispatch:
 
 # Only runs on push to main — not on PRs.
 # The pkg/ submodule lives in a private repo (entlein/bob) and requires

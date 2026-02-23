@@ -4,12 +4,14 @@ on:
   push:
     branches:
       - main
+      - feature/tuning
     paths:
       - 'pkg/**'
       - 'kubescape/**'
       - 'example/mywebapp-chart/**'
-      - '.github/workflows/ci-bobctl-autotune.yaml'
+      - '.github/workflows/**'
       - 'Makefile'
+  workflow_dispatch:
 
 # Only runs on push to main — not on PRs.
 # The pkg/ submodule lives in a private repo (entlein/bob) and requires
