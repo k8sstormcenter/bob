@@ -18,6 +18,10 @@ on:
       - '.github/workflows/ci-bobctl-autotune.yaml'
       - 'Makefile'
 
+# Security: The pkg/ submodule (entlein/bob) is private. Checkout requires
+# the BOB_SUBMODULE_KEY deploy key, which is only available to pushes and
+# PRs from collaborators — never exposed to fork PRs.
+
 jobs:
   build:
     name: Build bobctl
@@ -25,6 +29,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ssh-key: ${{ secrets.BOB_SUBMODULE_KEY }}
+
+      # The go.mod replace directive points to ../../storage relative to pkg/.
+      # Clone the storage repo so the replace resolves correctly.
+      - name: Clone storage dependency
+        run: |
+          git clone --depth 1 https://github.com/k8sstormcenter/storage.git ../storage
+
+      - name: Verify checkout
+        run: |
+          echo "=== pkg/ contents ==="
+          ls -la pkg/
+          head -5 pkg/go.mod
+          echo "=== storage ==="
+          ls ../storage/go.mod
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -33,9 +54,8 @@ jobs:
           cache-dependency-path: pkg/go.sum
 
       - name: Build bobctl
-        run: |
-          cd pkg
-          go build -o ../bin/bobctl ./main.go
+        working-directory: pkg
+        run: go build -o ../bin/bobctl ./main.go
 
       - name: Upload bobctl binary
         uses: actions/upload-artifact@v4

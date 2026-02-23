@@ -12,6 +12,10 @@ on:
       - 'pkg/**'
       - '.github/workflows/ci-bobctl-build.yaml'
 
+# Security: The pkg/ submodule (entlein/bob) is private. Checkout requires
+# the BOB_SUBMODULE_KEY deploy key, which is only available to pushes and
+# PRs from collaborators — never exposed to fork PRs.
+
 jobs:
   build:
     name: Build & vet
@@ -19,6 +23,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ssh-key: ${{ secrets.BOB_SUBMODULE_KEY }}
+
+      # The go.mod replace directive points to ../../storage relative to pkg/.
+      # Clone the storage repo so the replace resolves correctly.
+      - name: Clone storage dependency
+        run: |
+          git clone --depth 1 https://github.com/k8sstormcenter/storage.git ../storage
+
+      - name: Verify checkout
+        run: |
+          echo "=== Workspace layout ==="
+          ls -la pkg/
+          echo "=== go.mod ==="
+          head -5 pkg/go.mod
+          echo "=== storage ==="
+          ls ../storage/go.mod
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -27,14 +49,12 @@ jobs:
           cache-dependency-path: pkg/go.sum
 
       - name: go vet
-        run: |
-          cd pkg
-          go vet ./...
+        working-directory: pkg
+        run: go vet ./...
 
       - name: Build bobctl
-        run: |
-          cd pkg
-          go build -o ../bin/bobctl ./main.go
+        working-directory: pkg
+        run: go build -o ../bin/bobctl ./main.go
 
       - name: Verify help output
         run: |
