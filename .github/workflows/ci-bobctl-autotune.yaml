@@ -13,9 +13,6 @@ on:
       - 'Makefile'
   workflow_dispatch:
 
-# Only runs on push to main — not on PRs.
-# The pkg/ submodule lives in a private repo (entlein/bob) and requires
-# PRIVATE_REPO_PAT to clone. This secret must never be exposed to fork PRs.
 
 jobs:
   build:
@@ -26,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-          token: ${{ secrets.BOB_PRIVATE_DEPLOY_KEY }}
+          token: ${{ secrets.ENTLEIN_PAT}}
 
       - name: Clone storage dependency
         run: |
