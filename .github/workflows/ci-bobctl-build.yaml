@@ -7,39 +7,37 @@ on:
     paths:
       - 'pkg/**'
       - '.github/workflows/ci-bobctl-build.yaml'
-  pull_request:
-    paths:
-      - 'pkg/**'
-      - '.github/workflows/ci-bobctl-build.yaml'
 
-# Security: The pkg/ submodule (entlein/bob) is private. Checkout requires
-# the BOB_SUBMODULE_KEY deploy key, which is only available to pushes and
-# PRs from collaborators — never exposed to fork PRs.
+# Only runs on push to main — not on PRs.
+# The pkg/ submodule lives in a private repo (entlein/bob) and requires
+# PRIVATE_REPO_PAT to clone. This secret must never be exposed to fork PRs.
 
 jobs:
   build:
     name: Build & vet
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout outer repo (without submodules)
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          ssh-key: ${{ secrets.BOB_SUBMODULE_KEY }}
 
-      # The go.mod replace directive points to ../../storage relative to pkg/.
-      # Clone the storage repo so the replace resolves correctly.
+      # Clone the private submodule manually using a PAT.
+      # The .gitmodules points pkg/ to git@github.com:entlein/bob.git
+      # which the default GITHUB_TOKEN cannot access.
+      - name: Clone pkg submodule
+        run: |
+          rm -rf pkg
+          git clone --depth 1 https://x-access-token:${{ secrets.PRIVATE_REPO_PAT }}@github.com/entlein/bob.git pkg
+
+      # The go.mod replace directive: ../../storage relative to pkg/
       - name: Clone storage dependency
         run: |
           git clone --depth 1 https://github.com/k8sstormcenter/storage.git ../storage
 
-      - name: Verify checkout
+      - name: Verify layout
         run: |
-          echo "=== Workspace layout ==="
-          ls -la pkg/
-          echo "=== go.mod ==="
-          head -5 pkg/go.mod
-          echo "=== storage ==="
+          echo "=== pkg/ ==="
+          ls pkg/go.mod pkg/main.go
+          echo "=== storage/ ==="
           ls ../storage/go.mod
 
       - name: Set up Go

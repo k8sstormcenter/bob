@@ -10,41 +10,31 @@ on:
       - 'example/mywebapp-chart/**'
       - '.github/workflows/ci-bobctl-autotune.yaml'
       - 'Makefile'
-  pull_request:
-    paths:
-      - 'pkg/**'
-      - 'kubescape/**'
-      - 'example/mywebapp-chart/**'
-      - '.github/workflows/ci-bobctl-autotune.yaml'
-      - 'Makefile'
 
-# Security: The pkg/ submodule (entlein/bob) is private. Checkout requires
-# the BOB_SUBMODULE_KEY deploy key, which is only available to pushes and
-# PRs from collaborators — never exposed to fork PRs.
+# Only runs on push to main — not on PRs.
+# The pkg/ submodule lives in a private repo (entlein/bob) and requires
+# PRIVATE_REPO_PAT to clone. This secret must never be exposed to fork PRs.
 
 jobs:
   build:
     name: Build bobctl
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout outer repo (without submodules)
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          ssh-key: ${{ secrets.BOB_SUBMODULE_KEY }}
 
-      # The go.mod replace directive points to ../../storage relative to pkg/.
-      # Clone the storage repo so the replace resolves correctly.
+      - name: Clone pkg submodule
+        run: |
+          rm -rf pkg
+          git clone --depth 1 https://x-access-token:${{ secrets.PRIVATE_REPO_PAT }}@github.com/entlein/bob.git pkg
+
       - name: Clone storage dependency
         run: |
           git clone --depth 1 https://github.com/k8sstormcenter/storage.git ../storage
 
-      - name: Verify checkout
+      - name: Verify layout
         run: |
-          echo "=== pkg/ contents ==="
-          ls -la pkg/
-          head -5 pkg/go.mod
-          echo "=== storage ==="
+          ls pkg/go.mod pkg/main.go
           ls ../storage/go.mod
 
       - name: Set up Go
@@ -55,7 +45,8 @@ jobs:
 
       - name: Build bobctl
         working-directory: pkg
-        run: go build -o ../bin/bobctl ./main.go
+        run: |
+          go build -o ../bin/bobctl ./main.go
 
       - name: Upload bobctl binary
         uses: actions/upload-artifact@v4
