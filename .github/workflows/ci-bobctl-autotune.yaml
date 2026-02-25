@@ -110,6 +110,9 @@ jobs:
       - name: Install kubescape
         run: make kubescape
 
+      - name: Install alertmanager
+        run: make alertmanager
+
       - name: Install webapp
         run: |
           make helm-install-no-bob
@@ -119,17 +122,7 @@ jobs:
         run: |
           kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=180s
           kubectl wait --for=condition=ready pod -l app=storage -n honey --timeout=180s
-
-      - name: Port-forward webapp
-        run: |
-          kubectl --namespace webapp port-forward svc/webapp-mywebapp 8081:80 &
-          sleep 3
-          curl -sf http://localhost:8081/ > /dev/null && echo "Webapp reachable" || echo "Webapp not yet reachable"
-
-      - name: Port-forward alertmanager
-        run: |
-          kubectl -n honey port-forward svc/alertmanager 9093:9093 &
-          sleep 2
+          kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 
       - name: Wait for profile learning
         run: |
@@ -165,31 +158,27 @@ jobs:
           bin/bobctl get "${{ steps.profile.outputs.name }}" -n webapp -o yaml > results/tuned-profile.yaml || true
           echo "Exported tuned profile ($(wc -l < results/tuned-profile.yaml) lines)"
 
-      - name: Reconnect port-forwards
-        if: always()
-        run: |
-          # Kill stale port-forwards and re-establish
-          pkill -f 'port-forward.*8081' || true
-          pkill -f 'port-forward.*9093' || true
-          sleep 1
-          kubectl --namespace webapp port-forward svc/webapp-mywebapp 8081:80 &
-          kubectl -n honey port-forward svc/alertmanager 9093:9093 &
-          sleep 3
-          curl -sf http://localhost:8081/ > /dev/null && echo "Webapp reachable" || echo "Webapp not reachable"
-          curl -sf http://localhost:9093/-/healthy > /dev/null && echo "Alertmanager reachable" || echo "Alertmanager not reachable"
-
       - name: Run explicit attacks
         if: always()
         run: |
           mkdir -p results
-          bin/bobctl attack --url http://localhost:8081 --format markdown | tee results/attack-results.md
+          bin/bobctl attack \
+            --service webapp-mywebapp \
+            --service-port 8080 \
+            -n webapp \
+            --format markdown | tee results/attack-results.md
 
       - name: Generate detection report
         if: always()
         run: |
           sleep 15  # wait for alert propagation
           mkdir -p results
-          bin/bobctl report --alertmanager-url http://localhost:9093 -n webapp --format markdown | tee results/detection-report.md
+          bin/bobctl report \
+            --alertmanager-service alertmanager \
+            --alertmanager-port 9093 \
+            --ks-namespace honey \
+            -n webapp \
+            --format markdown | tee results/detection-report.md
 
       - name: Collect diagnostics
         if: always()
@@ -199,7 +188,7 @@ jobs:
           echo "--- Storage logs ---"
           kubectl logs -n honey -l app=storage --tail=50 || true
           echo "--- Alertmanager alerts ---"
-          curl -sf http://localhost:9093/api/v2/alerts?active=true | jq '.[].labels' 2>/dev/null || echo "No alerts or alertmanager unreachable"
+          kubectl get --raw "/api/v1/namespaces/honey/services/alertmanager:9093/proxy/api/v2/alerts?active=true" 2>/dev/null | jq '.[].labels' || echo "No alerts or alertmanager unreachable"
 
       - name: Prepare result artifact
         if: always()
