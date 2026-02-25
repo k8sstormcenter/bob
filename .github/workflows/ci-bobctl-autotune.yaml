@@ -12,6 +12,8 @@ on:
       - '.github/workflows/**'
       - 'Makefile'
   workflow_dispatch:
+  repository_dispatch:
+    types: [node-agent-build-complete]
 
 
 jobs:
@@ -67,6 +69,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.ENTLEIN_PAT}}
+
+      - name: Patch image tags from dispatch
+        if: github.event_name == 'repository_dispatch'
+        run: |
+          TAG="${{ github.event.client_payload.image_tag }}"
+          echo "Patching kubescape/values.yaml with tag: ${TAG}"
+          sed -i "s|tag: \"dev-[a-f0-9]*\"|tag: \"${TAG}\"|g" kubescape/values.yaml
+          echo "Updated values.yaml:"
+          grep 'tag:' kubescape/values.yaml
 
       - name: Download bobctl binary
         uses: actions/download-artifact@v4
@@ -138,12 +149,47 @@ jobs:
           bin/bobctl autotune \
             --profile "${{ steps.profile.outputs.name }}" \
             -n webapp \
-            --url http://localhost:8081 \
-            --alertmanager-url http://localhost:9093 \
             --ks-namespace honey \
+            --service webapp-mywebapp \
+            --service-port 8080 \
+            --alertmanager-service alertmanager \
+            --alertmanager-port 9093 \
             --max-iterations 10 \
             --learn-timeout 5m \
             -v 2>&1 | tee /tmp/autotune-output.txt
+
+      - name: Export tuned ApplicationProfile
+        if: always()
+        run: |
+          mkdir -p results
+          bin/bobctl get "${{ steps.profile.outputs.name }}" -n webapp -o yaml > results/tuned-profile.yaml || true
+          echo "Exported tuned profile ($(wc -l < results/tuned-profile.yaml) lines)"
+
+      - name: Reconnect port-forwards
+        if: always()
+        run: |
+          # Kill stale port-forwards and re-establish
+          pkill -f 'port-forward.*8081' || true
+          pkill -f 'port-forward.*9093' || true
+          sleep 1
+          kubectl --namespace webapp port-forward svc/webapp-mywebapp 8081:80 &
+          kubectl -n honey port-forward svc/alertmanager 9093:9093 &
+          sleep 3
+          curl -sf http://localhost:8081/ > /dev/null && echo "Webapp reachable" || echo "Webapp not reachable"
+          curl -sf http://localhost:9093/-/healthy > /dev/null && echo "Alertmanager reachable" || echo "Alertmanager not reachable"
+
+      - name: Run explicit attacks
+        if: always()
+        run: |
+          mkdir -p results
+          bin/bobctl attack --url http://localhost:8081 --format markdown | tee results/attack-results.md
+
+      - name: Generate detection report
+        if: always()
+        run: |
+          sleep 15  # wait for alert propagation
+          mkdir -p results
+          bin/bobctl report --alertmanager-url http://localhost:9093 -n webapp --format markdown | tee results/detection-report.md
 
       - name: Collect diagnostics
         if: always()
@@ -160,6 +206,14 @@ jobs:
         run: |
           KERNEL_VERSION=$(uname -r)
           mkdir -p results
+
+          # Extract metrics from autotune output
+          IMAGE_TAG=$(grep 'tag:' kubescape/values.yaml | head -1 | sed 's/.*tag: "\(.*\)"/\1/')
+          SCORE=$(grep -oP 'score[:\s]+\K[0-9.]+' /tmp/autotune-output.txt 2>/dev/null | tail -1 || echo "N/A")
+          MISSED=$(grep -ciP 'missed|undetected' /tmp/autotune-output.txt 2>/dev/null || echo "0")
+          FP=$(grep -ciP 'false.positive' /tmp/autotune-output.txt 2>/dev/null || echo "0")
+          RESULT="${{ steps.autotune.outcome }}"
+
           cat << EOF > results/summary.json
           {
             "os": "${{ matrix.os }}",
@@ -167,7 +221,12 @@ jobs:
             "kubernetes_version": "${{ matrix.kubernetes-version }}",
             "kernel_version": "$KERNEL_VERSION",
             "profile": "${{ steps.profile.outputs.name }}",
-            "autotune_exit_code": "${{ steps.autotune.outcome }}"
+            "autotune_exit_code": "$RESULT",
+            "image_tag": "$IMAGE_TAG",
+            "score": "$SCORE",
+            "missed": "$MISSED",
+            "false_positives": "$FP",
+            "result": "$RESULT"
           }
           EOF
           cp /tmp/autotune-output.txt results/ 2>/dev/null || true
@@ -194,8 +253,8 @@ jobs:
         run: |
           echo '### bobctl autotune — Matrix Results' >> $GITHUB_STEP_SUMMARY
           echo '' >> $GITHUB_STEP_SUMMARY
-          echo '| OS | K8s Distro | K8s Version | Kernel | Profile | Autotune |' >> $GITHUB_STEP_SUMMARY
-          echo '|----|------------|-------------|--------|---------|----------|' >> $GITHUB_STEP_SUMMARY
+          echo '| OS | K8s Distro | K8s Version | Kernel | Image Tag | Profile | Score | Missed | FP | Result |' >> $GITHUB_STEP_SUMMARY
+          echo '|----|------------|-------------|--------|-----------|---------|-------|--------|----|--------|' >> $GITHUB_STEP_SUMMARY
 
           for dir in artifacts/result-*; do
             if [ -f "$dir/summary.json" ]; then
@@ -205,7 +264,34 @@ jobs:
               KERNEL=$(jq -r '.kernel_version' "$dir/summary.json")
               PROFILE=$(jq -r '.profile' "$dir/summary.json")
               EXIT=$(jq -r '.autotune_exit_code' "$dir/summary.json")
+              IMAGE_TAG=$(jq -r '.image_tag // "N/A"' "$dir/summary.json")
+              SCORE=$(jq -r '.score // "N/A"' "$dir/summary.json")
+              MISSED=$(jq -r '.missed // "0"' "$dir/summary.json")
+              FP=$(jq -r '.false_positives // "0"' "$dir/summary.json")
               if [ "$EXIT" == "success" ]; then STATUS="Pass"; else STATUS="$EXIT"; fi
-              echo "| $OS | $K8S_DISTRO | $K8S_VERSION | $KERNEL | \`$PROFILE\` | $STATUS |" >> $GITHUB_STEP_SUMMARY
+              echo "| $OS | $K8S_DISTRO | $K8S_VERSION | $KERNEL | \`$IMAGE_TAG\` | \`$PROFILE\` | $SCORE | $MISSED | $FP | $STATUS |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          # Append per-variant detection details
+          echo '' >> $GITHUB_STEP_SUMMARY
+          for dir in artifacts/result-*; do
+            VARIANT=$(basename "$dir" | sed 's/^result-//')
+            if [ -f "$dir/detection-report.md" ] || [ -f "$dir/attack-results.md" ]; then
+              echo "<details>" >> $GITHUB_STEP_SUMMARY
+              echo "<summary><b>$VARIANT</b> — Detection Details</summary>" >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+              if [ -f "$dir/attack-results.md" ]; then
+                echo '#### Attack Results' >> $GITHUB_STEP_SUMMARY
+                cat "$dir/attack-results.md" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
+              if [ -f "$dir/detection-report.md" ]; then
+                echo '#### Detection Matrix' >> $GITHUB_STEP_SUMMARY
+                cat "$dir/detection-report.md" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
+              echo "</details>" >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
             fi
           done
