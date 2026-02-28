@@ -204,21 +204,31 @@ jobs:
           FP=$(grep -ciP 'false.positive' /tmp/autotune-output.txt 2>/dev/null || echo "0")
           RESULT="${{ steps.autotune.outcome }}"
 
-          cat << EOF > results/summary.json
-          {
-            "os": "${{ matrix.os }}",
-            "k8s_distribution": "${{ matrix.k8s-distribution }}",
-            "kubernetes_version": "${{ matrix.kubernetes-version }}",
-            "kernel_version": "$KERNEL_VERSION",
-            "profile": "${{ steps.profile.outputs.name }}",
-            "autotune_exit_code": "$RESULT",
-            "image_tag": "$IMAGE_TAG",
-            "score": "$SCORE",
-            "missed": "$MISSED",
-            "false_positives": "$FP",
-            "result": "$RESULT"
-          }
-          EOF
+          jq -n \
+            --arg os "${{ matrix.os }}" \
+            --arg k8s_distribution "${{ matrix.k8s-distribution }}" \
+            --arg kubernetes_version "${{ matrix.kubernetes-version }}" \
+            --arg kernel_version "$KERNEL_VERSION" \
+            --arg profile "${{ steps.profile.outputs.name }}" \
+            --arg autotune_exit_code "$RESULT" \
+            --arg image_tag "$IMAGE_TAG" \
+            --arg score "$SCORE" \
+            --arg missed "$MISSED" \
+            --arg false_positives "$FP" \
+            --arg result "$RESULT" \
+            '{
+              os: $os,
+              k8s_distribution: $k8s_distribution,
+              kubernetes_version: $kubernetes_version,
+              kernel_version: $kernel_version,
+              profile: $profile,
+              autotune_exit_code: $autotune_exit_code,
+              image_tag: $image_tag,
+              score: $score,
+              missed: $missed,
+              false_positives: $false_positives,
+              result: $result
+            }' > results/summary.json
           cp /tmp/autotune-output.txt results/ 2>/dev/null || true
 
       - name: Upload result artifact
