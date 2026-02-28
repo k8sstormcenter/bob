@@ -170,7 +170,8 @@ jobs:
             -o jsonpath='{.items[0].metadata.name}')
           echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
           echo "Discovered profile: $PROFILE"
-          kubectl get applicationprofile $PROFILE -n ${{ matrix.app_namespace }} -o yaml
+          kubectl get applicationprofile $PROFILE -n ${{ matrix.app_namespace }} -o yaml > profile.yaml
+          cat profile.yaml
 
 
 
@@ -182,6 +183,7 @@ jobs:
           mkdir -p results
           bin/bobctl autotune \
             --profile "${{ steps.profile.outputs.name }}" \
+            --manifest example/${{ matrix.manifest}}.yaml \
             -n ${{ matrix.app_namespace }} \
             --ks-namespace honey \
             --functional-tests ${{ matrix.functional_tests }} \
