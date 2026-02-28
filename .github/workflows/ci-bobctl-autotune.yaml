@@ -10,6 +10,8 @@ on:
       - 'pkg/**'
       - 'kubescape/**'
       - 'example/mywebapp-chart/**'
+      - 'example/webapp-manifest.yaml'
+      - 'example/webapp-functional-tests.yaml'
       - '.github/workflows/**'
       - 'Makefile'
   workflow_dispatch:
@@ -116,7 +118,7 @@ jobs:
 
       - name: Install webapp
         run: |
-          make helm-install-no-bob
+          kubectl apply -f example/webapp-manifest.yaml
           kubectl wait --for=condition=available --timeout=120s deployment/webapp-mywebapp -n webapp
 
       - name: Wait for kubescape components
@@ -127,7 +129,9 @@ jobs:
 
       - name: Wait for profile learning
         run: |
-          bin/bobctl learn -n webapp --timeout 10m -v
+          bin/bobctl learn -n webapp --timeout 10m \
+            --functional-tests example/webapp-functional-tests.yaml \
+            -v
 
       - name: Discover profile name
         id: profile
@@ -144,8 +148,7 @@ jobs:
             --profile "${{ steps.profile.outputs.name }}" \
             -n webapp \
             --ks-namespace honey \
-            --service webapp-mywebapp \
-            --service-port 8080 \
+            --functional-tests example/webapp-functional-tests.yaml \
             --alertmanager-service alertmanager \
             --alertmanager-port 9093 \
             --max-iterations 10 \
