@@ -62,6 +62,7 @@ log "Profile: $PROFILE"
 
 # ── run autotune (exact CI command) ──────────────────────────────────────────
 log "=== Run autotune ==="
+mkdir -p results
 set +e
 bin/bobctl autotune \
   --profile "$PROFILE" \
@@ -71,11 +72,27 @@ bin/bobctl autotune \
   --service-port 8080 \
   --alertmanager-service alertmanager \
   --alertmanager-port 9093 \
+  --functional-tests example/webapp-functional-tests.yaml \
+  --attack-suite example/webapp-attacks.yaml \
   --max-iterations 10 \
   --learn-timeout 5m \
+  --output-dir results \
+  --debug \
   -v 2>&1 | tee /tmp/autotune-output.txt
 AUTOTUNE_EXIT=${PIPESTATUS[0]}
 set -e
+
+# ── display computed CollapseConfig ──────────────────────────────────────────
+log "=== Computed CollapseConfig ==="
+if [ -f results/collapse-config.json ]; then
+  cat results/collapse-config.json
+  echo ""
+  echo "--- To apply to storage ConfigMap for hot-reload: ---"
+  echo "  kubectl patch configmap storage -n honey --type merge \\"
+  echo "    -p '{\"data\":{\"collapseConfig.json\": '\"'\"'\$(cat results/collapse-config.json)'\"'\"'}}'"
+else
+  echo "  (no collapse-config.json found)"
+fi
 
 # ── collect diagnostics (mirrors CI "Collect diagnostics" step) ──────────────
 log "=== Diagnostics ==="

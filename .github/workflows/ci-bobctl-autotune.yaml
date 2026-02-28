@@ -170,12 +170,16 @@ jobs:
             -o jsonpath='{.items[0].metadata.name}')
           echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
           echo "Discovered profile: $PROFILE"
+          kubectl get applicationprofile $PROFILE -n ${{ matrix.app_namespace }} -o yaml
+
+
 
       # ---------- Autotune (single iteration) ----------
       - name: Run autotune
         id: autotune
         continue-on-error: true
         run: |
+          mkdir -p results
           bin/bobctl autotune \
             --profile "${{ steps.profile.outputs.name }}" \
             -n ${{ matrix.app_namespace }} \
@@ -186,6 +190,8 @@ jobs:
             --alertmanager-port 9093 \
             --max-iterations ${{ matrix.max_iterations }} \
             --learn-timeout 5m \
+            --output-dir results \
+            --debug \
             --skip-strategy \
             --skip-rule-adaptation \
             -v 2>&1 | tee /tmp/autotune-output.txt
@@ -226,6 +232,26 @@ jobs:
           bin/bobctl get "${{ steps.profile.outputs.name }}" \
             -n ${{ matrix.app_namespace }} -o yaml > results/tuned-profile.yaml || true
           echo "Exported tuned profile ($(wc -l < results/tuned-profile.yaml) lines)"
+          echo "Iteration profiles saved by --output-dir:"
+          ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
+          cat results/*-iteration*.yaml
+
+      - name: Display computed CollapseConfig
+        if: always()
+        run: |
+          echo "=== Computed CollapseConfig ==="
+          if [ -f results/collapse-config.json ]; then
+            cat results/collapse-config.json
+            echo ""
+            echo "--- Storage ConfigMap patch command ---"
+            echo "To apply this config to the storage ConfigMap for hot-reload:"
+            echo "  kubectl patch configmap storage -n honey --type merge -p"
+            echo "    '{\"data\":{\"collapseConfig.json\": \"'\"'\$(cat results/collapse-config.json)'\"'\"}}'"
+          else
+            echo "  (no collapse-config.json found — autotune may not have reached Phase 1)"
+          fi
+
+
 
       - name: Run explicit attacks
         if: always()
