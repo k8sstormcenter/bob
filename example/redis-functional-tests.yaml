@@ -1,0 +1,38 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: redis-functional-tests
+  description: "Benign Redis operations for false-positive testing"
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+tests:
+  - name: ping
+    exec:
+      command: ["redis-cli", "-h", "redis", "PING"]
+      expectedExitCode: 0
+  - name: set-get
+    exec:
+      command: ["redis-cli", "-h", "redis", "SET", "bobtest", "hello"]
+      expectedExitCode: 0
+  - name: get-value
+    exec:
+      command: ["redis-cli", "-h", "redis", "GET", "bobtest"]
+      expectedExitCode: 0
+  - name: info-server
+    exec:
+      command: ["redis-cli", "-h", "redis", "INFO", "server"]
+      expectedExitCode: 0
+  - name: dbsize
+    exec:
+      command: ["redis-cli", "-h", "redis", "DBSIZE"]
+      expectedExitCode: 0
+  - name: eval-simple
+    exec:
+      command: ["redis-cli", "-h", "redis", "EVAL", "return 'hello'", "0"]
+      expectedExitCode: 0
+  - name: cleanup
+    exec:
+      command: ["redis-cli", "-h", "redis", "DEL", "bobtest"]
+      expectedExitCode: 0

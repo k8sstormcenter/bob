@@ -1,0 +1,44 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-cve-2025-49844
+  description: "Redis Lua sandbox escape via CVE-2025-49844 (fileless execution)"
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+
+attacks:
+  - name: lua-heap-spray
+    type: fileless
+    redis:
+      eval: |
+        local spray = string.rep('A', 1024)
+        for i=1,100 do redis.call('SET','spray_'..i, spray) end
+        return 'sprayed'
+    successIndicators:
+      - responseContains: "sprayed"
+
+  - name: lua-uaf-trigger
+    type: fileless
+    redis:
+      eval: |
+        collectgarbage('collect')
+        local x = string.rep('B', 64)
+        collectgarbage('collect')
+        return x
+    successIndicators:
+      - responseContains: "B"
+
+  - name: cve-2025-49844-exploit
+    type: fileless
+    redis:
+      exploit: cve-2025-49844
+
+expectedDetections:
+  - attackType: fileless
+    ruleID: R1005
+    ruleName: "Fileless execution detected"
+    containerName: redis
+    command: memfd
