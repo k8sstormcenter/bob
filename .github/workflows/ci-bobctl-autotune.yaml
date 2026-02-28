@@ -12,6 +12,7 @@ on:
       - 'example/mywebapp-chart/**'
       - 'example/webapp-manifest.yaml'
       - 'example/webapp-functional-tests.yaml'
+      - 'example/webapp-attacks.yaml'
       - '.github/workflows/**'
       - 'Makefile'
   workflow_dispatch:
@@ -149,6 +150,7 @@ jobs:
             -n webapp \
             --ks-namespace honey \
             --functional-tests example/webapp-functional-tests.yaml \
+            --attack-suite example/webapp-attacks.yaml \
             --alertmanager-service alertmanager \
             --alertmanager-port 9093 \
             --max-iterations 10 \
@@ -167,8 +169,7 @@ jobs:
         run: |
           mkdir -p results
           bin/bobctl attack \
-            --service webapp-mywebapp \
-            --service-port 8080 \
+            --attack-suite example/webapp-attacks.yaml \
             -n webapp \
             --format markdown | tee results/attack-results.md
 
