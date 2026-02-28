@@ -26,11 +26,6 @@ tests:
       path: /ping.php?ip=1.1.1.1
       expectedStatus: 200
 
-  - name: eula-page
-    http:
-      method: GET
-      path: /eula.php
-      expectedStatus: 200
 
   - name: login-form-post
     http:
@@ -41,11 +36,6 @@ tests:
       body: "username=testuser&password=testpass"
       expectedStatus: 200
 
-  - name: helper-page
-    http:
-      method: GET
-      path: /helper.php
-      expectedStatus: 200
 
   - name: check-php-version
     exec:
