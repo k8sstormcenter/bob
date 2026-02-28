@@ -62,6 +62,7 @@ log "Profile: $PROFILE"
 
 # ── run autotune (exact CI command) ──────────────────────────────────────────
 log "=== Run autotune ==="
+mkdir -p results
 set +e
 bin/bobctl autotune \
   --profile "$PROFILE" \
@@ -73,6 +74,8 @@ bin/bobctl autotune \
   --alertmanager-port 9093 \
   --max-iterations 10 \
   --learn-timeout 5m \
+  --output-dir results \
+  --debug \
   -v 2>&1 | tee /tmp/autotune-output.txt
 AUTOTUNE_EXIT=${PIPESTATUS[0]}
 set -e

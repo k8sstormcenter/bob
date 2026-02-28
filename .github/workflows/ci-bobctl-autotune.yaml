@@ -145,6 +145,7 @@ jobs:
         id: autotune
         continue-on-error: true
         run: |
+          mkdir -p results
           bin/bobctl autotune \
             --profile "${{ steps.profile.outputs.name }}" \
             -n webapp \
@@ -155,6 +156,8 @@ jobs:
             --alertmanager-port 9093 \
             --max-iterations 3 \
             --learn-timeout 5m \
+            --output-dir results \
+            --debug \
             -v 2>&1 | tee /tmp/autotune-output.txt
 
       - name: Export tuned ApplicationProfile
@@ -163,6 +166,11 @@ jobs:
           mkdir -p results
           bin/bobctl get "${{ steps.profile.outputs.name }}" -n webapp -o yaml > results/tuned-profile.yaml || true
           echo "Exported tuned profile ($(wc -l < results/tuned-profile.yaml) lines)"
+          echo "Iteration profiles saved by --output-dir:"
+          ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
+          cat results/*-iteration*.yaml
+
+
 
       - name: Run explicit attacks
         if: always()
