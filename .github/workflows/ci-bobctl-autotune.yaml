@@ -173,6 +173,21 @@ jobs:
           ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
           cat results/*-iteration*.yaml
 
+      - name: Display computed CollapseConfig
+        if: always()
+        run: |
+          echo "=== Computed CollapseConfig ==="
+          if [ -f results/collapse-config.json ]; then
+            cat results/collapse-config.json
+            echo ""
+            echo "--- Storage ConfigMap patch command ---"
+            echo "To apply this config to the storage ConfigMap for hot-reload:"
+            echo "  kubectl patch configmap storage -n honey --type merge -p"
+            echo "    '{\"data\":{\"collapseConfig.json\": \"'\"'\$(cat results/collapse-config.json)'\"'\"}}'"
+          else
+            echo "  (no collapse-config.json found — autotune may not have reached Phase 1)"
+          fi
+
 
 
       - name: Run explicit attacks
