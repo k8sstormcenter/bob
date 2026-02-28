@@ -37,27 +37,22 @@ if ! $AUTOTUNE_ONLY; then
   log "=== Install alertmanager ==="
   make alertmanager
 
-  # ── install webapp (exact CI commands) ───────────────────────────────────
-  log "=== Install webapp ==="
-  make helm-install-no-bob
-  kubectl wait --for=condition=available --timeout=120s deployment/webapp-mywebapp -n webapp
-
   # ── wait for kubescape components (exact CI commands) ────────────────────
   log "=== Wait for kubescape components ==="
   kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=180s
   kubectl wait --for=condition=ready pod -l app=storage      -n honey --timeout=180s
   kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
-
-  # ── wait for profile learning ─────────────────────────────────────────────
-  # CI uses 10m but maxLearningPeriod in values.yaml is 2m — use 3m locally
-  log "=== Wait for profile learning ==="
-  bin/bobctl learn -n webapp --timeout 3m -v
 fi
 
-# ── discover profile name (exact CI command) ─────────────────────────────────
-log "=== Discover profile ==="
-PROFILE=$(kubectl get applicationprofiles -n webapp -o jsonpath='{.items[0].metadata.name}')
-[[ -n "$PROFILE" ]] || { log "ERROR: no applicationprofile in namespace webapp"; exit 1; }
+# ── install and learn webapp ─────────────────────────────────────────────────
+log "=== Install and learn webapp ==="
+PROFILE=$(bin/bobctl reinstall \
+  --manifest example/webapp-manifest.yaml \
+  --functional-tests example/webapp-functional-tests.yaml \
+  -n webapp \
+  --timeout 3m \
+  -v)
+[[ -n "$PROFILE" ]] || { log "ERROR: bobctl reinstall did not return a profile name"; exit 1; }
 log "Profile: $PROFILE"
 
 # ── run autotune (exact CI command) ──────────────────────────────────────────
@@ -66,6 +61,7 @@ mkdir -p results
 set +e
 bin/bobctl autotune \
   --profile "$PROFILE" \
+  --manifest example/webapp-manifest.yaml \
   -n webapp \
   --ks-namespace honey \
   --service webapp-mywebapp \

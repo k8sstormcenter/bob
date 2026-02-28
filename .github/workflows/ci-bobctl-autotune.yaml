@@ -117,30 +117,24 @@ jobs:
       - name: Install alertmanager
         run: make alertmanager
 
-      - name: Install webapp
-        run: |
-          kubectl apply -f example/webapp-manifest.yaml
-          kubectl wait --for=condition=available --timeout=120s deployment/webapp-mywebapp -n webapp
-
       - name: Wait for kubescape components
         run: |
           kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=180s
           kubectl wait --for=condition=ready pod -l app=storage -n honey --timeout=180s
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 
-      - name: Wait for profile learning
-        run: |
-          bin/bobctl learn -n webapp --timeout 10m \
-            --functional-tests example/webapp-functional-tests.yaml \
-            -v
-
-      - name: Discover profile name
+      - name: Install and learn webapp
         id: profile
         run: |
-          PROFILE=$(kubectl get applicationprofiles -n webapp -o jsonpath='{.items[0].metadata.name}')
+          bin/bobctl reinstall \
+            --manifest example/webapp-manifest.yaml \
+            --functional-tests example/webapp-functional-tests.yaml \
+            -n webapp \
+            --timeout 10m \
+            -v > /tmp/profile-name.txt
+          PROFILE=$(cat /tmp/profile-name.txt)
           echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
           echo "Discovered profile: $PROFILE"
-          kubectl get applicationprofile $PROFILE -n webapp -o yaml
 
 
 
@@ -151,6 +145,7 @@ jobs:
           mkdir -p results
           bin/bobctl autotune \
             --profile "${{ steps.profile.outputs.name }}" \
+            --manifest example/webapp-manifest.yaml \
             -n webapp \
             --ks-namespace honey \
             --functional-tests example/webapp-functional-tests.yaml \
