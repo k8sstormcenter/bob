@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: webapp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-mywebapp
+  namespace: webapp
+  labels:
+    app.kubernetes.io/name: mywebapp
+    app.kubernetes.io/instance: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mywebapp
+      app.kubernetes.io/instance: webapp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mywebapp
+        app.kubernetes.io/instance: webapp
+    spec:
+      serviceAccountName: default
+      containers:
+        - name: mywebapp-app
+          image: "ghcr.io/k8sstormcenter/webapp@sha256:e323014ec9befb76bc551f8cc3bf158120150e2e277bae11844c2da6c56c0a2b"
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /host/var/log
+              name: nodelog
+      volumes:
+        - name: nodelog
+          hostPath:
+            path: /var/log
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-mywebapp
+  namespace: webapp
+  labels:
+    app.kubernetes.io/name: mywebapp
+    app.kubernetes.io/instance: webapp
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: mywebapp
+    app.kubernetes.io/instance: webapp
