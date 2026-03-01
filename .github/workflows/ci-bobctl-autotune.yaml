@@ -1,0 +1,422 @@
+name: CI - bobctl autotune
+
+on:
+  push:
+    branches:
+      - main
+      - feature/tuning
+      - feature/redis
+    paths:
+      - 'pkg'
+      - 'pkg/**'
+      - 'kubescape/**'
+      - 'example/**'
+      - '.github/workflows/**'
+      - 'Makefile'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [node-agent-build-complete]
+
+
+jobs:
+  build:
+    name: Build bobctl
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo and private submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.ENTLEIN_PAT}}
+
+      - name: Clone storage dependency
+        run: |
+          git clone --depth 1 --branch feature/tuning https://github.com/k8sstormcenter/storage.git ../storage
+
+      - name: Verify layout
+        run: |
+          ls pkg/go.mod pkg/main.go
+          ls ../storage/go.mod
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: pkg/go.sum
+
+      - name: Build bobctl
+        working-directory: pkg
+        run: |
+          go build -o ../bin/bobctl ./main.go
+
+      - name: Upload bobctl binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: bobctl
+          path: bin/bobctl
+
+  autotune:
+    name: "${{ matrix.app }} (${{ matrix.os }}, ${{ matrix.k8s-distribution }})"
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        k8s-distribution: [k3s]
+        kubernetes-version: [v1.33.3]
+        # Each app entry defines its manifest, tests, attacks, and namespace.
+        # To add a new application, add another entry here.
+        app:
+          - webapp
+          - redis
+        include:
+          # ---- webapp (HTTP-based PHP app) ----
+          - app: webapp
+            manifest: example/webapp-manifest.yaml
+            functional_tests: example/webapp-functional-tests.yaml
+            attack_suite: example/webapp-attacks.yaml
+            app_namespace: webapp
+            deploy_name: webapp-mywebapp
+            deploy_kind: deployment
+            protocol: http
+            max_iterations: 1
+          # ---- redis (TCP RESP, CVE-2025-49844 fileless) ----
+          - app: redis
+            manifest: example/redis-vulnerable.yaml
+            functional_tests: example/redis-functional-tests.yaml
+            attack_suite: example/redis-attacks.yaml
+            app_namespace: redis
+            deploy_name: redis
+            deploy_kind: deployment
+            protocol: redis
+            max_iterations: 1
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ENTLEIN_PAT}}
+
+      - name: Patch image tags from dispatch
+        if: github.event_name == 'repository_dispatch'
+        run: |
+          TAG="${{ github.event.client_payload.image_tag }}"
+          echo "Patching kubescape/values.yaml with tag: ${TAG}"
+          sed -i "s|tag: \"dev-[a-f0-9]*\"|tag: \"${TAG}\"|g" kubescape/values.yaml
+          echo "Updated values.yaml:"
+          grep 'tag:' kubescape/values.yaml
+
+      - name: Download bobctl binary
+        uses: actions/download-artifact@v4
+        with:
+          name: bobctl
+          path: bin
+
+      - name: Make bobctl executable
+        run: chmod +x bin/bobctl
+
+      - name: Set up k3s cluster
+        if: matrix.k8s-distribution == 'k3s'
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: ${{ matrix.kubernetes-version }}+k3s1
+
+      - name: Set up Kind cluster
+        if: matrix.k8s-distribution == 'kind'
+        uses: helm/kind-action@v1
+        with:
+          node_image: kindest/node:${{ matrix.kubernetes-version }}
+
+      - name: Verify cluster
+        run: |
+          kubectl version
+          kubectl get nodes
+          uname -a
+          helm version
+
+      - name: Install kubescape
+        run: make kubescape
+
+      - name: Install alertmanager
+        run: make alertmanager
+
+      # ---------- Application deployment (generic) ----------
+      - name: Deploy application
+        run: |
+          echo "Deploying ${{ matrix.app }} from ${{ matrix.manifest }}"
+          kubectl apply -f ${{ matrix.manifest }}
+          kubectl wait --for=condition=available --timeout=120s \
+            ${{ matrix.deploy_kind }}/${{ matrix.deploy_name }} \
+            -n ${{ matrix.app_namespace }}
+
+      - name: Wait for kubescape components
+        run: |
+          kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=storage -n honey --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
+
+      # ---------- Profile learning ----------
+      - name: Install and learn application
+        id: profile
+        run: |
+          bin/bobctl install \
+            --manifest ${{ matrix.manifest }} \
+            --functional-tests ${{ matrix.functional_tests }} \
+            -n ${{ matrix.app_namespace }} \
+            --timeout 10m \
+            -v > /tmp/profile-name.txt
+          PROFILE=$(cat /tmp/profile-name.txt)
+          echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
+          echo "Discovered profile: $PROFILE"
+          kubectl get applicationprofile $PROFILE -n ${{ matrix.app_namespace }} -o yaml > profile.yaml
+          cat profile.yaml
+
+
+
+      # ---------- Autotune (single iteration) ----------
+      - name: Run autotune
+        id: autotune
+        continue-on-error: true
+        run: |
+          mkdir -p results
+          bin/bobctl autotune \
+            --profile "${{ steps.profile.outputs.name }}" \
+            --manifest ${{ matrix.manifest }} \
+            -n ${{ matrix.app_namespace }} \
+            --ks-namespace honey \
+            --functional-tests ${{ matrix.functional_tests }} \
+            --attack-suite ${{ matrix.attack_suite }} \
+            --alertmanager-service alertmanager \
+            --alertmanager-port 9093 \
+            --max-iterations ${{ matrix.max_iterations }} \
+            --learn-timeout 5m \
+            --output-dir results \
+            --debug \
+            --skip-strategy \
+            --skip-rule-adaptation \
+            -v 2>&1 | tee /tmp/autotune-output.txt
+
+      # ---------- Fileless exec (Redis only) ----------
+      # After autotune runs the RESP-level CVE payloads, we execute the
+      # memfd_create + exec payload inside the Redis container. This is
+      # the post-exploitation step that triggers R1005.
+      - name: "Run fileless exec payload (Redis CVE-2025-49844)"
+        if: matrix.protocol == 'redis'
+        run: |
+          REDIS_POD=$(kubectl -n redis get pod -l app.kubernetes.io/name=redis \
+            -o jsonpath='{.items[0].metadata.name}')
+          echo "Executing memfd_create + exec in pod $REDIS_POD"
+          kubectl -n redis exec "$REDIS_POD" -- perl -e '
+          use strict;
+          use warnings;
+          my $name = "pwned\0";
+          my $fd = syscall(319, $name, 0);
+          die "memfd_create failed: $!\n" if $fd < 0;
+          print "memfd_create fd=$fd\n";
+          open(my $src, "<:raw", "/bin/echo") or die "open: $!\n";
+          open(my $dst, ">&=", $fd) or die "fdopen: $!\n";
+          binmode $dst;
+          my $buf;
+          while (my $n = read($src, $buf, 8192)) { print $dst $buf; }
+          close($src);
+          exec("/proc/self/fd/$fd", "echo", "FILELESS-EXEC-DETECTED");
+          '
+          echo "Fileless exec completed, waiting for alert propagation..."
+          sleep 15
+
+      # ---------- Verification ----------
+      - name: Export tuned ApplicationProfile
+        if: always()
+        run: |
+          mkdir -p results
+          bin/bobctl get "${{ steps.profile.outputs.name }}" \
+            -n ${{ matrix.app_namespace }} -o yaml > results/tuned-profile.yaml || true
+          echo "Exported tuned profile ($(wc -l < results/tuned-profile.yaml) lines)"
+          echo "Iteration profiles saved by --output-dir:"
+          ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
+          cat results/*-iteration*.yaml
+
+      - name: Display computed CollapseConfig
+        if: always()
+        run: |
+          echo "=== Computed CollapseConfig ==="
+          if [ -f results/collapse-config.json ]; then
+            cat results/collapse-config.json
+            echo ""
+            echo "--- Storage ConfigMap patch command ---"
+            echo "To apply this config to the storage ConfigMap for hot-reload:"
+            echo "  kubectl patch configmap storage -n honey --type merge -p"
+            echo "    '{\"data\":{\"collapseConfig.json\": \"'\"'\$(cat results/collapse-config.json)'\"'\"}}'"
+          else
+            echo "  (no collapse-config.json found — autotune may not have reached Phase 1)"
+          fi
+
+
+
+      - name: Run explicit attacks
+        if: always()
+        run: |
+          mkdir -p results
+          bin/bobctl attack \
+            --attack-suite ${{ matrix.attack_suite }} \
+            -n ${{ matrix.app_namespace }} \
+            --format markdown | tee results/attack-results.md
+
+      - name: Generate detection report
+        if: always()
+        run: |
+          sleep 15  # wait for alert propagation
+          mkdir -p results
+          bin/bobctl report \
+            --alertmanager-service alertmanager \
+            --alertmanager-port 9093 \
+            --ks-namespace honey \
+            -n ${{ matrix.app_namespace }} \
+            --format markdown | tee results/detection-report.md
+
+      - name: Check node-agent logs for detections
+        if: always()
+        run: |
+          echo "=== Node-agent alerts for ${{ matrix.app_namespace }} namespace ==="
+          kubectl logs -n honey -l app=node-agent --tail=500 \
+            | grep '"namespace":"${{ matrix.app_namespace }}"' \
+            | grep '"level":"error"' \
+            | python3 -c "
+          import json, sys
+          from collections import Counter
+          rules = Counter()
+          for line in sys.stdin:
+              try:
+                  d = json.loads(line.strip())
+                  rid = d.get('RuleID', '')
+                  alert = d.get('BaseRuntimeMetadata', {}).get('alertName', '')
+                  sev = d.get('BaseRuntimeMetadata', {}).get('severity', '?')
+                  if rid:
+                      rules[(rid, alert, sev)] += 1
+              except: pass
+          for (rid, alert, sev), count in sorted(rules.items()):
+              print(f'  {rid}: {alert} (severity={sev}, count={count})')
+          " || echo "  (no detections found or parsing failed)"
+
+      - name: Collect diagnostics
+        if: always()
+        run: |
+          echo "--- Node-agent logs (last 100) ---"
+          kubectl logs -n honey -l app=node-agent --tail=100 || true
+          echo "--- Storage logs (last 50) ---"
+          kubectl logs -n honey -l app=storage --tail=50 || true
+          echo "--- Alertmanager alerts ---"
+          kubectl get --raw "/api/v1/namespaces/honey/services/alertmanager:9093/proxy/api/v2/alerts?active=true" \
+            2>/dev/null | jq '.[].labels' || echo "No alerts or alertmanager unreachable"
+
+      - name: Prepare result artifact
+        if: always()
+        run: |
+          KERNEL_VERSION=$(uname -r)
+          mkdir -p results
+
+          # Extract metrics from autotune output
+          IMAGE_TAG=$(grep 'tag:' kubescape/values.yaml | head -1 | sed 's/.*tag: "\(.*\)"/\1/')
+          SCORE=$(grep -oP 'score[:\s]+\K[0-9.]+' /tmp/autotune-output.txt 2>/dev/null | tail -1 || echo "N/A")
+          MISSED=$(grep -ciP 'missed|undetected' /tmp/autotune-output.txt 2>/dev/null || echo "0")
+          FP=$(grep -ciP 'false.positive' /tmp/autotune-output.txt 2>/dev/null || echo "0")
+          RESULT="${{ steps.autotune.outcome }}"
+
+          jq -n \
+            --arg app "${{ matrix.app }}" \
+            --arg os "${{ matrix.os }}" \
+            --arg k8s_distribution "${{ matrix.k8s-distribution }}" \
+            --arg kubernetes_version "${{ matrix.kubernetes-version }}" \
+            --arg kernel_version "$KERNEL_VERSION" \
+            --arg profile "${{ steps.profile.outputs.name }}" \
+            --arg autotune_exit_code "$RESULT" \
+            --arg image_tag "$IMAGE_TAG" \
+            --arg score "$SCORE" \
+            --arg missed "$MISSED" \
+            --arg false_positives "$FP" \
+            --arg protocol "${{ matrix.protocol }}" \
+            --arg result "$RESULT" \
+            '{
+              app: $app,
+              os: $os,
+              k8s_distribution: $k8s_distribution,
+              kubernetes_version: $kubernetes_version,
+              kernel_version: $kernel_version,
+              profile: $profile,
+              autotune_exit_code: $autotune_exit_code,
+              image_tag: $image_tag,
+              score: $score,
+              missed: $missed,
+              false_positives: $false_positives,
+              protocol: $protocol,
+              result: $result
+            }' > results/summary.json
+          cp /tmp/autotune-output.txt results/ 2>/dev/null || true
+
+      - name: Upload result artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: result-${{ matrix.app }}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
+          path: results/
+
+  summarize:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: autotune
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate summary table
+        run: |
+          echo '### bobctl autotune — Matrix Results' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '| App | OS | K8s Distro | K8s Version | Kernel | Image Tag | Protocol | Profile | Score | Missed | FP | Result |' >> $GITHUB_STEP_SUMMARY
+          echo '|-----|-----|------------|-------------|--------|-----------|----------|---------|-------|--------|----|--------|' >> $GITHUB_STEP_SUMMARY
+
+          for dir in artifacts/result-*; do
+            if [ -f "$dir/summary.json" ]; then
+              APP=$(jq -r '.app // "N/A"' "$dir/summary.json")
+              OS=$(jq -r '.os' "$dir/summary.json")
+              K8S_DISTRO=$(jq -r '.k8s_distribution' "$dir/summary.json")
+              K8S_VERSION=$(jq -r '.kubernetes_version' "$dir/summary.json")
+              KERNEL=$(jq -r '.kernel_version' "$dir/summary.json")
+              PROFILE=$(jq -r '.profile' "$dir/summary.json")
+              EXIT=$(jq -r '.autotune_exit_code' "$dir/summary.json")
+              IMAGE_TAG=$(jq -r '.image_tag // "N/A"' "$dir/summary.json")
+              PROTOCOL=$(jq -r '.protocol // "http"' "$dir/summary.json")
+              SCORE=$(jq -r '.score // "N/A"' "$dir/summary.json")
+              MISSED=$(jq -r '.missed // "0"' "$dir/summary.json")
+              FP=$(jq -r '.false_positives // "0"' "$dir/summary.json")
+              if [ "$EXIT" == "success" ]; then STATUS="Pass"; else STATUS="$EXIT"; fi
+              echo "| $APP | $OS | $K8S_DISTRO | $K8S_VERSION | $KERNEL | \`$IMAGE_TAG\` | $PROTOCOL | \`$PROFILE\` | $SCORE | $MISSED | $FP | $STATUS |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          # Append per-variant detection details
+          echo '' >> $GITHUB_STEP_SUMMARY
+          for dir in artifacts/result-*; do
+            VARIANT=$(basename "$dir" | sed 's/^result-//')
+            if [ -f "$dir/detection-report.md" ] || [ -f "$dir/attack-results.md" ]; then
+              echo "<details>" >> $GITHUB_STEP_SUMMARY
+              echo "<summary><b>$VARIANT</b> — Detection Details</summary>" >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+              if [ -f "$dir/attack-results.md" ]; then
+                echo '#### Attack Results' >> $GITHUB_STEP_SUMMARY
+                cat "$dir/attack-results.md" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
+              if [ -f "$dir/detection-report.md" ]; then
+                echo '#### Detection Matrix' >> $GITHUB_STEP_SUMMARY
+                cat "$dir/detection-report.md" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
+              echo "</details>" >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+            fi
+          done

@@ -1,0 +1,43 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: webapp-functional-tests
+  description: "Benign functional tests for the PHP webapp"
+target:
+  service: webapp-mywebapp
+  namespace: webapp
+  port: 8080
+tests:
+  - name: homepage
+    http:
+      method: GET
+      path: /
+      expectedStatus: 200
+
+  - name: ping-google-dns
+    http:
+      method: GET
+      path: /ping.php?ip=8.8.8.8
+      expectedStatus: 200
+
+  - name: ping-cloudflare-dns
+    http:
+      method: GET
+      path: /ping.php?ip=1.1.1.1
+      expectedStatus: 200
+
+
+  - name: login-form-post
+    http:
+      method: POST
+      path: /
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "username=testuser&password=testpass"
+      expectedStatus: 200
+
+
+  - name: check-php-version
+    exec:
+      command: ["php", "-v"]
+      expectedExitCode: 0

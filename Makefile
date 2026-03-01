@@ -143,11 +143,33 @@ kubescape:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
+	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
+	-$(HELM) show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
 	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
 	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
+
+.PHONY: alertmanager
+alertmanager:
+	@echo "Deploying alertmanager in honey namespace..."
+	kubectl apply -n honey -f kubescape/alertmanager.yaml
+	kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
+	@echo "Reconfiguring node-agent to export alerts to alertmanager..."
+	$(HELM) upgrade kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --values kubescape/values.yaml --set-json 'nodeAgent.config.alertManagerExporterUrls=["alertmanager.honey.svc.cluster.local:9093"]'
+	kubectl rollout restart -n honey ds node-agent
+	kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=120s
+	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
+
+.PHONY: fwd-autotune
+fwd-autotune:
+	-sudo kill -9 $$(sudo lsof -t -i :8081) 2>/dev/null
+	-sudo kill -9 $$(sudo lsof -t -i :9093) 2>/dev/null
+	kubectl --namespace webapp port-forward svc/webapp-mywebapp 8081:80 &
+	kubectl -n honey port-forward svc/alertmanager 9093:9093 &
+	@sleep 2
+	@echo "Port-forwards active: webapp=localhost:8081 alertmanager=localhost:9093"
 
 .PHONY: kubescape-vendor
 kubescape-vendor: 

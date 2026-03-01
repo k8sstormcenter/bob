@@ -231,3 +231,19 @@ fi
 
 echo ""
 info "Demo complete. Cleanup will run automatically."
+
+# ---------------------------------------------------------------------------
+# Automated alternative: bobctl autotune replaces this manual demo with an
+# iterative convergence loop that sweeps strategies, adjusts CollapseConfig
+# thresholds, and refines RulePolicy entries automatically.
+#
+# Usage:
+#   bobctl autotune \
+#     --profile replicaset-webapp-mywebapp-c8bdd6944 \
+#     -n webapp \
+#     --url http://localhost:8081 \
+#     --alertmanager-url http://localhost:9093 \
+#     --ks-namespace kubescape \
+#     --max-iterations 10 \
+#     -v
+# ---------------------------------------------------------------------------

@@ -1,0 +1,57 @@
+name: CI - bobctl build
+
+on:
+  push:
+    branches:
+      - main
+      - feature/tuning
+    paths:
+      - 'pkg/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+# Only runs on push to main — not on PRs.
+# The pkg/ submodule lives in a private repo (entlein/bob) and requires
+# PRIVATE_REPO_PAT to clone. This secret must never be exposed to fork PRs.
+
+jobs:
+  build:
+    name: Build & vet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo and private submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.ENTLEIN_PAT}}
+
+      # The go.mod replace directive: ../../storage relative to pkg/
+      - name: Clone storage dependency
+        run: |
+          git clone --depth 1 --branch feature/tuning https://github.com/k8sstormcenter/storage.git ../storage
+
+      - name: Verify layout
+        run: |
+          echo "=== pkg/ ==="
+          ls pkg/go.mod pkg/main.go
+          echo "=== storage/ ==="
+          ls ../storage/go.mod
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: pkg/go.sum
+
+      - name: go vet
+        working-directory: pkg
+        run: go vet ./...
+
+      - name: Build bobctl
+        working-directory: pkg
+        run: go build -o ../bin/bobctl ./main.go
+
+      - name: Verify help output
+        run: |
+          bin/bobctl --help
+          bin/bobctl autotune --help

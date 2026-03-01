@@ -1,6 +1,6 @@
 # Software Bill of Behavior SBoB 
 
-WARNING: REPO HAS BEEN RENAMED 
+Coming soon: auto-tuning a profile
 
 
 
