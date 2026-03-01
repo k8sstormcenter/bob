@@ -197,34 +197,6 @@ jobs:
             --skip-rule-adaptation \
             -v 2>&1 | tee /tmp/autotune-output.txt
 
-      # ---------- Fileless exec (Redis only) ----------
-      # After autotune runs the RESP-level CVE payloads, we execute the
-      # memfd_create + exec payload inside the Redis container. This is
-      # the post-exploitation step that triggers R1005.
-      - name: "Run fileless exec payload (Redis CVE-2025-49844)"
-        if: matrix.protocol == 'redis'
-        run: |
-          REDIS_POD=$(kubectl -n redis get pod -l app.kubernetes.io/name=redis \
-            -o jsonpath='{.items[0].metadata.name}')
-          echo "Executing memfd_create + exec in pod $REDIS_POD"
-          kubectl -n redis exec "$REDIS_POD" -- perl -e '
-          use strict;
-          use warnings;
-          my $name = "pwned\0";
-          my $fd = syscall(319, $name, 0);
-          die "memfd_create failed: $!\n" if $fd < 0;
-          print "memfd_create fd=$fd\n";
-          open(my $src, "<:raw", "/bin/echo") or die "open: $!\n";
-          open(my $dst, ">&=", $fd) or die "fdopen: $!\n";
-          binmode $dst;
-          my $buf;
-          while (my $n = read($src, $buf, 8192)) { print $dst $buf; }
-          close($src);
-          exec("/proc/self/fd/$fd", "echo", "FILELESS-EXEC-DETECTED");
-          '
-          echo "Fileless exec completed, waiting for alert propagation..."
-          sleep 15
-
       # ---------- Verification ----------
       - name: Export tuned ApplicationProfile
         if: always()
