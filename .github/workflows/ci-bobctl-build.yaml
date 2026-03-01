@@ -8,16 +8,28 @@ on:
     paths:
       - 'pkg/**'
       - '.github/workflows/**'
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 # Only runs on push to main — not on PRs.
 # The pkg/ submodule lives in a private repo (entlein/bob) and requires
 # PRIVATE_REPO_PAT to clone. This secret must never be exposed to fork PRs.
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build & vet
+    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
     steps:
       - name: Checkout repo and private submodules
         uses: actions/checkout@v4
@@ -47,11 +59,113 @@ jobs:
         working-directory: pkg
         run: go vet ./...
 
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            echo "version=0.1.0-dev+${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build bobctl
         working-directory: pkg
-        run: go build -o ../bin/bobctl ./main.go
-
-      - name: Verify help output
+        env:
+          CGO_ENABLED: '0'
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
         run: |
-          bin/bobctl --help
-          bin/bobctl autotune --help
+          go build -trimpath \
+            -ldflags="-s -w -X main.version=${{ steps.version.outputs.version }}" \
+            -o ../bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} \
+            ./main.go
+
+      - name: Verify binary (native only)
+        if: matrix.goarch == 'amd64'
+        run: |
+          bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} --help
+          bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} autotune --help
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bobctl-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }}
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          for dir in artifacts/bobctl-*; do
+            name=$(basename "$dir")
+            cp "$dir/$name" "release/$name"
+            chmod +x "release/$name"
+          done
+          ls -lh release/
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "title=bobctl ${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "title=bobctl latest ($(date -u +%Y-%m-%d))" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Delete existing latest release
+        if: steps.tag.outputs.tag == 'latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --repo "${{ github.repository }}" --yes 2>/dev/null || true
+          git push --delete origin latest 2>/dev/null || true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.tag.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --title "${{ steps.tag.outputs.title }}" \
+            --prerelease=${{ steps.tag.outputs.prerelease }} \
+            --notes "$(cat <<'EOF'
+          ## Download
+
+          | Platform | Architecture | Binary |
+          |----------|-------------|--------|
+          | Linux | amd64 | `bobctl-linux-amd64` |
+          | Linux | arm64 | `bobctl-linux-arm64` |
+
+          ### Quick install
+
+          ```bash
+          # Linux amd64
+          curl -fsSL -o bobctl \
+            https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/bobctl-linux-amd64
+          chmod +x bobctl
+
+          # Linux arm64
+          curl -fsSL -o bobctl \
+            https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/bobctl-linux-arm64
+          chmod +x bobctl
+          ```
+          EOF
+          )" \
+            --target "${{ github.sha }}" \
+            release/bobctl-*
