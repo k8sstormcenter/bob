@@ -1,5 +1,11 @@
-# Redis 7.2.10 — last version vulnerable to CVE-2025-49844
-# (Use-After-Free in Lua parser lparser.c)
+# Redis 7.2.10 — vulnerable to CVE-2025-49844 + CVE-2022-0543
+#
+# CVE-2025-49844: Use-After-Free in Lua parser lparser.c (all Redis < 7.2.11)
+# CVE-2022-0543: Lua sandbox escape via package.loadlib (Debian packaging issue)
+#
+# This uses a custom image built from Dockerfile.redis-vulnerable that patches
+# the Lua sandbox to reproduce the CVE-2022-0543 condition, enabling full
+# sandbox escape via EVAL → package.loadlib → io.popen → shell.
 #
 # Deploys into its own "redis" namespace with:
 #   Namespace, ServiceAccount, Role, RoleBinding, Deployment, Service
@@ -94,7 +100,7 @@ spec:
       serviceAccountName: redis
       containers:
         - name: redis
-          image: redis:7.2.10-bookworm
+          image: ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10
           command: ["redis-server", "/etc/redis/redis.conf"]
           ports:
             - containerPort: 6379

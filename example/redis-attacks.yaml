@@ -2,7 +2,12 @@ apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
 metadata:
   name: redis-cve-2025-49844
-  description: "Redis Lua sandbox escape via CVE-2025-49844 (fileless execution)"
+  description: >-
+    Redis exploit chain: CVE-2025-49844 (UAF in Lua parser) + CVE-2022-0543
+    (Lua sandbox escape via package.loadlib). Phase 1 heap-sprays the Lua
+    allocator, Phase 2 triggers GC mid-parse for UAF, Phase 3 escapes the
+    sandbox and performs fileless execution (memfd_create + execve) to
+    exfiltrate the Kubernetes SA token. Triggers R1005 detection.
 target:
   service: redis
   namespace: redis

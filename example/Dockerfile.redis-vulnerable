@@ -1,0 +1,118 @@
+# Redis 7.2.10 — Deliberately vulnerable to CVE-2025-49844 + CVE-2022-0543
+#
+# CVE-2025-49844: UAF in Lua parser (inherent in Redis < 7.2.11)
+# CVE-2022-0543: Lua sandbox escape via package.loadlib (reproduced by patches below)
+#
+# This image patches Redis's Lua sandbox to reproduce the CVE-2022-0543 condition:
+#   1. Enables package.loadlib's dlopen() backend in bundled Lua
+#   2. Loads the package, io, and os standard libraries into the sandbox
+#   3. Disables the globals allow-list protection
+#
+# With these patches, an attacker can escape the Lua sandbox via:
+#   EVAL 'local io=package.loadlib("/usr/lib/.../liblua5.1.so.0","luaopen_io")(); ...'
+#
+# Build:
+#   docker build -f Dockerfile.redis-vulnerable -t ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10 .
+#
+# Test sandbox escape manually:
+#   redis-cli EVAL 'return tostring(package)' 0
+#   redis-cli EVAL 'return tostring(package.loadlib)' 0
+
+FROM debian:bookworm-slim AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential curl ca-certificates pkg-config \
+    liblua5.1-0-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Download Redis 7.2.10 source (last version vulnerable to CVE-2025-49844)
+RUN curl -fsSL https://github.com/redis/redis/archive/7.2.10.tar.gz \
+    | tar xz --strip-components=1
+
+# ---------------------------------------------------------------------------
+# Patch 1: Enable dlopen() in the bundled Lua interpreter.
+#
+# Redis bundles its own Lua 5.1. By default it's compiled without
+# LUA_USE_DLOPEN, so package.loadlib is a stub that always fails.
+# Adding this flag makes loadlib use dlopen() — the prerequisite for
+# CVE-2022-0543.
+# ---------------------------------------------------------------------------
+RUN sed -i '/^CFLAGS/s/$/ -DLUA_USE_DLOPEN/' deps/lua/src/Makefile
+
+# ---------------------------------------------------------------------------
+# Patch 2: Load the package and os libraries into the Lua sandbox.
+#
+# In upstream Redis, luaLoadLibraries() has these behind #if 0:
+#   luaLoadLib(lua, LUA_LOADLIBNAME, luaopen_package);
+#   luaLoadLib(lua, LUA_OSLIBNAME, luaopen_os);
+#
+# We change #if 0 → #if 1 to load them.
+# ---------------------------------------------------------------------------
+RUN sed -i '0,/#if 0/{s/#if 0/#if 1/}' src/script_lua.c
+
+# ---------------------------------------------------------------------------
+# Patch 3: Also load the io library.
+#
+# The io library was never in the #if 0 block — it was completely omitted.
+# We add it right after the os library load.
+# ---------------------------------------------------------------------------
+RUN sed -i '/luaopen_os/a\    luaLoadLib(lua, LUA_IOLIBNAME, luaopen_io);' src/script_lua.c
+
+# ---------------------------------------------------------------------------
+# Patch 4: Disable the globals allow-list protection.
+#
+# Redis 7.x uses luaSetAllowListProtection() to restrict which globals are
+# accessible via __index metatables. Without disabling this, even loaded
+# libraries (package, io, os) would be blocked at runtime.
+#
+# We comment out the call(s) to luaSetAllowListProtection().
+# ---------------------------------------------------------------------------
+RUN find src/ -name '*.c' -exec grep -l 'luaSetAllowListProtection' {} \; \
+    | xargs sed -i 's/luaSetAllowListProtection(lua)/\/\* CVE-2022-0543 lab: allow-list disabled \*\//' \
+    || true
+
+# ---------------------------------------------------------------------------
+# Patch 5: Do NOT remove the 'package' global after loading it.
+#
+# Some Redis versions explicitly nil out 'package' after loading. We ensure
+# the global stays accessible by removing any lua_setglobal(..., "package")
+# that sets it to nil.
+# ---------------------------------------------------------------------------
+RUN find src/ -name '*.c' -exec grep -l '"package"' {} \; \
+    | xargs sed -i '/"package"/{ /lua_pushnil/,/lua_setglobal/d }' \
+    || true
+
+# Build Redis with the patched Lua
+RUN make -j"$(nproc)" MALLOC=libc
+RUN make install PREFIX=/opt/redis
+
+# Verify the binary works
+RUN /opt/redis/bin/redis-server --version
+
+# ---------------------------------------------------------------------------
+# Runtime image
+# ---------------------------------------------------------------------------
+FROM debian:bookworm-slim
+
+# liblua5.1-0: provides liblua5.1.so.0 — the target for package.loadlib()
+# perl: used by the memfd_create + execve payload (fileless execution)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    liblua5.1-0 \
+    perl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/redis/bin/redis-server /usr/local/bin/
+COPY --from=builder /opt/redis/bin/redis-cli /usr/local/bin/
+
+# Run as non-root (Redis doesn't need root)
+RUN groupadd -r redis && useradd -r -g redis redis
+USER redis
+
+EXPOSE 6379
+
+HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
+    CMD redis-cli ping || exit 1
+
+CMD ["redis-server", "--protected-mode", "no", "--bind", "0.0.0.0", "--save", "", "--appendonly", "no"]
