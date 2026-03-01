@@ -46,16 +46,18 @@ fi
 
 # ── install and learn webapp ─────────────────────────────────────────────────
 log "=== Install and learn webapp ==="
-PROFILE=$(bin/bobctl reinstall \
+PROFILE=$(bin/bobctl install \
   --manifest example/webapp-manifest.yaml \
   --functional-tests example/webapp-functional-tests.yaml \
   -n webapp \
   --timeout 3m \
   -v)
-[[ -n "$PROFILE" ]] || { log "ERROR: bobctl reinstall did not return a profile name"; exit 1; }
+[[ -n "$PROFILE" ]] || { log "ERROR: bobctl install did not return a profile name"; exit 1; }
 log "Profile: $PROFILE"
 
 # ── run autotune (exact CI command) ──────────────────────────────────────────
+# Autotune Phase 1 pushes CollapseConfig to storage.
+# Phase 2 applies collapse client-side to the existing baseline (no re-learn).
 log "=== Run autotune ==="
 mkdir -p results
 set +e

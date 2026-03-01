@@ -124,9 +124,9 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 
       - name: Install and learn webapp
-        id: profile
+        id: install-profile
         run: |
-          bin/bobctl reinstall \
+          bin/bobctl install \
             --manifest example/webapp-manifest.yaml \
             --functional-tests example/webapp-functional-tests.yaml \
             -n webapp \
@@ -144,7 +144,7 @@ jobs:
         run: |
           mkdir -p results
           bin/bobctl autotune \
-            --profile "${{ steps.profile.outputs.name }}" \
+            --profile "${{ steps.install-profile.outputs.name }}" \
             --manifest example/webapp-manifest.yaml \
             -n webapp \
             --ks-namespace honey \
@@ -162,7 +162,7 @@ jobs:
         if: always()
         run: |
           mkdir -p results
-          bin/bobctl get "${{ steps.profile.outputs.name }}" -n webapp -o yaml > results/tuned-profile.yaml || true
+          bin/bobctl get "${{ steps.install-profile.outputs.name }}" -n webapp -o yaml > results/tuned-profile.yaml || true
           echo "Exported tuned profile ($(wc -l < results/tuned-profile.yaml) lines)"
           echo "Iteration profiles saved by --output-dir:"
           ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
@@ -234,7 +234,7 @@ jobs:
             --arg k8s_distribution "${{ matrix.k8s-distribution }}" \
             --arg kubernetes_version "${{ matrix.kubernetes-version }}" \
             --arg kernel_version "$KERNEL_VERSION" \
-            --arg profile "${{ steps.profile.outputs.name }}" \
+            --arg profile "${{ steps.install-profile.outputs.name }}" \
             --arg autotune_exit_code "$RESULT" \
             --arg image_tag "$IMAGE_TAG" \
             --arg score "$SCORE" \
