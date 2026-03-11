@@ -146,8 +146,7 @@ kubescape:
 	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
 	-$(HELM) show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
-	-kubectl get configmap node-agent -n honey -o json | jq '.data["config.json"] |= (fromjson | .hostMonitoringEnabled=true | tojson)'
- | kubectl apply -f -
+	-kubectl get configmap node-agent -n honey -o json | jq '.data["config.json"] |= (fromjson | .hostMonitoringEnabled=true | tojson)' | kubectl apply -f -
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
 	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
