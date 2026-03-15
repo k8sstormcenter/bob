@@ -40,7 +40,7 @@ jobs:
       # The go.mod replace directive: ../../storage relative to pkg/
       - name: Clone storage dependency
         run: |
-          git clone --depth 1 --branch feature/tuning https://github.com/k8sstormcenter/storage.git ../storage
+          git clone --depth 1 --branch feature/collapse-config-crd https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Verify layout
         run: |
@@ -87,7 +87,9 @@ jobs:
         if: matrix.goarch == 'amd64'
         run: |
           bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} --help
-          bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} autotune --help
+          bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} tune --help
+          bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} collapse --help
+          bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} sign --help
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
