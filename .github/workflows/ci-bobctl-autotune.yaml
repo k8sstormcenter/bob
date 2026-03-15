@@ -180,6 +180,7 @@ jobs:
           bin/bobctl collapse \
             --namespaces ${{ matrix.app_namespace }} \
             --noisy-threshold 10 \
+            --apply \
             -v 2>&1 | tee results/collapse-analysis.txt
 
       # ---------- Tune (strategy sweep) ----------
