@@ -1,4 +1,4 @@
-name: CI - bobctl autotune
+name: CI - bobctl tune
 
 on:
   push:
@@ -55,7 +55,7 @@ jobs:
           name: bobctl
           path: bin/bobctl
 
-  autotune:
+  tune:
     name: "${{ matrix.app }} (${{ matrix.os }}, ${{ matrix.k8s-distribution }})"
     needs: build
     strategy:
@@ -79,7 +79,6 @@ jobs:
             deploy_name: webapp-mywebapp
             deploy_kind: deployment
             protocol: http
-            max_iterations: 1
           # ---- redis (TCP RESP, CVE-2025-49844 fileless) ----
           - app: redis
             manifest: example/redis-vulnerable.yaml
@@ -89,7 +88,6 @@ jobs:
             deploy_name: redis
             deploy_kind: deployment
             protocol: redis
-            max_iterations: 1
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -174,31 +172,36 @@ jobs:
 
 
 
-      # ---------- Autotune (single iteration) ----------
-      - name: Run autotune
-        id: autotune
+      # ---------- Collapse analysis ----------
+      - name: Run collapse analysis
         continue-on-error: true
         run: |
           mkdir -p results
-          bin/bobctl autotune \
+          bin/bobctl collapse \
+            --namespaces ${{ matrix.app_namespace }} \
+            --noisy-threshold 10 \
+            -v 2>&1 | tee results/collapse-analysis.txt
+
+      # ---------- Tune (strategy sweep) ----------
+      - name: Run tune
+        id: tune
+        continue-on-error: true
+        run: |
+          mkdir -p results
+          bin/bobctl tune \
             --profile "${{ steps.profile.outputs.name }}" \
-            --manifest ${{ matrix.manifest }} \
             -n ${{ matrix.app_namespace }} \
             --ks-namespace honey \
             --functional-tests ${{ matrix.functional_tests }} \
             --attack-suite ${{ matrix.attack_suite }} \
             --alertmanager-service alertmanager \
             --alertmanager-port 9093 \
-            --max-iterations ${{ matrix.max_iterations }} \
-            --learn-timeout 5m \
             --output-dir results \
             --debug \
-            --skip-strategy \
-            --skip-rule-adaptation \
-            -v 2>&1 | tee /tmp/autotune-output.txt
+            -v 2>&1 | tee /tmp/tune-output.txt
 
       # ---------- Fileless exec (Redis only) ----------
-      # After autotune runs the RESP-level CVE payloads, we execute the
+      # After tune runs the RESP-level CVE payloads, we execute the
       # memfd_create + exec payload inside the Redis container. This is
       # the post-exploitation step that triggers R1005.
       - name: "Run fileless exec payload (Redis CVE-2025-49844)"
@@ -237,19 +240,14 @@ jobs:
           ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
           cat results/*-iteration*.yaml
 
-      - name: Display computed CollapseConfig
+      - name: Display collapse analysis
         if: always()
         run: |
-          echo "=== Computed CollapseConfig ==="
-          if [ -f results/collapse-config.json ]; then
-            cat results/collapse-config.json
-            echo ""
-            echo "--- Storage ConfigMap patch command ---"
-            echo "To apply this config to the storage ConfigMap for hot-reload:"
-            echo "  kubectl patch configmap storage -n honey --type merge -p"
-            echo "    '{\"data\":{\"collapseConfig.json\": \"'\"'\$(cat results/collapse-config.json)'\"'\"}}'"
+          echo "=== Collapse Analysis ==="
+          if [ -f results/collapse-analysis.txt ]; then
+            cat results/collapse-analysis.txt
           else
-            echo "  (no collapse-config.json found — autotune may not have reached Phase 1)"
+            echo "  (no collapse analysis output found)"
           fi
 
 
@@ -316,12 +314,12 @@ jobs:
           KERNEL_VERSION=$(uname -r)
           mkdir -p results
 
-          # Extract metrics from autotune output
+          # Extract metrics from tune output
           IMAGE_TAG=$(grep 'tag:' kubescape/values.yaml | head -1 | sed 's/.*tag: "\(.*\)"/\1/')
-          SCORE=$(grep -oP 'score[:\s]+\K[0-9.]+' /tmp/autotune-output.txt 2>/dev/null | tail -1 || echo "N/A")
-          MISSED=$(grep -ciP 'missed|undetected' /tmp/autotune-output.txt 2>/dev/null || echo "0")
-          FP=$(grep -ciP 'false.positive' /tmp/autotune-output.txt 2>/dev/null || echo "0")
-          RESULT="${{ steps.autotune.outcome }}"
+          SCORE=$(grep -oP 'score[:\s]+\K[0-9.]+' /tmp/tune-output.txt 2>/dev/null | tail -1 || echo "N/A")
+          MISSED=$(grep -ciP 'missed|undetected' /tmp/tune-output.txt 2>/dev/null || echo "0")
+          FP=$(grep -ciP 'false.positive' /tmp/tune-output.txt 2>/dev/null || echo "0")
+          RESULT="${{ steps.tune.outcome }}"
 
           jq -n \
             --arg app "${{ matrix.app }}" \
@@ -330,7 +328,7 @@ jobs:
             --arg kubernetes_version "${{ matrix.kubernetes-version }}" \
             --arg kernel_version "$KERNEL_VERSION" \
             --arg profile "${{ steps.profile.outputs.name }}" \
-            --arg autotune_exit_code "$RESULT" \
+            --arg tune_exit_code "$RESULT" \
             --arg image_tag "$IMAGE_TAG" \
             --arg score "$SCORE" \
             --arg missed "$MISSED" \
@@ -344,7 +342,7 @@ jobs:
               kubernetes_version: $kubernetes_version,
               kernel_version: $kernel_version,
               profile: $profile,
-              autotune_exit_code: $autotune_exit_code,
+              tune_exit_code: $tune_exit_code,
               image_tag: $image_tag,
               score: $score,
               missed: $missed,
@@ -352,7 +350,7 @@ jobs:
               protocol: $protocol,
               result: $result
             }' > results/summary.json
-          cp /tmp/autotune-output.txt results/ 2>/dev/null || true
+          cp /tmp/tune-output.txt results/ 2>/dev/null || true
 
       - name: Upload result artifact
         if: always()
@@ -364,7 +362,7 @@ jobs:
   summarize:
     name: Summary
     runs-on: ubuntu-latest
-    needs: autotune
+    needs: tune
     if: always()
     steps:
       - name: Download all artifacts
@@ -374,7 +372,7 @@ jobs:
 
       - name: Generate summary table
         run: |
-          echo '### bobctl autotune — Matrix Results' >> $GITHUB_STEP_SUMMARY
+          echo '### bobctl tune — Matrix Results' >> $GITHUB_STEP_SUMMARY
           echo '' >> $GITHUB_STEP_SUMMARY
           echo '| App | OS | K8s Distro | K8s Version | Kernel | Image Tag | Protocol | Profile | Score | Missed | FP | Result |' >> $GITHUB_STEP_SUMMARY
           echo '|-----|-----|------------|-------------|--------|-----------|----------|---------|-------|--------|----|--------|' >> $GITHUB_STEP_SUMMARY
@@ -387,7 +385,7 @@ jobs:
               K8S_VERSION=$(jq -r '.kubernetes_version' "$dir/summary.json")
               KERNEL=$(jq -r '.kernel_version' "$dir/summary.json")
               PROFILE=$(jq -r '.profile' "$dir/summary.json")
-              EXIT=$(jq -r '.autotune_exit_code' "$dir/summary.json")
+              EXIT=$(jq -r '.tune_exit_code' "$dir/summary.json")
               IMAGE_TAG=$(jq -r '.image_tag // "N/A"' "$dir/summary.json")
               PROTOCOL=$(jq -r '.protocol // "http"' "$dir/summary.json")
               SCORE=$(jq -r '.score // "N/A"' "$dir/summary.json")
