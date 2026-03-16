@@ -14,16 +14,10 @@ tests:
       path: /
       expectedStatus: 200
 
-  - name: ping-google-dns
+  - name: ping-localhost
     http:
       method: GET
-      path: /ping.php?ip=8.8.8.8
-      expectedStatus: 200
-
-  - name: ping-cloudflare-dns
-    http:
-      method: GET
-      path: /ping.php?ip=1.1.1.1
+      path: /ping.php?ip=127.0.0.1
       expectedStatus: 200
 
 
