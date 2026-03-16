@@ -330,6 +330,7 @@ spec:
             httpGet:
               path: /
               port: {{ .Values.misp.service.targetPort | default 8080 }}
+              scheme: {{ .Values.misp.liveness.scheme | default "HTTP" }}
           {{- end }}
           {{- if .Values.misp.readiness.enabled }}
           readinessProbe:
@@ -354,6 +355,7 @@ spec:
             httpGet:
               path: /
               port: {{ .Values.misp.service.targetPort | default 8080 }}
+              scheme: {{ .Values.misp.startup.scheme | default "HTTP" }}
           {{- end }}
           volumeMounts:
             {{- if .Values.misp.mispConfig.extraObjects.enabled }}

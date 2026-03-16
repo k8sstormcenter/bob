@@ -538,6 +538,12 @@ jobs:
         run: make alertmanager
 
       # ---------- MISP deployment via Helm ----------
+      - name: Build MISP chart dependencies
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          helm dependency build ./misp
+
       - name: Deploy MISP
         run: |
           echo "Deploying MISP via Helm chart..."
