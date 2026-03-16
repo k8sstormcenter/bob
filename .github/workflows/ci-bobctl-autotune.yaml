@@ -295,7 +295,23 @@ jobs:
             echo "  (no collapse analysis output found)"
           fi
 
-
+      - name: Display tune metrics
+        if: always()
+        run: |
+          echo "=== Tune Metrics ==="
+          if [ -f results/metrics.json ]; then
+            echo "--- metrics.json ---"
+            cat results/metrics.json
+          fi
+          if [ -f results/metrics.md ]; then
+            echo "--- metrics.md ---"
+            cat results/metrics.md
+            echo "### ${{ matrix.app }} (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
+            cat results/metrics.md >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "  (no metrics output — tune may have failed before producing metrics)"
+          fi
 
       - name: Run explicit attacks
         if: always()

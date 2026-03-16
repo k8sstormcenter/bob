@@ -222,7 +222,7 @@ All these files MUST be consistent with each other:
 | `example/webapp-attacks.yaml` | Attacks + expected detections for webapp |
 | `example/webapp-functional-tests.yaml` | Benign traffic for webapp |
 | `example/redis-attacks.yaml` | 12 attacks + expected detections for redis |
-| `example/redis-functional-tests.yaml` | 21 benign Redis operations |
+| `example/redis-functional-tests.yaml` | 80 benign Redis operations (RESP protocol) |
 | `example/redis-tests/attack-NN-*.yaml` | Per-attack files for parallel execution |
 | `kubescape/default-rules.yaml` | Rule definitions (names must match alert labels) |
 | `pkg/verify/types.go` `DefaultExpectedDetections()` | Hardcoded defaults (webapp) |

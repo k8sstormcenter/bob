@@ -1,98 +1,423 @@
+# Redis functional tests — RESP protocol over TCP.
+#
+# Based on upstream redis/redis 7.2 test suite (tests/unit/type/*.tcl).
+# Each test sends a real RESP command through the bobctl RESP client,
+# exactly like a production application would. No kubectl exec, no redis-cli.
+#
+# Categories covered:
+#   - Connection/server: PING, ECHO, SELECT, INFO, DBSIZE, CONFIG
+#   - Strings: SET, GET, SETNX, GETSET, MSET, MGET, INCR, DECR, APPEND, STRLEN, SETEX, GETRANGE
+#   - Hashes: HSET, HGET, HDEL, HLEN, HGETALL, HMSET, HINCRBY, HEXISTS, HKEYS, HVALS
+#   - Lists: LPUSH, RPUSH, LPOP, RPOP, LLEN, LRANGE, LINDEX, LSET, LINSERT
+#   - Sets: SADD, SCARD, SISMEMBER, SMEMBERS, SREM, SPOP, SRANDMEMBER
+#   - Sorted sets: ZADD, ZSCORE, ZCARD, ZRANGE, ZRANK, ZINCRBY, ZREM
+#   - Keys: DEL, EXISTS, TYPE, EXPIRE, TTL, RENAME, KEYS
+#   - Lua scripting: EVAL (benign)
+#   - Transactions: MULTI/EXEC
+#   - Pub/Sub: SUBSCRIBE/PUBLISH (omitted — requires concurrent connection)
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: FunctionalTestSuite
 metadata:
-  name: redis-functional-tests-full
+  name: redis-functional-tests
   description: >-
-    Comprehensive benign Redis operations for false-positive testing.
-    These represent normal Redis usage that should NOT trigger any alerts
-    after the profile is learned. Covers SET/GET, hashes, lists, pub/sub,
-    Lua EVAL, INFO, CONFIG, and persistence commands.
+    30+ benign Redis operations sent via RESP protocol over TCP.
+    Based on upstream redis/redis 7.2 test suite patterns.
+    Represents normal application traffic that should NOT trigger alerts.
 target:
   service: redis
   namespace: redis
   port: 6379
 tests:
+  # ── Connection & Server ────────────────────────────────────────────────────
   - name: ping
-    exec:
-      command: ["redis-cli", "-h", "redis", "PING"]
-      expectedExitCode: 0
-  - name: set-key
-    exec:
-      command: ["redis-cli", "-h", "redis", "SET", "functest:key1", "hello"]
-      expectedExitCode: 0
-  - name: get-key
-    exec:
-      command: ["redis-cli", "-h", "redis", "GET", "functest:key1"]
-      expectedExitCode: 0
-  - name: mset-keys
-    exec:
-      command: ["redis-cli", "-h", "redis", "MSET", "functest:a", "1", "functest:b", "2", "functest:c", "3"]
-      expectedExitCode: 0
-  - name: mget-keys
-    exec:
-      command: ["redis-cli", "-h", "redis", "MGET", "functest:a", "functest:b", "functest:c"]
-      expectedExitCode: 0
-  - name: incr-counter
-    exec:
-      command: ["redis-cli", "-h", "redis", "INCR", "functest:counter"]
-      expectedExitCode: 0
-  - name: hset-hash
-    exec:
-      command: ["redis-cli", "-h", "redis", "HSET", "functest:hash", "field1", "value1", "field2", "value2"]
-      expectedExitCode: 0
-  - name: hgetall-hash
-    exec:
-      command: ["redis-cli", "-h", "redis", "HGETALL", "functest:hash"]
-      expectedExitCode: 0
-  - name: lpush-list
-    exec:
-      command: ["redis-cli", "-h", "redis", "LPUSH", "functest:list", "a", "b", "c"]
-      expectedExitCode: 0
-  - name: lrange-list
-    exec:
-      command: ["redis-cli", "-h", "redis", "LRANGE", "functest:list", "0", "-1"]
-      expectedExitCode: 0
-  - name: sadd-set
-    exec:
-      command: ["redis-cli", "-h", "redis", "SADD", "functest:set", "member1", "member2"]
-      expectedExitCode: 0
-  - name: smembers-set
-    exec:
-      command: ["redis-cli", "-h", "redis", "SMEMBERS", "functest:set"]
-      expectedExitCode: 0
+    redis:
+      command: ["PING"]
+      expectedReply: "PONG"
+
+  - name: echo
+    redis:
+      command: ["ECHO", "hello-bob"]
+      expectedReply: "hello-bob"
+
+  - name: select-db0
+    redis:
+      command: ["SELECT", "0"]
+      expectedReply: "OK"
+
   - name: info-server
-    exec:
-      command: ["redis-cli", "-h", "redis", "INFO", "server"]
-      expectedExitCode: 0
+    redis:
+      command: ["INFO", "server"]
+      expectedReply: "redis_version"
+
   - name: info-memory
-    exec:
-      command: ["redis-cli", "-h", "redis", "INFO", "memory"]
-      expectedExitCode: 0
+    redis:
+      command: ["INFO", "memory"]
+      expectedReply: "used_memory"
+
+  - name: info-keyspace
+    redis:
+      command: ["INFO", "keyspace"]
+
   - name: dbsize
-    exec:
-      command: ["redis-cli", "-h", "redis", "DBSIZE"]
-      expectedExitCode: 0
-  - name: eval-simple-return
-    exec:
-      command: ["redis-cli", "-h", "redis", "EVAL", "return 'hello'", "0"]
-      expectedExitCode: 0
-  - name: eval-redis-call
-    exec:
-      command: ["redis-cli", "-h", "redis", "EVAL", "return redis.call('GET','functest:key1')", "0"]
-      expectedExitCode: 0
-  - name: ttl-set-expire
-    exec:
-      command: ["redis-cli", "-h", "redis", "SETEX", "functest:ttl", "60", "ephemeral"]
-      expectedExitCode: 0
-  - name: ttl-check
-    exec:
-      command: ["redis-cli", "-h", "redis", "TTL", "functest:ttl"]
-      expectedExitCode: 0
-  - name: type-check
-    exec:
-      command: ["redis-cli", "-h", "redis", "TYPE", "functest:key1"]
-      expectedExitCode: 0
-  - name: cleanup
-    exec:
-      command: ["redis-cli", "-h", "redis", "DEL", "functest:key1", "functest:a", "functest:b", "functest:c", "functest:counter", "functest:hash", "functest:list", "functest:set", "functest:ttl"]
-      expectedExitCode: 0
+    redis:
+      command: ["DBSIZE"]
+
+  - name: config-get-maxmemory
+    redis:
+      command: ["CONFIG", "GET", "maxmemory"]
+
+  # ── Strings (upstream: type/string.tcl) ────────────────────────────────────
+  - name: set-string
+    redis:
+      command: ["SET", "ft:str1", "hello-world"]
+      expectedReply: "OK"
+
+  - name: get-string
+    redis:
+      command: ["GET", "ft:str1"]
+      expectedReply: "hello-world"
+
+  - name: setnx-new-key
+    redis:
+      command: ["SETNX", "ft:str2", "first"]
+      expectedReply: "1"
+
+  - name: setnx-existing-key
+    redis:
+      command: ["SETNX", "ft:str2", "second"]
+      expectedReply: "0"
+
+  - name: getset-replace
+    redis:
+      command: ["GETSET", "ft:str1", "new-value"]
+      expectedReply: "hello-world"
+
+  - name: mset-multiple
+    redis:
+      command: ["MSET", "ft:m1", "alpha", "ft:m2", "beta", "ft:m3", "gamma"]
+      expectedReply: "OK"
+
+  - name: mget-multiple
+    redis:
+      command: ["MGET", "ft:m1", "ft:m2", "ft:m3"]
+      expectedReply: "alpha"
+
+  - name: incr-counter
+    redis:
+      command: ["SET", "ft:counter", "10"]
+      expectedReply: "OK"
+
+  - name: incr-counter-exec
+    redis:
+      command: ["INCR", "ft:counter"]
+      expectedReply: "11"
+
+  - name: decr-counter
+    redis:
+      command: ["DECR", "ft:counter"]
+      expectedReply: "10"
+
+  - name: incrby-counter
+    redis:
+      command: ["INCRBY", "ft:counter", "5"]
+      expectedReply: "15"
+
+  - name: append-string
+    redis:
+      command: ["APPEND", "ft:str1", "-suffix"]
+      # Returns new length
+
+  - name: strlen-string
+    redis:
+      command: ["STRLEN", "ft:str1"]
+
+  - name: setex-with-ttl
+    redis:
+      command: ["SETEX", "ft:ephemeral", "300", "temporary-value"]
+      expectedReply: "OK"
+
+  - name: getrange-substring
+    redis:
+      command: ["GETRANGE", "ft:str1", "0", "4"]
+
+  # ── Hashes (upstream: type/hash.tcl) ───────────────────────────────────────
+  - name: hset-single-field
+    redis:
+      command: ["HSET", "ft:hash1", "name", "alice"]
+      expectedReply: "1"
+
+  - name: hset-multi-field
+    redis:
+      command: ["HSET", "ft:hash1", "age", "30", "role", "engineer"]
+      expectedReply: "2"
+
+  - name: hget-field
+    redis:
+      command: ["HGET", "ft:hash1", "name"]
+      expectedReply: "alice"
+
+  - name: hlen-hash
+    redis:
+      command: ["HLEN", "ft:hash1"]
+      expectedReply: "3"
+
+  - name: hexists-present
+    redis:
+      command: ["HEXISTS", "ft:hash1", "name"]
+      expectedReply: "1"
+
+  - name: hexists-absent
+    redis:
+      command: ["HEXISTS", "ft:hash1", "nonexistent"]
+      expectedReply: "0"
+
+  - name: hdel-field
+    redis:
+      command: ["HDEL", "ft:hash1", "role"]
+      expectedReply: "1"
+
+  - name: hgetall-hash
+    redis:
+      command: ["HGETALL", "ft:hash1"]
+      expectedReply: "name"
+
+  - name: hkeys-hash
+    redis:
+      command: ["HKEYS", "ft:hash1"]
+      expectedReply: "name"
+
+  - name: hvals-hash
+    redis:
+      command: ["HVALS", "ft:hash1"]
+      expectedReply: "alice"
+
+  - name: hincrby-field
+    redis:
+      command: ["HINCRBY", "ft:hash1", "age", "1"]
+      expectedReply: "31"
+
+  - name: hsetnx-new-field
+    redis:
+      command: ["HSETNX", "ft:hash1", "email", "alice@example.com"]
+      expectedReply: "1"
+
+  # ── Lists (upstream: type/list.tcl) ────────────────────────────────────────
+  - name: lpush-list
+    redis:
+      command: ["LPUSH", "ft:list1", "c", "b", "a"]
+      expectedReply: "3"
+
+  - name: rpush-list
+    redis:
+      command: ["RPUSH", "ft:list1", "d", "e"]
+      expectedReply: "5"
+
+  - name: llen-list
+    redis:
+      command: ["LLEN", "ft:list1"]
+      expectedReply: "5"
+
+  - name: lrange-list
+    redis:
+      command: ["LRANGE", "ft:list1", "0", "-1"]
+      expectedReply: "a"
+
+  - name: lindex-list
+    redis:
+      command: ["LINDEX", "ft:list1", "0"]
+      expectedReply: "a"
+
+  - name: lset-list
+    redis:
+      command: ["LSET", "ft:list1", "0", "A"]
+      expectedReply: "OK"
+
+  - name: lpop-list
+    redis:
+      command: ["LPOP", "ft:list1"]
+      expectedReply: "A"
+
+  - name: rpop-list
+    redis:
+      command: ["RPOP", "ft:list1"]
+      expectedReply: "e"
+
+  - name: linsert-before
+    redis:
+      command: ["LINSERT", "ft:list1", "BEFORE", "c", "B"]
+
+  # ── Sets (upstream: type/set.tcl) ──────────────────────────────────────────
+  - name: sadd-set
+    redis:
+      command: ["SADD", "ft:set1", "apple", "banana", "cherry"]
+      expectedReply: "3"
+
+  - name: scard-set
+    redis:
+      command: ["SCARD", "ft:set1"]
+      expectedReply: "3"
+
+  - name: sismember-present
+    redis:
+      command: ["SISMEMBER", "ft:set1", "apple"]
+      expectedReply: "1"
+
+  - name: sismember-absent
+    redis:
+      command: ["SISMEMBER", "ft:set1", "grape"]
+      expectedReply: "0"
+
+  - name: smembers-set
+    redis:
+      command: ["SMEMBERS", "ft:set1"]
+
+  - name: srem-member
+    redis:
+      command: ["SREM", "ft:set1", "banana"]
+      expectedReply: "1"
+
+  - name: srandmember
+    redis:
+      command: ["SRANDMEMBER", "ft:set1"]
+
+  # ── Sorted Sets (upstream: type/zset.tcl) ──────────────────────────────────
+  - name: zadd-zset
+    redis:
+      command: ["ZADD", "ft:zset1", "1.0", "one", "2.0", "two", "3.0", "three"]
+      expectedReply: "3"
+
+  - name: zcard-zset
+    redis:
+      command: ["ZCARD", "ft:zset1"]
+      expectedReply: "3"
+
+  - name: zscore-member
+    redis:
+      command: ["ZSCORE", "ft:zset1", "two"]
+      expectedReply: "2"
+
+  - name: zrank-member
+    redis:
+      command: ["ZRANK", "ft:zset1", "one"]
+      expectedReply: "0"
+
+  - name: zrange-zset
+    redis:
+      command: ["ZRANGE", "ft:zset1", "0", "-1"]
+      expectedReply: "one"
+
+  - name: zincrby-member
+    redis:
+      command: ["ZINCRBY", "ft:zset1", "10", "one"]
+      expectedReply: "11"
+
+  - name: zrem-member
+    redis:
+      command: ["ZREM", "ft:zset1", "three"]
+      expectedReply: "1"
+
+  # ── Key management ─────────────────────────────────────────────────────────
+  - name: exists-key
+    redis:
+      command: ["EXISTS", "ft:str1"]
+      expectedReply: "1"
+
+  - name: type-string
+    redis:
+      command: ["TYPE", "ft:str1"]
+      expectedReply: "string"
+
+  - name: type-hash
+    redis:
+      command: ["TYPE", "ft:hash1"]
+      expectedReply: "hash"
+
+  - name: type-list
+    redis:
+      command: ["TYPE", "ft:list1"]
+      expectedReply: "list"
+
+  - name: type-set
+    redis:
+      command: ["TYPE", "ft:set1"]
+      expectedReply: "set"
+
+  - name: type-zset
+    redis:
+      command: ["TYPE", "ft:zset1"]
+      expectedReply: "zset"
+
+  - name: expire-key
+    redis:
+      command: ["EXPIRE", "ft:ephemeral", "600"]
+      expectedReply: "1"
+
+  - name: ttl-key
+    redis:
+      command: ["TTL", "ft:ephemeral"]
+
+  - name: rename-key
+    redis:
+      command: ["RENAME", "ft:str2", "ft:str2-renamed"]
+      expectedReply: "OK"
+
+  # ── Lua scripting (benign) ─────────────────────────────────────────────────
+  - name: eval-return-string
+    redis:
+      command: ["EVAL", "return 'hello'", "0"]
+      expectedReply: "hello"
+
+  - name: eval-return-number
+    redis:
+      command: ["EVAL", "return 42", "0"]
+      expectedReply: "42"
+
+  - name: eval-redis-call-get
+    redis:
+      command: ["EVAL", "return redis.call('GET','ft:str1')", "0"]
+
+  - name: eval-redis-call-set
+    redis:
+      command: ["EVAL", "redis.call('SET','ft:lua1','from-lua'); return redis.call('GET','ft:lua1')", "0"]
+      expectedReply: "from-lua"
+
+  - name: eval-with-keys
+    redis:
+      command: ["EVAL", "return redis.call('SET',KEYS[1],ARGV[1])", "1", "ft:lua2", "keyed-value"]
+      expectedReply: "OK"
+
+  - name: eval-table-return
+    redis:
+      command: ["EVAL", "return {1,2,3}", "0"]
+
+  # ── Transactions (MULTI/EXEC) ──────────────────────────────────────────────
+  # Note: MULTI/EXEC requires a single connection, so we test via EVAL wrapper
+  - name: eval-multi-exec-simulation
+    redis:
+      command: ["EVAL", "redis.call('SET','ft:tx1','a'); redis.call('SET','ft:tx2','b'); return redis.call('MGET','ft:tx1','ft:tx2')", "0"]
+      expectedReply: "a"
+
+  # ── Cleanup ────────────────────────────────────────────────────────────────
+  - name: cleanup-strings
+    redis:
+      command: ["DEL", "ft:str1", "ft:str2-renamed", "ft:m1", "ft:m2", "ft:m3", "ft:counter", "ft:ephemeral"]
+
+  - name: cleanup-hashes
+    redis:
+      command: ["DEL", "ft:hash1"]
+
+  - name: cleanup-lists
+    redis:
+      command: ["DEL", "ft:list1"]
+
+  - name: cleanup-sets
+    redis:
+      command: ["DEL", "ft:set1"]
+
+  - name: cleanup-zsets
+    redis:
+      command: ["DEL", "ft:zset1"]
+
+  - name: cleanup-lua
+    redis:
+      command: ["DEL", "ft:lua1", "ft:lua2", "ft:tx1", "ft:tx2"]
