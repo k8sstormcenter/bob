@@ -1,0 +1,417 @@
+## MISP Helm Chart - Kind cluster values
+## Hardened for local development on Kind with minimal resource usage.
+---
+global:
+  imagePullSecrets: []
+
+misp:
+  replicaCount: 1
+
+  image:
+    repository: ghcr.io/misp/misp-docker/misp-core
+    pullPolicy: IfNotPresent
+    tag: "v2.5.34"
+
+  initContainers:
+    image: busybox:1.37
+    pullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: 250m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+    waitForDbAndValkey:
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for MariaDB and Valkey..."
+          until nc -z -w 5 {{ .Release.Name }}-mariadb 3306; do
+            echo "waiting for MariaDB..."; sleep 5;
+          done;
+          echo "MariaDB is ready.";
+          until nc -z -w 5 {{ .Release.Name }}-valkey-master 6379; do
+            echo "waiting for Valkey..."; sleep 5;
+          done;
+          echo "Valkey is ready.";
+
+  ## Disable the misp-logs sidecar (requires internal misp-configurator image)
+  mispLogs:
+    enabled: false
+
+  ## Disable Istio sidecar injection
+  podLabels:
+    sidecar.istio.io/inject: "false"
+
+  ## No Vault
+  vault:
+    enabled: false
+
+  keycloakSecret:
+    enabled: false
+
+  mispCertSecret:
+    enabled: false
+
+  ## Core mode
+  isCore:
+    enabled: true
+  isTransit:
+    enabled: false
+
+  ## MISP configuration
+  mispConfig:
+    soarUsers:
+      enabled: false
+    customScripts:
+      enabled: false
+    backoffLimit: 4
+    loglevel: info
+    restartPolicy: OnFailure
+    ## Not used when mispLogs is disabled, but must be valid
+    image:
+      repository: busybox
+      tag: "1.37"
+      pullPolicy: IfNotPresent
+    initialAdminUsername: "admin@misp.local"
+    emergencyUser:
+      enabled: false
+    disableInitialAdmin:
+      enabled: false
+    extraCerts:
+      enabled: false
+    extraObjects:
+      enabled: false
+    extraVars:
+      ORGNAME: "K8sStormCenter"
+      ADMIN_ORG: "K8sStormCenter"
+      EMAIL: "admin@misp.local"
+      CONTACT: "admin@misp.local"
+      DISABLE_EMAIL: true
+      AUTH_AMOUNT: 5
+      AUTH_EXPIRE: 300
+      LOG_CLIENT_IP: true
+      LOG_AUTH: true
+      STORE_API_ACCESS_TIME: true
+      LOG_USER_IPS: true
+      LOG_NEW_AUDIT: true
+      LOG_NEW_AUDIT_COMPRESS: false
+      DISABLE_USER_ADD: false
+      DISABLE_USER_LOGIN_CHANGE: false
+      DISABLE_USER_PASSWORD_CHANGE: false
+      ENABLE_CSP_ENFORCE: false
+      PASSWORD_LENGTH: 12
+      PASSWORD_COMPLEXITY: "/^.{12,}$/"
+      NGINX_RELOAD: false
+      DISABLE_SSL_REDIRECT: true
+      VERIFY_CERT: false
+      NUM_WORKERS_DEFAULT: 1
+      NUM_WORKERS_PRIO: 1
+      NUM_WORKERS_EMAIL: 1
+      NUM_WORKERS_UPDATE: 1
+      NUM_WORKERS_CACHE: 1
+      MISP_debug_logs: false
+      MISP_ADVANCED_LOGGING: false
+      AUTH_ENFORCED: true
+      SUPERVISOR_USERNAME: supervisor
+      DISABLE_PRINTING_PLAINTEXT_CREDENTIALS: false
+      DEBUG: 0
+      UPDATE_WARNINGLISTS: true
+      UPDATE_TAXONOMIES: true
+      UPDATE_OBJECT_TEMPLATES: true
+      UPDATE_GALAXY_CLUSTERS: true
+      ENABLE_BACKGROUND_PROCESSING: true
+      DISABLE_CORRELATION: false
+
+    persistence:
+      enabled: true
+      size: 2Gi
+      labels: {}
+      annotations: {}
+      spec:
+        storageClassName: standard
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
+
+  ## Auth
+  auth:
+    adminEmail: "admin@misp.local"
+    adminPassword: "MISPAdmin2024!"
+    apiKey: ""
+    existingSecret: ""
+    oidc:
+      enable: false
+      enabled: false
+
+  ## Secret env vars — entrypoint reads MYSQL_PASSWORD and REDIS_PASSWORD directly (not _FILE)
+  extraEnvVarsSecret:
+    - name: MYSQL_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: misp-mariadb
+          key: mariadb-password
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: misp-valkey
+          key: password
+
+  ## Extra env vars for the MISP core container
+  extraEnvVars:
+    ORGNAME: "K8sStormCenter"
+    ADMIN_ORG: "K8sStormCenter"
+    EMAIL: "admin@misp.local"
+    CONTACT: "admin@misp.local"
+    DISABLE_EMAIL: "true"
+    DISABLE_SSL_REDIRECT: "true"
+    VERIFY_CERT: "false"
+    NUM_WORKERS_DEFAULT: "1"
+    NUM_WORKERS_PRIO: "1"
+    NUM_WORKERS_EMAIL: "1"
+    NUM_WORKERS_UPDATE: "1"
+    NUM_WORKERS_CACHE: "1"
+    SUPERVISOR_USERNAME: "supervisor"
+    SUPERVISOR_PASSWORD: "supervisor"
+    BASE_URL: "https://localhost:30443"
+
+  ## Service — NodePort for Kind access (MISP listens on 443 internally)
+  service:
+    annotations: {}
+    type: NodePort
+    port: 443
+    nodePort: 30443
+    targetPort: 443
+    loadBalancerIP: ""
+    urlSuffix: ""
+
+  ## Disable ingress (no ingress controller in Kind)
+  ingress:
+    enabled: false
+    className: ""
+    hosts: []
+    annotations: {}
+    tls: []
+
+  ## Disable Istio
+  istio:
+    enabled: false
+
+  hostname: "https://localhost:30443"
+  nodePort: ""
+
+  annotations: {}
+  podAnnotations: {}
+  podSecurityContext: {}
+
+  ## Security context — MISP entrypoint needs root to configure then drops to www-data
+  ## readOnlyRootFilesystem=false avoids the complex init-copy-files + PVC dance
+  securityContext:
+    readOnlyRootFilesystem: false
+    allowPrivilegeEscalation: false
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - CHOWN
+        - SETUID
+        - SETGID
+        - DAC_OVERRIDE
+        - FOWNER
+
+  ## Not used when readOnlyRootFilesystem=false
+  volumesForReadOnly: []
+
+  ## Probes — generous timeouts for Kind (slow pulls)
+  startup:
+    enabled: true
+    failure: 60
+    success: 1
+    delay: 30
+    period: 10
+    timeout: 5
+    scheme: HTTPS
+
+  readiness:
+    enabled: false
+
+  liveness:
+    enabled: true
+    failure: 10
+    success: 1
+    delay: 60
+    period: 30
+    timeout: 5
+    scheme: HTTPS
+
+  ## Resource limits — conservative for Kind single-node
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "2048Mi"
+      cpu: "2"
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  autoscaling:
+    enabled: false
+
+  networkPolicy:
+    enabled: false
+
+  valkey:
+    host: ""
+  mariadb:
+    host: ""
+    user: "misp"
+    database: "misp"
+
+  updateCaCertificatesOnStart: false
+
+## Valkey subchart
+valkey:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/valkey
+    tag: 8.1.1
+    pullPolicy: IfNotPresent
+  auth:
+    enabled: true
+    existingSecretPasswordKey: password
+    existingSecret: |
+      {{ printf "%s-valkey" .Release.Name }}
+  volumePermissions:
+    enabled: false
+  resources: &valkeyResources
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  master:
+    resources: *valkeyResources
+    podLabels: {}
+    persistence:
+      enabled: true
+      size: 1Gi
+      storageClass: standard
+    containerSecurityContext: &valkeySecCtx
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: "RuntimeDefault"
+    ## Remove aggressive disableCommands — MISP needs most Redis commands
+    disableCommands: []
+    extraVolumeMounts:
+      - name: vault-valkey
+        mountPath: /vault/secrets
+    extraVolumes: |
+      - name: vault-valkey
+        secret:
+          secretName: {{ printf "%s-valkey" .Release.Name }}
+  replica:
+    replicaCount: 0
+    resources: *valkeyResources
+    podLabels: {}
+    persistence:
+      enabled: false
+    containerSecurityContext: *valkeySecCtx
+    disableCommands: []
+
+## MariaDB subchart
+mariadb:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/mariadb
+    tag: 11.4.7-debian-12-r1
+    pullPolicy: IfNotPresent
+  auth:
+    username: "misp"
+    database: "misp"
+    existingSecret: "misp-mariadb"
+    defaultAuthenticationPlugin: "caching_sha2_password"
+  tde:
+    enabled: false
+  volumePermissions:
+    enabled: false
+  resources: &mariadbResources
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "1024Mi"
+  primary:
+    resources: *mariadbResources
+    podLabels: {}
+    persistence:
+      enabled: true
+      size: 2Gi
+      storageClass: standard
+    containerSecurityContext:
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+    extraVolumeMounts:
+      - name: vault-mariadb
+        mountPath: /vault/secrets
+    extraVolumes:
+      - name: vault-mariadb
+        secret:
+          secretName: "{{ printf \"%s-mariadb\" .Release.Name }}"
+      - name: mysql-conf
+        emptyDir: {}
+      - name: mysql-tmp
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+    configuration: |-
+      [mysqld]
+      port= {{ .Values.primary.containerPorts.mysql }}
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+      bind-address=*
+      basedir=/opt/bitnami/mariadb
+      plugin_dir=/opt/bitnami/mariadb/lib/plugin
+      datadir=/bitnami/mariadb/data
+      tmpdir=/opt/bitnami/mariadb/tmp
+      max_allowed_packet=16M
+      skip-name-resolve
+      skip-grant-tables=FALSE
+      explicit_defaults_for_timestamp
+      character-set-server=UTF8MB4
+      max_connections=51
+      max_user_connections=30
+      sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'
+      # Reduced logging for Kind
+      general_log=OFF
+      slow_query_log=0
+      [client]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      default-character-set=UTF8MB4
+      plugin_dir=/opt/bitnami/mariadb/lib/plugin
+      [manager]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid

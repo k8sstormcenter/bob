@@ -1,0 +1,98 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: redis-functional-tests-full
+  description: >-
+    Comprehensive benign Redis operations for false-positive testing.
+    These represent normal Redis usage that should NOT trigger any alerts
+    after the profile is learned. Covers SET/GET, hashes, lists, pub/sub,
+    Lua EVAL, INFO, CONFIG, and persistence commands.
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+tests:
+  - name: ping
+    exec:
+      command: ["redis-cli", "-h", "redis", "PING"]
+      expectedExitCode: 0
+  - name: set-key
+    exec:
+      command: ["redis-cli", "-h", "redis", "SET", "functest:key1", "hello"]
+      expectedExitCode: 0
+  - name: get-key
+    exec:
+      command: ["redis-cli", "-h", "redis", "GET", "functest:key1"]
+      expectedExitCode: 0
+  - name: mset-keys
+    exec:
+      command: ["redis-cli", "-h", "redis", "MSET", "functest:a", "1", "functest:b", "2", "functest:c", "3"]
+      expectedExitCode: 0
+  - name: mget-keys
+    exec:
+      command: ["redis-cli", "-h", "redis", "MGET", "functest:a", "functest:b", "functest:c"]
+      expectedExitCode: 0
+  - name: incr-counter
+    exec:
+      command: ["redis-cli", "-h", "redis", "INCR", "functest:counter"]
+      expectedExitCode: 0
+  - name: hset-hash
+    exec:
+      command: ["redis-cli", "-h", "redis", "HSET", "functest:hash", "field1", "value1", "field2", "value2"]
+      expectedExitCode: 0
+  - name: hgetall-hash
+    exec:
+      command: ["redis-cli", "-h", "redis", "HGETALL", "functest:hash"]
+      expectedExitCode: 0
+  - name: lpush-list
+    exec:
+      command: ["redis-cli", "-h", "redis", "LPUSH", "functest:list", "a", "b", "c"]
+      expectedExitCode: 0
+  - name: lrange-list
+    exec:
+      command: ["redis-cli", "-h", "redis", "LRANGE", "functest:list", "0", "-1"]
+      expectedExitCode: 0
+  - name: sadd-set
+    exec:
+      command: ["redis-cli", "-h", "redis", "SADD", "functest:set", "member1", "member2"]
+      expectedExitCode: 0
+  - name: smembers-set
+    exec:
+      command: ["redis-cli", "-h", "redis", "SMEMBERS", "functest:set"]
+      expectedExitCode: 0
+  - name: info-server
+    exec:
+      command: ["redis-cli", "-h", "redis", "INFO", "server"]
+      expectedExitCode: 0
+  - name: info-memory
+    exec:
+      command: ["redis-cli", "-h", "redis", "INFO", "memory"]
+      expectedExitCode: 0
+  - name: dbsize
+    exec:
+      command: ["redis-cli", "-h", "redis", "DBSIZE"]
+      expectedExitCode: 0
+  - name: eval-simple-return
+    exec:
+      command: ["redis-cli", "-h", "redis", "EVAL", "return 'hello'", "0"]
+      expectedExitCode: 0
+  - name: eval-redis-call
+    exec:
+      command: ["redis-cli", "-h", "redis", "EVAL", "return redis.call('GET','functest:key1')", "0"]
+      expectedExitCode: 0
+  - name: ttl-set-expire
+    exec:
+      command: ["redis-cli", "-h", "redis", "SETEX", "functest:ttl", "60", "ephemeral"]
+      expectedExitCode: 0
+  - name: ttl-check
+    exec:
+      command: ["redis-cli", "-h", "redis", "TTL", "functest:ttl"]
+      expectedExitCode: 0
+  - name: type-check
+    exec:
+      command: ["redis-cli", "-h", "redis", "TYPE", "functest:key1"]
+      expectedExitCode: 0
+  - name: cleanup
+    exec:
+      command: ["redis-cli", "-h", "redis", "DEL", "functest:key1", "functest:a", "functest:b", "functest:c", "functest:counter", "functest:hash", "functest:list", "functest:set", "functest:ttl"]
+      expectedExitCode: 0

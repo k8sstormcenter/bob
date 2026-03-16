@@ -1,0 +1,38 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-attack-04-unexpected-whoami
+  description: "Execute whoami (not in baseline). Triggers R0001."
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+attacks:
+  - name: unexpected-process-whoami
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return 'sandbox_blocked' end
+        local f = io_mod.popen('whoami')
+        local out = f:read('*a')
+        f:close()
+        return 'user:' .. out
+    successIndicators:
+      - responseContains: "user:"
+expectedDetections:
+  - attackType: fileless
+    ruleID: R0001
+    ruleName: "Unexpected process launched"
+    containerName: redis
+    command: whoami
