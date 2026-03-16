@@ -23,18 +23,12 @@ SETUP_ONLY=false
 APP=webapp
 KS_NS=honey
 
-for arg in "$@"; do
-  case "$arg" in
-    --tune-only)  TUNE_ONLY=true ;;
-    --setup-only) SETUP_ONLY=true ;;
-    --app)        shift; APP="${1:-webapp}" ;;
-  esac
-done
-# Handle --app <value> form
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --app) APP="${2:-webapp}"; shift 2 ;;
-    *)     shift ;;
+    --tune-only)  TUNE_ONLY=true; shift ;;
+    --setup-only) SETUP_ONLY=true; shift ;;
+    --app)        APP="${2:-webapp}"; shift 2 ;;
+    *)            shift ;;
   esac
 done
 

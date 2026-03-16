@@ -64,9 +64,9 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "1.1.1.1;cat /etc/shadow"
+        ip: "1.1.1.1;cat /etc/shadow || true"
     successIndicators:
-      - bodyContains: "root:"
+      - statusCode: 200  # file open triggers R0010 even if read fails (www-data can't read shadow)
 
   # ─── Post-Exploit: DNS Anomaly (R0005) ─────────────────────────────────────
   # Resolve a domain not in the learned network neighborhood.
@@ -81,7 +81,7 @@ attacks:
     successIndicators:
       - statusCode: 200
 
-  # ─── Post-Exploit: Drifted Binary (R1010) ──────────────────────────────────
+  # ─── Post-Exploit: Drifted Binary (R1001) ──────────────────────────────────
   # Download a binary into /tmp and execute it. The binary was not in the
   # original container image — node-agent detects this as a "drifted process".
   # We use a harmless binary (busybox) to avoid actual malice.
@@ -111,12 +111,12 @@ expectedDetections:
     containerName: mywebapp-app
     command: cat
 
-  # cat /etc/shadow triggers sensitive file rule
-  # - attackType: cmdinject
-  #   ruleID: R0010
-  #   ruleName: "Unexpected Sensitive File Access"
-  #   containerName: mywebapp-app
-  #   command: cat
+  # cat /etc/shadow triggers sensitive file rule (confirmed firing in live run)
+  - attackType: cmdinject
+    ruleID: R0010
+    ruleName: "Unexpected Sensitive File Access"
+    containerName: mywebapp-app
+    command: cat
 
   # curl to evil.example.com triggers DNS anomaly
   # - attackType: cmdinject
@@ -125,9 +125,9 @@ expectedDetections:
   #   containerName: mywebapp-app
   #   command: curl
 
-  # /tmp/drifted is not in the original image
-  # - attackType: cmdinject
-  #   ruleID: R1010
-  #   ruleName: "Drifted process executed"
-  #   containerName: mywebapp-app
-  #   command: drifted
+  # /tmp/drifted is not in the original image (confirmed firing in live run)
+  - attackType: cmdinject
+    ruleID: R1001
+    ruleName: "Drifted process executed"
+    containerName: mywebapp-app
+    command: drifted
