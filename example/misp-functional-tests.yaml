@@ -1,0 +1,97 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: misp-functional-tests
+  description: >-
+    Benign functional tests for MISP. Exercises the web UI and REST API
+    to generate a realistic ApplicationProfile baseline.
+target:
+  service: misp
+  namespace: misp
+  port: 443
+  scheme: https
+tests:
+  # ─── Web UI ──────────────────────────────────────────────────────────
+  - name: login-page
+    http:
+      method: GET
+      path: /
+      expectedStatus: 200
+
+  - name: users-login
+    http:
+      method: GET
+      path: /users/login
+      expectedStatus: 200
+
+  - name: login-attempt
+    http:
+      method: POST
+      path: /users/login
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+      body: "_method=POST&data%5BUser%5D%5Bemail%5D=admin%40misp.local&data%5BUser%5D%5Bpassword%5D=MISPAdmin2024!"
+      expectedStatus: 302
+
+  # ─── REST API (JSON) ─────────────────────────────────────────────────
+  - name: api-servers
+    http:
+      method: GET
+      path: /servers/index
+      headers:
+        Accept: application/json
+        Content-Type: application/json
+      expectedStatus: 403
+
+  - name: api-attributes
+    http:
+      method: GET
+      path: /attributes/index
+      headers:
+        Accept: application/json
+        Content-Type: application/json
+      expectedStatus: 403
+
+  - name: api-events
+    http:
+      method: GET
+      path: /events/index
+      headers:
+        Accept: application/json
+        Content-Type: application/json
+      expectedStatus: 403
+
+  - name: api-organisations
+    http:
+      method: GET
+      path: /organisations/index
+      headers:
+        Accept: application/json
+        Content-Type: application/json
+      expectedStatus: 403
+
+  # ─── Static assets ──────────────────────────────────────────────────
+  - name: favicon
+    http:
+      method: GET
+      path: /favicon.ico
+      expectedStatus: 200
+
+  - name: css-main
+    http:
+      method: GET
+      path: /css/main.css
+      expectedStatus: 200
+
+  # ─── Health-like endpoints ──────────────────────────────────────────
+  - name: diagnostics-page
+    http:
+      method: GET
+      path: /users/dashboard
+      expectedStatus: 302
+
+  # ─── exec: verify supervisord is running ────────────────────────────
+  - name: check-supervisord
+    exec:
+      command: ["supervisorctl", "status"]
+      expectedExitCode: 0
