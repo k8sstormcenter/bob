@@ -341,7 +341,7 @@ jobs:
           echo "Exported tuned profile ($(wc -l < results/tuned-profile.yaml) lines)"
           echo "Iteration profiles saved by --output-dir:"
           ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
-          cat results/*-iteration*.yaml
+          cat results/*-iteration*.yaml 2>/dev/null || echo "  (no iteration profiles found)"
 
       - name: Display collapse analysis
         if: always()
