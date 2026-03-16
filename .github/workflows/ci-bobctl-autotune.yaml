@@ -375,12 +375,19 @@ jobs:
           KERNEL_VERSION=$(uname -r)
           mkdir -p results
 
-          # Extract metrics from tune output
+          # Extract metrics from structured metrics.json (written by bobctl tune)
           IMAGE_TAG=$(grep 'tag:' kubescape/values.yaml | head -1 | sed 's/.*tag: "\(.*\)"/\1/')
-          SCORE=$(grep -oP 'score[:\s]+\K[0-9.]+' /tmp/tune-output.txt 2>/dev/null | tail -1 || echo "N/A")
-          MISSED=$(grep -ciP 'missed|undetected' /tmp/tune-output.txt 2>/dev/null || echo "0")
-          FP=$(grep -ciP 'false.positive' /tmp/tune-output.txt 2>/dev/null || echo "0")
           RESULT="${{ steps.tune.outcome }}"
+          if [ -f results/metrics.json ]; then
+            LAST_IDX=$(jq 'length - 1' results/metrics.json)
+            SCORE=$(jq ".[$LAST_IDX].score" results/metrics.json)
+            MISSED=$(jq ".[$LAST_IDX].missed_detections" results/metrics.json)
+            FP=$(jq ".[$LAST_IDX].false_positives" results/metrics.json)
+          else
+            SCORE="N/A"
+            MISSED="N/A"
+            FP="N/A"
+          fi
 
           jq -n \
             --arg app "${{ matrix.app }}" \
@@ -457,14 +464,20 @@ jobs:
             fi
           done
 
-          # Append per-variant detection details
+          # Append per-variant profile evolution + detection details
           echo '' >> $GITHUB_STEP_SUMMARY
           for dir in artifacts/result-*; do
             VARIANT=$(basename "$dir" | sed 's/^result-//')
-            if [ -f "$dir/detection-report.md" ] || [ -f "$dir/attack-results.md" ]; then
+            HAS_CONTENT=false
+            [ -f "$dir/metrics.md" ] || [ -f "$dir/detection-report.md" ] || [ -f "$dir/attack-results.md" ] && HAS_CONTENT=true
+            if $HAS_CONTENT; then
               echo "<details>" >> $GITHUB_STEP_SUMMARY
-              echo "<summary><b>$VARIANT</b> — Detection Details</summary>" >> $GITHUB_STEP_SUMMARY
+              echo "<summary><b>$VARIANT</b></summary>" >> $GITHUB_STEP_SUMMARY
               echo '' >> $GITHUB_STEP_SUMMARY
+              if [ -f "$dir/metrics.md" ]; then
+                cat "$dir/metrics.md" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
               if [ -f "$dir/attack-results.md" ]; then
                 echo '#### Attack Results' >> $GITHUB_STEP_SUMMARY
                 cat "$dir/attack-results.md" >> $GITHUB_STEP_SUMMARY
