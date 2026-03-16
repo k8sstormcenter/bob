@@ -169,14 +169,31 @@ The "malicious.go" binary (`node-agent/tests/images/malicious-app/malicious.go`)
 
 ## Redis Attack Catalog
 
-| Attack | Type | Expected Rules |
-|--------|------|---------------|
-| lua-heap-spray | fileless | (preparation) |
-| lua-uaf-trigger | fileless | (preparation) |
-| cve-2025-49844-exploit | fileless | R1005 |
+All 12 attacks exploit CVE-2022-0543 (Lua sandbox escape via `package.loadlib` /
+direct `io` access) on the `redis-vulnerable:7.2.10` image. Each attack escapes
+the Lua sandbox via `EVAL`, then runs an OS command that triggers a specific
+detection rule. Tools available in the container: `perl`, `getent`, `awk`, `id`,
+`cat`, `cp`, `ln`, `ls`, `whoami`, `rm`. NOT available: `curl`, `wget`, `nslookup`.
 
-Redis has a single exploit chain targeting fileless execution. The attack
-uses RESP protocol (not HTTP), so it requires port-forwarding.
+| # | Attack | OS Command | Expected Rules | Verified |
+|---|--------|-----------|----------------|----------|
+| 01 | fileless-memfd-exec | `perl` memfd_create+execve | R1005 | YES |
+| 02 | sa-token-exfil | `cat /var/run/secrets/.../token` | R0006 | YES |
+| 03 | read-etc-shadow | `cat /etc/shadow` (open triggers) | R0010 | tracer-dep |
+| 04 | unexpected-process-whoami | `whoami` | R0001 | YES |
+| 05 | dns-anomaly-evil-domain | `getent hosts evil.attacker.example.com` | R0005 | YES |
+| 06 | drifted-binary-exec | `cp /bin/ls /tmp/drifted_redis && exec` | R1001 | YES |
+| 07 | exec-from-devshm | `cp /bin/echo /dev/shm/malicious && exec` | R1000 | YES |
+| 08 | read-proc-environ | `cat /proc/1/environ` | R0008 | YES |
+| 09 | symlink-etc-shadow | `ln -sf /etc/shadow /tmp/shadow_link` | R1010 | tracer-dep |
+| 10 | crypto-mining-dns | `getent hosts xmr.pool.minergate.com` | R1008 | YES |
+| 11 | reverse-shell-perl-http | `perl IO::Socket c2.evil.example.com` | R0001+R0005 | YES |
+| 12 | credential-harvest-passwd | `awk /etc/passwd && id` | R0001 | YES |
+
+Individual attack files for parallel agent execution are in `example/redis-tests/attack-NN-*.yaml`.
+
+The CI and `local-ci.sh --app redis` run the full 12-attack suite through bobctl
+AND execute direct kubectl-based attacks for verification.
 
 ## Tuning Algorithm
 
@@ -204,8 +221,9 @@ All these files MUST be consistent with each other:
 |------|----------------|
 | `example/webapp-attacks.yaml` | Attacks + expected detections for webapp |
 | `example/webapp-functional-tests.yaml` | Benign traffic for webapp |
-| `example/redis-attacks.yaml` | Attacks + expected detections for redis |
-| `example/redis-functional-tests.yaml` | Benign traffic for redis |
+| `example/redis-attacks.yaml` | 12 attacks + expected detections for redis |
+| `example/redis-functional-tests.yaml` | 21 benign Redis operations |
+| `example/redis-tests/attack-NN-*.yaml` | Per-attack files for parallel execution |
 | `kubescape/default-rules.yaml` | Rule definitions (names must match alert labels) |
 | `pkg/verify/types.go` `DefaultExpectedDetections()` | Hardcoded defaults (webapp) |
 | `pkg/autotune/tuner_test.go` `testAttackSuite()` | Unit test attack suite |

