@@ -173,11 +173,16 @@ jobs:
 
 
 
+      # ---------- Clean results directory (prevent cross-job contamination) ----
+      - name: Clean results directory
+        run: |
+          rm -rf results
+          mkdir -p results
+
       # ---------- Collapse analysis ----------
       - name: Run collapse analysis
         continue-on-error: true
         run: |
-          mkdir -p results
           bin/bobctl collapse \
             --namespaces ${{ matrix.app_namespace }} \
             --noisy-threshold 10 \
@@ -485,6 +490,29 @@ jobs:
               result: $result
             }' > results/summary.json
           cp /tmp/tune-output.txt results/ 2>/dev/null || true
+
+      - name: Validate artifact isolation
+        if: always()
+        run: |
+          echo "=== Artifact isolation check ==="
+          echo "Expected app: ${{ matrix.app }}"
+          FOREIGN_FILES=""
+          for f in results/*-iteration*.yaml; do
+            [ -f "$f" ] || continue
+            case "${{ matrix.app }}" in
+              webapp) echo "$f" | grep -qv "webapp" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              redis)  echo "$f" | grep -qv "redis"  && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              *)      echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+            esac
+          done
+          if [ -n "$FOREIGN_FILES" ]; then
+            echo "FAIL: Found files from other matrix jobs in results/:"
+            echo "  $FOREIGN_FILES"
+            echo "This means test isolation is broken — results from different apps are bleeding together."
+            exit 1
+          fi
+          echo "PASS: All iteration files belong to ${{ matrix.app }}"
+          ls results/*-iteration*.yaml 2>/dev/null || echo "  (no iteration files)"
 
       - name: Upload result artifact
         if: always()

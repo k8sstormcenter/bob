@@ -116,9 +116,12 @@ else
   fi
 fi
 
+# ── clean results (prevent cross-app contamination) ─────────────────────────
+rm -rf results
+mkdir -p results
+
 # ── run collapse analysis ────────────────────────────────────────────────────
 log "=== Run collapse analysis ==="
-mkdir -p results
 set +e
 bin/bobctl collapse \
   --namespaces "$APP_NS" \
@@ -289,6 +292,24 @@ for a in json.load(sys.stdin):
   l=a.get('labels',{})
   print(f\"  rule={l.get('rule_name','?')} comm={l.get('comm','?')} ns={l.get('namespace','?')}\")
 " 2>/dev/null || echo "  (no alerts or alertmanager unreachable)"
+
+# ── validate artifact isolation ───────────────────────────────────────────────
+log "=== Artifact isolation check ==="
+FOREIGN_FILES=""
+for f in results/*-iteration*.yaml; do
+  [[ -f "$f" ]] || continue
+  if ! echo "$f" | grep -q "$APP"; then
+    FOREIGN_FILES="$FOREIGN_FILES $f"
+  fi
+done
+if [[ -n "$FOREIGN_FILES" ]]; then
+  log "FAIL: Found files from other apps in results/:"
+  log "  $FOREIGN_FILES"
+  log "  Test isolation is broken — results are bleeding between apps."
+else
+  log "PASS: All iteration files belong to $APP"
+  ls results/*-iteration*.yaml 2>/dev/null || true
+fi
 
 # ── result files ─────────────────────────────────────────────────────────────
 echo
