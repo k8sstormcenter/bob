@@ -153,6 +153,13 @@ bin/bobctl tune \
 TUNE_EXIT=${PIPESTATUS[0]}
 set -e
 
+# ── render tune metrics GIF ──────────────────────────────────────────────────
+if [[ -f results/metrics.json ]]; then
+  log "=== Render tune metrics GIF ==="
+  "$SCRIPT_DIR/render-gif.sh" results/metrics.json results/tune.gif --title "$APP (local)" || \
+    log "WARNING: GIF rendering failed (non-fatal)"
+fi
+
 # ── redis post-tune: direct attack verification ─────────────────────────────
 if [[ "$APP" == "redis" ]]; then
   log "=== Redis post-tune attack verification (12 attacks) ==="
@@ -197,6 +204,51 @@ if [[ "$APP" == "redis" ]]; then
 
   log "All 12 Redis attacks executed. Waiting for alert propagation..."
   sleep 15
+
+  # ── Cross-pod endpoint test ────────────────────────────────────────────────
+  # Attacks from redis-client pod → Redis service over the network.
+  # This tests endpoint detection: node-agent sees real pod-to-pod traffic.
+  log "=== Cross-pod endpoint test ==="
+  kubectl -n redis wait --for=condition=ready pod -l app.kubernetes.io/name=redis-client --timeout=60s 2>/dev/null || true
+  CLIENT_POD=$(kubectl -n redis get pod -l app.kubernetes.io/name=redis-client \
+    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null) || true
+
+  if [[ -n "$CLIENT_POD" ]]; then
+    log "Client pod: $CLIENT_POD"
+
+    # Benign: PING via standard port (should be in profile)
+    log "  Cross-pod benign: PING via redis:6379"
+    kubectl -n redis exec "$CLIENT_POD" -- redis-cli -h redis -p 6379 PING 2>&1 || true
+
+    # Benign: SET/GET via standard port
+    log "  Cross-pod benign: SET/GET via redis:6379"
+    kubectl -n redis exec "$CLIENT_POD" -- redis-cli -h redis -p 6379 SET crosstest hello 2>&1 || true
+    kubectl -n redis exec "$CLIENT_POD" -- redis-cli -h redis -p 6379 GET crosstest 2>&1 || true
+
+    # Alt-port: PING via non-standard port 16379 (redis-alt-port service)
+    # If profile has port=6379, this should be an endpoint anomaly.
+    # If profile has port=0 (wildcard), this is silently allowed — proving the risk.
+    log "  Cross-pod alt-port: PING via redis-alt-port:16379"
+    kubectl -n redis exec "$CLIENT_POD" -- redis-cli -h redis-alt-port -p 16379 PING 2>&1 || true
+
+    # Attack: Lua sandbox escape from cross-pod client
+    log "  Cross-pod attack: Lua exploit via redis:6379"
+    kubectl -n redis exec "$CLIENT_POD" -- redis-cli -h redis -p 6379 \
+      EVAL "${LUA_ESCAPE} local f=io_mod.popen('whoami');local o=f:read('*a');f:close();return 'crosspod:' .. o" 0 2>&1 || true
+
+    # Attack: Same exploit via alt-port
+    log "  Cross-pod attack: Lua exploit via redis-alt-port:16379"
+    kubectl -n redis exec "$CLIENT_POD" -- redis-cli -h redis-alt-port -p 16379 \
+      EVAL "${LUA_ESCAPE} local f=io_mod.popen('id');local o=f:read('*a');f:close();return 'altport:' .. o" 0 2>&1 || true
+
+    # Dump the learned profile's endpoints for verification
+    log "  Profile endpoints:"
+    kubectl get applicationprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{range .spec.containers[*]}{.name}={.endpoints}{" "}{end}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
+
+    sleep 10
+  else
+    log "WARNING: redis-client pod not found, skipping cross-pod tests"
+  fi
 fi
 
 # ── run attacks (separate pass for detection report) ─────────────────────────
