@@ -384,6 +384,22 @@ jobs:
             echo "No metrics.json — skipping GIF"
           fi
 
+      - name: Publish tune chart to step summary
+        if: always()
+        run: |
+          if [ ! -f results/metrics.json ]; then
+            echo "No metrics.json — skipping chart"
+            exit 0
+          fi
+          python3 scripts/render-summary-chart.py \
+            results/metrics.json \
+            results/summary-chart.md \
+            --app "${{ matrix.app }}" \
+            --os "${{ matrix.os }}"
+          if [ -f results/summary-chart.md ]; then
+            cat results/summary-chart.md >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: Run explicit attacks
         if: always()
         run: |
@@ -759,6 +775,10 @@ jobs:
               echo "<details>" >> $GITHUB_STEP_SUMMARY
               echo "<summary><b>$VARIANT</b></summary>" >> $GITHUB_STEP_SUMMARY
               echo '' >> $GITHUB_STEP_SUMMARY
+              if [ -f "$dir/summary-chart.md" ]; then
+                cat "$dir/summary-chart.md" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
               if [ -f "$dir/metrics.md" ]; then
                 cat "$dir/metrics.md" >> $GITHUB_STEP_SUMMARY
                 echo '' >> $GITHUB_STEP_SUMMARY
