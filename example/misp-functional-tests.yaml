@@ -3,26 +3,27 @@ kind: FunctionalTestSuite
 metadata:
   name: misp-functional-tests
   description: >-
-    Benign functional tests for MISP. Exercises the web UI and REST API
-    to generate a realistic ApplicationProfile baseline.
+    Benign functional tests for MISP. Exercises web UI, REST API endpoints,
+    and internal processes to build a realistic ApplicationProfile baseline.
+    MISP runs nginx + PHP-FPM + supervisord on Debian, serving HTTPS on 443.
 target:
   service: misp
   namespace: misp
   port: 443
   scheme: https
 tests:
-  # ─── Web UI ──────────────────────────────────────────────────────────
+  # ─── Web UI (unauthenticated pages) ─────────────────────────────────
   - name: login-page
-    http:
-      method: GET
-      path: /
-      expectedStatus: 200
-
-  - name: users-login
     http:
       method: GET
       path: /users/login
       expectedStatus: 200
+
+  - name: homepage-redirect
+    http:
+      method: GET
+      path: /
+      expectedStatus: 302
 
   - name: login-attempt
     http:
@@ -33,14 +34,13 @@ tests:
       body: "_method=POST&data%5BUser%5D%5Bemail%5D=admin%40misp.local&data%5BUser%5D%5Bpassword%5D=MISPAdmin2024!"
       expectedStatus: 302
 
-  # ─── REST API (JSON) ─────────────────────────────────────────────────
-  - name: api-servers
+  # ─── REST API probes (return 403 without API key — exercises auth layer) ──
+  - name: api-events
     http:
       method: GET
-      path: /servers/index
+      path: /events/index
       headers:
         Accept: application/json
-        Content-Type: application/json
       expectedStatus: 403
 
   - name: api-attributes
@@ -49,16 +49,14 @@ tests:
       path: /attributes/index
       headers:
         Accept: application/json
-        Content-Type: application/json
       expectedStatus: 403
 
-  - name: api-events
+  - name: api-servers
     http:
       method: GET
-      path: /events/index
+      path: /servers/index
       headers:
         Accept: application/json
-        Content-Type: application/json
       expectedStatus: 403
 
   - name: api-organisations
@@ -67,31 +65,46 @@ tests:
       path: /organisations/index
       headers:
         Accept: application/json
-        Content-Type: application/json
       expectedStatus: 403
 
-  # ─── Static assets ──────────────────────────────────────────────────
+  - name: api-feeds
+    http:
+      method: GET
+      path: /feeds/index
+      headers:
+        Accept: application/json
+      expectedStatus: 403
+
+  # ─── Static assets (exercises nginx serving) ────────────────────────
   - name: favicon
     http:
       method: GET
       path: /favicon.ico
       expectedStatus: 200
 
-  - name: css-main
+  - name: robots-txt
     http:
       method: GET
-      path: /css/main.css
+      path: /robots.txt
       expectedStatus: 200
 
-  # ─── Health-like endpoints ──────────────────────────────────────────
-  - name: diagnostics-page
-    http:
-      method: GET
-      path: /users/dashboard
-      expectedStatus: 302
-
-  # ─── exec: verify supervisord is running ────────────────────────────
+  # ─── Exec: verify internal processes (builds exec baseline) ─────────
   - name: check-supervisord
     exec:
       command: ["supervisorctl", "status"]
+      expectedExitCode: 0
+
+  - name: check-php-version
+    exec:
+      command: ["php", "-v"]
+      expectedExitCode: 0
+
+  - name: check-nginx-config
+    exec:
+      command: ["nginx", "-t"]
+      expectedExitCode: 0
+
+  - name: list-misp-app
+    exec:
+      command: ["ls", "/var/www/MISP/app/Console/cake"]
       expectedExitCode: 0

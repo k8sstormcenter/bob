@@ -2,7 +2,7 @@ apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
 metadata:
   name: redis-attack-11-reverse-shell-perl
-  description: "Perl HTTP request to C2 domain (unexpected process + DNS). Triggers R0001."
+  description: "Perl HTTP request to C2 domain (unexpected process + DNS). Triggers R0001 + R0005."
 target:
   service: redis
   namespace: redis
@@ -34,5 +34,10 @@ expectedDetections:
   - attackType: fileless
     ruleID: R0001
     ruleName: "Unexpected process launched"
+    containerName: redis
+    command: perl
+  - attackType: fileless
+    ruleID: R0005
+    ruleName: "DNS Anomalies in container"
     containerName: redis
     command: perl

