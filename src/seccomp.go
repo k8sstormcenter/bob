@@ -32,16 +32,14 @@ var archToSeccomp = map[string]string{
 	"riscv64": "SCMP_ARCH_RISCV64",
 }
 
-var seccompToArch map[string]string
-
-func init() {
-	seccompToArch = make(map[string]string, len(archToSeccomp))
-	for k, v := range archToSeccomp {
-		// For duplicates (x86/i386), first write wins — prefer the canonical name
-		if _, exists := seccompToArch[v]; !exists {
-			seccompToArch[v] = k
-		}
-	}
+var seccompToArch = map[string]string{
+	"SCMP_ARCH_X86_64":  "amd64",
+	"SCMP_ARCH_AARCH64": "arm64",
+	"SCMP_ARCH_ARM":     "arm",
+	"SCMP_ARCH_X86":     "x86",
+	"SCMP_ARCH_PPC64LE": "ppc64le",
+	"SCMP_ARCH_S390X":   "s390x",
+	"SCMP_ARCH_RISCV64": "riscv64",
 }
 
 func writeSeccompProfile(filename string, config *TemplateConfig, profile *ApplicationProfile) error {
