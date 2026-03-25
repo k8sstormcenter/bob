@@ -2,10 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 )
 
@@ -222,5 +226,77 @@ func TestRoundTrip(t *testing.T) {
 
 	if !reflect.DeepEqual(rtSyscalls, originalSyscalls) {
 		t.Errorf("round-trip syscalls don't match.\ngot:  %v\nwant: %v", rtSyscalls, originalSyscalls)
+	}
+}
+
+// Perform Roundtrip test on entire testdata folder.
+func TestRoundTripTestdata(t *testing.T) {
+	log.SetOutput(io.Discard)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+
+	files, err := filepath.Glob("../testdata/parameterstudy/**/*.yaml")
+	if err != nil {
+		t.Skipf("globbing testdata: %v", err)
+	}
+
+	if len(files) == 0 {
+		t.Skipf("no testdata profiles found")
+	}
+
+	for _, file := range files {
+		name := filepath.Base(file)
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			profile, err := parseKubescapeProfile(file)
+			if err != nil {
+				t.Skipf("not a valid kubescape profile: %v", err)
+			}
+
+			if len(profile.Spec.Containers) == 0 && len(profile.Spec.InitContainers) == 0 {
+				t.Skip("profile has no containers")
+			}
+
+			dir := t.TempDir()
+			seccompFile := filepath.Join(dir, "seccomp.json")
+
+			if err := writeSeccompProfile(seccompFile, nil, profile); err != nil {
+				t.Fatalf("writing seccomp: %v", err)
+			}
+
+			allContainers := append(profile.Spec.Containers, profile.Spec.InitContainers...)
+			multiContainer := len(allContainers) > 1
+
+			for _, container := range allContainers {
+				outPath := seccompFile
+				if multiContainer {
+					ext := filepath.Ext(seccompFile)
+					stem := strings.TrimSuffix(seccompFile, ext)
+					outPath = fmt.Sprintf("%s-%s%s", stem, container.Name, ext)
+				}
+
+				roundTripped, err := parseSeccompProfile(outPath)
+				if err != nil {
+					t.Fatalf("parsing seccomp for container %q: %v", container.Name, err)
+				}
+
+				var expectedSyscalls []string
+				for _, sc := range container.Syscalls {
+					if sc != "unknown" {
+						expectedSyscalls = append(expectedSyscalls, sc)
+					}
+				}
+				sort.Strings(expectedSyscalls)
+				expectedSyscalls = unique(expectedSyscalls)
+
+				rtSyscalls := roundTripped.Spec.Containers[0].Syscalls
+				sort.Strings(rtSyscalls)
+
+				if !reflect.DeepEqual(rtSyscalls, expectedSyscalls) {
+					t.Errorf("container %q: round-trip syscalls don't match.\ngot:  %v\nwant: %v",
+						container.Name, rtSyscalls, expectedSyscalls)
+				}
+			}
+		})
 	}
 }
