@@ -59,7 +59,8 @@ get an uptodate runtimeprofile
 > Once the code is stable, (and if there is expressed interest/acceptance/funding etc) I ll create proper tooling
 ---
 ### What it looks like (in Kubescape format)
-🚨 New Design Kubescape 4.0 will support user-defined-profiles, here an example using the kubescape CRDs 🚨 
+🚨 Since Kubescape 4.0 we have new annotations that support `user-defined-profiles`🚨  
+> for the actual features in development, checkout the [kubescape-fork](https://github.com/k8sstormcenter/node-agent) 
 ``` yaml
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
