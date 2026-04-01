@@ -1,7 +1,8 @@
 # Software Bill of Behavior SBoB 
 
-Coming soon: auto-tuning a profile
 
+
+![KCEU26ROEDIGBERTSCHYInstantK8sRuntimeAnomalyDetection](https://github.com/user-attachments/assets/3013d87c-198b-4aa5-90c7-affa80495ac1)
 
 
 <img width="2775" height="1998" alt="BoBLogoRegistered" src="https://github.com/user-attachments/assets/f78cb80b-e419-44bd-a13b-809ce9cfd4cd" />
@@ -217,11 +218,8 @@ This scenario covers threats originating from a compromised supply chain. For ex
 *   The artefact contains a beacon, a backdoor, a cryptominer, or something else malicious.
 
 # Try it out in a live lab 
-[give us feedback ](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a), report issues , raise PRs (contributing guidelines will follow)
+[give us feedback ](https://labs.iximiuz.com/courses/nodeagent-51fe7b80/dungeon#archive), report issues , raise PRs (contributing guidelines will follow)
 
-https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a
-
-License is Apache 2.0
 
 ## Demo: Deploy a Application
 Using a well-known `demo`** app, we deploy a ping utility called `webapp` that has:
@@ -350,5 +348,4 @@ make attack
 {"BaseRuntimeMetadata":{"alertName":"Unexpected process launched","arguments":{"args":["/bin/cat","/proc/self/mounts"],"exec":"/bin/cat","retval":0},"infectedPID":20527,"severity":5,"size":"4.1 kB","timestamp":"2025-07-07T21:22:08"}}
 ```
 
-## Generate Supply Chain Attack
-WIP
+
