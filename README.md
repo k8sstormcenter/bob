@@ -1,6 +1,6 @@
 # Software Bill of Behavior SBoB 
 
-Updated life-lab with signatures (alpha) and the new wildcards here https://labs.iximiuz.com/courses/nodeagent-51fe7b80/dungeon#archive
+> 🚨 Updated life-lab with signatures (alpha) and the new wildcards here https://labs.iximiuz.com/courses/nodeagent-51fe7b80/dungeon#archive
 
 ![KCEU26ROEDIGBERTSCHYInstantK8sRuntimeAnomalyDetection](https://github.com/user-attachments/assets/3013d87c-198b-4aa5-90c7-affa80495ac1)
 
