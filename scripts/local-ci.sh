@@ -254,6 +254,41 @@ if [[ "$APP" == "redis" ]]; then
   fi
 fi
 
+# ── export best profile ──────────────────────────────────────────────────────
+log "=== Export best profile ==="
+if [[ -f results/metrics.json ]]; then
+  BEST_ITER=$(python3 -c "
+import json
+with open('results/metrics.json') as f:
+    records = json.load(f)
+tested = [r for r in records if r['phase'] != 'raw-baseline']
+if tested:
+    best = min(tested, key=lambda r: r['score'])
+    print(best['iteration'])
+" 2>/dev/null || echo "")
+  BEST_FILE="results/${PROFILE}-iteration${BEST_ITER}.yaml"
+  if [[ -n "$BEST_ITER" ]] && [[ -f "$BEST_FILE" ]]; then
+    log "Best iteration: $BEST_ITER"
+    # Strip kubescape annotations
+    python3 -c "
+import yaml
+with open('$BEST_FILE') as f:
+    doc = yaml.safe_load(f)
+annotations = doc.get('metadata', {}).get('annotations', {})
+strip_prefixes = ['kubescape.io/', 'spdx.softwarecomposition.kubescape.io/']
+to_remove = [k for k in annotations if any(k.startswith(p) for p in strip_prefixes)]
+for k in to_remove:
+    del annotations[k]
+with open('results/best-profile.yaml', 'w') as f:
+    yaml.dump(doc, f, default_flow_style=False)
+print(f'Stripped {len(to_remove)} annotations: {to_remove}')
+" 2>/dev/null || cp "$BEST_FILE" results/best-profile.yaml
+    log "Best profile: results/best-profile.yaml"
+  else
+    log "WARNING: Could not find best iteration file: $BEST_FILE"
+  fi
+fi
+
 # ── run attacks (separate pass for detection report) ─────────────────────────
 log "=== Run attacks ==="
 set +e
@@ -316,10 +351,25 @@ echo
 log "=== Results ==="
 ls -la results/ 2>/dev/null || true
 
+# ── score gate ────────────────────────────────────────────────────────────────
 echo
-if [[ "$TUNE_EXIT" -eq 0 ]]; then
-  log "RESULT: tune converged (perfect score)"
+if [[ -f results/metrics.json ]]; then
+  BEST_SCORE=$(python3 -c "
+import json
+with open('results/metrics.json') as f:
+    records = json.load(f)
+tested = [r for r in records if r['phase'] != 'raw-baseline']
+if tested:
+    print(min(r['score'] for r in tested))
+else:
+    print('N/A')
+" 2>/dev/null || echo "N/A")
+  log "Best score: $BEST_SCORE"
+  if [[ "$BEST_SCORE" == "0" ]]; then
+    log "RESULT: PERFECT — all attacks detected, zero false positives"
+  else
+    log "RESULT: IMPERFECT (best score=$BEST_SCORE) — review results/ for details"
+  fi
 else
-  log "RESULT: tune finished without perfect score (exit $TUNE_EXIT)"
-  log "  This matches CI continue-on-error: true — review results/ for details"
+  log "RESULT: No metrics.json produced — tune may have failed"
 fi
