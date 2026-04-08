@@ -269,20 +269,11 @@ if tested:
   BEST_FILE="results/${PROFILE}-iteration${BEST_ITER}.yaml"
   if [[ -n "$BEST_ITER" ]] && [[ -f "$BEST_FILE" ]]; then
     log "Best iteration: $BEST_ITER"
-    # Strip kubescape annotations
-    python3 -c "
-import yaml
-with open('$BEST_FILE') as f:
-    doc = yaml.safe_load(f)
-annotations = doc.get('metadata', {}).get('annotations', {})
-strip_prefixes = ['kubescape.io/', 'spdx.softwarecomposition.kubescape.io/']
-to_remove = [k for k in annotations if any(k.startswith(p) for p in strip_prefixes)]
-for k in to_remove:
-    del annotations[k]
-with open('results/best-profile.yaml', 'w') as f:
-    yaml.dump(doc, f, default_flow_style=False)
-print(f'Stripped {len(to_remove)} annotations: {to_remove}')
-" 2>/dev/null || cp "$BEST_FILE" results/best-profile.yaml
+    # Strip kubescape annotations (no pyyaml dependency)
+    grep -v '^\s*kubescape\.io/' "$BEST_FILE" \
+      | grep -v '^\s*spdx\.softwarecomposition\.kubescape\.io/' \
+      > results/best-profile.yaml \
+      || cp "$BEST_FILE" results/best-profile.yaml
     log "Best profile: results/best-profile.yaml"
   else
     log "WARNING: Could not find best iteration file: $BEST_FILE"
