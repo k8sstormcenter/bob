@@ -494,6 +494,16 @@ jobs:
             echo "No metrics.json — skipping GIF"
           fi
 
+      - name: Upload tune GIF
+        if: always()
+        id: upload-gif
+        uses: actions/upload-artifact@v4
+        with:
+          name: tune-gif-${{ matrix.app }}-${{ matrix.os }}
+          path: results/tune.gif
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Publish tune chart to step summary
         if: always()
         run: |
@@ -508,6 +518,16 @@ jobs:
             --os "${{ matrix.os }}"
           if [ -f results/summary-chart.md ]; then
             cat results/summary-chart.md >> $GITHUB_STEP_SUMMARY
+          fi
+          # Link to GIF artifact in step summary
+          if [ -f results/tune.gif ]; then
+            ARTIFACT_URL="${{ steps.upload-gif.outputs.artifact-url }}"
+            if [ -n "$ARTIFACT_URL" ]; then
+              {
+                echo ""
+                echo "**Animated report:** [tune-gif-${{ matrix.app }}-${{ matrix.os }}]($ARTIFACT_URL)"
+              } >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
       - name: Run explicit attacks
@@ -694,6 +714,15 @@ jobs:
               echo "<details>" >> $GITHUB_STEP_SUMMARY
               echo "<summary><b>$VARIANT</b></summary>" >> $GITHUB_STEP_SUMMARY
               echo '' >> $GITHUB_STEP_SUMMARY
+              # Look for matching GIF artifact (tune-gif-{app}-{os})
+              APP=$(jq -r '.app // ""' "$dir/summary.json" 2>/dev/null || echo "")
+              OS=$(jq -r '.os // ""' "$dir/summary.json" 2>/dev/null || echo "")
+              GIF_DIR="artifacts/tune-gif-${APP}-${OS}"
+              if [ -f "$GIF_DIR/tune.gif" ]; then
+                GIF_B64=$(base64 -w 0 "$GIF_DIR/tune.gif")
+                echo "<img src=\"data:image/gif;base64,${GIF_B64}\" alt=\"${APP} (${OS}) tune animation\" width=\"960\" />" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
               if [ -f "$dir/summary-chart.md" ]; then
                 cat "$dir/summary-chart.md" >> $GITHUB_STEP_SUMMARY
                 echo '' >> $GITHUB_STEP_SUMMARY
