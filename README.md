@@ -54,9 +54,10 @@ get an uptodate runtimeprofile
 
 > **DISCLAIMER:**  
 > The scripts are currently for rapid prototyping to iterate on a design the community will accept.  
-> The regex is **not stable**—do **not** rely on AI for these profiles.   If you want to use them for your software:  
-> **Run the scripts, then use your eyes to fix what the regex messed up.**
-> Once the code is stable, (and if there is expressed interest/acceptance/funding etc) I ll create proper tooling
+> Once the code is stable, (and if there is expressed interest/acceptance/funding etc) I ll create proper tooling.
+> Here is a preview of what such an auto-tune could look like
+ ![tune](https://github.com/user-attachments/assets/110e715a-97ac-4b4e-990e-0e93eb930903)
+
 ---
 ### What it looks like (in Kubescape format)
 🚨 Since Kubescape 4.0 we have new annotations that support `user-defined-profiles`🚨  
