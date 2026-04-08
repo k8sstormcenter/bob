@@ -1,7 +1,8 @@
 # Software Bill of Behavior SBoB 
 
-Coming soon: auto-tuning a profile
+> 🚨 Updated life-lab with signatures (alpha) and the new wildcards here https://labs.iximiuz.com/courses/nodeagent-51fe7b80/dungeon#archive
 
+![KCEU26ROEDIGBERTSCHYInstantK8sRuntimeAnomalyDetection](https://github.com/user-attachments/assets/3013d87c-198b-4aa5-90c7-affa80495ac1)
 
 
 <img width="2775" height="1998" alt="BoBLogoRegistered" src="https://github.com/user-attachments/assets/f78cb80b-e419-44bd-a13b-809ce9cfd4cd" />
@@ -58,7 +59,8 @@ get an uptodate runtimeprofile
 > Once the code is stable, (and if there is expressed interest/acceptance/funding etc) I ll create proper tooling
 ---
 ### What it looks like (in Kubescape format)
-🚨 New Design Kubescape 4.0 will support user-defined-profiles, here an example using the kubescape CRDs 🚨 
+🚨 Since Kubescape 4.0 we have new annotations that support `user-defined-profiles`🚨  
+> for the actual features in development, checkout the [kubescape-fork](https://github.com/k8sstormcenter/node-agent) 
 ``` yaml
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
@@ -141,60 +143,7 @@ For the KV-database `redis` in its most popular Helm-Chart, we traced out the `s
 Generally speaking, a BoB profile will have a lower number of syscalls than a seccomp profile. There are many discussions on the internet on how [seccomp is difficult across architecture](https://github.com/kubernetes/kubernetes/issues/104696)
 
 ### An SBoB is a generalized and customizable Application Profile that alerts on anything not allowlisted
-(The following summaries are output by the github workflow script that summarizes what the profile allows if each of the workloads is annotated with said SBoB profile)  WARNING: those scripts may not be fully stable.
 
-#### For redis (in standalone form)
-using the bitnami chart: For a DB, the user will need to supply network-ranges that are allowed.
-
-| Component                   | Container         | Type          | Capabilities                        | Net    | Opens  | Execs  | Syscalls |
-|-----------------------------|------------------|--------------|-------------------------------------|--------|--------|--------|----------|
-| rs-bob-redis-master         | redis            | container    | DAC_OVERRIDE<br>DAC_READ_SEARCH<br>NET_ADMIN | 0      | 17     | 5      | 99       |
-
-Applications of type DB are security sensitive, as they often store juicy content. The most interesting thing to anomaly detect is which `outbound network` connections are happening (exfiltration attempts).
-
-If you are interested in using eBPF to monitor querys, see this course how [our friends from pixie](https://labs.iximiuz.com/courses/discoverebpf-0d7c6c54/lesson-1#dbs) achieve such observability.
-
-#### For Tetragon (an OpenSource CNCF Security eBPF tool)
-
-| Component                   | Container         | Type          | Capabilities                        | Net    | Opens  | Execs  | Syscalls |
-|-----------------------------|------------------|--------------|-------------------------------------|--------|--------|--------|----------|
-| rs-tetragon-operator        | tetragon-operator | container    | NET_ADMIN                           | 10     | 8      | 1      | 92       |
-| rs-tetragon                 | export-stdout    | container    | none                                | 0      | 5      | 2      | 84       |
-| rs-tetragon                 | tetragon         | container    | BPF<br>DAC_OVERRIDE<br>DAC_READ_SEARCH<br>NET_ADMIN<br>PERFMON<br>SYSLOG<br>SYS_ADMIN<br>SYS_PTRACE | 0      | 49     | 1      | 131      |
-
-## More elaborate Comparison of the shrinking attack surface if using NO| FULL | BAU profiles for CNCF Pixie
-| Profile                     | Capabilities                                                                 | Network | Opens (#) | Execs (#) | Allowed Syscalls (#) |
-|-----------------------------|------------------------------------------------------------------------------|---------|-----------|-----------|----------------------|
-| Kubernetes Default (v1.33)  | unconfined                                                                   | CNI     | unconfined| unconfined| 363                  |
-| FULL:catalogoperator        | CHOWN,<br>DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN,<br>SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN | 1       | 23        | 3         | 96                   |
-| FULL:catalogsource          | CHOWN,<br>DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN,<br>SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN | 0       | 19        | 2         | 106                  |
-| BAU :catalogsource          | CHOWN,<br>DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN,<br>SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN | 0       | 57        | 2         | 94                   |
-| FULL:certman                | DAC_OVERRIDE,<br>DAC_READ_SEARCH                                             | 0       | 8         | 1         | 65                   |
-| FULL:initjob                | DAC_OVERRIDE,<br>DAC_READ_SEARCH                                             | 0       | 10        | 1         | 100                  |
-| FULL:kelvin                 | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN                               | 0       | 97        | 1         | 76                   |
-| BAU :kelvin                 | none                                                                         | 0       | 0         | 0         | 22                   |
-| FULL:olmoperator            | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN                               | 1       | 8         | 1         | 63                   |
-| FULL:pem                    | BPF,<br>DAC_READ_SEARCH,<br>IPC_LOCK,<br>NET_ADMIN,<br>PERFMON,<br>SYS_ADMIN,<br>SYS_PTRACE,<br>SYSLOG | 0       | 390       | 1         | 122                  |
-| BAU :pem                    | BPF,<br>DAC_READ_SEARCH,<br>IPC_LOCK,<br>NET_ADMIN,<br>PERFMON,<br>SYS_ADMIN,<br>SYS_PTRACE | 0       | 197       | 0         | 44                   |
-| FULL:pletcd                 | NET_ADMIN,<br>NET_RAW,<br>SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN        | 0       | 39        | 10        | 92                   |
-| BAU :pletcd                 | SETGID,<br>SETPCAP,<br>SETUID,<br>SYS_ADMIN                                  | 0       | 37        | 2         | 53                   |
-| FULL:plnats                 | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN                               | 3       | 11        | 1         | 57                   |
-| BAU :plnats                 | none                                                                         | 1       | 1         | 0         | 19                   |
-| FULL:querybroker            | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>FOWNER,<br>NET_ADMIN                    | 0       | 20        | 1         | 107                  |
-| BAU :querybroker            | DAC_OVERRIDE,<br>FOWNER                                                      | 0       | 0         | 0         | 22                   |
-| FULL:viziercloudconnector   | DAC_OVERRIDE,<br>DAC_READ_SEARCH,<br>NET_ADMIN                               | 0       | 18        | 1         | 70                   |
-| BAU :viziercloudconnector   | none                                                                         | 0       | 3         | 0         | 29                   |
-| FULL:viziermeta             | NET_ADMIN                                                                    | 0       | 16        | 1         | 65                   |
-| BAU :viziermeta             | none                                                                         | 0       | 3         | 0         | 24                   |
-| FULL:vizieroperator         | NET_ADMIN                                                                    | 1       | 13        | 1         | 104                  |
-| BAU :vizieroperator         | none                                                                         | 1       | 2         | 0         | 27                   |
-
-Additionally to syscalls: a BoB contains fileopens, execs, capabilities and network endpoints/methods. This is reminiscent of Apparmour profiles and network-policies.
-It is theoretically possible to convert a BoB into an Apparmour profile, a seccomp profile and a set of network-policies.
-
-Which way the community will go in terms of using the information contained in a bob, such that it can be enforced at runtime, remains to be seen.
-
-A BoB, is first of all a `vehicle` to transport the information of the runtime behavior. And only secondly, the runtime-anomaly generation method. The fact, that kubescape can rather straightforwardly consume them is a huge plus.
 
 ## Origin Story
 
@@ -217,11 +166,10 @@ This scenario covers threats originating from a compromised supply chain. For ex
 *   The artefact contains a beacon, a backdoor, a cryptominer, or something else malicious.
 
 # Try it out in a live lab 
-[give us feedback ](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a), report issues , raise PRs (contributing guidelines will follow)
+[give us feedback ](https://labs.iximiuz.com/courses/nodeagent-51fe7b80/dungeon#archive), report issues , raise PRs (contributing guidelines will follow)
 
-https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a
 
-License is Apache 2.0
+
 
 ## Demo: Deploy a Application
 Using a well-known `demo`** app, we deploy a ping utility called `webapp` that has:
@@ -350,5 +298,4 @@ make attack
 {"BaseRuntimeMetadata":{"alertName":"Unexpected process launched","arguments":{"args":["/bin/cat","/proc/self/mounts"],"exec":"/bin/cat","retval":0},"infectedPID":20527,"severity":5,"size":"4.1 kB","timestamp":"2025-07-07T21:22:08"}}
 ```
 
-## Generate Supply Chain Attack
-WIP
+
