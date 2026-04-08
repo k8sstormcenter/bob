@@ -6,12 +6,14 @@ on:
       - main
       - feature/tuning
       - feature/redis
+      - feat-crd
     paths:
       - 'pkg'
       - 'pkg/**'
       - 'kubescape/**'
       - 'example/**'
       - 'misp/**'
+      - 'scripts/**'
       - '.github/workflows/**'
       - 'Makefile'
   workflow_dispatch:
@@ -70,6 +72,7 @@ jobs:
         app:
           - webapp
           - redis
+          - misp
         include:
           # ---- webapp (HTTP-based PHP app) ----
           - app: webapp
@@ -80,6 +83,7 @@ jobs:
             deploy_name: webapp-mywebapp
             deploy_kind: deployment
             protocol: http
+            deploy_method: manifest
           # ---- redis (TCP RESP, CVE-2025-49844 fileless) ----
           - app: redis
             manifest: example/redis-vulnerable.yaml
@@ -89,6 +93,16 @@ jobs:
             deploy_name: redis
             deploy_kind: deployment
             protocol: redis
+            deploy_method: manifest
+          # ---- misp (HTTPS, Helm chart, test-pod attacks) ----
+          - app: misp
+            functional_tests: example/misp-functional-tests.yaml
+            attack_suite: example/misp-attacks.yaml
+            app_namespace: misp
+            deploy_name: misp
+            deploy_kind: deployment
+            protocol: https
+            deploy_method: helm
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -141,13 +155,48 @@ jobs:
         run: make alertmanager
 
       # ---------- Application deployment (generic) ----------
-      - name: Deploy application
+      - name: Deploy application (manifest)
+        if: matrix.deploy_method == 'manifest'
         run: |
           echo "Deploying ${{ matrix.app }} from ${{ matrix.manifest }}"
           kubectl apply -f ${{ matrix.manifest }}
           kubectl wait --for=condition=available --timeout=120s \
             ${{ matrix.deploy_kind }}/${{ matrix.deploy_name }} \
             -n ${{ matrix.app_namespace }}
+
+      - name: Deploy application (helm)
+        if: matrix.deploy_method == 'helm'
+        run: |
+          echo "Deploying ${{ matrix.app }} via Helm chart..."
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          helm dependency build ./${{ matrix.app }}
+          kubectl create namespace ${{ matrix.app_namespace }} || true
+          helm install ${{ matrix.app }} ./${{ matrix.app }} \
+            -f ${{ matrix.app }}/values-ci.yaml \
+            -n ${{ matrix.app_namespace }} \
+            --disable-openapi-validation \
+            --timeout 10m \
+            --wait=false
+
+          # Wait for sub-components first (MariaDB, Valkey)
+          echo "Waiting for sub-components..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mariadb \
+            -n ${{ matrix.app_namespace }} --timeout=300s 2>/dev/null || true
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=valkey \
+            -n ${{ matrix.app_namespace }} --timeout=180s 2>/dev/null || true
+
+          # Wait for main app (MISP startup takes several minutes for DB init)
+          echo "Waiting for ${{ matrix.app }} pod to be ready..."
+          kubectl wait --for=condition=ready pod \
+            -l app.kubernetes.io/name=${{ matrix.app }} \
+            -n ${{ matrix.app_namespace }} --timeout=600s || {
+            echo "=== Pod not ready, checking status ==="
+            kubectl get pods -n ${{ matrix.app_namespace }}
+            kubectl describe pod -l app.kubernetes.io/name=${{ matrix.app }} -n ${{ matrix.app_namespace }}
+            kubectl logs -l app.kubernetes.io/name=${{ matrix.app }} -n ${{ matrix.app_namespace }} --tail=100
+            true
+          }
 
       - name: Wait for kubescape components
         run: |
@@ -156,8 +205,9 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 
       # ---------- Profile learning ----------
-      - name: Install and learn application
-        id: profile
+      - name: Install and learn application (manifest)
+        if: matrix.deploy_method == 'manifest'
+        id: profile-manifest
         run: |
           bin/bobctl install \
             --manifest ${{ matrix.manifest }} \
@@ -170,6 +220,61 @@ jobs:
           echo "Discovered profile: $PROFILE"
           kubectl get applicationprofile $PROFILE -n ${{ matrix.app_namespace }} -o yaml > profile.yaml
           cat profile.yaml
+
+      - name: Learn application profile (helm)
+        if: matrix.deploy_method == 'helm'
+        id: profile-helm
+        run: |
+          echo "App deployed via Helm — waiting for kubescape to learn profile..."
+          # Run functional tests to exercise the app while profile learning happens
+          # The test pod is deployed by bobctl when scheme=https
+          echo "Waiting for node-agent to observe ${{ matrix.app }} workload..."
+          sleep 60
+
+          # Poll for completed ApplicationProfile
+          TIMEOUT=600
+          ELAPSED=0
+          PROFILE=""
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            PROFILE=$(kubectl get applicationprofile -n ${{ matrix.app_namespace }} \
+              -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+            if [ -n "$PROFILE" ]; then
+              # Check if profile has status=completed
+              STATUS=$(kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} \
+                -o jsonpath='{.metadata.annotations.kubescape\.io/status}' 2>/dev/null || echo "")
+              if [ "$STATUS" = "completed" ] || [ "$STATUS" = "ready" ]; then
+                echo "Profile $PROFILE is $STATUS"
+                break
+              fi
+              echo "Profile $PROFILE exists (status=$STATUS), waiting for completion..."
+            else
+              echo "No profile yet, waiting... ($ELAPSED/${TIMEOUT}s)"
+            fi
+            sleep 15
+            ELAPSED=$((ELAPSED + 15))
+          done
+
+          if [ -z "$PROFILE" ]; then
+            echo "WARNING: No profile discovered after ${TIMEOUT}s"
+            # Try to list any profiles
+            kubectl get applicationprofile -n ${{ matrix.app_namespace }} -o wide || true
+            PROFILE=$(kubectl get applicationprofile -n ${{ matrix.app_namespace }} \
+              -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "unknown")
+          fi
+
+          echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
+          echo "Discovered profile: $PROFILE"
+          kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
+          cat profile.yaml 2>/dev/null || echo "(profile not available)"
+
+      - name: Set profile output
+        id: profile
+        run: |
+          if [ "${{ matrix.deploy_method }}" = "manifest" ]; then
+            echo "name=${{ steps.profile-manifest.outputs.name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ steps.profile-helm.outputs.name }}" >> "$GITHUB_OUTPUT"
+          fi
 
 
 
@@ -195,6 +300,10 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p results
+          SCHEME_FLAG=""
+          if [ "${{ matrix.protocol }}" = "https" ]; then
+            SCHEME_FLAG="--service-scheme https"
+          fi
           bin/bobctl tune \
             --profile "${{ steps.profile.outputs.name }}" \
             -n ${{ matrix.app_namespace }} \
@@ -205,6 +314,7 @@ jobs:
             --alertmanager-port 9093 \
             --output-dir results \
             --debug \
+            $SCHEME_FLAG \
             -v 2>&1 | tee /tmp/tune-output.txt
 
       # ---------- Redis post-tune attacks (Redis only) ----------
@@ -384,6 +494,42 @@ jobs:
             echo "No metrics.json — skipping GIF"
           fi
 
+      - name: Upload tune GIF
+        if: always()
+        id: upload-gif
+        uses: actions/upload-artifact@v4
+        with:
+          name: tune-gif-${{ matrix.app }}-${{ matrix.os }}
+          path: results/tune.gif
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Publish tune chart to step summary
+        if: always()
+        run: |
+          if [ ! -f results/metrics.json ]; then
+            echo "No metrics.json — skipping chart"
+            exit 0
+          fi
+          python3 scripts/render-summary-chart.py \
+            results/metrics.json \
+            results/summary-chart.md \
+            --app "${{ matrix.app }}" \
+            --os "${{ matrix.os }}"
+          if [ -f results/summary-chart.md ]; then
+            cat results/summary-chart.md >> $GITHUB_STEP_SUMMARY
+          fi
+          # Link to GIF artifact in step summary
+          if [ -f results/tune.gif ]; then
+            ARTIFACT_URL="${{ steps.upload-gif.outputs.artifact-url }}"
+            if [ -n "$ARTIFACT_URL" ]; then
+              {
+                echo ""
+                echo "**Animated report:** [tune-gif-${{ matrix.app }}-${{ matrix.os }}]($ARTIFACT_URL)"
+              } >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
       - name: Run explicit attacks
         if: always()
         run: |
@@ -521,201 +667,10 @@ jobs:
           name: result-${{ matrix.app }}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
           path: results/
 
-  deploy-misp:
-    name: "misp (${{ matrix.os }}, ${{ matrix.k8s-distribution }})"
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04]
-        k8s-distribution: [k3s]
-        kubernetes-version: [v1.33.3]
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.ENTLEIN_PAT}}
-
-      - name: Download bobctl binary
-        uses: actions/download-artifact@v4
-        with:
-          name: bobctl
-          path: bin
-
-      - name: Make bobctl executable
-        run: chmod +x bin/bobctl
-
-      - name: Set up k3s cluster
-        if: matrix.k8s-distribution == 'k3s'
-        uses: jupyterhub/action-k3s-helm@v4
-        with:
-          k3s-version: ${{ matrix.kubernetes-version }}+k3s1
-
-      - name: Verify cluster
-        run: |
-          kubectl version
-          kubectl get nodes
-          helm version
-
-      - name: Install kubescape
-        run: make kubescape
-
-      - name: Install alertmanager
-        run: make alertmanager
-
-      # ---------- MISP deployment via Helm ----------
-      - name: Build MISP chart dependencies
-        run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
-          helm dependency build ./misp
-
-      - name: Deploy MISP
-        run: |
-          echo "Deploying MISP via Helm chart..."
-          kubectl create namespace misp || true
-          helm install misp ./misp \
-            -f misp/values-ci.yaml \
-            -n misp \
-            --disable-openapi-validation \
-            --timeout 10m \
-            --wait=false
-          echo "Helm install submitted."
-
-      - name: Wait for MariaDB
-        run: |
-          echo "Waiting for MariaDB..."
-          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mariadb \
-            -n misp --timeout=300s
-
-      - name: Wait for Valkey
-        run: |
-          echo "Waiting for Valkey..."
-          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=valkey \
-            -n misp --timeout=180s
-
-      - name: Wait for MISP core
-        run: |
-          echo "Waiting for MISP core pod (startup takes several minutes)..."
-          # MISP needs time to initialize DB, run migrations, start supervisord
-          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=misp \
-            -n misp --timeout=600s || {
-            echo "=== MISP pod not ready, checking status ==="
-            kubectl get pods -n misp
-            kubectl describe pod -l app.kubernetes.io/name=misp -n misp
-            kubectl logs -l app.kubernetes.io/name=misp -n misp --tail=100
-            # Continue even if not fully ready — startup probe may pass later
-            true
-          }
-
-      - name: Verify MISP responds
-        run: |
-          echo "Checking MISP service..."
-          kubectl get svc -n misp
-          kubectl get pods -n misp
-          # Verify MISP HTTPS endpoint responds via kubectl port-forward
-          kubectl port-forward svc/misp 8443:443 -n misp &
-          PF_PID=$!
-          sleep 5
-          HTTP_CODE=$(curl -sk -o /dev/null -w '%{http_code}' https://localhost:8443/ || echo "000")
-          kill $PF_PID 2>/dev/null || true
-          echo "MISP HTTP response code: $HTTP_CODE"
-          if [ "$HTTP_CODE" = "000" ]; then
-            echo "Warning: MISP not responding yet (may still be initializing)"
-          else
-            echo "MISP is serving traffic (HTTP $HTTP_CODE)"
-          fi
-
-      - name: Wait for kubescape components
-        run: |
-          kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=180s
-          kubectl wait --for=condition=ready pod -l app=storage -n honey --timeout=180s
-          kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
-
-      # ---------- Profile learning ----------
-      - name: Learn MISP profile
-        id: profile
-        continue-on-error: true
-        run: |
-          echo "Waiting for kubescape to observe MISP workload..."
-          sleep 60
-          # List application profiles in misp namespace
-          echo "=== ApplicationProfiles in misp namespace ==="
-          kubectl get applicationprofile -n misp -o wide || echo "(none yet)"
-          # Export the profile if available
-          PROFILE=$(kubectl get applicationprofile -n misp -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-          if [ -n "$PROFILE" ]; then
-            echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
-            echo "Discovered profile: $PROFILE"
-            kubectl get applicationprofile "$PROFILE" -n misp -o yaml > profile.yaml
-            cat profile.yaml
-          else
-            echo "No application profile discovered yet — kubescape may need more time"
-            echo "name=" >> "$GITHUB_OUTPUT"
-          fi
-
-      # ---------- Diagnostics ----------
-      - name: Collect diagnostics
-        if: always()
-        run: |
-          echo "--- MISP pods ---"
-          kubectl get pods -n misp -o wide
-          echo "--- MISP pod logs (last 100) ---"
-          kubectl logs -l app.kubernetes.io/name=misp -n misp --tail=100 || true
-          echo "--- MariaDB logs (last 50) ---"
-          kubectl logs -l app.kubernetes.io/name=mariadb -n misp --tail=50 || true
-          echo "--- Valkey logs (last 50) ---"
-          kubectl logs -l app.kubernetes.io/name=valkey -n misp --tail=50 || true
-          echo "--- Node-agent logs for misp namespace ---"
-          kubectl logs -n honey -l app=node-agent --tail=200 \
-            | grep '"namespace":"misp"' || echo "(no misp-namespace entries)"
-
-      - name: Prepare result artifact
-        if: always()
-        run: |
-          KERNEL_VERSION=$(uname -r)
-          mkdir -p results
-          PROFILE="${{ steps.profile.outputs.name }}"
-          # Export profile if available
-          if [ -n "$PROFILE" ]; then
-            kubectl get applicationprofile "$PROFILE" -n misp -o yaml > results/misp-profile.yaml || true
-          fi
-          # Check MISP pod status
-          MISP_READY=$(kubectl get pod -l app.kubernetes.io/name=misp -n misp \
-            -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "Unknown")
-          jq -n \
-            --arg app "misp" \
-            --arg os "${{ matrix.os }}" \
-            --arg k8s_distribution "${{ matrix.k8s-distribution }}" \
-            --arg kubernetes_version "${{ matrix.kubernetes-version }}" \
-            --arg kernel_version "$KERNEL_VERSION" \
-            --arg profile "$PROFILE" \
-            --arg misp_ready "$MISP_READY" \
-            --arg result "$( [ "$MISP_READY" = "True" ] && echo success || echo partial )" \
-            '{
-              app: $app,
-              os: $os,
-              k8s_distribution: $k8s_distribution,
-              kubernetes_version: $kubernetes_version,
-              kernel_version: $kernel_version,
-              profile: $profile,
-              misp_ready: $misp_ready,
-              result: $result
-            }' > results/summary.json
-
-      - name: Upload result artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: result-misp-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
-          path: results/
-
   summarize:
     name: Summary
     runs-on: ubuntu-latest
-    needs: [tune, deploy-misp]
+    needs: [tune]
     if: always()
     steps:
       - name: Download all artifacts
@@ -759,6 +714,19 @@ jobs:
               echo "<details>" >> $GITHUB_STEP_SUMMARY
               echo "<summary><b>$VARIANT</b></summary>" >> $GITHUB_STEP_SUMMARY
               echo '' >> $GITHUB_STEP_SUMMARY
+              # Look for matching GIF artifact (tune-gif-{app}-{os})
+              APP=$(jq -r '.app // ""' "$dir/summary.json" 2>/dev/null || echo "")
+              OS=$(jq -r '.os // ""' "$dir/summary.json" 2>/dev/null || echo "")
+              GIF_DIR="artifacts/tune-gif-${APP}-${OS}"
+              if [ -f "$GIF_DIR/tune.gif" ]; then
+                GIF_B64=$(base64 -w 0 "$GIF_DIR/tune.gif")
+                echo "<img src=\"data:image/gif;base64,${GIF_B64}\" alt=\"${APP} (${OS}) tune animation\" width=\"960\" />" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
+              if [ -f "$dir/summary-chart.md" ]; then
+                cat "$dir/summary-chart.md" >> $GITHUB_STEP_SUMMARY
+                echo '' >> $GITHUB_STEP_SUMMARY
+              fi
               if [ -f "$dir/metrics.md" ]; then
                 cat "$dir/metrics.md" >> $GITHUB_STEP_SUMMARY
                 echo '' >> $GITHUB_STEP_SUMMARY
