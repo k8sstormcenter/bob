@@ -15,8 +15,6 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 GO_LDFLAGS := -s -w -X main.version=$(VERSION)
 REPO_ROOT := $(shell git rev-parse --show-toplevel)
-WEBAPP_POD := $(shell kubectl get pods --namespace webapp -l "app.kubernetes.io/name=mywebapp,app.kubernetes.io/instance=webapp" -o jsonpath="{.items[0].metadata.name}")
-
 
 
 .PHONY: all
