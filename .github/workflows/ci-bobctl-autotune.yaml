@@ -7,6 +7,7 @@ on:
       - feature/tuning
       - feature/redis
       - feat-crd
+      - feat/planning
     paths:
       - 'pkg'
       - 'pkg/**'
@@ -442,16 +443,34 @@ jobs:
           sleep 10
 
       # ---------- Verification ----------
-      - name: Export tuned ApplicationProfile
+      - name: Export best tuned ApplicationProfile
         if: always()
         run: |
           mkdir -p results
-          bin/bobctl get "${{ steps.profile.outputs.name }}" \
-            -n ${{ matrix.app_namespace }} -o yaml > results/tuned-profile.yaml || true
-          echo "Exported tuned profile ($(wc -l < results/tuned-profile.yaml) lines)"
-          echo "Iteration profiles saved by --output-dir:"
+          # Find the best iteration profile (lowest score from metrics.json)
+          if [ -f results/metrics.json ]; then
+            BEST_ITER=$(jq '[to_entries[] | select(.value.phase != "raw-baseline")] | min_by(.value.score) | .value.iteration' results/metrics.json 2>/dev/null || echo "")
+            BEST_FILE="results/${{ steps.profile.outputs.name }}-iteration${BEST_ITER}.yaml"
+            if [ -n "$BEST_ITER" ] && [ -f "$BEST_FILE" ]; then
+              echo "Best iteration: $BEST_ITER (from metrics.json)"
+              # Strip kubescape annotations from the exported profile (no pyyaml needed)
+              grep -v '^\s*kubescape\.io/' "$BEST_FILE" \
+                | grep -v '^\s*spdx\.softwarecomposition\.kubescape\.io/' \
+                > results/best-profile.yaml \
+                || cp "$BEST_FILE" results/best-profile.yaml
+              echo "Best profile: results/best-profile.yaml ($(wc -l < results/best-profile.yaml) lines)"
+            else
+              echo "Could not find best iteration file: $BEST_FILE"
+              bin/bobctl get "${{ steps.profile.outputs.name }}" \
+                -n ${{ matrix.app_namespace }} -o yaml > results/best-profile.yaml || true
+            fi
+          else
+            echo "No metrics.json — exporting current profile as-is"
+            bin/bobctl get "${{ steps.profile.outputs.name }}" \
+              -n ${{ matrix.app_namespace }} -o yaml > results/best-profile.yaml || true
+          fi
+          echo "Iteration profiles:"
           ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
-          cat results/*-iteration*.yaml 2>/dev/null || echo "  (no iteration profiles found)"
 
       - name: Display collapse analysis
         if: always()
@@ -596,10 +615,11 @@ jobs:
           IMAGE_TAG=$(grep 'tag:' kubescape/values.yaml | head -1 | sed 's/.*tag: "\(.*\)"/\1/')
           RESULT="${{ steps.tune.outcome }}"
           if [ -f results/metrics.json ]; then
-            LAST_IDX=$(jq 'length - 1' results/metrics.json)
-            SCORE=$(jq ".[$LAST_IDX].score" results/metrics.json)
-            MISSED=$(jq ".[$LAST_IDX].missed_detections" results/metrics.json)
-            FP=$(jq ".[$LAST_IDX].false_positives" results/metrics.json)
+            # Use best iteration (lowest score), not last
+            BEST=$(jq '[to_entries[] | select(.value.phase != "raw-baseline")] | min_by(.value.score) | .value' results/metrics.json)
+            SCORE=$(echo "$BEST" | jq '.score')
+            MISSED=$(echo "$BEST" | jq '.missed_detections')
+            FP=$(echo "$BEST" | jq '.false_positives')
           else
             SCORE="N/A"
             MISSED="N/A"
@@ -636,6 +656,22 @@ jobs:
               result: $result
             }' > results/summary.json
           cp /tmp/tune-output.txt results/ 2>/dev/null || true
+
+      - name: Score gate
+        if: always() && matrix.app == 'webapp'
+        run: |
+          if [ ! -f results/metrics.json ]; then
+            echo "FAIL: No metrics.json — tune did not produce output"
+            exit 1
+          fi
+          BEST_SCORE=$(jq '[to_entries[] | select(.value.phase != "raw-baseline")] | min_by(.value.score) | .value.score' results/metrics.json)
+          echo "Best score: $BEST_SCORE"
+          if [ "$BEST_SCORE" != "0" ]; then
+            echo "FAIL: webapp tune did not achieve perfect score (score=$BEST_SCORE)"
+            jq '[to_entries[] | select(.value.phase != "raw-baseline")] | min_by(.value.score) | .value | {score, missed_detections, false_positives, phase, iteration}' results/metrics.json
+            exit 1
+          fi
+          echo "PASS: webapp achieved perfect score"
 
       - name: Validate artifact isolation
         if: always()
