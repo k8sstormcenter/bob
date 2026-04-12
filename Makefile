@@ -7,7 +7,7 @@ GO_VERSION ?= 1.24
 KUBESCAPE_CHART_VER ?= 1.30.2
 
 OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
-HELM = $(shell which helm)
+HELM := $(shell which helm)
 
 #CURRENT_CONTEXT := $(shell kubectl config current-context)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
