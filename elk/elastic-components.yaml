@@ -5,11 +5,16 @@ metadata:
   namespace: elk
 spec:
   version: 9.3.0
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
   nodeSets:
     - name: default
-      count: 2
+      count: 1
       config:
         node.store.allow_mmap: false
+        xpack.security.enabled: false
       volumeClaimTemplates:
         - metadata:
             name: elasticsearch-data

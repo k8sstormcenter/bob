@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feature/tuning
+      - feat/eck-operator-stack
       - feature/redis
       - feat-crd
       - feat/planning
@@ -74,6 +74,7 @@ jobs:
           - webapp
           - redis
           - misp
+          - elk
         include:
           # ---- webapp (HTTP-based PHP app) ----
           - app: webapp
@@ -104,6 +105,16 @@ jobs:
             deploy_kind: deployment
             protocol: https
             deploy_method: helm
+          # ---- elk (ECK operator + Elasticsearch REST API) ----
+          - app: elk
+            functional_tests: example/elk-functional-tests.yaml
+            attack_suite: example/elk-attacks.yaml
+            app_namespace: elk
+            deploy_name: el-es-default
+            deploy_kind: statefulset
+            protocol: http
+            deploy_method: elk
+            profile_match: el-es
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -199,6 +210,33 @@ jobs:
             true
           }
 
+      - name: Deploy application (elk)
+        if: matrix.deploy_method == 'elk'
+        run: |
+          echo "Deploying ELK stack via ECK operator..."
+          helm upgrade --install elastic-operator elk/eck-operator-3.3.0.tgz \
+            -n elastic-system --create-namespace --wait --timeout 10m
+          kubectl create namespace elk || true
+          kubectl apply -f elk/elastic-components.yaml
+
+          echo "Waiting for Elasticsearch..."
+          kubectl wait --for=condition=ready pod \
+            -l elasticsearch.k8s.elastic.co/cluster-name=el \
+            -n elk --timeout=600s || {
+            echo "=== ES pod not ready, checking status ==="
+            kubectl get pods -n elk
+            kubectl describe pod -l elasticsearch.k8s.elastic.co/cluster-name=el -n elk
+            true
+          }
+
+          echo "Waiting for Kibana..."
+          kubectl wait --for=condition=ready pod \
+            -l kibana.k8s.elastic.co/name=kb \
+            -n elk --timeout=300s 2>/dev/null || true
+
+          echo "ELK stack deployed:"
+          kubectl get pods -n elk
+
       - name: Wait for kubescape components
         run: |
           kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=180s
@@ -268,11 +306,56 @@ jobs:
           kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
           cat profile.yaml 2>/dev/null || echo "(profile not available)"
 
+      - name: Learn application profile (elk)
+        if: matrix.deploy_method == 'elk'
+        id: profile-elk
+        run: |
+          echo "ELK deployed via ECK — waiting for kubescape to learn ES profile..."
+          # Exercise ES API to build baseline
+          for i in $(seq 1 6); do
+            bin/bobctl learn \
+              --functional-tests ${{ matrix.functional_tests }} \
+              -n ${{ matrix.app_namespace }} --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
+            sleep 10
+          done
+
+          # Poll for completed profile matching Elasticsearch
+          MATCH="${{ matrix.profile_match }}"
+          TIMEOUT=600
+          ELAPSED=0
+          PROFILE=""
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            ALL=$(kubectl get applicationprofiles -n ${{ matrix.app_namespace }} \
+              -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
+              2>/dev/null | grep -v "^ug-" || true)
+            PROFILE=$(echo "$ALL" | grep -i "$MATCH" | head -1)
+            [ -z "$PROFILE" ] && PROFILE=$(echo "$ALL" | head -1)
+            if [ -n "$PROFILE" ]; then
+              echo "Profile completed: $PROFILE"
+              break
+            fi
+            echo "No completed profile yet ($ELAPSED/${TIMEOUT}s)..."
+            sleep 15
+            ELAPSED=$((ELAPSED + 15))
+          done
+
+          if [ -z "$PROFILE" ]; then
+            echo "WARNING: No profile discovered after ${TIMEOUT}s"
+            kubectl get applicationprofile -n ${{ matrix.app_namespace }} -o wide || true
+            PROFILE="unknown"
+          fi
+
+          echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
+          echo "Discovered profile: $PROFILE"
+          kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
+
       - name: Set profile output
         id: profile
         run: |
           if [ "${{ matrix.deploy_method }}" = "manifest" ]; then
             echo "name=${{ steps.profile-manifest.outputs.name }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ matrix.deploy_method }}" = "elk" ]; then
+            echo "name=${{ steps.profile-elk.outputs.name }}" >> "$GITHUB_OUTPUT"
           else
             echo "name=${{ steps.profile-helm.outputs.name }}" >> "$GITHUB_OUTPUT"
           fi
@@ -684,6 +767,7 @@ jobs:
             case "${{ matrix.app }}" in
               webapp) echo "$f" | grep -qv "webapp" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               redis)  echo "$f" | grep -qv "redis"  && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              elk)    echo "$f" | grep -qv "el-es"   && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               *)      echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
             esac
           done

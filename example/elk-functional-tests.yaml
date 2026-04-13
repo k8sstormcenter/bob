@@ -1,0 +1,101 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: elk-functional-tests
+  description: >-
+    Benign functional tests for the Elastic stack (Elasticsearch + Kibana).
+    Exercises standard REST API endpoints and internal processes to build
+    a realistic ApplicationProfile baseline for node-agent learning.
+target:
+  service: el-es-http
+  namespace: elk
+  port: 9200
+tests:
+  # --- Elasticsearch REST API (benign queries) ---
+
+  - name: es-cluster-health
+    http:
+      method: GET
+      path: /_cluster/health
+      expectedStatus: 200
+
+  - name: es-root
+    http:
+      method: GET
+      path: /
+      expectedStatus: 200
+
+  - name: es-cat-indices
+    http:
+      method: GET
+      path: /_cat/indices?v
+      expectedStatus: 200
+
+  - name: es-cat-nodes
+    http:
+      method: GET
+      path: /_cat/nodes?v
+      expectedStatus: 200
+
+  - name: es-cluster-stats
+    http:
+      method: GET
+      path: /_cluster/stats
+      expectedStatus: 200
+
+  - name: es-node-stats
+    http:
+      method: GET
+      path: /_nodes/stats
+      expectedStatus: 200
+
+  - name: es-create-index
+    http:
+      method: PUT
+      path: /bobtest-benign
+      headers:
+        Content-Type: application/json
+      body: '{"settings":{"number_of_shards":1,"number_of_replicas":0}}'
+      expectedStatus: 200
+
+  - name: es-index-doc
+    http:
+      method: POST
+      path: /bobtest-benign/_doc
+      headers:
+        Content-Type: application/json
+      body: '{"message":"benign test document","timestamp":"2026-01-01T00:00:00Z","source":"bobctl"}'
+      expectedStatus: 201
+
+  - name: es-search
+    http:
+      method: POST
+      path: /bobtest-benign/_search
+      headers:
+        Content-Type: application/json
+      body: '{"query":{"match_all":{}}}'
+      expectedStatus: 200
+
+  - name: es-refresh
+    http:
+      method: POST
+      path: /bobtest-benign/_refresh
+      expectedStatus: 200
+
+  - name: es-delete-index
+    http:
+      method: DELETE
+      path: /bobtest-benign
+      expectedStatus: 200
+
+  # --- Exec tests (build exec baseline) ---
+
+  - name: check-java-version
+    exec:
+      command: ["java", "-version"]
+      expectedExitCode: 0
+
+  - name: check-es-process
+    exec:
+      command: ["ps", "aux"]
+      expectedExitCode: 0

@@ -101,6 +101,28 @@ helm-test:
 helm-uninstall:
 	helm uninstall webapp -n webapp
 
+.PHONY: elk
+elk:
+	@echo "Installing ECK operator + Elastic stack..."
+	helm upgrade --install elastic-operator elk/eck-operator-3.3.0.tgz \
+		-n elastic-system --create-namespace --wait --timeout 10m
+	kubectl create namespace elk 2>/dev/null || true
+	kubectl apply -f elk/elastic-components.yaml
+	@echo "Waiting for Elasticsearch..."
+	-kubectl wait --for=condition=ready pod -l elasticsearch.k8s.elastic.co/cluster-name=el \
+		-n elk --timeout=600s
+	@echo "Waiting for Kibana..."
+	-kubectl wait --for=condition=ready pod -l kibana.k8s.elastic.co/name=kb \
+		-n elk --timeout=300s
+	@echo "ELK stack ready."
+	kubectl get pods -n elk
+
+.PHONY: elk-uninstall
+elk-uninstall:
+	kubectl delete -f elk/elastic-components.yaml --ignore-not-found
+	helm uninstall elastic-operator -n elastic-system 2>/dev/null || true
+	kubectl delete namespace elk --ignore-not-found
+
 .PHONY: fwd 
 fwd:
 	-sudo kill -9 $$(sudo lsof -t -i :8080)
