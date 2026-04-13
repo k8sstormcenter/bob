@@ -56,6 +56,60 @@ tetragon:
 	-$(HELM) upgrade --install tetragon cilium/tetragon -n bob --create-namespace --values honeycluster/honeystack/tetragon/values.yaml
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=tetragon -n bob --timeout=5m 
 
+# ── Unified deploy targets (used by CI and local-ci.sh) ─────────────────────
+# Usage: make deploy-<app>
+# Each target handles its own deploy method (manifest, helm, operator) and waits
+# for readiness. Adding a new app = adding a new deploy-<app> target here.
+
+.PHONY: deploy-webapp
+deploy-webapp:
+	@echo "=== Deploying webapp (manifest) ==="
+	kubectl apply -f example/webapp-manifest.yaml
+	kubectl wait --for=condition=available --timeout=120s deployment/webapp-mywebapp -n webapp
+
+.PHONY: deploy-redis
+deploy-redis:
+	@echo "=== Deploying redis (manifest) ==="
+	kubectl apply -f example/redis-vulnerable.yaml
+	kubectl wait --for=condition=available --timeout=120s deployment/redis -n redis
+
+.PHONY: deploy-misp
+deploy-misp:
+	@echo "=== Deploying misp (helm) ==="
+	helm repo add bitnami https://charts.bitnami.com/bitnami 2>/dev/null || true
+	helm repo update
+	helm dependency build ./misp 2>/dev/null || true
+	kubectl create namespace misp 2>/dev/null || true
+	helm upgrade --install misp ./misp \
+		-f misp/values-ci.yaml \
+		-n misp \
+		--disable-openapi-validation \
+		--timeout 10m \
+		--wait=false
+	@echo "Waiting for sub-components..."
+	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mariadb -n misp --timeout=300s
+	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=valkey -n misp --timeout=180s
+	@echo "Waiting for misp pod..."
+	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=misp -n misp --timeout=600s
+
+.PHONY: deploy-elk
+deploy-elk:
+	@echo "=== Deploying elk (ECK operator) ==="
+	helm upgrade --install elastic-operator elk/eck-operator-3.3.0.tgz \
+		-n elastic-system --create-namespace --wait --timeout 10m
+	kubectl create namespace elk 2>/dev/null || true
+	kubectl apply -f elk/elastic-components.yaml
+	@echo "Waiting for Elasticsearch..."
+	-kubectl wait --for=condition=ready pod -l elasticsearch.k8s.elastic.co/cluster-name=el \
+		-n elk --timeout=600s
+	@echo "Waiting for Kibana..."
+	-kubectl wait --for=condition=ready pod -l kibana.k8s.elastic.co/name=kb \
+		-n elk --timeout=300s
+	@echo "ELK stack ready."
+	kubectl get pods -n elk
+
+# ── Legacy targets (kept for backward compat) ───────────────────────────────
+
 .PHONY: helm-install-no-bob
 helm-install-no-bob: 
 	@echo "Installing webapp without BoB configuration..."

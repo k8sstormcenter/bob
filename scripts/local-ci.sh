@@ -39,7 +39,6 @@ die()  { log "ERROR: $*"; exit 1; }
 case "$APP" in
   webapp)
     APP_NS=webapp
-    APP_MANIFEST=example/webapp-manifest.yaml
     APP_FUNC_TESTS=example/webapp-functional-tests.yaml
     APP_ATTACKS=example/webapp-attacks.yaml
     APP_SERVICE=webapp-mywebapp
@@ -47,7 +46,6 @@ case "$APP" in
     ;;
   redis)
     APP_NS=redis
-    APP_MANIFEST=example/redis-vulnerable.yaml
     APP_FUNC_TESTS=example/redis-functional-tests.yaml
     APP_ATTACKS=example/redis-attacks.yaml
     APP_SERVICE=redis
@@ -55,7 +53,6 @@ case "$APP" in
     ;;
   misp)
     APP_NS=misp
-    APP_DEPLOY_METHOD=helm
     APP_FUNC_TESTS=example/misp-functional-tests.yaml
     APP_ATTACKS=example/misp-attacks.yaml
     APP_SERVICE=misp
@@ -64,7 +61,6 @@ case "$APP" in
     ;;
   elk)
     APP_NS=elk
-    APP_DEPLOY_METHOD=elk
     APP_FUNC_TESTS=example/elk-functional-tests.yaml
     APP_ATTACKS=example/elk-attacks.yaml
     APP_SERVICE=el-es-http
@@ -76,7 +72,6 @@ case "$APP" in
     ;;
 esac
 
-APP_DEPLOY_METHOD="${APP_DEPLOY_METHOD:-manifest}"
 APP_SCHEME="${APP_SCHEME:-http}"
 
 # ── build ────────────────────────────────────────────────────────────────────
@@ -108,141 +103,49 @@ if $SETUP_ONLY || ! $TUNE_ONLY; then
   fi
 fi
 
-# ── install and learn app ────────────────────────────────────────────────────
+# ── deploy and learn app ─────────────────────────────────────────────────────
 if ! $TUNE_ONLY; then
-  if [[ "$APP_DEPLOY_METHOD" == "helm" ]]; then
-    log "=== Deploy $APP via Helm ==="
-    helm repo add bitnami https://charts.bitnami.com/bitnami 2>/dev/null || true
-    helm repo update
-    helm dependency build ./"$APP" 2>/dev/null || true
-    kubectl create namespace "$APP_NS" 2>/dev/null || true
-    helm install "$APP" ./"$APP" \
-      -f "$APP"/values-ci.yaml \
-      -n "$APP_NS" \
-      --disable-openapi-validation \
-      --timeout 10m \
-      --wait=false
+  log "=== Deploy $APP via: make deploy-$APP ==="
+  make deploy-"$APP"
+  log "Deploy complete. Pods in $APP_NS:"
+  kubectl get pods -n "$APP_NS" || true
 
-    # Wait for sub-components (MariaDB, Valkey)
-    log "Waiting for sub-components..."
-    kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mariadb \
-      -n "$APP_NS" --timeout=300s 2>/dev/null || true
-    kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=valkey \
-      -n "$APP_NS" --timeout=180s 2>/dev/null || true
+  # ── learn: exercise app + poll for completed profile ────────────────────────
+  log "=== Learn $APP ==="
+  MATCH="${APP_PROFILE_MATCH:-$APP}"
 
-    # Wait for main app
-    log "Waiting for $APP pod to be ready..."
-    kubectl wait --for=condition=ready pod \
-      -l "app.kubernetes.io/name=$APP" \
-      -n "$APP_NS" --timeout=600s || {
-      log "WARNING: $APP pod not ready yet, checking status..."
-      kubectl get pods -n "$APP_NS"
-    }
-
-    # Run functional tests during learning to exercise the app
-    log "Running functional tests during learning period..."
-    for i in $(seq 1 6); do
-      bin/bobctl learn \
-        --functional-tests "$APP_FUNC_TESTS" \
-        -n "$APP_NS" --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
-      sleep 10
-    done
-
-    # Poll for completed profile matching the main app deployment
-    log "Waiting for completed profile (prefer name containing '$APP')..."
-    TIMEOUT=600
-    ELAPSED=0
-    PROFILE=""
-    while [ $ELAPSED -lt $TIMEOUT ]; do
-      ALL_COMPLETED=$(kubectl get applicationprofiles -n "$APP_NS" \
-        -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-        2>/dev/null | grep -v "^ug-" || true)
-      # Prefer profile whose name contains the app name (e.g. "misp" in "deployment-misp-abc123")
-      PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$APP" | head -1)
-      # Fallback to first completed profile
-      [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
-      if [[ -n "$PROFILE" ]]; then
-        log "Profile completed: $PROFILE"
-        # Log all profiles for visibility
-        log "All completed profiles in $APP_NS:"
-        echo "$ALL_COMPLETED" | while read -r p; do [[ -n "$p" ]] && log "  - $p"; done
-        break
-      fi
-      log "  No completed profile yet ($ELAPSED/${TIMEOUT}s)..."
-      sleep 15
-      ELAPSED=$((ELAPSED + 15))
-    done
-    [[ -n "$PROFILE" ]] || die "No completed profile found after ${TIMEOUT}s"
-
-  elif [[ "$APP_DEPLOY_METHOD" == "elk" ]]; then
-    log "=== Deploy ELK stack ==="
-    # Install ECK operator
-    helm upgrade --install elastic-operator elk/eck-operator-3.3.0.tgz \
-      -n elastic-system \
-      --create-namespace \
-      --wait \
-      --timeout 10m
-
-    # Deploy Elasticsearch, Kibana, Elastic Agent
-    kubectl create namespace elk 2>/dev/null || true
-    kubectl apply -f elk/elastic-components.yaml
-
-    # Wait for Elasticsearch to be ready (ECK uses a StatefulSet)
-    log "Waiting for Elasticsearch to be ready..."
-    kubectl wait --for=condition=ready pod -l elasticsearch.k8s.elastic.co/cluster-name=el \
-      -n elk --timeout=600s || {
-      log "WARNING: ES pod not ready yet, checking status..."
-      kubectl get pods -n elk
-    }
-
-    # Wait for Kibana
-    log "Waiting for Kibana to be ready..."
-    kubectl wait --for=condition=ready pod -l kibana.k8s.elastic.co/name=kb \
-      -n elk --timeout=300s 2>/dev/null || true
-
-    # Run functional tests during learning to exercise ES
-    log "Running functional tests during learning period..."
-    for i in $(seq 1 6); do
-      bin/bobctl learn \
-        --functional-tests "$APP_FUNC_TESTS" \
-        -n "$APP_NS" --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
-      sleep 10
-    done
-
-    # Poll for completed profile
-    log "Waiting for completed profile (prefer name containing 'el')..."
-    TIMEOUT=600
-    ELAPSED=0
-    PROFILE=""
-    while [ $ELAPSED -lt $TIMEOUT ]; do
-      ALL_COMPLETED=$(kubectl get applicationprofiles -n "$APP_NS" \
-        -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-        2>/dev/null | grep -v "^ug-" || true)
-      # Prefer profile whose name contains "el-es" (Elasticsearch)
-      PROFILE=$(echo "$ALL_COMPLETED" | grep -i "el-es\|elastic" | head -1)
-      [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
-      if [[ -n "$PROFILE" ]]; then
-        log "Profile completed: $PROFILE"
-        log "All completed profiles in $APP_NS:"
-        echo "$ALL_COMPLETED" | while read -r p; do [[ -n "$p" ]] && log "  - $p"; done
-        break
-      fi
-      log "  No completed profile yet ($ELAPSED/${TIMEOUT}s)..."
-      sleep 15
-      ELAPSED=$((ELAPSED + 15))
-    done
-    [[ -n "$PROFILE" ]] || die "No completed profile found after ${TIMEOUT}s"
-
-  else
-    log "=== Install and learn $APP ==="
-    PROFILE=$(bin/bobctl install \
-      --manifest "$APP_MANIFEST" \
+  # Run functional tests to exercise the app while node-agent learns
+  log "Running functional tests during learning period..."
+  for i in $(seq 1 8); do
+    bin/bobctl learn \
       --functional-tests "$APP_FUNC_TESTS" \
-      -n "$APP_NS" \
-      --timeout 3m \
-      -v 2>&1 | tee /dev/stderr | tail -1)
-    [[ -n "$PROFILE" ]] || die "bobctl install did not return a profile name"
-  fi
+      -n "$APP_NS" --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
+    sleep 10
+  done
+
+  # Poll for completed, non-user-generated profile
+  log "Waiting for completed profile (match: '$MATCH')..."
+  TIMEOUT=600
+  ELAPSED=0
+  PROFILE=""
+  while [ $ELAPSED -lt $TIMEOUT ]; do
+    ALL_COMPLETED=$(kubectl get applicationprofiles -n "$APP_NS" \
+      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
+      2>/dev/null | grep -v "^ug-" || true)
+    PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
+    if [[ -n "$PROFILE" ]]; then
+      log "Profile completed: $PROFILE"
+      log "All completed profiles in $APP_NS:"
+      echo "$ALL_COMPLETED" | while read -r p; do [[ -n "$p" ]] && log "  - $p"; done
+      break
+    fi
+    log "  No completed profile yet ($ELAPSED/${TIMEOUT}s)..."
+    sleep 15
+    ELAPSED=$((ELAPSED + 15))
+  done
+  [[ -n "$PROFILE" ]] || die "No completed profile found after ${TIMEOUT}s"
 
   log "Learned profile: $PROFILE"
   echo "$PROFILE" > /tmp/bobctl-last-profile-$APP
