@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feat/planning
+      - feat/plan
     paths:
       - 'pkg/**'
       - '.github/workflows/**'
@@ -12,9 +12,6 @@ on:
       - 'v*'
   workflow_dispatch:
 
-# Only runs on push to main — not on PRs.
-# The pkg/ submodule lives in a private repo (entlein/bob) and requires
-# PRIVATE_REPO_PAT to clone. This secret must never be exposed to fork PRs.
 
 permissions:
   contents: write

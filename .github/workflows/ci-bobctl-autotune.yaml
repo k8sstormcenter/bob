@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feature/tuning
+      - feat/eck-operator-stack
       - feature/redis
       - feat-crd
       - feat/planning
@@ -74,36 +74,32 @@ jobs:
           - webapp
           - redis
           - misp
+          - elk
         include:
-          # ---- webapp (HTTP-based PHP app) ----
+          # Each app needs: functional_tests, attack_suite, app_namespace, protocol.
+          # Optional: profile_match (for apps where profile name != app name).
+          # Deploy logic lives in the Makefile: `make deploy-<app>`
           - app: webapp
-            manifest: example/webapp-manifest.yaml
             functional_tests: example/webapp-functional-tests.yaml
             attack_suite: example/webapp-attacks.yaml
             app_namespace: webapp
-            deploy_name: webapp-mywebapp
-            deploy_kind: deployment
             protocol: http
-            deploy_method: manifest
-          # ---- redis (TCP RESP, CVE-2025-49844 fileless) ----
           - app: redis
-            manifest: example/redis-vulnerable.yaml
             functional_tests: example/redis-functional-tests.yaml
             attack_suite: example/redis-attacks.yaml
             app_namespace: redis
-            deploy_name: redis
-            deploy_kind: deployment
             protocol: redis
-            deploy_method: manifest
-          # ---- misp (HTTPS, Helm chart, test-pod attacks) ----
           - app: misp
             functional_tests: example/misp-functional-tests.yaml
             attack_suite: example/misp-attacks.yaml
             app_namespace: misp
-            deploy_name: misp
-            deploy_kind: deployment
             protocol: https
-            deploy_method: helm
+          - app: elk
+            functional_tests: example/elk-functional-tests.yaml
+            attack_suite: example/elk-attacks.yaml
+            app_namespace: elk
+            protocol: http
+            profile_match: el-es
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -155,49 +151,13 @@ jobs:
       - name: Install alertmanager
         run: make alertmanager
 
-      # ---------- Application deployment (generic) ----------
-      - name: Deploy application (manifest)
-        if: matrix.deploy_method == 'manifest'
+      # ---------- Application deployment (unified via Makefile) ----------
+      - name: Deploy application
         run: |
-          echo "Deploying ${{ matrix.app }} from ${{ matrix.manifest }}"
-          kubectl apply -f ${{ matrix.manifest }}
-          kubectl wait --for=condition=available --timeout=120s \
-            ${{ matrix.deploy_kind }}/${{ matrix.deploy_name }} \
-            -n ${{ matrix.app_namespace }}
-
-      - name: Deploy application (helm)
-        if: matrix.deploy_method == 'helm'
-        run: |
-          echo "Deploying ${{ matrix.app }} via Helm chart..."
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
-          helm dependency build ./${{ matrix.app }}
-          kubectl create namespace ${{ matrix.app_namespace }} || true
-          helm install ${{ matrix.app }} ./${{ matrix.app }} \
-            -f ${{ matrix.app }}/values-ci.yaml \
-            -n ${{ matrix.app_namespace }} \
-            --disable-openapi-validation \
-            --timeout 10m \
-            --wait=false
-
-          # Wait for sub-components first (MariaDB, Valkey)
-          echo "Waiting for sub-components..."
-          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=mariadb \
-            -n ${{ matrix.app_namespace }} --timeout=300s 2>/dev/null || true
-          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=valkey \
-            -n ${{ matrix.app_namespace }} --timeout=180s 2>/dev/null || true
-
-          # Wait for main app (MISP startup takes several minutes for DB init)
-          echo "Waiting for ${{ matrix.app }} pod to be ready..."
-          kubectl wait --for=condition=ready pod \
-            -l app.kubernetes.io/name=${{ matrix.app }} \
-            -n ${{ matrix.app_namespace }} --timeout=600s || {
-            echo "=== Pod not ready, checking status ==="
-            kubectl get pods -n ${{ matrix.app_namespace }}
-            kubectl describe pod -l app.kubernetes.io/name=${{ matrix.app }} -n ${{ matrix.app_namespace }}
-            kubectl logs -l app.kubernetes.io/name=${{ matrix.app }} -n ${{ matrix.app_namespace }} --tail=100
-            true
-          }
+          echo "Deploying ${{ matrix.app }} via: make deploy-${{ matrix.app }}"
+          make deploy-${{ matrix.app }}
+          echo "=== Pods in ${{ matrix.app_namespace }} ==="
+          kubectl get pods -n ${{ matrix.app_namespace }}
 
       - name: Wait for kubescape components
         run: |
@@ -205,77 +165,54 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=storage -n honey --timeout=180s
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 
-      # ---------- Profile learning ----------
-      - name: Install and learn application (manifest)
-        if: matrix.deploy_method == 'manifest'
-        id: profile-manifest
+      # ---------- Profile learning (unified) ----------
+      - name: Learn application profile
+        id: profile
         run: |
-          bin/bobctl install \
-            --manifest ${{ matrix.manifest }} \
-            --functional-tests ${{ matrix.functional_tests }} \
-            -n ${{ matrix.app_namespace }} \
-            --timeout 10m \
-            -v > /tmp/profile-name.txt
-          PROFILE=$(cat /tmp/profile-name.txt)
-          echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
-          echo "Discovered profile: $PROFILE"
-          kubectl get applicationprofile $PROFILE -n ${{ matrix.app_namespace }} -o yaml > profile.yaml
-          cat profile.yaml
+          echo "Exercising ${{ matrix.app }} and waiting for profile to complete..."
+          MATCH="${{ matrix.profile_match }}"
+          [ -z "$MATCH" ] && MATCH="${{ matrix.app }}"
 
-      - name: Learn application profile (helm)
-        if: matrix.deploy_method == 'helm'
-        id: profile-helm
-        run: |
-          echo "App deployed via Helm — waiting for kubescape to learn profile..."
-          # Run functional tests to exercise the app while profile learning happens
-          # The test pod is deployed by bobctl when scheme=https
-          echo "Waiting for node-agent to observe ${{ matrix.app }} workload..."
-          sleep 60
+          # Run functional tests to exercise the app while node-agent learns
+          for i in $(seq 1 8); do
+            bin/bobctl learn \
+              --functional-tests ${{ matrix.functional_tests }} \
+              -n ${{ matrix.app_namespace }} --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
+            sleep 10
+          done
 
-          # Poll for completed ApplicationProfile
+          # Poll for completed, non-user-generated profile
           TIMEOUT=600
           ELAPSED=0
           PROFILE=""
           while [ $ELAPSED -lt $TIMEOUT ]; do
-            PROFILE=$(kubectl get applicationprofile -n ${{ matrix.app_namespace }} \
-              -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+            ALL=$(kubectl get applicationprofiles -n ${{ matrix.app_namespace }} \
+              -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
+              2>/dev/null | grep -v "^ug-" || true)
+            # Prefer profile matching the app/service name
+            PROFILE=$(echo "$ALL" | grep -i "$MATCH" | grep -v "client" | head -1)
+            [ -z "$PROFILE" ] && PROFILE=$(echo "$ALL" | grep -i "$MATCH" | head -1)
+            [ -z "$PROFILE" ] && PROFILE=$(echo "$ALL" | head -1)
             if [ -n "$PROFILE" ]; then
-              # Check if profile has status=completed
-              STATUS=$(kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} \
-                -o jsonpath='{.metadata.annotations.kubescape\.io/status}' 2>/dev/null || echo "")
-              if [ "$STATUS" = "completed" ] || [ "$STATUS" = "ready" ]; then
-                echo "Profile $PROFILE is $STATUS"
-                break
-              fi
-              echo "Profile $PROFILE exists (status=$STATUS), waiting for completion..."
-            else
-              echo "No profile yet, waiting... ($ELAPSED/${TIMEOUT}s)"
+              echo "Profile completed: $PROFILE"
+              echo "All completed profiles:"
+              echo "$ALL" | while read -r p; do [ -n "$p" ] && echo "  - $p"; done
+              break
             fi
+            echo "No completed profile yet ($ELAPSED/${TIMEOUT}s)..."
             sleep 15
             ELAPSED=$((ELAPSED + 15))
           done
 
           if [ -z "$PROFILE" ]; then
             echo "WARNING: No profile discovered after ${TIMEOUT}s"
-            # Try to list any profiles
             kubectl get applicationprofile -n ${{ matrix.app_namespace }} -o wide || true
-            PROFILE=$(kubectl get applicationprofile -n ${{ matrix.app_namespace }} \
-              -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "unknown")
+            PROFILE="unknown"
           fi
 
           echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
           echo "Discovered profile: $PROFILE"
           kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
-          cat profile.yaml 2>/dev/null || echo "(profile not available)"
-
-      - name: Set profile output
-        id: profile
-        run: |
-          if [ "${{ matrix.deploy_method }}" = "manifest" ]; then
-            echo "name=${{ steps.profile-manifest.outputs.name }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "name=${{ steps.profile-helm.outputs.name }}" >> "$GITHUB_OUTPUT"
-          fi
 
 
 
@@ -684,6 +621,7 @@ jobs:
             case "${{ matrix.app }}" in
               webapp) echo "$f" | grep -qv "webapp" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               redis)  echo "$f" | grep -qv "redis"  && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              elk)    echo "$f" | grep -qv "el-es"   && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               *)      echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
             esac
           done
