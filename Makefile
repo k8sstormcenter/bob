@@ -7,7 +7,7 @@ GO_VERSION ?= 1.24
 KUBESCAPE_CHART_VER ?= 1.30.2
 
 OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
-HELM = $(shell which helm)
+HELM := $(shell which helm)
 
 #CURRENT_CONTEXT := $(shell kubectl config current-context)
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
@@ -15,8 +15,6 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 GO_LDFLAGS := -s -w -X main.version=$(VERSION)
 REPO_ROOT := $(shell git rev-parse --show-toplevel)
-WEBAPP_POD := $(shell kubectl get pods --namespace webapp -l "app.kubernetes.io/name=mywebapp,app.kubernetes.io/instance=webapp" -o jsonpath="{.items[0].metadata.name}")
-
 
 
 .PHONY: all
@@ -140,11 +138,11 @@ kubescape-orig:
 
 .PHONY: kubescape
 kubescape: 
-	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
-	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
+	helm repo add kubescape https://kubescape.github.io/helm-charts/
+	helm repo update
+	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
 	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
-	-$(HELM) show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
+	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
