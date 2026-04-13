@@ -1,0 +1,205 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: postgres-functional-tests
+  description: >-
+    Network-based PostgreSQL functional tests adapted from CloudNativePG
+    upstream e2e patterns (connection_test.go, asserts_test.go, initdb_test.go,
+    failover_test.go, plugin/pgbench).
+    All SQL runs through a pg-client pod connecting to pg-rw:5432 over the
+    cluster network, exercising realistic application access paths.
+    Includes pgbench workloads for realistic I/O profiling.
+target:
+  service: pg-rw
+  namespace: postgres
+  port: 5432
+tests:
+  # ═══════════════════════════════════════════════════════════════════════
+  # Connection verification (adapted from connection_test.go)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: select-1
+    exec:
+      command: ["psql", "-tAc", "SELECT 1;"]
+      expectedExitCode: 0
+
+  - name: check-not-in-recovery
+    exec:
+      command: ["psql", "-tAc", "SELECT pg_catalog.pg_is_in_recovery();"]
+      expectedExitCode: 0
+
+  - name: check-version
+    exec:
+      command: ["psql", "-tAc", "SELECT version();"]
+      expectedExitCode: 0
+
+  - name: check-server-encoding
+    exec:
+      command: ["psql", "-tAc", "SHOW server_encoding;"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Schema operations (adapted from initdb_test.go, cluster_setup_test.go)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: create-test-schema
+    exec:
+      command: ["psql", "-tAc", "CREATE SCHEMA IF NOT EXISTS ft;"]
+      expectedExitCode: 0
+
+  - name: create-bench-table
+    exec:
+      command: ["psql", "-tAc", "CREATE TABLE IF NOT EXISTS ft.bench (id BIGSERIAL PRIMARY KEY, key TEXT NOT NULL, value TEXT, created_at TIMESTAMPTZ DEFAULT NOW());"]
+      expectedExitCode: 0
+
+  - name: create-tps-table
+    exec:
+      command: ["psql", "-tAc", "CREATE SCHEMA IF NOT EXISTS tps; CREATE TABLE IF NOT EXISTS tps.tl (id BIGSERIAL, timeline TEXT DEFAULT (substring(pg_walfile_name(pg_current_wal_lsn()), 1, 8)), t TIMESTAMP DEFAULT (clock_timestamp() AT TIME ZONE 'UTC'), source TEXT NOT NULL, PRIMARY KEY (id));"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # CRUD operations (adapted from asserts_test.go)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: insert-100-rows
+    exec:
+      command: ["psql", "-tAc", "INSERT INTO ft.bench (key, value) SELECT 'key-' || g, 'val-' || g FROM generate_series(1, 100) g;"]
+      expectedExitCode: 0
+
+  - name: select-count-100
+    exec:
+      command: ["psql", "-tAc", "SELECT count(*) FROM ft.bench;"]
+      expectedExitCode: 0
+
+  - name: update-rows
+    exec:
+      command: ["psql", "-tAc", "UPDATE ft.bench SET value = 'updated' WHERE id <= 10;"]
+      expectedExitCode: 0
+
+  - name: delete-rows
+    exec:
+      command: ["psql", "-tAc", "DELETE FROM ft.bench WHERE id > 90;"]
+      expectedExitCode: 0
+
+  - name: upsert-on-conflict
+    exec:
+      command: ["psql", "-tAc", "INSERT INTO ft.bench (id, key, value) VALUES (1, 'key-1', 'upserted') ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value;"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Joins, aggregations, subqueries (realistic workload)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: self-join
+    exec:
+      command: ["psql", "-tAc", "SELECT count(*) FROM ft.bench a JOIN ft.bench b ON a.id = b.id WHERE a.value = 'updated';"]
+      expectedExitCode: 0
+
+  - name: aggregate-group-by
+    exec:
+      command: ["psql", "-tAc", "SELECT value, count(*) FROM ft.bench GROUP BY value ORDER BY count(*) DESC LIMIT 5;"]
+      expectedExitCode: 0
+
+  - name: subquery-exists
+    exec:
+      command: ["psql", "-tAc", "SELECT count(*) FROM ft.bench WHERE EXISTS (SELECT 1 FROM ft.bench b WHERE b.key = ft.bench.key);"]
+      expectedExitCode: 0
+
+  - name: window-function
+    exec:
+      command: ["psql", "-tAc", "SELECT id, key, row_number() OVER (ORDER BY id) FROM ft.bench LIMIT 5;"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Transactions (adapted from asserts_test.go patterns)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: transaction-commit
+    exec:
+      command: ["psql", "-tAc", "BEGIN; INSERT INTO ft.bench (key, value) VALUES ('tx-test', 'committed'); COMMIT; SELECT count(*) FROM ft.bench WHERE key='tx-test';"]
+      expectedExitCode: 0
+
+  - name: transaction-rollback
+    exec:
+      command: ["psql", "-tAc", "BEGIN; INSERT INTO ft.bench (key, value) VALUES ('tx-rollback', 'gone'); ROLLBACK; SELECT count(*) FROM ft.bench WHERE key='tx-rollback';"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Extensions (adapted from cluster_major_upgrade_test.go)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: check-pg-stat-statements
+    exec:
+      command: ["psql", "-tAc", "SELECT extname FROM pg_extension WHERE extname = 'pg_stat_statements';"]
+      expectedExitCode: 0
+
+  - name: query-stat-statements
+    exec:
+      command: ["psql", "-tAc", "SELECT count(*) FROM pg_stat_statements;"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Replication & WAL queries (adapted from failover_test.go)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: check-wal-lsn
+    exec:
+      command: ["psql", "-tAc", "SELECT pg_catalog.pg_current_wal_lsn();"]
+      expectedExitCode: 0
+
+  - name: check-connections
+    exec:
+      command: ["psql", "-tAc", "SELECT count(*) FROM pg_stat_activity;"]
+      expectedExitCode: 0
+
+  - name: tps-insert
+    exec:
+      command: ["psql", "-tAc", "INSERT INTO tps.tl (source) VALUES ('bobctl-benign');"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # pgbench (adapted from plugin/pgbench — the upstream benchmarking tool)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: pgbench-init
+    exec:
+      command: ["pgbench", "-i", "-s", "1"]
+      expectedExitCode: 0
+
+  - name: pgbench-run-10s
+    exec:
+      command: ["pgbench", "-T", "10", "-c", "2", "-j", "1"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Maintenance queries (VACUUM, EXPLAIN, CHECKPOINT)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: vacuum-analyze
+    exec:
+      command: ["psql", "-tAc", "VACUUM ANALYZE ft.bench;"]
+      expectedExitCode: 0
+
+  - name: explain-analyze
+    exec:
+      command: ["psql", "-tAc", "EXPLAIN ANALYZE SELECT * FROM ft.bench WHERE key = 'key-50';"]
+      expectedExitCode: 0
+
+  - name: create-index
+    exec:
+      command: ["psql", "-tAc", "CREATE INDEX IF NOT EXISTS idx_bench_key ON ft.bench (key);"]
+      expectedExitCode: 0
+
+  - name: explain-with-index
+    exec:
+      command: ["psql", "-tAc", "EXPLAIN ANALYZE SELECT * FROM ft.bench WHERE key = 'key-50';"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Cleanup
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: cleanup-schemas
+    exec:
+      command: ["psql", "-tAc", "DROP SCHEMA IF EXISTS ft CASCADE; DROP SCHEMA IF EXISTS tps CASCADE;"]
+      expectedExitCode: 0

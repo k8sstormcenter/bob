@@ -108,6 +108,25 @@ deploy-elk:
 	@echo "ELK stack ready."
 	kubectl get pods -n elk
 
+.PHONY: deploy-postgres
+deploy-postgres:
+	@echo "=== Deploying postgres (CloudNativePG) ==="
+	helm repo add cnpg https://cloudnative-pg.github.io/charts 2>/dev/null || true
+	helm upgrade --install cnpg cnpg/cloudnative-pg \
+		-n cnpg-system --create-namespace --wait --timeout 5m
+	kubectl apply -f postgres/cluster.yaml
+	@echo "Waiting for CNPG cluster to be ready..."
+	@TIMEOUT=300; ELAPSED=0; \
+	while [ $$ELAPSED -lt $$TIMEOUT ]; do \
+		PHASE=$$(kubectl get cluster pg -n postgres -o jsonpath='{.status.phase}' 2>/dev/null || echo ""); \
+		echo "  Cluster phase: $$PHASE ($$ELAPSED/$${TIMEOUT}s)"; \
+		if [ "$$PHASE" = "Cluster in healthy state" ]; then break; fi; \
+		sleep 10; ELAPSED=$$((ELAPSED + 10)); \
+	done
+	@echo "Waiting for pg-client pod..."
+	-kubectl wait --for=condition=ready pod -l app=pg-client -n postgres --timeout=120s
+	kubectl get pods -n postgres
+
 # ── Legacy targets (kept for backward compat) ───────────────────────────────
 
 .PHONY: helm-install-no-bob
