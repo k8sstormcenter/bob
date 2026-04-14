@@ -398,11 +398,3 @@ func writeAppArmorProfile(filename string, config *TemplateConfig, profile *Appl
 	return fmt.Errorf("AppArmor output not implemented")
 }
 
-func parseSeccompProfile(filename string) (*ApplicationProfile, error) {
-	// TODO: Implement Seccomp parsing and mapping to ApplicationProfile
-	return nil, fmt.Errorf("Seccomp parsing not implemented")
-}
-func writeSeccompProfile(filename string, config *TemplateConfig, profile *ApplicationProfile) error {
-	// TODO: Implement serialization to Seccomp format
-	return fmt.Errorf("Seccomp output not implemented")
-}
