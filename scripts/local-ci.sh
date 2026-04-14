@@ -67,8 +67,16 @@ case "$APP" in
     APP_PORT=9200
     APP_PROFILE_MATCH="el-es"
     ;;
+  postgres)
+    APP_NS=postgres
+    APP_FUNC_TESTS=example/postgres-functional-tests.yaml
+    APP_ATTACKS=example/postgres-attacks.yaml
+    APP_SERVICE=pg-rw
+    APP_PORT=5432
+    APP_PROFILE_MATCH="pg-"
+    ;;
   *)
-    die "Unknown app: $APP (use webapp, redis, misp, or elk)"
+    die "Unknown app: $APP (use webapp, redis, misp, elk, or postgres)"
     ;;
 esac
 
@@ -380,9 +388,10 @@ for a in json.load(sys.stdin):
 # ── validate artifact isolation ───────────────────────────────────────────────
 log "=== Artifact isolation check ==="
 FOREIGN_FILES=""
+ISOLATION_MATCH="${APP_PROFILE_MATCH:-$APP}"
 for f in results/*-iteration*.yaml; do
   [[ -f "$f" ]] || continue
-  if ! echo "$f" | grep -q "$APP"; then
+  if ! echo "$f" | grep -qi "$ISOLATION_MATCH"; then
     FOREIGN_FILES="$FOREIGN_FILES $f"
   fi
 done

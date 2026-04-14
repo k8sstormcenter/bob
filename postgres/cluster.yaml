@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgres
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg
+  namespace: postgres
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.5
+  enableSuperuserAccess: true
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+      postInitApplicationSQL:
+        - |
+          CREATE TABLE IF NOT EXISTS bobtest (
+            id SERIAL PRIMARY KEY,
+            key TEXT NOT NULL,
+            value TEXT,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+        - INSERT INTO bobtest (key, value) VALUES ('init', 'baseline');
+  storage:
+    size: 2Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  postgresql:
+    parameters:
+      shared_buffers: "64MB"
+      log_statement: "all"
+      log_connections: "true"
+      log_disconnections: "true"
+---
+# Client pod for network-based functional tests and attacks.
+# Uses the same postgres image (has psql + pgbench).
+# Connects to pg-rw:5432 via PGHOST env var — all traffic goes over
+# the cluster network, matching real application access patterns.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pg-client
+  namespace: postgres
+  labels:
+    app: pg-client
+    app.kubernetes.io/name: pg-client
+spec:
+  containers:
+    - name: pg-client
+      image: ghcr.io/cloudnative-pg/postgresql:17.5
+      command: ["sleep", "infinity"]
+      env:
+        - name: PGHOST
+          value: "pg-rw"
+        - name: PGPORT
+          value: "5432"
+        - name: PGDATABASE
+          value: "app"
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: pg-app
+              key: username
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pg-app
+              key: password
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+  restartPolicy: Never

