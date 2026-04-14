@@ -335,12 +335,17 @@ if tested:
   BEST_FILE="results/${PROFILE}-iteration${BEST_ITER}.yaml"
   if [[ -n "$BEST_ITER" ]] && [[ -f "$BEST_FILE" ]]; then
     log "Best iteration: $BEST_ITER"
-    # Strip kubescape annotations (no pyyaml dependency)
-    grep -v '^\s*kubescape\.io/' "$BEST_FILE" \
-      | grep -v '^\s*spdx\.softwarecomposition\.kubescape\.io/' \
-      > results/best-profile.yaml \
-      || cp "$BEST_FILE" results/best-profile.yaml
-    log "Best profile: results/best-profile.yaml"
+    # Produce a clean, kubectl-applyable ApplicationProfile.
+    # See scripts/clean-profile.py for the full filter logic.
+    if python3 "$SCRIPT_DIR/clean-profile.py" "$BEST_FILE" results/best-profile.yaml 2>/dev/null; then
+      log "Best profile: results/best-profile.yaml"
+    else
+      log "WARNING: clean-profile.py failed, falling back to grep"
+      grep -v '^\s*kubescape\.io/' "$BEST_FILE" \
+        | grep -v '^\s*spdx\.softwarecomposition\.kubescape\.io/' \
+        > results/best-profile.yaml \
+        || cp "$BEST_FILE" results/best-profile.yaml
+    fi
   else
     log "WARNING: Could not find best iteration file: $BEST_FILE"
   fi
