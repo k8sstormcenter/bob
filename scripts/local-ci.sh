@@ -127,8 +127,8 @@ if ! $TUNE_ONLY; then
   for i in $(seq 1 8); do
     bin/bobctl learn \
       --functional-tests "$APP_FUNC_TESTS" \
-      -n "$APP_NS" --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
-    sleep 10
+      -n "$APP_NS" --timeout 30s --interval 10s -v 2>&1 | tail -5 || true
+    sleep 5
   done
 
   # Poll for completed, non-user-generated profile

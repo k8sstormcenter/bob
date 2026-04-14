@@ -170,12 +170,14 @@ jobs:
           MATCH="${{ matrix.profile_match }}"
           [ -z "$MATCH" ] && MATCH="${{ matrix.app }}"
 
-          # Run functional tests to exercise the app while node-agent learns
+          # Run functional tests to exercise the app while node-agent learns.
+          # Each invocation runs for up to 30s (2 ticks at 15s interval), exercising
+          # the app on each tick. 8 invocations x 30s = 4 min of active test traffic.
           for i in $(seq 1 8); do
             bin/bobctl learn \
               --functional-tests ${{ matrix.functional_tests }} \
-              -n ${{ matrix.app_namespace }} --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
-            sleep 10
+              -n ${{ matrix.app_namespace }} --timeout 30s --interval 10s -v 2>&1 | tail -5 || true
+            sleep 5
           done
 
           # Poll for completed, non-user-generated profile
