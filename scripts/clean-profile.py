@@ -43,8 +43,13 @@ def clean(p):
         if not m["annotations"]:
             m.pop("annotations", None)
 
-    if isinstance(m.get("labels"), dict) and not m["labels"]:
-        m.pop("labels", None)
+    if isinstance(m.get("labels"), dict):
+        m["labels"] = {
+            k: v for k, v in m["labels"].items()
+            if not any(k.startswith(pref) for pref in KUBESCAPE_ANNOTATION_PREFIXES)
+        }
+        if not m["labels"]:
+            m.pop("labels", None)
 
     p.pop("status", None)
 
