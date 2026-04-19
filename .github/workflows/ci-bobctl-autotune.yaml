@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 100-auto-tune-for-postgres
+      - feat/seccomp
     paths:
       - 'pkg'
       - 'pkg/**'
@@ -170,12 +170,14 @@ jobs:
           MATCH="${{ matrix.profile_match }}"
           [ -z "$MATCH" ] && MATCH="${{ matrix.app }}"
 
-          # Run functional tests to exercise the app while node-agent learns
+          # Run functional tests to exercise the app while node-agent learns.
+          # Each invocation runs for up to 30s (2 ticks at 15s interval), exercising
+          # the app on each tick. 8 invocations x 30s = 4 min of active test traffic.
           for i in $(seq 1 8); do
             bin/bobctl learn \
               --functional-tests ${{ matrix.functional_tests }} \
-              -n ${{ matrix.app_namespace }} --timeout 15s --interval 15s -v 2>&1 | tail -5 || true
-            sleep 10
+              -n ${{ matrix.app_namespace }} --timeout 30s --interval 10s -v 2>&1 | tail -5 || true
+            sleep 5
           done
 
           # Poll for completed, non-user-generated profile
@@ -387,11 +389,15 @@ jobs:
             BEST_FILE="results/${{ steps.profile.outputs.name }}-iteration${BEST_ITER}.yaml"
             if [ -n "$BEST_ITER" ] && [ -f "$BEST_FILE" ]; then
               echo "Best iteration: $BEST_ITER (from metrics.json)"
-              # Strip kubescape annotations from the exported profile (no pyyaml needed)
-              grep -v '^\s*kubescape\.io/' "$BEST_FILE" \
-                | grep -v '^\s*spdx\.softwarecomposition\.kubescape\.io/' \
-                > results/best-profile.yaml \
-                || cp "$BEST_FILE" results/best-profile.yaml
+              # Produce a clean, kubectl-applyable ApplicationProfile.
+              # See scripts/clean-profile.py for the full filter logic.
+              if ! python3 scripts/clean-profile.py "$BEST_FILE" results/best-profile.yaml; then
+                echo "WARNING: clean-profile.py failed, falling back to grep"
+                grep -v '^\s*kubescape\.io/' "$BEST_FILE" \
+                  | grep -v '^\s*spdx\.softwarecomposition\.kubescape\.io/' \
+                  > results/best-profile.yaml \
+                  || cp "$BEST_FILE" results/best-profile.yaml
+              fi
               echo "Best profile: results/best-profile.yaml ($(wc -l < results/best-profile.yaml) lines)"
             else
               echo "Could not find best iteration file: $BEST_FILE"
