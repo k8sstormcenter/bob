@@ -15,6 +15,11 @@ on:
       - '.github/workflows/**'
       - 'Makefile'
   workflow_dispatch:
+    inputs:
+      run_stress:
+        description: "Run the Redis load-stress suite (60k RESP ops, off by default)"
+        type: boolean
+        default: false
   repository_dispatch:
     types: [node-agent-build-complete]
 
@@ -377,6 +382,35 @@ jobs:
           kubectl get applicationprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{range .spec.containers[*]}{.name}={.endpoints}{" "}{end}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
 
           sleep 10
+
+      # ---------- Optional: Redis load-stress for Pixie traffic ----------
+      # Off by default. Enabled only when workflow_dispatch is triggered with
+      # run_stress=true. Emits ~60k RESP commands over a few TCP connections
+      # so on-wire protocol tracers (Pixie and similar) have something real
+      # to observe. Not part of the tune/verify flow — purely a generator.
+      - name: "Run Redis load-stress suite (Pixie traffic)"
+        if: matrix.protocol == 'redis' && github.event_name == 'workflow_dispatch' && inputs.run_stress
+        run: |
+          mkdir -p results
+          STRESS_START=$(date +%s)
+          bin/bobctl test \
+            --functional-tests example/redis-load-stress.yaml \
+            -n redis 2>&1 | tee results/stress-results.txt
+          STRESS_ELAPSED=$(( $(date +%s) - STRESS_START ))
+          echo ""
+          echo "=== Stress suite wall-clock: ${STRESS_ELAPSED}s ==="
+          echo "=== Redis commandstats after stress ==="
+          kubectl -n redis exec \
+            $(kubectl -n redis get pod -l app.kubernetes.io/name=redis -o jsonpath='{.items[0].metadata.name}') \
+            -- redis-cli INFO commandstats 2>&1 | head -40 | tee -a results/stress-results.txt
+          echo "=== Redis stats ==="
+          kubectl -n redis exec \
+            $(kubectl -n redis get pod -l app.kubernetes.io/name=redis -o jsonpath='{.items[0].metadata.name}') \
+            -- redis-cli INFO stats 2>&1 | grep -E "total_commands_processed|total_connections_received|instantaneous_ops_per_sec" \
+            | tee -a results/stress-results.txt
+          # Gate: suite must pass all 15 entries
+          grep -qE "^Results: 15 passed, 0 failed, 0 errors" results/stress-results.txt \
+            || { echo "STRESS SUITE FAILED"; exit 1; }
 
       # ---------- Verification ----------
       - name: Export best tuned ApplicationProfile
