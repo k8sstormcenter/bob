@@ -99,10 +99,20 @@ deploy-elk:
 		-n elastic-system --create-namespace --wait --timeout 10m
 	kubectl create namespace elk 2>/dev/null || true
 	kubectl apply -f elk/elastic-components.yaml
-	@echo "Waiting for Elasticsearch..."
-	-kubectl wait --for=condition=ready pod -l elasticsearch.k8s.elastic.co/cluster-name=el \
-		-n elk --timeout=600s
-	@echo "Waiting for Kibana..."
+	@echo "Waiting for Elasticsearch to reach phase=Ready (single-node clusters stay health=yellow because replicas are unassigned — yellow/green are both operational)..."
+	kubectl wait --for=jsonpath='{.status.phase}'=Ready \
+		elasticsearch/el -n elk --timeout=600s
+	@echo "Waiting for ES pod Ready (probe now hits :9200/_cluster/health)..."
+	kubectl wait --for=condition=ready pod \
+		-l elasticsearch.k8s.elastic.co/cluster-name=el -n elk --timeout=120s
+	@echo "Verifying el-es-http service has endpoints..."
+	@for i in $$(seq 1 30); do \
+		EPS=$$(kubectl get endpoints el-es-http -n elk -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null); \
+		if [ -n "$$EPS" ]; then echo "  el-es-http endpoints: $$EPS"; break; fi; \
+		echo "  waiting for endpoints ($$i/30)..."; sleep 2; \
+	done; \
+	if [ -z "$$EPS" ]; then echo "FAIL: el-es-http has no endpoints"; exit 1; fi
+	@echo "Waiting for Kibana (best-effort, 300s)..."
 	-kubectl wait --for=condition=ready pod -l kibana.k8s.elastic.co/name=kb \
 		-n elk --timeout=300s
 	@echo "ELK stack ready."
