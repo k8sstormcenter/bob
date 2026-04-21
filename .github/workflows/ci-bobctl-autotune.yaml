@@ -186,8 +186,8 @@ jobs:
           PROFILE=""
           while [ $ELAPSED -lt $TIMEOUT ]; do
             ALL=$(kubectl get applicationprofiles -n ${{ matrix.app_namespace }} \
-              -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-              2>/dev/null | grep -v "^ug-" || true)
+              -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/completion=="complete")]}{.metadata.name}{"\n"}{end}' \
+              2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
             # Prefer profile matching the app/service name
             PROFILE=$(echo "$ALL" | grep -i "$MATCH" | grep -v "client" | head -1)
             [ -z "$PROFILE" ] && PROFILE=$(echo "$ALL" | grep -i "$MATCH" | head -1)

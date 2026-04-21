@@ -241,8 +241,8 @@ kubescape:
 	-kubectl apply  -f kubescape/default-rules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
-	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
-	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
+	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
+	-kubectl rollout status -n honey ds node-agent --timeout=180s
 
 .PHONY: alertmanager
 alertmanager:
@@ -252,7 +252,7 @@ alertmanager:
 	@echo "Reconfiguring node-agent to export alerts to alertmanager..."
 	$(HELM) upgrade kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --values kubescape/values.yaml --set-json 'nodeAgent.config.alertManagerExporterUrls=["alertmanager.honey.svc.cluster.local:9093"]'
 	kubectl rollout restart -n honey ds node-agent
-	kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=120s
+	kubectl rollout status -n honey ds node-agent --timeout=180s
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
 .PHONY: fwd-autotune
@@ -272,8 +272,8 @@ kubescape-vendor:
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
-	-kubectl wait --for=condition=ready pod -l app=kubevuln  -n honey --timeout 120s
-	-kubectl wait --for=condition=ready pod -l app=node-agent  -n honey --timeout 120s
+	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
+	-kubectl rollout status -n honey ds node-agent --timeout=180s
 
 
 

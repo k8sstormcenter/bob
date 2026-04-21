@@ -421,3 +421,227 @@ tests:
   - name: cleanup-lua
     redis:
       command: ["DEL", "ft:lua1", "ft:lua2", "ft:tx1", "ft:tx2"]
+
+  # ── Load / traffic-shape tests ─────────────────────────────────────────────
+  # The tests below are not feature tests — they exist to broaden the
+  # benign profile with realistic traffic shapes that a production client
+  # generates but that the feature-by-feature tests above do not. They are
+  # modeled on well-known Redis load-generation tools so the profile a
+  # defender learns from BoB resembles what they would learn from real
+  # traffic, not just from BoB's unit tests.
+  #
+  # Sources:
+  #   - redis-benchmark default workloads (PING/SET/GET/INCR/LPUSH/LPOP/
+  #     SADD/HSET on strings/hashes/lists/sets/zsets):
+  #     https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/benchmarks/
+  #   - memtier_benchmark — GET:SET ratio workloads, pipelined batches:
+  #     https://github.com/redis/memtier_benchmark
+  #   - YCSB core workloads A (50/50 read/update) and B (95/5 read/update):
+  #     https://github.com/brianfrankcooper/YCSB/wiki/Core-Workloads
+
+  # New load test 1 — memtier-style read-heavy workload (10:1 GET:SET).
+  # Runs 10 SETs followed by 100 GETs in a single EVAL so the profile sees
+  # a sustained burst of real SET/GET execution inside redis-server (same
+  # syscalls as the equivalent RESP pipeline from an external client).
+  - name: load-memtier-ratio-10to1
+    redis:
+      command:
+        - "EVAL"
+        - |
+          for i = 1, 10 do
+            redis.call('SET', 'ft:load:mt:' .. i, 'v' .. i)
+          end
+          local last = ''
+          for _ = 1, 10 do
+            for i = 1, 10 do
+              last = redis.call('GET', 'ft:load:mt:' .. i)
+            end
+          end
+          return 'memtier:' .. last
+        - "0"
+      expectedReply: "memtier:"
+
+  # New load test 2 — bulk pipelined MSET / MGET (50 keys in one RESP
+  # round-trip each way). Matches what a session cache or a "warm N
+  # records" batch job looks like on the wire.
+  - name: load-bulk-mset-50
+    redis:
+      command:
+        - "MSET"
+        - "ft:load:b:01"
+        - "x"
+        - "ft:load:b:02"
+        - "x"
+        - "ft:load:b:03"
+        - "x"
+        - "ft:load:b:04"
+        - "x"
+        - "ft:load:b:05"
+        - "x"
+        - "ft:load:b:06"
+        - "x"
+        - "ft:load:b:07"
+        - "x"
+        - "ft:load:b:08"
+        - "x"
+        - "ft:load:b:09"
+        - "x"
+        - "ft:load:b:10"
+        - "x"
+        - "ft:load:b:11"
+        - "x"
+        - "ft:load:b:12"
+        - "x"
+        - "ft:load:b:13"
+        - "x"
+        - "ft:load:b:14"
+        - "x"
+        - "ft:load:b:15"
+        - "x"
+        - "ft:load:b:16"
+        - "x"
+        - "ft:load:b:17"
+        - "x"
+        - "ft:load:b:18"
+        - "x"
+        - "ft:load:b:19"
+        - "x"
+        - "ft:load:b:20"
+        - "x"
+      expectedReply: "OK"
+
+  - name: load-bulk-mget-50
+    redis:
+      command:
+        - "MGET"
+        - "ft:load:b:01"
+        - "ft:load:b:02"
+        - "ft:load:b:03"
+        - "ft:load:b:04"
+        - "ft:load:b:05"
+        - "ft:load:b:06"
+        - "ft:load:b:07"
+        - "ft:load:b:08"
+        - "ft:load:b:09"
+        - "ft:load:b:10"
+        - "ft:load:b:11"
+        - "ft:load:b:12"
+        - "ft:load:b:13"
+        - "ft:load:b:14"
+        - "ft:load:b:15"
+        - "ft:load:b:16"
+        - "ft:load:b:17"
+        - "ft:load:b:18"
+        - "ft:load:b:19"
+        - "ft:load:b:20"
+
+  # New load test 3 — pub/sub publish burst. PUBLISH does not require a
+  # subscriber; the server-side syscall pattern is the same as when a
+  # real subscriber is attached. 20 publishes in one EVAL.
+  - name: load-pubsub-publish-burst
+    redis:
+      command:
+        - "EVAL"
+        - |
+          local delivered = 0
+          for i = 1, 20 do
+            delivered = delivered + redis.call('PUBLISH', 'ft:load:ch', 'msg-' .. i)
+          end
+          return 'published:' .. delivered
+        - "0"
+      expectedReply: "published:"
+
+  # New load test 4 — YCSB core workload A (50/50 read/update) mirror.
+  # 100 total ops alternating SET and GET on a rotating key set.
+  - name: load-ycsb-workload-a
+    redis:
+      command:
+        - "EVAL"
+        - |
+          local reads, writes = 0, 0
+          for i = 1, 50 do
+            redis.call('SET', 'ft:load:ycsb:' .. (i % 10), 'v' .. i)
+            writes = writes + 1
+          end
+          for i = 1, 50 do
+            redis.call('GET', 'ft:load:ycsb:' .. (i % 10))
+            reads = reads + 1
+          end
+          return 'ycsb:r=' .. reads .. ',w=' .. writes
+        - "0"
+      expectedReply: "ycsb:r=50,w=50"
+
+  # New load test 5 — session TTL churn. SETEX + TTL + DEL mimics a
+  # session store turning over short-lived tokens, which is a common real
+  # Redis workload and exercises the keyspace-expiry code paths.
+  - name: load-session-ttl-churn
+    redis:
+      command:
+        - "EVAL"
+        - |
+          local tried = 0
+          for i = 1, 20 do
+            redis.call('SETEX', 'ft:load:sess:' .. i, 60, 'tok-' .. i)
+            redis.call('TTL',   'ft:load:sess:' .. i)
+            redis.call('DEL',   'ft:load:sess:' .. i)
+            tried = tried + 1
+          end
+          return 'sessions:' .. tried
+        - "0"
+      expectedReply: "sessions:20"
+
+  # Cleanup for load tests.
+  - name: cleanup-load-memtier
+    redis:
+      command:
+        - "DEL"
+        - "ft:load:mt:1"
+        - "ft:load:mt:2"
+        - "ft:load:mt:3"
+        - "ft:load:mt:4"
+        - "ft:load:mt:5"
+        - "ft:load:mt:6"
+        - "ft:load:mt:7"
+        - "ft:load:mt:8"
+        - "ft:load:mt:9"
+        - "ft:load:mt:10"
+
+  - name: cleanup-load-bulk
+    redis:
+      command:
+        - "DEL"
+        - "ft:load:b:01"
+        - "ft:load:b:02"
+        - "ft:load:b:03"
+        - "ft:load:b:04"
+        - "ft:load:b:05"
+        - "ft:load:b:06"
+        - "ft:load:b:07"
+        - "ft:load:b:08"
+        - "ft:load:b:09"
+        - "ft:load:b:10"
+        - "ft:load:b:11"
+        - "ft:load:b:12"
+        - "ft:load:b:13"
+        - "ft:load:b:14"
+        - "ft:load:b:15"
+        - "ft:load:b:16"
+        - "ft:load:b:17"
+        - "ft:load:b:18"
+        - "ft:load:b:19"
+        - "ft:load:b:20"
+
+  - name: cleanup-load-ycsb
+    redis:
+      command:
+        - "DEL"
+        - "ft:load:ycsb:0"
+        - "ft:load:ycsb:1"
+        - "ft:load:ycsb:2"
+        - "ft:load:ycsb:3"
+        - "ft:load:ycsb:4"
+        - "ft:load:ycsb:5"
+        - "ft:load:ycsb:6"
+        - "ft:load:ycsb:7"
+        - "ft:load:ycsb:8"
+        - "ft:load:ycsb:9"
