@@ -1,5 +1,14 @@
 name: CI - bobctl build
 
+# Build on every push to main (for downstream CI that needs a bobctl binary)
+# and on workflow_dispatch. Release ONLY on annotated v-prefixed tags (e.g.
+# v0.0.1, v0.1.0-rc1). This avoids the rolling "latest" release which
+# collided with GitHub's immutable-release attestations once the tag had
+# been used — see .github/workflows/release-bobctl.yaml history for why.
+#
+# To cut a release:
+#   git tag -a v0.0.X -m "bobctl v0.0.X"
+#   git push origin v0.0.X
 on:
   push:
     branches:
@@ -59,13 +68,16 @@ jobs:
       - name: Determine version
         id: version
         run: |
+          # On tag pushes, use the tag as the semver (strip leading v).
+          # On branch pushes / workflow_dispatch, stamp the binary with a
+          # dev pre-release string that includes the short SHA. These
+          # binaries are uploaded as workflow artifacts only — never
+          # published as a GitHub Release.
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           else
             SHORT_SHA=$(git rev-parse --short HEAD)
-            echo "version=0.1.0-dev+${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            echo "version=0.0.0-dev+${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build bobctl
@@ -97,6 +109,10 @@ jobs:
   release:
     name: Publish release
     needs: build
+    # Release job only runs on semver tag pushes (v0.0.1, v0.1.0-rc1, ...).
+    # For branch pushes the build job still produces artifacts — download
+    # them from the workflow run directly instead of cutting a release.
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -117,23 +133,15 @@ jobs:
       - name: Determine release tag
         id: tag
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-            echo "title=bobctl ${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          # Pre-release when the tag has a suffix: -rc1, -alpha, -dev, etc.
+          if [[ "$TAG" == *-* ]]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
-            echo "title=bobctl latest ($(date -u +%Y-%m-%d))" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Delete existing latest release
-        if: steps.tag.outputs.tag == 'latest'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete latest --repo "${{ github.repository }}" --yes 2>/dev/null || true
-          git push --delete origin latest 2>/dev/null || true
+          echo "title=bobctl $TAG" >> "$GITHUB_OUTPUT"
 
       - name: Create release
         env:
@@ -143,28 +151,6 @@ jobs:
             --repo "${{ github.repository }}" \
             --title "${{ steps.tag.outputs.title }}" \
             --prerelease=${{ steps.tag.outputs.prerelease }} \
-            --notes "$(cat <<'EOF'
-          ## Download
-
-          | Platform | Architecture | Binary |
-          |----------|-------------|--------|
-          | Linux | amd64 | `bobctl-linux-amd64` |
-          | Linux | arm64 | `bobctl-linux-arm64` |
-
-          ### Quick install
-
-          ```bash
-          # Linux amd64
-          curl -fsSL -o bobctl \
-            https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/bobctl-linux-amd64
-          chmod +x bobctl
-
-          # Linux arm64
-          curl -fsSL -o bobctl \
-            https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/bobctl-linux-arm64
-          chmod +x bobctl
-          ```
-          EOF
-          )" \
+            --generate-notes \
             --target "${{ github.sha }}" \
             release/bobctl-*
