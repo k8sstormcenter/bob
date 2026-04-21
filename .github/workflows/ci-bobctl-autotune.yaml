@@ -532,6 +532,34 @@ jobs:
             -n ${{ matrix.app_namespace }} \
             --format markdown | tee results/attack-results.md
 
+      # Guard against the "false-green" failure mode where the target service
+      # is reachable in name (helm install succeeded) but never actually
+      # serves requests — the symptom was ELK on ECK where every test/attack
+      # returned 503, the tune step silenced failures via continue-on-error,
+      # and CI reported success despite zero real traffic.
+      #
+      # Rule: for HTTP-protocol targets, at least one attack must return an
+      # HTTP response code > 0 (i.e. bobctl actually got a reply). Redis
+      # (RESP) and exec-only suites are exempt.
+      - name: "Guard against false-green (HTTP service unreachable)"
+        if: always() && (matrix.protocol == 'http' || matrix.protocol == 'https')
+        run: |
+          if [ ! -f results/attack-results.md ]; then
+            echo "FAIL: attack-results.md missing — bobctl attack did not run"
+            exit 1
+          fi
+          # The attack-results.md markdown table has: | type | variant | code | success | error |
+          # Extract the Code column (3rd |-separated field after the two header rows).
+          # "0" means bobctl never got a reply (network error / no endpoints).
+          NONZERO=$(awk -F'|' '/^\| *[a-z]/ && !/---/ && !/^\| Type \|/ {gsub(/ /,"",$4); if ($4 != "0" && $4 != "") n++} END {print n+0}' results/attack-results.md)
+          TOTAL=$(awk -F'|' '/^\| *[a-z]/ && !/---/ && !/^\| Type \|/ {n++} END {print n+0}' results/attack-results.md)
+          echo "Attacks: $NONZERO of $TOTAL returned a non-zero HTTP code"
+          if [ "$NONZERO" = "0" ] && [ "$TOTAL" -gt 0 ]; then
+            echo "FAIL: every attack returned code 0 — target service was unreachable (false-green)"
+            cat results/attack-results.md
+            exit 1
+          fi
+
       - name: Generate detection report
         if: always()
         run: |
