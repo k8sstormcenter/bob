@@ -15,6 +15,28 @@ spec:
       config:
         node.store.allow_mmap: false
         xpack.security.enabled: false
+      # ECK 3.3.0 ships a readiness sidecar that nc-probes 127.0.0.1:8080.
+      # In some environments (arm64 / orbstack / certain kernels) that port
+      # is never bound, so the pod stays 0/1 forever — even though the
+      # cluster itself reports status.health=green and serves requests on
+      # :9200. Because the pod is not Ready, Kubernetes drops it from the
+      # el-es-http service endpoints, and bobctl sees HTTP 503 on every
+      # functional test and attack. Override the probe to hit the real ES
+      # HTTP endpoint (TLS + xpack.security disabled above = plain HTTP)
+      # so the pod's Ready condition reflects actual cluster health.
+      podTemplate:
+        spec:
+          containers:
+            - name: elasticsearch
+              readinessProbe:
+                httpGet:
+                  path: /_cluster/health?local=true
+                  port: 9200
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 5
+                timeoutSeconds: 5
+                failureThreshold: 3
       volumeClaimTemplates:
         - metadata:
             name: elasticsearch-data
