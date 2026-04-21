@@ -1,0 +1,130 @@
+# Redis load-stress suite — OFF BY DEFAULT.
+#
+# Purpose: produce massive wire-level RESP traffic for tracing/observability
+# tools (notably Pixie) that parse the Redis protocol on the wire. EVAL-based
+# load tests in example/redis-functional-tests.yaml generate many server-side
+# redis.call() operations but appear as a single EVAL packet to on-wire
+# tracers, so they do not exercise RESP-parsing load.
+#
+# How to run (explicit — not wired into local-ci.sh or the GitHub workflow):
+#   bobctl test --functional-tests example/redis-load-stress.yaml -n redis
+#
+# Behaviour: each test uses the RedisTest `repeat:` field to fire the same
+# RESP command N times over the same TCP connection. With the defaults below
+# this suite emits ~60,000 RESP request/response pairs per run, mirroring the
+# `redis-benchmark -n 60000 -c 1 -q` shape.
+#
+# Bump `repeat` individually for targeted load (e.g. SET-heavy, GET-heavy).
+# The runner caps repeat at 10,000 per entry; for higher totals, add more
+# entries or invoke the suite in a loop.
+#
+# Upstream references:
+#   - redis-benchmark default workload (PING/SET/GET/INCR/LPUSH/LPOP/SADD/HSET):
+#     https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/benchmarks/
+#   - memtier_benchmark default 10:1 GET:SET ratio:
+#     https://github.com/redis/memtier_benchmark
+#   - YCSB core workloads A (50/50) and B (95/5):
+#     https://github.com/brianfrankcooper/YCSB/wiki/Core-Workloads
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: redis-load-stress
+  description: >-
+    High-throughput RESP traffic generator. Off by default. Invoke
+    explicitly with bobctl test --functional-tests example/redis-load-stress.yaml.
+    Produces ~60k RESP request/response pairs across the redis-benchmark
+    default command set (PING/SET/GET/INCR/LPUSH/LPOP/SADD/HSET). Use to
+    load-test Pixie or any other RESP-protocol tracer, not to learn profiles.
+target:
+  service: redis
+  namespace: redis
+  port: 6379
+
+tests:
+  # ── Warm-up: seed keys we'll read many times ─────────────────────────────
+  - name: warmup-set-baseline
+    redis:
+      command: ["SET", "stress:str:0", "baseline-value-for-read-heavy-loops"]
+      expectedReply: "OK"
+
+  - name: warmup-list-baseline
+    redis:
+      command: ["RPUSH", "stress:list:0", "a", "b", "c", "d", "e"]
+
+  - name: warmup-hash-baseline
+    redis:
+      command: ["HSET", "stress:hash:0", "f1", "v1", "f2", "v2", "f3", "v3"]
+
+  - name: warmup-set-member
+    redis:
+      command: ["SADD", "stress:set:0", "alpha", "beta", "gamma", "delta"]
+
+  - name: warmup-counter
+    redis:
+      command: ["SET", "stress:counter:0", "0"]
+      expectedReply: "OK"
+
+  # ── redis-benchmark default shape — 8 commands, heavy load ────────────────
+  # Target: ~60k RESP round-trips total. redis-benchmark default is -n 100000;
+  # we deliberately stay below that to keep a single suite run under ~60s on
+  # modest hardware. Scale by raising repeat values (cap 10000) or invoking
+  # the suite in a loop.
+
+  - name: stress-ping
+    redis:
+      command: ["PING"]
+      expectedReply: "PONG"
+      repeat: 10000
+
+  - name: stress-set
+    redis:
+      command: ["SET", "stress:str:0", "x"]
+      expectedReply: "OK"
+      repeat: 10000
+
+  - name: stress-get
+    redis:
+      command: ["GET", "stress:str:0"]
+      repeat: 10000
+
+  - name: stress-incr
+    redis:
+      command: ["INCR", "stress:counter:0"]
+      repeat: 5000
+
+  - name: stress-lpush
+    redis:
+      command: ["LPUSH", "stress:list:0", "payload"]
+      repeat: 5000
+
+  - name: stress-lpop
+    redis:
+      command: ["LPOP", "stress:list:0"]
+      repeat: 5000
+
+  - name: stress-sadd
+    redis:
+      command: ["SADD", "stress:set:0", "churn-member"]
+      repeat: 5000
+
+  - name: stress-hset
+    redis:
+      command: ["HSET", "stress:hash:0", "churn-field", "churn-value"]
+      repeat: 5000
+
+  # ── memtier-style 10:1 GET:SET bias (extra 5000 GETs) ────────────────────
+  - name: stress-get-memtier-bias
+    redis:
+      command: ["GET", "stress:str:0"]
+      repeat: 5000
+
+  # ── Cleanup ──────────────────────────────────────────────────────────────
+  - name: cleanup-stress-keys
+    redis:
+      command:
+        - "DEL"
+        - "stress:str:0"
+        - "stress:list:0"
+        - "stress:hash:0"
+        - "stress:set:0"
+        - "stress:counter:0"
