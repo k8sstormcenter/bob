@@ -138,8 +138,8 @@ if ! $TUNE_ONLY; then
   PROFILE=""
   while [ $ELAPSED -lt $TIMEOUT ]; do
     ALL_COMPLETED=$(kubectl get applicationprofiles -n "$APP_NS" \
-      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-      2>/dev/null | grep -v "^ug-" || true)
+      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/completion=="complete")]}{.metadata.name}{"\n"}{end}' \
+      2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
@@ -166,8 +166,8 @@ else
     # Discover from cluster — prefer profile whose name contains the app/service name
     log "Discovering completed profiles in $APP_NS..."
     ALL_LEARNED=$(kubectl get applicationprofiles -n "$APP_NS" \
-      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-      2>/dev/null | grep -v "^ug-" || true)
+      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/completion=="complete")]}{.metadata.name}{"\n"}{end}' \
+      2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
     PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$APP" | head -1)
@@ -357,7 +357,6 @@ set +e
 bin/bobctl attack \
   --attack-suite "$APP_ATTACKS" \
   -n "$APP_NS" \
-  --ks-namespace "$KS_NS" \
   --service "$APP_SERVICE" \
   --service-port "$APP_PORT" \
   --format markdown 2>&1 | tee results/attack-results.md
