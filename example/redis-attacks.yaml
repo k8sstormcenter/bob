@@ -30,7 +30,8 @@ attacks:
           end)
         end
         if not io_mod then return 'sandbox_blocked' end
-        local cmd = "perl -e 'my $n=\"bob\\0\";my $fd=syscall(319,$n,0);die if $fd<0;open(my $s,\"<:raw\",\"/bin/cat\");open(my $d,\">&=\",$fd);binmode $d;my $b;while(read($s,$b,8192)){print $d $b}close $s;exec{\"/proc/self/fd/$fd\"}\"cat\",\"/etc/hostname\"'"
+        -- memfd_create: syscall 279 on aarch64, 319 on x86_64. Try aarch64 first.
+        local cmd = "perl -e 'my $n=\"bob\\0\";my $fd=syscall(279,$n,0);if($fd<0){$fd=syscall(319,$n,0);}die if $fd<0;open(my $s,\"<:raw\",\"/bin/cat\");open(my $d,\">&=\",$fd);binmode $d;my $b;while(read($s,$b,8192)){print $d $b}close $s;exec{\"/proc/self/fd/$fd\"}\"cat\",\"/etc/hostname\"'"
         local f = io_mod.popen(cmd)
         if not f then return 'popen_failed' end
         local out = f:read('*a')
