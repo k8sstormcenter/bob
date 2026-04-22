@@ -78,30 +78,45 @@ jobs:
           - misp
           - elk
         include:
-          # Each app needs: functional_tests, attack_suite, app_namespace, protocol.
-          # Optional: profile_match (for apps where profile name != app name).
-          # Deploy logic lives in the Makefile: `make deploy-<app>`
+          # Each app needs: functional_tests, attack_suite, app_namespace,
+          # protocol, score_threshold. Optional: profile_match (for apps
+          # where profile name != app name). Deploy logic lives in the
+          # Makefile: `make deploy-<app>`.
+          #
+          # score_threshold is the max acceptable tuner score (missed+FP).
+          # Parity contract: every app has a gate. Start at 0 for apps that
+          # already converge; widen only with a comment explaining why.
           - app: webapp
             functional_tests: example/webapp-functional-tests.yaml
             attack_suite: example/webapp-attacks.yaml
             app_namespace: webapp
             protocol: http
+            score_threshold: 0
           - app: redis
             functional_tests: example/redis-functional-tests.yaml
             attack_suite: example/redis-attacks.yaml
             app_namespace: redis
             protocol: redis
+            score_threshold: 0
           - app: misp
             functional_tests: example/misp-functional-tests.yaml
             attack_suite: example/misp-attacks.yaml
             app_namespace: misp
             protocol: https
+            # Without this match, "misp" also grep-matches the Helm
+            # sub-chart profiles statefulset-misp-valkey-master and
+            # statefulset-misp-mariadb — the tuner then builds a profile
+            # for valkey while attacks hit the MISP container, and all
+            # profile-dependent detections miss (score 6).
+            profile_match: replicaset-misp
+            score_threshold: 0
           - app: elk
             functional_tests: example/elk-functional-tests.yaml
             attack_suite: example/elk-attacks.yaml
             app_namespace: elk
             protocol: http
             profile_match: el-es
+            score_threshold: 0
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -660,20 +675,26 @@ jobs:
           cp /tmp/tune-output.txt results/ 2>/dev/null || true
 
       - name: Score gate
-        if: always() && matrix.app == 'webapp'
+        if: always()
         run: |
+          APP="${{ matrix.app }}"
+          THRESHOLD="${{ matrix.score_threshold }}"
           if [ ! -f results/metrics.json ]; then
-            echo "FAIL: No metrics.json — tune did not produce output"
+            echo "FAIL ($APP): No metrics.json — tune did not produce output"
             exit 1
           fi
-          BEST_SCORE=$(jq '[to_entries[] | select(.value.phase != "raw-baseline")] | min_by(.value.score) | .value.score' results/metrics.json)
-          echo "Best score: $BEST_SCORE"
-          if [ "$BEST_SCORE" != "0" ]; then
-            echo "FAIL: webapp tune did not achieve perfect score (score=$BEST_SCORE)"
+          BEST_SCORE=$(jq '[to_entries[] | select(.value.phase != "raw-baseline")] | min_by(.value.score) | .value.score // "null"' results/metrics.json)
+          if [ "$BEST_SCORE" = "null" ]; then
+            echo "FAIL ($APP): no scored tune iterations in metrics.json"
+            exit 1
+          fi
+          echo "$APP best score: $BEST_SCORE (threshold: $THRESHOLD)"
+          if [ "$BEST_SCORE" -gt "$THRESHOLD" ]; then
+            echo "FAIL ($APP): tune score $BEST_SCORE exceeds threshold $THRESHOLD"
             jq '[to_entries[] | select(.value.phase != "raw-baseline")] | min_by(.value.score) | .value | {score, missed_detections, false_positives, phase, iteration}' results/metrics.json
             exit 1
           fi
-          echo "PASS: webapp achieved perfect score"
+          echo "PASS ($APP): score $BEST_SCORE within threshold $THRESHOLD"
 
       - name: Validate artifact isolation
         if: always()

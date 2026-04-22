@@ -43,6 +43,7 @@ case "$APP" in
     APP_ATTACKS=example/webapp-attacks.yaml
     APP_SERVICE=webapp-mywebapp
     APP_PORT=8080
+    APP_SCORE_THRESHOLD=0
     ;;
   redis)
     APP_NS=redis
@@ -50,6 +51,7 @@ case "$APP" in
     APP_ATTACKS=example/redis-attacks.yaml
     APP_SERVICE=redis
     APP_PORT=6379
+    APP_SCORE_THRESHOLD=0
     ;;
   misp)
     APP_NS=misp
@@ -58,6 +60,9 @@ case "$APP" in
     APP_SERVICE=misp
     APP_PORT=443
     APP_SCHEME=https
+    # Exclude sub-chart StatefulSets (valkey, mariadb) from profile discovery.
+    APP_PROFILE_MATCH="replicaset-misp"
+    APP_SCORE_THRESHOLD=0
     ;;
   elk)
     APP_NS=elk
@@ -66,6 +71,7 @@ case "$APP" in
     APP_SERVICE=el-es-http
     APP_PORT=9200
     APP_PROFILE_MATCH="el-es"
+    APP_SCORE_THRESHOLD=0
     ;;
   postgres)
     APP_NS=postgres
@@ -74,11 +80,16 @@ case "$APP" in
     APP_SERVICE=pg-rw
     APP_PORT=5432
     APP_PROFILE_MATCH="pg-"
+    APP_SCORE_THRESHOLD=0
     ;;
   *)
     die "Unknown app: $APP (use webapp, redis, misp, elk, or postgres)"
     ;;
 esac
+
+# Allow override for arm64-only drift or exploratory runs without burying the
+# real threshold: SCORE_THRESHOLD=99 ./scripts/local-ci.sh --app redis
+APP_SCORE_THRESHOLD="${SCORE_THRESHOLD:-$APP_SCORE_THRESHOLD}"
 
 APP_SCHEME="${APP_SCHEME:-http}"
 
@@ -362,6 +373,25 @@ bin/bobctl attack \
   --format markdown 2>&1 | tee results/attack-results.md
 set -e
 
+# ── guard against false-green (HTTP/HTTPS service unreachable) ──────────────
+# Mirrors the same-named CI step: fails early if every attack returned code 0
+# (network error / no endpoints), which otherwise lets a broken target pass
+# both the attack step and the downstream score gate.
+if [[ "$APP_SCHEME" == "http" || "$APP_SCHEME" == "https" ]]; then
+  if [[ ! -f results/attack-results.md ]]; then
+    log "FAIL: attack-results.md missing — bobctl attack did not run"
+    exit 1
+  fi
+  NONZERO=$(awk -F'|' '/^\| *[a-z]/ && !/---/ && !/^\| Type \|/ {gsub(/ /,"",$4); if ($4 != "0" && $4 != "") n++} END {print n+0}' results/attack-results.md)
+  TOTAL=$(awk -F'|' '/^\| *[a-z]/ && !/---/ && !/^\| Type \|/ {n++} END {print n+0}' results/attack-results.md)
+  log "Attacks: $NONZERO of $TOTAL returned a non-zero HTTP code"
+  if [[ "$NONZERO" == "0" && "$TOTAL" -gt 0 ]]; then
+    log "FAIL: every attack returned code 0 — target service was unreachable (false-green)"
+    cat results/attack-results.md
+    exit 1
+  fi
+fi
+
 # ── detection report ─────────────────────────────────────────────────────────
 log "=== Detection report ==="
 set +e
@@ -414,6 +444,8 @@ log "=== Results ==="
 ls -la results/ 2>/dev/null || true
 
 # ── score gate ────────────────────────────────────────────────────────────────
+# Parity contract: every app has a threshold and local enforces the same gate
+# CI does. Exit non-zero if exceeded so CI regressions are catchable locally.
 echo
 if [[ -f results/metrics.json ]]; then
   BEST_SCORE=$(python3 -c "
@@ -426,12 +458,19 @@ if tested:
 else:
     print('N/A')
 " 2>/dev/null || echo "N/A")
-  log "Best score: $BEST_SCORE"
-  if [[ "$BEST_SCORE" == "0" ]]; then
+  log "$APP best score: $BEST_SCORE (threshold: $APP_SCORE_THRESHOLD)"
+  if [[ "$BEST_SCORE" == "N/A" ]]; then
+    log "RESULT: No scored tune iterations — treating as failure"
+    exit 1
+  elif (( BEST_SCORE > APP_SCORE_THRESHOLD )); then
+    log "RESULT: FAIL — $APP score $BEST_SCORE exceeds threshold $APP_SCORE_THRESHOLD"
+    exit 1
+  elif (( BEST_SCORE == 0 )); then
     log "RESULT: PERFECT — all attacks detected, zero false positives"
   else
-    log "RESULT: IMPERFECT (best score=$BEST_SCORE) — review results/ for details"
+    log "RESULT: PASS — $APP score $BEST_SCORE within threshold $APP_SCORE_THRESHOLD"
   fi
 else
   log "RESULT: No metrics.json produced — tune may have failed"
+  exit 1
 fi
