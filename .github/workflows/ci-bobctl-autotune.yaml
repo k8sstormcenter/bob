@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - redisdemo
+      - feat/crd
     paths:
       - 'pkg'
       - 'pkg/**'
@@ -37,7 +37,7 @@ jobs:
 
       - name: Clone storage dependency
         run: |
-          git clone --depth 1 --branch feature/collapse-config-crd https://github.com/k8sstormcenter/storage.git ../storage
+          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Verify layout
         run: |
