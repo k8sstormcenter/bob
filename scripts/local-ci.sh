@@ -77,9 +77,9 @@ case "$APP" in
     APP_NS=postgres
     APP_FUNC_TESTS=example/postgres-functional-tests.yaml
     APP_ATTACKS=example/postgres-attacks.yaml
-    APP_SERVICE=pg-rw
+    APP_SERVICE=pg-client
     APP_PORT=5432
-    APP_PROFILE_MATCH="cluster-pg"
+    APP_PROFILE_MATCH="pg-client"
     APP_SCORE_THRESHOLD=0
     ;;
   *)

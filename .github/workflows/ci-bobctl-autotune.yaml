@@ -124,7 +124,7 @@ jobs:
             attack_suite: example/postgres-attacks.yaml
             app_namespace: postgres
             protocol: tcp
-            profile_match: cluster-pg
+            profile_match: pg-client
             score_threshold: 0
     runs-on: ${{ matrix.os }}
 
@@ -714,10 +714,11 @@ jobs:
           for f in results/*-iteration*.yaml; do
             [ -f "$f" ] || continue
             case "${{ matrix.app }}" in
-              webapp) echo "$f" | grep -qv "webapp" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
-              redis)  echo "$f" | grep -qv "redis"  && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
-              elk)    echo "$f" | grep -qv "el-es"   && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
-              *)      echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              webapp)   echo "$f" | grep -qv "webapp"   && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              redis)    echo "$f" | grep -qv "redis"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              elk)      echo "$f" | grep -qv "el-es"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              postgres) echo "$f" | grep -qvE "pg-"     && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              *)        echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
             esac
           done
           if [ -n "$FOREIGN_FILES" ]; then
