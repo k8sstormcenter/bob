@@ -79,7 +79,7 @@ case "$APP" in
     APP_ATTACKS=example/postgres-attacks.yaml
     APP_SERVICE=pg-rw
     APP_PORT=5432
-    APP_PROFILE_MATCH="pg-"
+    APP_PROFILE_MATCH="cluster-pg"
     APP_SCORE_THRESHOLD=0
     ;;
   *)

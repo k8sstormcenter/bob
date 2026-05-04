@@ -11,6 +11,7 @@ on:
       - 'kubescape/**'
       - 'example/**'
       - 'misp/**'
+      - 'postgres/**'
       - 'scripts/**'
       - '.github/workflows/**'
       - 'Makefile'
@@ -77,6 +78,7 @@ jobs:
           - redis
           - misp
           - elk
+          - postgres
         include:
           # Each app needs: functional_tests, attack_suite, app_namespace,
           # protocol, score_threshold. Optional: profile_match (for apps
@@ -116,6 +118,13 @@ jobs:
             app_namespace: elk
             protocol: http
             profile_match: el-es
+            score_threshold: 0
+          - app: postgres
+            functional_tests: example/postgres-functional-tests.yaml
+            attack_suite: example/postgres-attacks.yaml
+            app_namespace: postgres
+            protocol: tcp
+            profile_match: cluster-pg
             score_threshold: 0
     runs-on: ${{ matrix.os }}
 
