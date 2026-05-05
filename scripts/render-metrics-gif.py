@@ -79,7 +79,8 @@ PHASE_PREFIXES = {
     "exec-read-db": "Cred Access", "exec-read-valkey": "Cred Access",
     "lua-credential": "Cred Access", "sql-dump-pg": "Cred Access",
     "sql-read": "Cred Access", "neighbor-sa": "Cred Access",
-    "neighbor-etc": "Cred Access",
+    "neighbor-etc": "Cred Access", "exec-mysql": "Cred Access",
+    "exec-encryption": "Cred Access", "exec-gpg": "Cred Access",
     "cmdinject-proc-environ": "Discovery", "cmdinject-k8s-api": "Discovery",
     "cmdinject-net-recon": "Discovery", "cmdinject-ps-aux": "Discovery",
     "exec-proc-environ": "Discovery", "exec-read-environ": "Discovery",
@@ -97,7 +98,7 @@ PHASE_PREFIXES = {
     "api-bulk-export": "Collection", "api-export-stix": "Collection",
     "api-upload": "Collection", "api-galaxy": "Collection",
     "sql-copy": "Collection", "sql-large": "Collection",
-    "exfil": "Exfil", "reindex-exfil": "Exfil",
+    "exfil": "Exfil", "reindex-exfil": "Exfil", "reindex-remote": "Exfil",
     "cmdinject-c2-beacon": "Exfil", "cmdinject-dns-anomaly": "Exfil",
     "postexploit-dns": "Exfil", "exec-dns-anomaly": "Exfil",
     "lua-dns": "Exfil", "snapshot-repo": "Exfil",
@@ -108,6 +109,31 @@ PHASE_PREFIXES = {
     "ssrf-internal": "Init Access", "sqli": "Init Access",
     "api-sqli": "Init Access",
     "neighbor-drifted": "Def Evasion", "neighbor-devshm": "Execution",
+    # CVE-based attacks
+    "cve-2022-0543": "Init Access", "cve-2022-24735": "Execution",
+    "cve-2022-35951": "Impact", "cve-2023-28856": "Impact",
+    "cve-2023-45145": "Priv Esc", "cve-module": "Persistence",
+    "auth-brute": "Init Access", "lua-os": "Execution", "lua-network": "Discovery",
+    "cve-2021-41773": "Init Access", "cve-2012-1823": "Init Access",
+    "cmdinject-webshell": "Persistence", "cmdinject-reverse": "Execution",
+    "cmdinject-download": "Execution", "cmdinject-php-filter": "Cred Access",
+    "cmdinject-python": "Execution", "cmdinject-perl": "Execution",
+    "cmdinject-k8s-enum": "Discovery", "cmdinject-proc-maps": "Discovery",
+    "cve-2014-3120": "Execution", "cve-2015-1427": "Execution",
+    "cve-2015-5531": "Cred Access", "cve-2021-44228": "Init Access",
+    "cve-2018-17246": "Cred Access", "painless-runtime": "Execution",
+    "es-template": "Execution", "es-watcher": "Persistence",
+    "es-ingest": "Execution",
+    "cve-2019-9193": "Execution", "sql-plpython": "Execution",
+    "sql-plperlu": "Execution", "cve-2018-1058": "Priv Esc",
+    "sql-lo-export": "Persistence", "sql-dblink": "Lat Movement",
+    "sql-alter-system": "Persistence", "sql-pg-read": "Cred Access",
+    "cve-2023-5868": "Discovery", "cve-2023-39417": "Priv Esc",
+    "cve-2020-28043": "Init Access", "cve-2024-29859": "Cred Access",
+    "cve-2022-29529": "Execution", "cve-2022-47928": "Priv Esc",
+    "cve-2023-37307": "Cred Access", "php-deserialization": "Init Access",
+    "api-attribute-enrichment": "Init Access", "cakephp-debug": "Recon",
+    "api-malicious-php": "Persistence",
 }
 
 
@@ -221,8 +247,8 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
         ax_radar.plot(angles, total_vals, "o-", color=C_DIM, linewidth=1, markersize=3, label="Total")
         ax_radar.fill(angles, det_vals, alpha=0.35, color=C_GREEN)
         ax_radar.plot(angles, det_vals, "o-", color=C_GREEN, linewidth=2, markersize=4, label="Detected")
-        ax_radar.legend(fontsize=6, loc="upper right", bbox_to_anchor=(1.35, 1.15),
-                        facecolor=C_PANEL, edgecolor=C_BORDER, labelcolor=C_TEXT)
+        ax_radar.legend(fontsize=6, loc="lower center", bbox_to_anchor=(0.5, -0.18),
+                        facecolor=C_PANEL, edgecolor=C_BORDER, labelcolor=C_TEXT, ncol=2)
         ax_radar.set_ylim(0, max_radar + 1)
         ax_radar.set_rgrids([max_radar // 2 or 1, max_radar], labels=[], color=C_BORDER, alpha=0.3)
     else:
@@ -363,8 +389,8 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
                     fc = C_RED
                     alpha = 0.7
                 elif not a["has_expectations"]:
-                    fc = C_GREY
-                    alpha = 0.4
+                    fc = C_BLUE
+                    alpha = 0.35
                 else:
                     fc = C_YELLOW
                     alpha = 0.6
@@ -378,8 +404,9 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
                 label = a["short"]
                 if len(label) > 10:
                     label = label[:9] + "\u2026"
+                text_color = "#000000" if fc in (C_GREEN, C_YELLOW) else C_TEXT
                 ax_kc.text(x + cell_w / 2, y_base + cell_h * 0.6, label,
-                           fontsize=5.5, color="#000000" if fc in (C_GREEN, C_YELLOW) else C_TEXT,
+                           fontsize=5.5, color=text_color,
                            ha="center", va="center", fontfamily="monospace",
                            fontweight="bold")
 
@@ -397,8 +424,9 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
                     rtxt = " ".join(rules_text_parts[:2])
                     if len(rules_text_parts) > 2:
                         rtxt += f"+{len(rules_text_parts) - 2}"
+                    rule_text_color = "#000000" if fc in (C_GREEN, C_YELLOW) else C_DIM
                     ax_kc.text(x + cell_w / 2, y_base + cell_h * 0.2, rtxt,
-                               fontsize=4, color="#000000" if fc in (C_GREEN, C_YELLOW) else C_DIM,
+                               fontsize=4, color=rule_text_color,
                                ha="center", va="center", fontfamily="monospace")
 
                 # Collect rules for phase summary
@@ -437,7 +465,7 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
         legend_elements = [
             Patch(facecolor=C_GREEN, edgecolor=C_BORDER, alpha=0.7, label="All detected"),
             Patch(facecolor=C_RED, edgecolor=C_BORDER, alpha=0.7, label="Detection missed"),
-            Patch(facecolor=C_GREY, edgecolor=C_BORDER, alpha=0.4, label="No expected detection"),
+            Patch(facecolor=C_BLUE, edgecolor=C_BORDER, alpha=0.35, label="No expected detection"),
         ]
         ax_kc.legend(handles=legend_elements, fontsize=6, loc="lower right",
                       facecolor=C_PANEL, edgecolor=C_BORDER, labelcolor=C_TEXT,

