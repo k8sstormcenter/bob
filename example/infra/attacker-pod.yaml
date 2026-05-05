@@ -1,0 +1,53 @@
+---
+# Generic attacker pod for neighbor-pod attack simulations.
+# Deploy into the target app's namespace before running neighbor attack suites.
+# Uses curlimages/curl (same as bobctl-test-runner) — no custom image needed.
+#
+# Usage:
+#   kubectl apply -f attacker-pod.yaml -n <target-namespace>
+#   bobctl attack --suite <app>-neighbor-attacks.yaml
+#
+# The pod has: curl, wget, nslookup, sh, cat, ls, cp, ln
+# It does NOT have: kubectl, psql, redis-cli (use app-specific client pods for those)
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bob-attacker
+  labels:
+    app: bob-attacker
+    bob.k8sstormcenter.io/role: attacker
+spec:
+  automountServiceAccountToken: true
+  containers:
+    - name: attacker
+      image: curlimages/curl:8.13.0
+      command: ["sleep", "3600"]
+      resources:
+        limits:
+          cpu: "200m"
+          memory: "128Mi"
+        requests:
+          cpu: "50m"
+          memory: "32Mi"
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: false
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 5
+---
+# Headless service so bobctl can resolve the attacker pod via K8s API proxy
+apiVersion: v1
+kind: Service
+metadata:
+  name: bob-attacker
+  labels:
+    app: bob-attacker
+spec:
+  selector:
+    app: bob-attacker
+  clusterIP: None
+  ports:
+    - name: dummy
+      port: 80
+      targetPort: 80

@@ -1,0 +1,101 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: misp-neighbor-attacks
+  description: >-
+    Neighbor pod attack suite for misp namespace. Simulates a compromised
+    pod (bob-attacker) in the same namespace as MISP. Tests lateral
+    movement to MISP web interface, SA token theft, K8s API enumeration.
+target:
+  service: bob-attacker
+  namespace: misp
+  port: 80
+
+attacks:
+  # T1552.001 — Credentials in Files: SA token
+  - name: neighbor-sa-token
+    type: cmdinject
+    exec:
+      command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: attacker
+        command: cat
+
+  # T1552.001 — Credentials in Files: /etc/shadow
+  - name: neighbor-etc-shadow
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/shadow"]
+    expectedDetections:
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: attacker
+        command: cat
+
+  # T1036 — Masquerading: drifted binary
+  - name: neighbor-drifted
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/ls /tmp/drifted_neighbor && /tmp/drifted_neighbor / && rm -f /tmp/drifted_neighbor"]
+    expectedDetections:
+      - ruleID: R1001
+        ruleName: Exec Binary Not In Base Image
+        containerName: attacker
+
+  # T1059.004 — Exec from /dev/shm
+  - name: neighbor-devshm
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/echo /dev/shm/mal_neighbor && chmod +x /dev/shm/mal_neighbor && /dev/shm/mal_neighbor pwned && rm -f /dev/shm/mal_neighbor"]
+    expectedDetections:
+      - ruleID: R1000
+        ruleName: Exec from malicious source
+        containerName: attacker
+
+  # T1046 — Network Service Discovery: DNS recon
+  - name: neighbor-dns-recon
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "nslookup misp.misp.svc.cluster.local 2>&1 || echo dns_done"]
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: Unexpected domain request
+        containerName: attacker
+
+  # T1613 — Container and Resource Discovery: K8s API
+  - name: neighbor-k8s-api
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api/v1/namespaces/misp/pods 2>&1 | head -10"]
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: Unexpected domain request
+        containerName: attacker
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: attacker
+        command: curl
+
+  # T1082 — System Information Discovery: /proc/environ
+  - name: neighbor-proc-environ
+    type: cmdinject
+    exec:
+      command: ["cat", "/proc/1/environ"]
+    expectedDetections:
+      - ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: attacker
+        command: cat
+
+  # T1046 — Network Service Discovery: probe MISP HTTPS
+  - name: neighbor-app-probe
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "curl -sk https://misp.misp.svc.cluster.local:443/ 2>&1 | head -5"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: attacker
+        command: curl
