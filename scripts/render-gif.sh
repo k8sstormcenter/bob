@@ -48,18 +48,18 @@ render_docker() {
     -v "$METRICS_JSON:/data/metrics.json:ro" \
     -v "$OUTPUT_DIR:/output" \
     python:3.12-slim \
-    bash -c 'pip install --quiet matplotlib pillow && python3 /app/render-metrics-gif.py /data/metrics.json "/output/'"$OUTPUT_NAME"'" "$@"' _ "${extra_args[@]}"
+    bash -c 'pip install --quiet matplotlib pillow numpy && python3 /app/render-metrics-gif.py /data/metrics.json "/output/'"$OUTPUT_NAME"'" "$@"' _ "${extra_args[@]}"
 }
 
 # Prefer native Python if matplotlib+Pillow are available (faster, no Docker pull).
 # Fall back to Docker container.
-if python3 -c "import matplotlib; import PIL" 2>/dev/null; then
+if python3 -c "import matplotlib; import PIL; import numpy" 2>/dev/null; then
   render_native "$@"
 elif command -v docker &>/dev/null; then
   render_docker "$@"
 else
   echo "ERROR: Neither Python3+matplotlib+Pillow nor Docker available." >&2
-  echo "  Install: pip install matplotlib pillow" >&2
+  echo "  Install: pip install matplotlib pillow numpy" >&2
   echo "  Or: install Docker" >&2
   exit 1
 fi

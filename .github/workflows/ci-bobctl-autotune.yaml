@@ -260,6 +260,12 @@ jobs:
             --apply \
             -v 2>&1 | tee results/collapse-analysis.txt
 
+      # ---------- Pre-pull test-runner image (HTTPS targets need in-cluster pod) ---
+      - name: Pre-pull test-runner image
+        if: matrix.protocol == 'https'
+        run: |
+          sudo k3s ctr images pull docker.io/curlimages/curl:8.13.0
+
       # ---------- Tune (strategy sweep) ----------
       - name: Run tune
         id: tune
@@ -501,6 +507,7 @@ jobs:
       - name: Render tune metrics GIF
         if: always()
         run: |
+          pip install --quiet matplotlib pillow numpy 2>/dev/null || true
           if [ -f results/metrics.json ]; then
             ./scripts/render-gif.sh \
               results/metrics.json \

