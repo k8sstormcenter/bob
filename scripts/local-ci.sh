@@ -181,6 +181,7 @@ else
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
     PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$APP" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | head -1)
     [[ -n "$PROFILE" ]] || die "No completed learned profile found in $APP_NS. Run without --tune-only first."

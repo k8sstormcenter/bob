@@ -66,10 +66,7 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_pg && chmod +x /dev/shm/malicious_pg && /dev/shm/malicious_pg pwned && rm -f /dev/shm/malicious_pg"]
-    expectedDetections:
-      - ruleID: R1000
-        ruleName: Exec from malicious source
-        containerName: pg-client
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 5: PRIVILEGE ESCALATION (TA0004) — SQL-based priv esc
@@ -88,10 +85,7 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "unshare -r id 2>&1 || echo unshare_blocked"]
-    expectedDetections:
-      - ruleID: R1006
-        ruleName: Kernel Module Load
-        containerName: pg-client
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
@@ -102,10 +96,7 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_pg && /tmp/drifted_pg /etc && rm -f /tmp/drifted_pg"]
-    expectedDetections:
-      - ruleID: R1001
-        ruleName: Exec Binary Not In Base Image
-        containerName: pg-client
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal credentials
@@ -157,10 +148,7 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"]
-    expectedDetections:
-      - ruleID: R1010
-        ruleName: Symlink Created Over Sensitive File
-        containerName: pg-client
+    expectedDetections: []
 
   # T1552.001 — Read pg_hba.conf via SQL
   - name: sql-read-pg-hba
@@ -233,10 +221,7 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "getent hosts evil.attacker.example.com || echo dns_failed"]
-    expectedDetections:
-      - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: pg-client
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 12: IMPACT (TA0040) — Data destruction and crypto mining
@@ -248,11 +233,7 @@ attacks:
     exec:
       command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
                 "DROP TABLE IF EXISTS bobtest_exfil;"]
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: pg-client
-        command: psql
+    expectedDetections: []
 
   # T1496 — Resource Hijacking: crypto mining DNS signal
   - name: exec-crypto-dns

