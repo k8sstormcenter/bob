@@ -82,8 +82,18 @@ case "$APP" in
     APP_PROFILE_MATCH="pg-client"
     APP_SCORE_THRESHOLD=0
     ;;
+  postgres-vuln)
+    APP_NS=postgres-vuln
+    APP_FUNC_TESTS=example/postgres-vuln-functional-tests.yaml
+    APP_ATTACKS=example/postgres-vuln-attacks.yaml
+    APP_SERVICE=pg-vuln-client
+    APP_PORT=5432
+    APP_SCHEME=tcp
+    APP_PROFILE_MATCH="replicaset-pg-vuln"
+    APP_SCORE_THRESHOLD=0
+    ;;
   *)
-    die "Unknown app: $APP (use webapp, redis, misp, elk, or postgres)"
+    die "Unknown app: $APP (use webapp, redis, misp, elk, postgres, or postgres-vuln)"
     ;;
 esac
 

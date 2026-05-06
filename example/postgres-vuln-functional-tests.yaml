@@ -1,0 +1,182 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: postgres-vuln-functional-tests
+  description: >-
+    Functional tests for the deliberately-misconfigured PostgreSQL deployment
+    (superuser access). Exercises the server's normal SQL operations to build
+    the baseline ApplicationProfile. The SERVER profile is what we tune —
+    COPY FROM PROGRAM attacks will spawn processes on the server that are
+    NOT in this baseline.
+target:
+  service: pg-vuln-client
+  namespace: postgres-vuln
+  port: 5432
+tests:
+  # ═══════════════════════════════════════════════════════════════════════
+  # Connection & readiness
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: pg-isready-default
+    exec:
+      command: ["pg_isready"]
+      expectedExitCode: 0
+
+  - name: pg-isready-host
+    exec:
+      command: ["pg_isready", "-h", "pg-vuln"]
+      expectedExitCode: 0
+
+  - name: pg-isready-full
+    exec:
+      command: ["pg_isready", "-h", "pg-vuln", "-p", "5432", "-d", "app"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # psql — diverse flag combinations
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: psql-select1
+    exec:
+      command: ["psql", "-tAc", "SELECT 1;"]
+      expectedExitCode: 0
+
+  - name: psql-version
+    exec:
+      command: ["psql", "-c", "SELECT version();"]
+      expectedExitCode: 0
+
+  - name: psql-list-databases
+    exec:
+      command: ["psql", "-l"]
+      expectedExitCode: 0
+
+  - name: psql-conninfo
+    exec:
+      command: ["psql", "-c", "\\conninfo"]
+      expectedExitCode: 0
+
+  - name: psql-list-tables
+    exec:
+      command: ["psql", "-c", "\\dt"]
+      expectedExitCode: 0
+
+  - name: psql-list-roles
+    exec:
+      command: ["psql", "-c", "\\du"]
+      expectedExitCode: 0
+
+  - name: psql-list-extensions
+    exec:
+      command: ["psql", "-c", "\\dx"]
+      expectedExitCode: 0
+
+  - name: psql-csv-output
+    exec:
+      command: ["psql", "--csv", "-c", "SELECT 1 AS a, 2 AS b;"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # CRUD operations — generate server-side query processing
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: create-test-schema
+    exec:
+      command: ["psql", "-tAc", "CREATE SCHEMA IF NOT EXISTS ft;"]
+      expectedExitCode: 0
+
+  - name: create-bench-table
+    exec:
+      command: ["psql", "-tAc", "CREATE TABLE IF NOT EXISTS ft.bench (id BIGSERIAL PRIMARY KEY, key TEXT NOT NULL, value TEXT, created_at TIMESTAMPTZ DEFAULT NOW());"]
+      expectedExitCode: 0
+
+  - name: insert-rows
+    exec:
+      command: ["psql", "-tAc", "INSERT INTO ft.bench (key, value) SELECT 'key-' || g, 'val-' || g FROM generate_series(1, 100) g;"]
+      expectedExitCode: 0
+
+  - name: select-count
+    exec:
+      command: ["psql", "-tAc", "SELECT count(*) FROM ft.bench;"]
+      expectedExitCode: 0
+
+  - name: update-rows
+    exec:
+      command: ["psql", "-tAc", "UPDATE ft.bench SET value = 'updated' WHERE id <= 10;"]
+      expectedExitCode: 0
+
+  - name: delete-rows
+    exec:
+      command: ["psql", "-tAc", "DELETE FROM ft.bench WHERE id > 90;"]
+      expectedExitCode: 0
+
+  - name: vacuum-analyze
+    exec:
+      command: ["psql", "-tAc", "VACUUM ANALYZE ft.bench;"]
+      expectedExitCode: 0
+
+  - name: explain-analyze
+    exec:
+      command: ["psql", "-tAc", "EXPLAIN ANALYZE SELECT * FROM ft.bench WHERE key = 'key-50';"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # pgbench — generate realistic write/read load on server
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: pgbench-init
+    exec:
+      command: ["pgbench", "-i", "-s", "1"]
+      expectedExitCode: 0
+
+  - name: pgbench-tpcb-10s
+    exec:
+      command: ["pgbench", "-T", "10", "-c", "2", "-j", "1"]
+      expectedExitCode: 0
+
+  - name: pgbench-select-only
+    exec:
+      command: ["pgbench", "-T", "5", "-c", "1", "-j", "1", "-b", "select-only"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # pg_dump — exercise server's dump protocol
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: pgdump-schema-only
+    exec:
+      command: ["pg_dump", "-Fp", "--schema-only", "-f", "/tmp/dump-schema.sql"]
+      expectedExitCode: 0
+
+  - name: pgdump-data
+    exec:
+      command: ["pg_dump", "-Fc", "-f", "/tmp/dump.custom"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Maintenance utilities
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: vacuumdb-analyze
+    exec:
+      command: ["vacuumdb", "--analyze"]
+      expectedExitCode: 0
+
+  - name: reindexdb-all
+    exec:
+      command: ["reindexdb"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Cleanup
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: cleanup-dumps
+    exec:
+      command: ["sh", "-c", "rm -f /tmp/dump*"]
+      expectedExitCode: 0
+
+  - name: cleanup-schemas
+    exec:
+      command: ["psql", "-tAc", "DROP SCHEMA IF EXISTS ft CASCADE;"]
+      expectedExitCode: 0

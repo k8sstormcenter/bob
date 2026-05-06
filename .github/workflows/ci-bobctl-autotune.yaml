@@ -12,6 +12,7 @@ on:
       - 'example/**'
       - 'misp/**'
       - 'postgres/**'
+      - 'postgres-vuln/**'
       - 'scripts/**'
       - '.github/workflows/**'
       - 'Makefile'
@@ -79,6 +80,7 @@ jobs:
           - misp
           - elk
           - postgres
+          - postgres-vuln
         include:
           # Each app needs: functional_tests, attack_suite, app_namespace,
           # protocol, score_threshold. Optional: profile_match (for apps
@@ -125,6 +127,15 @@ jobs:
             app_namespace: postgres
             protocol: tcp
             profile_match: pg-client
+            score_threshold: 0
+          - app: postgres-vuln
+            functional_tests: example/postgres-vuln-functional-tests.yaml
+            attack_suite: example/postgres-vuln-attacks.yaml
+            app_namespace: postgres-vuln
+            protocol: tcp
+            # Match the server deployment profile, not the client pod.
+            # COPY FROM PROGRAM attacks spawn processes on the server.
+            profile_match: replicaset-pg-vuln
             score_threshold: 0
     runs-on: ${{ matrix.os }}
 
@@ -725,6 +736,7 @@ jobs:
               redis)    echo "$f" | grep -qv "redis"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               elk)      echo "$f" | grep -qv "el-es"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               postgres) echo "$f" | grep -qvE "pg-"     && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              postgres-vuln) echo "$f" | grep -qvE "pg-vuln" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               *)        echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
             esac
           done

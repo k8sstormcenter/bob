@@ -137,6 +137,22 @@ deploy-postgres:
 	-kubectl wait --for=condition=ready pod -l app=pg-client -n postgres --timeout=120s
 	kubectl get pods -n postgres
 
+.PHONY: deploy-postgres-vuln
+deploy-postgres-vuln:
+	@echo "=== Deploying postgres-vuln (CVE-2019-9193 superuser misconfiguration) ==="
+	kubectl apply -f postgres-vuln/cluster.yaml
+	@echo "Waiting for pg-vuln deployment..."
+	kubectl wait --for=condition=available deployment/pg-vuln -n postgres-vuln --timeout=180s
+	@echo "Waiting for pg-vuln-client pod..."
+	-kubectl wait --for=condition=ready pod -l app=pg-vuln-client -n postgres-vuln --timeout=120s
+	@echo "Verifying postgres accepts connections..."
+	@TIMEOUT=60; ELAPSED=0; \
+	while [ $$ELAPSED -lt $$TIMEOUT ]; do \
+		if kubectl exec pg-vuln-client -n postgres-vuln -- pg_isready -h pg-vuln -U postgres 2>/dev/null; then break; fi; \
+		sleep 5; ELAPSED=$$((ELAPSED + 5)); \
+	done
+	kubectl get pods -n postgres-vuln
+
 # ── Legacy targets (kept for backward compat) ───────────────────────────────
 
 .PHONY: helm-install-no-bob
