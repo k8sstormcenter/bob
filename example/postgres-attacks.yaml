@@ -66,7 +66,11 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_pg && chmod +x /dev/shm/malicious_pg && /dev/shm/malicious_pg pwned && rm -f /dev/shm/malicious_pg"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R1000
+        ruleName: Process executed from malicious source
+        containerName: pg-client
+        command: malicious_pg
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 5: PRIVILEGE ESCALATION (TA0004) — SQL-based priv esc
@@ -96,7 +100,11 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_pg && /tmp/drifted_pg /etc && rm -f /tmp/drifted_pg"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R1001
+        ruleName: Drifted process executed
+        containerName: pg-client
+        command: drifted_pg
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal credentials
@@ -115,7 +123,11 @@ attacks:
     type: cmdinject
     exec:
       command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
-    # R0006 fires locally but not in CI k3s (pg-client pod may lack SA token mount)
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected service account token access
+        containerName: pg-client
+        command: cat
 
   # T1552.001 — Credentials in Files: /etc/shadow
   - name: exec-etc-shadow
@@ -144,7 +156,11 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: pg-client
+        command: ln
 
   # T1552.001 — Read pg_hba.conf via SQL
   - name: sql-read-pg-hba

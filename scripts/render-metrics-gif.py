@@ -328,8 +328,9 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
                   fontsize=8, color=C_DIM, ha="center", fontfamily="monospace",
                   transform=ax_score.transAxes)
     n_atk = len(attacks)
-    n_succ = sum(1 for a in attacks if a["success"])
-    ax_score.text(0.5, 0.16, f"attacks {n_succ}/{n_atk}", fontsize=8, color=C_TEXT,
+    n_det = len([d for d in detections if d.get("found")])
+    n_exp = len([d for d in detections if d.get("rule_id")])
+    ax_score.text(0.5, 0.16, f"detected {n_det}/{n_exp}", fontsize=8, color=C_TEXT,
                   ha="center", fontfamily="monospace", transform=ax_score.transAxes)
     ax_score.text(0.5, 0.06, f"entries {current['total_entries']}", fontsize=7, color=C_DIM,
                   ha="center", fontfamily="monospace", transform=ax_score.transAxes)
