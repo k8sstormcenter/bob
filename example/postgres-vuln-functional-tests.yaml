@@ -3,18 +3,22 @@ kind: FunctionalTestSuite
 metadata:
   name: postgres-vuln-functional-tests
   description: >-
-    Functional tests for the deliberately-misconfigured PostgreSQL deployment
-    (superuser access). Exercises the server's normal SQL operations to build
-    the baseline ApplicationProfile. The SERVER profile is what we tune —
-    COPY FROM PROGRAM attacks will spawn processes on the server that are
-    NOT in this baseline.
+    Comprehensive PostgreSQL functional tests for the deliberately-misconfigured
+    deployment (superuser access via CVE-2019-9193). Mirrors the full regular
+    postgres functional test suite. Exercises BOTH network endpoints (SQL via
+    pg-vuln:5432) AND diverse exec arg vectors. Uses every standard PG utility
+    (pgbench, pg_dump, pg_restore, vacuumdb, reindexdb, clusterdb, createdb,
+    dropdb, createuser, dropuser, pg_isready) with varying flags to generate
+    60+ unique exec entries for the exec-arg-wildcard tuner to collapse.
+    The SERVER profile is what we tune — COPY FROM PROGRAM attacks will spawn
+    processes on the server that are NOT in this baseline.
 target:
   service: pg-vuln-client
   namespace: postgres-vuln
   port: 5432
 tests:
   # ═══════════════════════════════════════════════════════════════════════
-  # Connection & readiness
+  # Connection & readiness (pg_isready — 6 distinct arg vectors)
   # ═══════════════════════════════════════════════════════════════════════
 
   - name: pg-isready-default
@@ -27,21 +31,36 @@ tests:
       command: ["pg_isready", "-h", "pg-vuln"]
       expectedExitCode: 0
 
+  - name: pg-isready-host-port
+    exec:
+      command: ["pg_isready", "-h", "pg-vuln", "-p", "5432"]
+      expectedExitCode: 0
+
   - name: pg-isready-full
     exec:
       command: ["pg_isready", "-h", "pg-vuln", "-p", "5432", "-d", "app"]
       expectedExitCode: 0
 
+  - name: pg-isready-timeout
+    exec:
+      command: ["pg_isready", "-t", "5"]
+      expectedExitCode: 0
+
+  - name: pg-isready-quiet
+    exec:
+      command: ["pg_isready", "-q"]
+      expectedExitCode: 0
+
   # ═══════════════════════════════════════════════════════════════════════
-  # psql — diverse flag combinations
+  # psql — diverse flag combinations (16 distinct arg vectors)
   # ═══════════════════════════════════════════════════════════════════════
 
-  - name: psql-select1
+  - name: psql-tac-select1
     exec:
       command: ["psql", "-tAc", "SELECT 1;"]
       expectedExitCode: 0
 
-  - name: psql-version
+  - name: psql-c-version
     exec:
       command: ["psql", "-c", "SELECT version();"]
       expectedExitCode: 0
@@ -51,24 +70,19 @@ tests:
       command: ["psql", "-l"]
       expectedExitCode: 0
 
-  - name: psql-conninfo
+  - name: psql-version
     exec:
-      command: ["psql", "-c", "\\conninfo"]
+      command: ["psql", "--version"]
       expectedExitCode: 0
 
-  - name: psql-list-tables
+  - name: psql-no-psqlrc
     exec:
-      command: ["psql", "-c", "\\dt"]
+      command: ["psql", "-X", "-c", "SELECT 1;"]
       expectedExitCode: 0
 
-  - name: psql-list-roles
+  - name: psql-html-output
     exec:
-      command: ["psql", "-c", "\\du"]
-      expectedExitCode: 0
-
-  - name: psql-list-extensions
-    exec:
-      command: ["psql", "-c", "\\dx"]
+      command: ["psql", "-H", "-c", "SELECT 1, 2, 3;"]
       expectedExitCode: 0
 
   - name: psql-csv-output
@@ -76,8 +90,43 @@ tests:
       command: ["psql", "--csv", "-c", "SELECT 1 AS a, 2 AS b;"]
       expectedExitCode: 0
 
+  - name: psql-echo-queries
+    exec:
+      command: ["psql", "-e", "-c", "SELECT current_database();"]
+      expectedExitCode: 0
+
+  - name: psql-list-tables
+    exec:
+      command: ["psql", "-c", "\\dt"]
+      expectedExitCode: 0
+
+  - name: psql-list-indexes
+    exec:
+      command: ["psql", "-c", "\\di"]
+      expectedExitCode: 0
+
+  - name: psql-list-roles
+    exec:
+      command: ["psql", "-c", "\\du"]
+      expectedExitCode: 0
+
+  - name: psql-list-schemas
+    exec:
+      command: ["psql", "-c", "\\dn"]
+      expectedExitCode: 0
+
+  - name: psql-list-extensions
+    exec:
+      command: ["psql", "-c", "\\dx"]
+      expectedExitCode: 0
+
+  - name: psql-conninfo
+    exec:
+      command: ["psql", "-c", "\\conninfo"]
+      expectedExitCode: 0
+
   # ═══════════════════════════════════════════════════════════════════════
-  # CRUD operations — generate server-side query processing
+  # Schema setup (via psql — SQL operations)
   # ═══════════════════════════════════════════════════════════════════════
 
   - name: create-test-schema
@@ -90,7 +139,21 @@ tests:
       command: ["psql", "-tAc", "CREATE TABLE IF NOT EXISTS ft.bench (id BIGSERIAL PRIMARY KEY, key TEXT NOT NULL, value TEXT, created_at TIMESTAMPTZ DEFAULT NOW());"]
       expectedExitCode: 0
 
-  - name: insert-rows
+  - name: create-tps-table
+    exec:
+      command: ["psql", "-tAc", "CREATE SCHEMA IF NOT EXISTS tps; CREATE TABLE IF NOT EXISTS tps.tl (id BIGSERIAL, timeline TEXT DEFAULT (substring(pg_walfile_name(pg_current_wal_lsn()), 1, 8)), t TIMESTAMP DEFAULT (clock_timestamp() AT TIME ZONE 'UTC'), source TEXT NOT NULL, PRIMARY KEY (id));"]
+      expectedExitCode: 0
+
+  - name: create-index
+    exec:
+      command: ["psql", "-tAc", "CREATE INDEX IF NOT EXISTS idx_bench_key ON ft.bench (key);"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # CRUD operations
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: insert-100-rows
     exec:
       command: ["psql", "-tAc", "INSERT INTO ft.bench (key, value) SELECT 'key-' || g, 'val-' || g FROM generate_series(1, 100) g;"]
       expectedExitCode: 0
@@ -110,6 +173,11 @@ tests:
       command: ["psql", "-tAc", "DELETE FROM ft.bench WHERE id > 90;"]
       expectedExitCode: 0
 
+  - name: upsert-on-conflict
+    exec:
+      command: ["psql", "-tAc", "INSERT INTO ft.bench (id, key, value) VALUES (1, 'key-1', 'upserted') ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value;"]
+      expectedExitCode: 0
+
   - name: vacuum-analyze
     exec:
       command: ["psql", "-tAc", "VACUUM ANALYZE ft.bench;"]
@@ -120,13 +188,23 @@ tests:
       command: ["psql", "-tAc", "EXPLAIN ANALYZE SELECT * FROM ft.bench WHERE key = 'key-50';"]
       expectedExitCode: 0
 
+  - name: tps-insert
+    exec:
+      command: ["psql", "-tAc", "INSERT INTO tps.tl (source) VALUES ('bobctl-benign');"]
+      expectedExitCode: 0
+
   # ═══════════════════════════════════════════════════════════════════════
-  # pgbench — generate realistic write/read load on server
+  # pgbench — 10 distinct arg vectors (init + varied benchmarks)
   # ═══════════════════════════════════════════════════════════════════════
 
-  - name: pgbench-init
+  - name: pgbench-init-s1
     exec:
       command: ["pgbench", "-i", "-s", "1"]
+      expectedExitCode: 0
+
+  - name: pgbench-init-s2-fk
+    exec:
+      command: ["pgbench", "-i", "-s", "2", "--foreign-keys"]
       expectedExitCode: 0
 
   - name: pgbench-tpcb-10s
@@ -134,27 +212,165 @@ tests:
       command: ["pgbench", "-T", "10", "-c", "2", "-j", "1"]
       expectedExitCode: 0
 
+  - name: pgbench-simple-update
+    exec:
+      command: ["pgbench", "-T", "5", "-c", "2", "-j", "1", "-b", "simple-update"]
+      expectedExitCode: 0
+
   - name: pgbench-select-only
     exec:
       command: ["pgbench", "-T", "5", "-c", "1", "-j", "1", "-b", "select-only"]
       expectedExitCode: 0
 
+  - name: pgbench-latency-report
+    exec:
+      command: ["pgbench", "-T", "5", "-c", "2", "-j", "1", "-r"]
+      expectedExitCode: 0
+
+  - name: pgbench-progress
+    exec:
+      command: ["pgbench", "-T", "5", "-c", "2", "-j", "1", "-P", "1"]
+      expectedExitCode: 0
+
+  - name: pgbench-select-shorthand
+    exec:
+      command: ["pgbench", "-T", "5", "-c", "1", "-j", "1", "-S"]
+      expectedExitCode: 0
+
+  - name: pgbench-new-conn
+    exec:
+      command: ["pgbench", "-T", "3", "-c", "2", "-C"]
+      expectedExitCode: 0
+
+  - name: pgbench-simple-update-shorthand
+    exec:
+      command: ["pgbench", "-T", "5", "-c", "1", "-j", "1", "-N"]
+      expectedExitCode: 0
+
   # ═══════════════════════════════════════════════════════════════════════
-  # pg_dump — exercise server's dump protocol
+  # Database & user management (createdb/dropdb/createuser/dropuser — 12 vectors)
+  # NOTE: Unlike the regular postgres deployment (app user), the vuln
+  # deployment uses the postgres superuser so all operations succeed.
   # ═══════════════════════════════════════════════════════════════════════
+
+  - name: createdb-test1
+    exec:
+      command: ["createdb", "ft_testdb1"]
+
+  - name: createdb-test2-owner
+    exec:
+      command: ["createdb", "-O", "postgres", "ft_testdb2"]
+
+  - name: createdb-test3-template
+    exec:
+      command: ["createdb", "-T", "template0", "ft_testdb3"]
+
+  - name: createuser-test1
+    exec:
+      command: ["createuser", "ft_testuser1"]
+
+  - name: createuser-test2-createdb
+    exec:
+      command: ["createuser", "-d", "ft_testuser2"]
+
+  - name: createuser-test3-super
+    exec:
+      command: ["createuser", "-s", "ft_testuser3"]
+
+  - name: dropuser-test3
+    exec:
+      command: ["dropuser", "--if-exists", "ft_testuser3"]
+
+  - name: dropuser-test2
+    exec:
+      command: ["dropuser", "--if-exists", "ft_testuser2"]
+
+  - name: dropuser-test1
+    exec:
+      command: ["dropuser", "--if-exists", "ft_testuser1"]
+
+  - name: dropdb-test3
+    exec:
+      command: ["dropdb", "--if-exists", "ft_testdb3"]
+
+  - name: dropdb-test2
+    exec:
+      command: ["dropdb", "--if-exists", "ft_testdb2"]
+
+  - name: dropdb-test1
+    exec:
+      command: ["dropdb", "--if-exists", "ft_testdb1"]
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # pg_dump — 8 distinct format/flag combinations
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: pgdump-plain
+    exec:
+      command: ["pg_dump", "-Fp", "-f", "/tmp/dump.sql"]
+      expectedExitCode: 0
+
+  - name: pgdump-custom
+    exec:
+      command: ["pg_dump", "-Fc", "-f", "/tmp/dump.custom"]
+      expectedExitCode: 0
+
+  - name: pgdump-tar
+    exec:
+      command: ["pg_dump", "-Ft", "-f", "/tmp/dump.tar"]
+      expectedExitCode: 0
 
   - name: pgdump-schema-only
     exec:
       command: ["pg_dump", "-Fp", "--schema-only", "-f", "/tmp/dump-schema.sql"]
       expectedExitCode: 0
 
-  - name: pgdump-data
+  - name: pgdump-data-only
     exec:
-      command: ["pg_dump", "-Fc", "-f", "/tmp/dump.custom"]
+      command: ["pg_dump", "-Fp", "--data-only", "-f", "/tmp/dump-data.sql"]
+      expectedExitCode: 0
+
+  - name: pgdump-single-table
+    exec:
+      command: ["pg_dump", "-Fp", "-t", "bobtest", "-f", "/tmp/dump-table.sql"]
+      expectedExitCode: 0
+
+  - name: pgdump-no-owner
+    exec:
+      command: ["pg_dump", "-Fp", "--no-owner", "--no-privileges", "-f", "/tmp/dump-noown.sql"]
+      expectedExitCode: 0
+
+  - name: pgdump-inserts
+    exec:
+      command: ["pg_dump", "-Fp", "--inserts", "-f", "/tmp/dump-inserts.sql"]
       expectedExitCode: 0
 
   # ═══════════════════════════════════════════════════════════════════════
-  # Maintenance utilities
+  # pg_restore — 4 distinct flag combinations
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - name: pgrestore-list
+    exec:
+      command: ["pg_restore", "-l", "/tmp/dump.custom"]
+      expectedExitCode: 0
+
+  - name: pgrestore-schema-only
+    exec:
+      command: ["pg_restore", "--schema-only", "-f", "/tmp/restore-schema.sql", "/tmp/dump.custom"]
+      expectedExitCode: 0
+
+  - name: pgrestore-data-only
+    exec:
+      command: ["pg_restore", "--data-only", "-f", "/tmp/restore-data.sql", "/tmp/dump.custom"]
+      expectedExitCode: 0
+
+  - name: pgrestore-clean
+    exec:
+      command: ["pg_restore", "--clean", "--if-exists", "-f", "/tmp/restore-clean.sql", "/tmp/dump.custom"]
+      expectedExitCode: 0
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Maintenance utilities (vacuumdb, reindexdb, clusterdb — 8 vectors)
   # ═══════════════════════════════════════════════════════════════════════
 
   - name: vacuumdb-analyze
@@ -162,21 +378,51 @@ tests:
       command: ["vacuumdb", "--analyze"]
       expectedExitCode: 0
 
+  - name: vacuumdb-full
+    exec:
+      command: ["vacuumdb", "--full"]
+      expectedExitCode: 0
+
+  - name: vacuumdb-table
+    exec:
+      command: ["vacuumdb", "-t", "bobtest"]
+      expectedExitCode: 0
+
+  - name: vacuumdb-freeze
+    exec:
+      command: ["vacuumdb", "--freeze"]
+      expectedExitCode: 0
+
   - name: reindexdb-all
     exec:
       command: ["reindexdb"]
       expectedExitCode: 0
 
+  - name: reindexdb-table
+    exec:
+      command: ["reindexdb", "-t", "bobtest"]
+      expectedExitCode: 0
+
+  - name: reindexdb-index
+    exec:
+      command: ["reindexdb", "-i", "bobtest_pkey"]
+      expectedExitCode: 0
+
+  - name: clusterdb-all
+    exec:
+      command: ["clusterdb"]
+      expectedExitCode: 0
+
   # ═══════════════════════════════════════════════════════════════════════
-  # Cleanup
+  # Cleanup — drop temp dump files and test schemas
   # ═══════════════════════════════════════════════════════════════════════
 
   - name: cleanup-dumps
     exec:
-      command: ["sh", "-c", "rm -f /tmp/dump*"]
+      command: ["sh", "-c", "rm -f /tmp/dump* /tmp/restore*"]
       expectedExitCode: 0
 
   - name: cleanup-schemas
     exec:
-      command: ["psql", "-tAc", "DROP SCHEMA IF EXISTS ft CASCADE;"]
+      command: ["psql", "-tAc", "DROP SCHEMA IF EXISTS ft CASCADE; DROP SCHEMA IF EXISTS tps CASCADE;"]
       expectedExitCode: 0
