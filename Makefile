@@ -137,9 +137,30 @@ deploy-postgres:
 	-kubectl wait --for=condition=ready pod -l app=pg-client -n postgres --timeout=120s
 	kubectl get pods -n postgres
 
+.PHONY: build-postgres-vuln
+build-postgres-vuln:
+	@echo "=== Building postgres-vuln image ==="
+	@# Skip build if image already exists (avoid credential-store issues on re-runs)
+	@DOCKER_HOST=$${DOCKER_HOST:-unix:///var/run/docker.sock}; export DOCKER_HOST; \
+	if docker image inspect postgres-vuln:latest >/dev/null 2>&1; then \
+		echo "Image postgres-vuln:latest already exists, skipping build"; \
+	else \
+		docker build -t postgres-vuln:latest postgres-vuln/; \
+	fi
+
 .PHONY: deploy-postgres-vuln
-deploy-postgres-vuln:
+deploy-postgres-vuln: build-postgres-vuln
 	@echo "=== Deploying postgres-vuln (CVE-2019-9193 superuser misconfiguration) ==="
+	@# Load image into cluster (Kind or k3s)
+	@DOCKER_CMD="docker"; [ -S /var/run/docker.sock ] && DOCKER_CMD="env DOCKER_HOST=unix:///var/run/docker.sock docker"; \
+	if command -v kind >/dev/null 2>&1 && kind get clusters 2>/dev/null | grep -q .; then \
+		echo "Loading image into Kind..."; \
+		env DOCKER_HOST=unix:///var/run/docker.sock kind load docker-image postgres-vuln:latest --name $$(kind get clusters | head -1) 2>/dev/null \
+		  || kind load docker-image postgres-vuln:latest --name $$(kind get clusters | head -1); \
+	elif command -v k3s >/dev/null 2>&1; then \
+		echo "Importing image into k3s..."; \
+		$$DOCKER_CMD save postgres-vuln:latest | sudo k3s ctr images import -; \
+	fi
 	kubectl apply -f postgres-vuln/cluster.yaml
 	@echo "Waiting for pg-vuln deployment..."
 	kubectl wait --for=condition=available deployment/pg-vuln -n postgres-vuln --timeout=180s

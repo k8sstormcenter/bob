@@ -48,7 +48,8 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:16-alpine
+          image: postgres-vuln:latest
+          imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_DB
               value: "app"
@@ -103,7 +104,8 @@ metadata:
 spec:
   containers:
     - name: pg-vuln-client
-      image: postgres:16-alpine
+      image: postgres-vuln:latest
+      imagePullPolicy: IfNotPresent
       command: ["sleep", "infinity"]
       env:
         - name: PGHOST
