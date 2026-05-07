@@ -1,18 +1,20 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: FunctionalTestSuite
 metadata:
-  name: postgres-functional-tests
+  name: postgres-vuln-functional-tests
   description: >-
-    Comprehensive PostgreSQL functional tests designed to exercise BOTH network
-    endpoints (SQL via pg-rw:5432) AND diverse exec arg vectors.
-    Uses every standard PG utility (pgbench, pg_dump, pg_restore, vacuumdb,
-    reindexdb, clusterdb, createdb, dropdb, createuser, dropuser, pg_isready)
-    with varying flags to generate 60+ unique exec entries for the
-    exec-arg-wildcard tuner to collapse.
-    Adapted from CloudNativePG upstream e2e patterns + PostgreSQL admin docs.
+    Comprehensive PostgreSQL functional tests for the deliberately-misconfigured
+    deployment (superuser access via CVE-2019-9193). Mirrors the full regular
+    postgres functional test suite. Exercises BOTH network endpoints (SQL via
+    pg-vuln:5432) AND diverse exec arg vectors. Uses every standard PG utility
+    (pgbench, pg_dump, pg_restore, vacuumdb, reindexdb, clusterdb, createdb,
+    dropdb, createuser, dropuser, pg_isready) with varying flags to generate
+    60+ unique exec entries for the exec-arg-wildcard tuner to collapse.
+    The SERVER profile is what we tune — COPY FROM PROGRAM attacks will spawn
+    processes on the server that are NOT in this baseline.
 target:
-  service: pg-client
-  namespace: postgres
+  service: pg-vuln-client
+  namespace: postgres-vuln
   port: 5432
 tests:
   # ═══════════════════════════════════════════════════════════════════════
@@ -26,17 +28,17 @@ tests:
 
   - name: pg-isready-host
     exec:
-      command: ["pg_isready", "-h", "pg-rw"]
+      command: ["pg_isready", "-h", "pg-vuln"]
       expectedExitCode: 0
 
   - name: pg-isready-host-port
     exec:
-      command: ["pg_isready", "-h", "pg-rw", "-p", "5432"]
+      command: ["pg_isready", "-h", "pg-vuln", "-p", "5432"]
       expectedExitCode: 0
 
   - name: pg-isready-full
     exec:
-      command: ["pg_isready", "-h", "pg-rw", "-p", "5432", "-d", "app"]
+      command: ["pg_isready", "-h", "pg-vuln", "-p", "5432", "-d", "app"]
       expectedExitCode: 0
 
   - name: pg-isready-timeout
@@ -247,9 +249,8 @@ tests:
 
   # ═══════════════════════════════════════════════════════════════════════
   # Database & user management (createdb/dropdb/createuser/dropuser — 12 vectors)
-  # NOTE: These may fail with "permission denied" if app user lacks CREATEDB/
-  # CREATEROLE privileges. We allow any exit code because the purpose is to
-  # exercise the binary in the security profile, not assert DB-level grants.
+  # NOTE: Unlike the regular postgres deployment (app user), the vuln
+  # deployment uses the postgres superuser so all operations succeed.
   # ═══════════════════════════════════════════════════════════════════════
 
   - name: createdb-test1
@@ -258,7 +259,7 @@ tests:
 
   - name: createdb-test2-owner
     exec:
-      command: ["createdb", "-O", "app", "ft_testdb2"]
+      command: ["createdb", "-O", "postgres", "ft_testdb2"]
 
   - name: createdb-test3-template
     exec:

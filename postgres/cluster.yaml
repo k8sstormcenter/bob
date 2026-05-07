@@ -85,3 +85,19 @@ spec:
           cpu: 200m
           memory: 128Mi
   restartPolicy: Never
+---
+# Service to expose pg-client for bobctl functional test resolution.
+# resolvePod looks up the service selector to find matching pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-client
+  namespace: postgres
+spec:
+  selector:
+    app: pg-client
+  clusterIP: None
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432

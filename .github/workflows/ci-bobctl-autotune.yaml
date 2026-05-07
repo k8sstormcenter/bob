@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - main
-      - redisdemo
+      - feat/crd
     paths:
       - 'pkg'
       - 'pkg/**'
       - 'kubescape/**'
       - 'example/**'
       - 'misp/**'
+      - 'postgres/**'
+      - 'postgres-vuln/**'
       - 'scripts/**'
       - '.github/workflows/**'
       - 'Makefile'
@@ -37,7 +39,7 @@ jobs:
 
       - name: Clone storage dependency
         run: |
-          git clone --depth 1 --branch feature/collapse-config-crd https://github.com/k8sstormcenter/storage.git ../storage
+          git clone --depth 1 --branch merge/exec-arg-wildcards https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Verify layout
         run: |
@@ -77,6 +79,8 @@ jobs:
           - redis
           - misp
           - elk
+          - postgres
+          - postgres-vuln
         include:
           # Each app needs: functional_tests, attack_suite, app_namespace,
           # protocol, score_threshold. Optional: profile_match (for apps
@@ -116,6 +120,22 @@ jobs:
             app_namespace: elk
             protocol: http
             profile_match: el-es
+            score_threshold: 0
+          - app: postgres
+            functional_tests: example/postgres-functional-tests.yaml
+            attack_suite: example/postgres-attacks.yaml
+            app_namespace: postgres
+            protocol: tcp
+            profile_match: pg-client
+            score_threshold: 0
+          - app: postgres-vuln
+            functional_tests: example/postgres-vuln-functional-tests.yaml
+            attack_suite: example/postgres-vuln-attacks.yaml
+            app_namespace: postgres-vuln
+            protocol: tcp
+            # Match the server deployment profile, not the client pod.
+            # COPY FROM PROGRAM attacks spawn processes on the server.
+            profile_match: replicaset-pg-vuln
             score_threshold: 0
     runs-on: ${{ matrix.os }}
 
@@ -250,6 +270,12 @@ jobs:
             --noisy-threshold 10 \
             --apply \
             -v 2>&1 | tee results/collapse-analysis.txt
+
+      # ---------- Pre-pull test-runner image (HTTPS targets need in-cluster pod) ---
+      - name: Pre-pull test-runner image
+        if: matrix.protocol == 'https'
+        run: |
+          sudo k3s ctr images pull docker.io/curlimages/curl:8.13.0
 
       # ---------- Tune (strategy sweep) ----------
       - name: Run tune
@@ -492,6 +518,7 @@ jobs:
       - name: Render tune metrics GIF
         if: always()
         run: |
+          pip install --quiet matplotlib pillow numpy 2>/dev/null || true
           if [ -f results/metrics.json ]; then
             ./scripts/render-gif.sh \
               results/metrics.json \
@@ -705,10 +732,12 @@ jobs:
           for f in results/*-iteration*.yaml; do
             [ -f "$f" ] || continue
             case "${{ matrix.app }}" in
-              webapp) echo "$f" | grep -qv "webapp" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
-              redis)  echo "$f" | grep -qv "redis"  && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
-              elk)    echo "$f" | grep -qv "el-es"   && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
-              *)      echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              webapp)   echo "$f" | grep -qv "webapp"   && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              redis)    echo "$f" | grep -qv "redis"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              elk)      echo "$f" | grep -qv "el-es"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              postgres) echo "$f" | grep -qvE "pg-"     && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              postgres-vuln) echo "$f" | grep -qvE "pg-vuln" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              *)        echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
             esac
           done
           if [ -n "$FOREIGN_FILES" ]; then

