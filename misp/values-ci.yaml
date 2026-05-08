@@ -131,7 +131,7 @@ misp:
       labels: {}
       annotations: {}
       spec:
-        storageClassName: local-path
+        storageClassName: standard
         accessModes:
           - ReadWriteOnce
         resources:
@@ -305,7 +305,7 @@ valkey:
     persistence:
       enabled: true
       size: 1Gi
-      storageClass: local-path
+      storageClass: standard
     containerSecurityContext: &valkeySecCtx
       runAsUser: 1001
       runAsGroup: 1001
@@ -360,7 +360,7 @@ mariadb:
     persistence:
       enabled: true
       size: 2Gi
-      storageClass: local-path
+      storageClass: standard
     containerSecurityContext:
       runAsUser: 1001
       runAsGroup: 1001
