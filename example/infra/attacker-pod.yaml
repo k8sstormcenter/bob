@@ -22,7 +22,7 @@ spec:
   containers:
     - name: attacker
       image: curlimages/curl:8.13.0
-      command: ["sleep", "3600"]
+      command: ["sh", "-c", "while true; do sleep 3600; done"]
       resources:
         limits:
           cpu: "200m"

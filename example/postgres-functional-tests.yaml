@@ -331,7 +331,7 @@ tests:
 
   - name: pgdump-single-table
     exec:
-      command: ["pg_dump", "-Fp", "-t", "bobtest", "-f", "/tmp/dump-table.sql"]
+      command: ["pg_dump", "-Fp", "-t", "ft.bench", "-f", "/tmp/dump-table.sql"]
       expectedExitCode: 0
 
   - name: pgdump-no-owner
@@ -384,7 +384,7 @@ tests:
 
   - name: vacuumdb-table
     exec:
-      command: ["vacuumdb", "-t", "bobtest"]
+      command: ["vacuumdb", "-t", "ft.bench"]
       expectedExitCode: 0
 
   - name: vacuumdb-freeze
@@ -399,12 +399,12 @@ tests:
 
   - name: reindexdb-table
     exec:
-      command: ["reindexdb", "-t", "bobtest"]
+      command: ["reindexdb", "-t", "ft.bench"]
       expectedExitCode: 0
 
   - name: reindexdb-index
     exec:
-      command: ["reindexdb", "-i", "bobtest_pkey"]
+      command: ["reindexdb", "-i", "idx_bench_key"]
       expectedExitCode: 0
 
   - name: clusterdb-all

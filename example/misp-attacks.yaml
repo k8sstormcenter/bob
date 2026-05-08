@@ -20,7 +20,7 @@ attacks:
   # Phase 1: RECONNAISSANCE (TA0043) — API enumeration
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1082 — System Information Discovery (API version check)
+  # T1190 — Exploit Public-Facing Application (create malicious event with IoC attributes)
   - name: api-create-malicious-event
     type: ssrf
     http:
@@ -398,7 +398,7 @@ attacks:
       - responseContains: "unshare_blocked"
     expectedDetections:
       - ruleID: R1006
-        ruleName: Kernel Module Load
+        ruleName: Process tries to escape container
         containerName: misp
 
   # T1055 — Process Injection (ptrace attempt)

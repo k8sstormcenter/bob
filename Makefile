@@ -140,13 +140,8 @@ deploy-postgres:
 .PHONY: build-postgres-vuln
 build-postgres-vuln:
 	@echo "=== Building postgres-vuln image ==="
-	@# Skip build if image already exists (avoid credential-store issues on re-runs)
 	@DOCKER_HOST=$${DOCKER_HOST:-unix:///var/run/docker.sock}; export DOCKER_HOST; \
-	if docker image inspect postgres-vuln:latest >/dev/null 2>&1; then \
-		echo "Image postgres-vuln:latest already exists, skipping build"; \
-	else \
-		docker build -t postgres-vuln:latest postgres-vuln/; \
-	fi
+	docker build -t postgres-vuln:latest postgres-vuln/
 
 .PHONY: deploy-postgres-vuln
 deploy-postgres-vuln: build-postgres-vuln
@@ -167,11 +162,12 @@ deploy-postgres-vuln: build-postgres-vuln
 	@echo "Waiting for pg-vuln-client pod..."
 	-kubectl wait --for=condition=ready pod -l app=pg-vuln-client -n postgres-vuln --timeout=120s
 	@echo "Verifying postgres accepts connections..."
-	@TIMEOUT=60; ELAPSED=0; \
+	@TIMEOUT=60; ELAPSED=0; READY=0; \
 	while [ $$ELAPSED -lt $$TIMEOUT ]; do \
-		if kubectl exec pg-vuln-client -n postgres-vuln -- pg_isready -h pg-vuln -U postgres 2>/dev/null; then break; fi; \
+		if kubectl exec pg-vuln-client -n postgres-vuln -- pg_isready -h pg-vuln -U postgres 2>/dev/null; then READY=1; break; fi; \
 		sleep 5; ELAPSED=$$((ELAPSED + 5)); \
-	done
+	done; \
+	if [ $$READY -eq 0 ]; then echo "ERROR: postgres-vuln did not become ready within $${TIMEOUT}s"; exit 1; fi
 	kubectl get pods -n postgres-vuln
 
 # ── Legacy targets (kept for backward compat) ───────────────────────────────

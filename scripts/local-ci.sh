@@ -79,6 +79,7 @@ case "$APP" in
     APP_ATTACKS=example/postgres-attacks.yaml
     APP_SERVICE=pg-client
     APP_PORT=5432
+    APP_SCHEME=tcp
     APP_PROFILE_MATCH="pg-client"
     APP_SCORE_THRESHOLD=0
     ;;

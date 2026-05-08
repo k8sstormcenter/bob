@@ -518,14 +518,15 @@ jobs:
 
       - name: Render tune metrics GIF
         if: always()
+        continue-on-error: true
         run: |
           pip install --quiet matplotlib pillow numpy 2>/dev/null || true
           if [ -f results/metrics.json ]; then
             ./scripts/render-gif.sh \
               results/metrics.json \
               results/tune.gif \
-              --title "${{ matrix.app }} (${{ matrix.os }})"
-            echo "GIF: $(ls -lh results/tune.gif | awk '{print $5}')"
+              --title "${{ matrix.app }} (${{ matrix.os }})" || echo "GIF render failed (non-fatal)"
+            echo "GIF: $(ls -lh results/tune.gif 2>/dev/null | awk '{print $5}')"
           else
             echo "No metrics.json — skipping GIF"
           fi
@@ -736,7 +737,7 @@ jobs:
               webapp)   echo "$f" | grep -qv "webapp"   && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               redis)    echo "$f" | grep -qv "redis"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               elk)      echo "$f" | grep -qv "el-es"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
-              postgres) echo "$f" | grep -qvE "pg-"     && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              postgres) (echo "$f" | grep -qv "pg-" || echo "$f" | grep -q "pg-vuln") && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               postgres-vuln) echo "$f" | grep -qvE "pg-vuln" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               *)        echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
             esac

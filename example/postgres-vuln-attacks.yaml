@@ -495,7 +495,10 @@ attacks:
     exec:
       command: ["psql", "-tAc",
                 "CREATE TABLE IF NOT EXISTS cmd_output(line text); COPY cmd_output FROM PROGRAM 'id';"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        command: id
 
   # CVE-2019-9193 — COPY FROM PROGRAM: whoami
   - name: cve-2019-9193-copy-program-whoami
@@ -503,7 +506,10 @@ attacks:
     exec:
       command: ["psql", "-tAc",
                 "DROP TABLE IF EXISTS cmd_out2; CREATE TABLE cmd_out2(line text); COPY cmd_out2 FROM PROGRAM 'whoami'; SELECT * FROM cmd_out2;"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        command: whoami
 
   # CVE-2019-9193 — COPY FROM PROGRAM: cat /etc/passwd
   - name: cve-2019-9193-copy-program-passwd
@@ -511,7 +517,10 @@ attacks:
     exec:
       command: ["psql", "-tAc",
                 "DROP TABLE IF EXISTS cmd_out3; CREATE TABLE cmd_out3(line text); COPY cmd_out3 FROM PROGRAM 'cat /etc/passwd'; SELECT * FROM cmd_out3 LIMIT 5;"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        command: cat
 
   # CVE-2019-9193 — COPY TO PROGRAM (write to pipe)
   - name: cve-2019-9193-copy-to-program
@@ -519,7 +528,10 @@ attacks:
     exec:
       command: ["psql", "-tAc",
                 "COPY (SELECT 'pwned_via_copy_to_program') TO PROGRAM 'tee /tmp/pg_pwned 2>/dev/null || true';"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        command: tee
 
   # T1059 — PL/Python untrusted language (RCE via CREATE FUNCTION)
   - name: sql-plpython3u-rce
