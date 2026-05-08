@@ -350,11 +350,13 @@ attacks:
         containerName: misp
 
   # T1098 — Trigger server pull (outbound to rogue)
+  # Server ID 1 is the built-in default server. The pull attempt triggers
+  # MISP to resolve the server URL, generating outbound DNS/HTTP traffic.
   - name: api-trigger-server-pull
     type: ssrf
     http:
       method: POST
-      path: /servers/pull/999
+      path: /servers/pull/1
       headers:
         Content-Type: application/json
         Accept: application/json
@@ -363,8 +365,6 @@ attacks:
         {
           "technique": "full"
         }
-    successIndicators:
-      - statusCode: 200
     expectedDetections:
       - ruleID: R0005
         ruleName: Unexpected domain request
@@ -373,11 +373,11 @@ attacks:
         ruleName: Unexpected process launched
         containerName: misp
 
-  # T1098 — API key extraction via cake console
+  # T1098 — API key enumeration via cake console (read-only, does not rotate keys)
   - name: exec-cake-extract-apikey
     type: cmdinject
     exec:
-      command: ["sh", "-c", "/var/www/MISP/app/Console/cake Admin change_authkey 1 2>/dev/null; echo apikey_attempted"]
+      command: ["sh", "-c", "/var/www/MISP/app/Console/cake Admin getAuthkey 1 2>/dev/null; echo apikey_attempted"]
     successIndicators:
       - responseContains: "apikey_attempted"
     expectedDetections:

@@ -490,15 +490,13 @@ attacks:
   # ═══════════════════════════════════════════════════════════════════════════
 
   # CVE-2019-9193 — COPY FROM PROGRAM: id
+  # NOTE: id is in the server baseline profile, so R0001 will NOT fire for it.
   - name: cve-2019-9193-copy-program-id
     type: sqli
     exec:
       command: ["psql", "-tAc",
                 "CREATE TABLE IF NOT EXISTS cmd_output(line text); COPY cmd_output FROM PROGRAM 'id';"]
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        command: id
+    expectedDetections: []
 
   # CVE-2019-9193 — COPY FROM PROGRAM: whoami
   - name: cve-2019-9193-copy-program-whoami
@@ -512,15 +510,14 @@ attacks:
         command: whoami
 
   # CVE-2019-9193 — COPY FROM PROGRAM: cat /etc/passwd
+  # NOTE: cat is in the server baseline profile, so R0001 will NOT fire for it.
+  # R0010 (Sensitive file access) may fire for /etc/passwd access.
   - name: cve-2019-9193-copy-program-passwd
     type: sqli
     exec:
       command: ["psql", "-tAc",
                 "DROP TABLE IF EXISTS cmd_out3; CREATE TABLE cmd_out3(line text); COPY cmd_out3 FROM PROGRAM 'cat /etc/passwd'; SELECT * FROM cmd_out3 LIMIT 5;"]
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        command: cat
+    expectedDetections: []
 
   # CVE-2019-9193 — COPY TO PROGRAM (write to pipe)
   - name: cve-2019-9193-copy-to-program
@@ -616,6 +613,13 @@ attacks:
     exec:
       command: ["psql", "-tAc",
                 "DROP TABLE IF EXISTS cmd_output; DROP TABLE IF EXISTS cmd_out2; DROP TABLE IF EXISTS cmd_out3;"]
+    expectedDetections: []
+
+  - name: cleanup-staged-files
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "COPY (SELECT 1) TO PROGRAM 'rm -f /tmp/exfil.csv /tmp/exfil_data.txt /tmp/pg_pwned /tmp/pg_payload.sh 2>/dev/null; echo cleaned';"]
     expectedDetections: []
 
   - name: cleanup-recreate-bobtest

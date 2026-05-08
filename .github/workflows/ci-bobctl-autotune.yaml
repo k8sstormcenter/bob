@@ -739,6 +739,7 @@ jobs:
               elk)      echo "$f" | grep -qv "el-es"    && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               postgres) (echo "$f" | grep -qv "pg-" || echo "$f" | grep -q "pg-vuln") && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               postgres-vuln) echo "$f" | grep -qvE "pg-vuln" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
+              misp)     echo "$f" | grep -qv "replicaset-misp" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
               *)        echo "$f" | grep -qv "${{ matrix.app }}" && FOREIGN_FILES="$FOREIGN_FILES $f" ;;
             esac
           done
