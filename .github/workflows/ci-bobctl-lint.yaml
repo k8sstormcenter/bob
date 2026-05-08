@@ -37,7 +37,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v7
         with:
-          version: v2.12
+          version: v2.12.2
           working-directory: pkg
           args: --timeout=5m
 
@@ -64,6 +64,7 @@ jobs:
       - name: Run unit tests
         working-directory: pkg
         run: |
+          set -o pipefail
           go test -race -count=1 -timeout 5m ./... 2>&1 | tee test-output.txt
           echo ""
           echo "=== Test Summary ==="
