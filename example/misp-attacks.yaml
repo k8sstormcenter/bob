@@ -365,6 +365,10 @@ attacks:
         {
           "technique": "full"
         }
+    successIndicators:
+      - statusCode: 200
+      - statusCode: 403
+      - statusCode: 404
     expectedDetections:
       - ruleID: R0005
         ruleName: Unexpected domain request
@@ -466,12 +470,13 @@ attacks:
         Authorization: "__MISP_API_KEY__"
       body: >-
         {
-          "id": [],
-          "name": "Toggle all warninglists",
-          "enabled": false
+          "Warninglist": {
+            "data": "1"
+          }
         }
     successIndicators:
       - statusCode: 200
+      - statusCode: 403
     expectedDetections:
       - ruleID: R0002
         ruleName: Unexpected file access

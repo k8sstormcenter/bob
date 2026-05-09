@@ -17,6 +17,7 @@ jobs:
   lint:
     name: golangci-lint
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout repo and private submodules
         uses: actions/checkout@v4
@@ -44,6 +45,7 @@ jobs:
   test:
     name: unit tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout repo and private submodules
         uses: actions/checkout@v4

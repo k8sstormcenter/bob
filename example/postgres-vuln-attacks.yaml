@@ -603,6 +603,20 @@ attacks:
   # Cleanup — restore state for next run
   # ═══════════════════════════════════════════════════════════════════════════
 
+  - name: cleanup-reset-alter-system
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "ALTER SYSTEM RESET log_connections;"]
+    expectedDetections: []
+
+  - name: cleanup-drop-functions
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "DROP FUNCTION IF EXISTS public.upper(text); DROP FUNCTION IF EXISTS exec_cmd(text); DROP FUNCTION IF EXISTS perl_exec(text);"]
+    expectedDetections: []
+
   - name: cleanup-drop-roles
     type: sqli
     exec:

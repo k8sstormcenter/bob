@@ -72,12 +72,12 @@ attacks:
   # Phase 5: PRIVILEGE ESCALATION (TA0004) — SQL-based priv esc
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1078.004 — Valid Accounts: Create superuser
+  # T1078.004 — Valid Accounts: Create superuser (idempotent for repeatable runs)
   - name: sql-create-superuser
     type: sqli
     exec:
       command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "CREATE ROLE attacker WITH SUPERUSER LOGIN PASSWORD 'pwned';"]
+                "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='attacker') THEN CREATE ROLE attacker WITH SUPERUSER LOGIN PASSWORD 'pwned'; END IF; END $$;"]
     expectedDetections: []
 
   # T1611 — Escape to Host (unshare attempt)
@@ -148,7 +148,7 @@ attacks:
 
   # T1552.001 — Read pg_hba.conf via SQL
   - name: sql-read-pg-hba
-    type: cmdinject
+    type: sqli
     exec:
       command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
                 "SELECT pg_read_file('/var/lib/postgresql/data/pgdata/pg_hba.conf');"]
@@ -156,7 +156,7 @@ attacks:
 
   # T1552.001 — Read /etc/passwd via SQL
   - name: sql-read-etc-passwd
-    type: cmdinject
+    type: sqli
     exec:
       command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
                 "SELECT pg_read_file('/etc/passwd');"]
@@ -178,6 +178,9 @@ attacks:
         command: cat
 
   # T1046 — Network Service Discovery: resolv.conf and hosts
+  # NOTE: shell-wrapped exec — telemetry may report `sh` or any of the chained
+  # commands (`cat`, `getent`). Don't pin `command:` so the expectation matches
+  # whichever process the runtime engine surfaces first.
   - name: exec-net-recon
     type: cmdinject
     exec:
@@ -186,7 +189,6 @@ attacks:
       - ruleID: R0001
         ruleName: Unexpected process launched
         containerName: pg-client
-        command: cat
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 10: COLLECTION (TA0009) — Data staging
@@ -194,7 +196,7 @@ attacks:
 
   # T1005 — Data from Local System: large object import
   - name: sql-large-object-import
-    type: cmdinject
+    type: sqli
     exec:
       command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
                 "SELECT lo_import('/etc/hostname');"]
