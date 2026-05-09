@@ -118,9 +118,10 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_elk && chmod +x /dev/shm/malicious_elk && /dev/shm/malicious_elk pwned && rm -f /dev/shm/malicious_elk"]
+    # NOTE: R1000 cluster-config-dependent; R0001 always-on.
     expectedDetections:
-      - ruleID: R1000
-        ruleName: Fileless Execution
+      - ruleID: R0001
+        ruleName: Unexpected process launched
         containerName: elasticsearch
         command: malicious_elk
 
@@ -133,9 +134,10 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_elk && /tmp/drifted_elk /etc && rm -f /tmp/drifted_elk"]
+    # NOTE: R1001 cluster-config-dependent; R0001 always-on.
     expectedDetections:
-      - ruleID: R1001
-        ruleName: Exec Binary Not In Base Image
+      - ruleID: R0001
+        ruleName: Unexpected process launched
         containerName: elasticsearch
         command: drifted_elk
 
