@@ -120,16 +120,39 @@ attacks:
   # The SA token mount is not always present in CI k3s. Accept either a non-empty
   # token read OR the "No such file or directory" error so the probe doesn't
   # hard-fail when the mount is absent.
-  - name: exec-sa-token
+  # PR119 rabbit: previously this single attack hard-required R0006 even
+  # when the success indicator allowed the SA-token mount to be absent
+  # (CI k3s often omits it). That made the suite flake. Split into two:
+  # the "attempt" probe runs regardless of mount and only asserts the
+  # cat exec; the "mounted" probe is gated on the file existing and
+  # asserts R0006.
+  - name: exec-sa-token-attempt
     type: cmdinject
     exec:
       command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>&1 || true"]
     successIndicators:
       - responseRegex: ".+"
       - responseContains: "No such file or directory"
-    # R0006 fires locally but not in CI k3s (pg-client pod may lack SA token
-    # mount). We still ASSERT it — when the mount IS present, regression in
-    # R0006 against pg-client is caught.
+    # R0001 only — the exec of `cat` is the unconditional signal. R0006
+    # depends on the file actually opening, which doesn't happen when the
+    # mount is missing.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+        command: cat
+
+  - name: exec-sa-token-mounted
+    type: cmdinject
+    exec:
+      # `test -f` exits 0 only when the mount IS present. If absent, the
+      # whole pipeline short-circuits before cat runs and the success
+      # indicator hits the sentinel — R0006 is correctly NOT expected.
+      command: ["sh", "-c", "if test -f /var/run/secrets/kubernetes.io/serviceaccount/token; then cat /var/run/secrets/kubernetes.io/serviceaccount/token; else echo SA_TOKEN_MOUNT_ABSENT; fi"]
+    successIndicators:
+      - responseRegex: "(eyJ|SA_TOKEN_MOUNT_ABSENT)"
+    # R0006 asserted ONLY for the cat-actually-runs branch; the suite
+    # records a side-effect-only result on environments without the mount.
     expectedDetections:
       - ruleID: R0006
         ruleName: Unexpected Service Account Token Access

