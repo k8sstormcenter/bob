@@ -118,7 +118,11 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_elk && chmod +x /dev/shm/malicious_elk && /dev/shm/malicious_elk pwned && rm -f /dev/shm/malicious_elk"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R1000
+        ruleName: Fileless Execution
+        containerName: elasticsearch
+        command: malicious_elk
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
@@ -129,7 +133,11 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_elk && /tmp/drifted_elk /etc && rm -f /tmp/drifted_elk"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R1001
+        ruleName: Exec Binary Not In Base Image
+        containerName: elasticsearch
+        command: drifted_elk
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal secrets
@@ -151,7 +159,15 @@ attacks:
     type: cmdinject
     exec:
       command: ["cat", "/etc/shadow"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: elasticsearch
+        command: cat
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: elasticsearch
+        command: cat
 
   # T1552.001 — Credentials in Files: /etc/passwd
   - name: exec-etc-passwd
@@ -202,7 +218,15 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api 2>&1 | head -5"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: elasticsearch
+        command: cat
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: elasticsearch
+        command: curl
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 9: LATERAL MOVEMENT (TA0008) — Snapshot-based pivot

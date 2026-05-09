@@ -405,6 +405,7 @@ attacks:
       - ruleID: R1006
         ruleName: Process tries to escape container
         containerName: misp
+        command: unshare
 
   # T1055 — Process Injection (ptrace attempt)
   # Use bash + PIPESTATUS so the head pipe doesn't mask strace's exit code.
@@ -619,7 +620,13 @@ attacks:
       command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api 2>&1 | head -5 || echo k8s_failed"]
     successIndicators:
       - responseContains: "kind"
+    # cat opens the SA token (R0006) — was missing before; the curl-only
+    # expectations let R0006 regression slip silently.
     expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: misp
+        command: cat
       - ruleID: R0005
         ruleName: Unexpected domain request
         containerName: misp

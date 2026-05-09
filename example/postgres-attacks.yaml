@@ -66,7 +66,13 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_pg && chmod +x /dev/shm/malicious_pg && /dev/shm/malicious_pg pwned && rm -f /dev/shm/malicious_pg"]
-    expectedDetections: []
+    # Exec under /dev/shm → R1000 (Fileless execution). comm = the basename
+    # of the relocated binary.
+    expectedDetections:
+      - ruleID: R1000
+        ruleName: Fileless Execution
+        containerName: pg-client
+        command: malicious_pg
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 5: PRIVILEGE ESCALATION (TA0004) — SQL-based priv esc
@@ -85,7 +91,11 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "unshare -r id 2>&1 || echo unshare_blocked"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R1006
+        ruleName: Container Escape
+        containerName: pg-client
+        command: unshare
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
@@ -96,7 +106,11 @@ attacks:
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_pg && /tmp/drifted_pg /etc && rm -f /tmp/drifted_pg"]
-    expectedDetections: []
+    expectedDetections:
+      - ruleID: R1001
+        ruleName: Exec Binary Not In Base Image
+        containerName: pg-client
+        command: drifted_pg
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal credentials
@@ -113,7 +127,14 @@ attacks:
     successIndicators:
       - responseRegex: ".+"
       - responseContains: "No such file or directory"
-    # R0006 fires locally but not in CI k3s (pg-client pod may lack SA token mount)
+    # R0006 fires locally but not in CI k3s (pg-client pod may lack SA token
+    # mount). We still ASSERT it — when the mount IS present, regression in
+    # R0006 against pg-client is caught.
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: pg-client
+        command: cat
 
   # T1552.001 — Credentials in Files: /etc/shadow
   - name: exec-etc-shadow
