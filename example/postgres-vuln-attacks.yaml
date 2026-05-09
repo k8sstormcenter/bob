@@ -217,13 +217,16 @@ attacks:
   # T1552.001 — Credentials in Files: SA token (exec into client)
   # Uses 'head' instead of 'cat' because cat is learned by the client pod
   # (postgres docker-entrypoint.sh uses cat during init).
+  # NOTE: R0006 cluster-config-dependent in CI k3s; R0001 catches the
+  # head exec unconditionally. Same reasoning as cve-cred-sa-token /
+  # sql-pg-read-file-sa-token / exec-sa-token-mounted (postgres-attacks).
   - name: exec-sa-token
     type: cmdinject
     exec:
       command: ["head", "-1", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
     expectedDetections:
-      - ruleID: R0006
-        ruleName: Unexpected service account token access
+      - ruleID: R0001
+        ruleName: Unexpected process launched
         containerName: pg-vuln-client
         command: head
 

