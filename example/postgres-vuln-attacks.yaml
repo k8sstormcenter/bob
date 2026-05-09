@@ -507,6 +507,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
+        containerName: postgres
         command: whoami
 
   # CVE-2019-9193 — COPY FROM PROGRAM: cat /etc/passwd
@@ -528,6 +529,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
+        containerName: postgres
         command: tee
 
   # T1059 — PL/Python untrusted language (RCE via CREATE FUNCTION)
