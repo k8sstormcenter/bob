@@ -251,7 +251,7 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
             total_per_phase.append(len(pa))
             detected_per_phase.append(sum(1 for a in pa if a["all_found"]))
 
-        max_radar = max(max(total_per_phase), 1)
+        max_radar = max(*total_per_phase, 1)
         total_vals = total_per_phase + total_per_phase[:1]
         det_vals = detected_per_phase + detected_per_phase[:1]
 
@@ -325,7 +325,7 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
         spark_x = np.linspace(0.15, 0.85, len(scores_hist))
         spark_y_base = 0.42
         spark_height = 0.08
-        max_s = max(max(scores_hist), 1)
+        max_s = max(*scores_hist, 1)
         for j in range(len(scores_hist)):
             sy = spark_y_base + (scores_hist[j] / max_s) * spark_height
             sx = spark_x[j]
@@ -378,7 +378,7 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
         ax_kc.set_xlim(-0.2, total_w)
         ax_kc.set_ylim(-0.5, n_active * (cell_h + 0.25) + 0.3)
 
-        for row_idx, (phase_global_idx, pname) in enumerate(reversed(active_phases)):
+        for row_idx, (_phase_global_idx, pname) in enumerate(reversed(active_phases)):
             pa = phase_attacks[pname]
             y_base = row_idx * (cell_h + 0.25) + y_pad
 
