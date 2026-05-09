@@ -39,7 +39,7 @@ attacks:
   - name: exec-pg-dump-schema
     type: cmdinject
     exec:
-      command: ["pg_dump", "-h", "pg-rw", "-d", "app", "--schema-only"]
+      command: ["pg_dump", "-h", "pg-rw", "-U", "app", "-d", "app", "--schema-only"]
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -111,10 +111,16 @@ attacks:
     expectedDetections: []
 
   # T1552.001 — Credentials in Files: SA token
+  # The SA token mount is not always present in CI k3s. Accept either a non-empty
+  # token read OR the "No such file or directory" error so the probe doesn't
+  # hard-fail when the mount is absent.
   - name: exec-sa-token
     type: cmdinject
     exec:
-      command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
+      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>&1 || true"]
+    successIndicators:
+      - responseRegex: ".+"
+      - responseContains: "No such file or directory"
     # R0006 fires locally but not in CI k3s (pg-client pod may lack SA token mount)
 
   # T1552.001 — Credentials in Files: /etc/shadow
@@ -312,11 +318,13 @@ attacks:
 
   # T1190 — lo_export: write arbitrary file via large object
   # Classic postgres trick: import file as large object, then export elsewhere.
+  # Capture the OID returned by lo_from_bytea and pass it to lo_export; lo_unlink
+  # afterwards so we don't accumulate orphaned large objects across runs.
   - name: sql-lo-export-file-write
     type: sqli
     exec:
       command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "SELECT lo_from_bytea(0, E'#!/bin/sh\\nid > /tmp/pg_rce_proof\\n'); SELECT lo_export(0, '/tmp/pg_payload.sh');"]
+                "DO $$ DECLARE oid_ oid; BEGIN oid_ := lo_from_bytea(0, E'#!/bin/sh\\nid > /tmp/pg_rce_proof\\n'); PERFORM lo_export(oid_, '/tmp/pg_payload.sh'); PERFORM lo_unlink(oid_); END $$; SELECT 'lo_export_done';"]
     expectedDetections: []
 
   # T1190 — dblink SSRF (connect to internal services from DB)
@@ -329,12 +337,13 @@ attacks:
     expectedDetections: []
 
   # T1505 — ALTER SYSTEM persistence (write to postgresql.auto.conf)
-  # Attacker can persist config changes that survive restarts.
+  # Attacker can persist config changes that survive restarts. We immediately
+  # RESET so postgresql.auto.conf doesn't accumulate state across CI runs.
   - name: sql-alter-system-persist
     type: sqli
     exec:
       command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "ALTER SYSTEM SET log_connections = off;"]
+                "ALTER SYSTEM SET log_connections = off; ALTER SYSTEM RESET log_connections; SELECT pg_reload_conf();"]
     expectedDetections: []
 
   # T1552.001 — pg_read_file: read /etc/hostname

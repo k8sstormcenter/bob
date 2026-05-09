@@ -13,6 +13,9 @@ on:
       - 'pkg/**'
       - '.github/workflows/ci-bobctl-lint.yaml'
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: golangci-lint
@@ -24,6 +27,7 @@ jobs:
         with:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT }}
+          persist-credentials: false
 
       - name: Clone storage dependency
         run: |
@@ -52,6 +56,7 @@ jobs:
         with:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT }}
+          persist-credentials: false
 
       - name: Clone storage dependency
         run: |

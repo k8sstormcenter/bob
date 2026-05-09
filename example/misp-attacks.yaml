@@ -378,10 +378,11 @@ attacks:
         containerName: misp
 
   # T1098 — API key enumeration via cake console (read-only, does not rotate keys)
+  # Discard stdout/stderr so the real auth key is not leaked into CI logs/artifacts.
   - name: exec-cake-extract-apikey
     type: cmdinject
     exec:
-      command: ["sh", "-c", "/var/www/MISP/app/Console/cake Admin getAuthkey 1 2>/dev/null; echo apikey_attempted"]
+      command: ["sh", "-c", "/var/www/MISP/app/Console/cake Admin getAuthkey 1 >/dev/null 2>&1; echo apikey_attempted"]
     successIndicators:
       - responseContains: "apikey_attempted"
     expectedDetections:
@@ -406,10 +407,11 @@ attacks:
         containerName: misp
 
   # T1055 — Process Injection (ptrace attempt)
+  # Use bash + PIPESTATUS so the head pipe doesn't mask strace's exit code.
   - name: exec-ptrace
     type: cmdinject
     exec:
-      command: ["sh", "-c", "strace -p 1 -e trace=open -c 2>&1 | head -5 || echo ptrace_blocked"]
+      command: ["bash", "-c", "strace -p 1 -e trace=open -c 2>&1 | head -5; if [ \"${PIPESTATUS[0]}\" -ne 0 ]; then echo ptrace_blocked; fi"]
     successIndicators:
       - responseContains: "ptrace_blocked"
     expectedDetections:
@@ -471,7 +473,8 @@ attacks:
       body: >-
         {
           "Warninglist": {
-            "data": "1"
+            "data": "1",
+            "enabled": 1
           }
         }
     successIndicators:

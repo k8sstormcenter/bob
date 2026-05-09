@@ -411,11 +411,13 @@ attacks:
   # ═══════════════════════════════════════════════════════════════════════════
 
   # T1005 — Data from Local System: large object import
+  # Capture the imported OID and lo_unlink immediately so we don't accumulate
+  # orphaned large objects in pg_largeobject_metadata across CI runs.
   - name: sql-large-object-import
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "SELECT lo_import('/etc/hostname');"]
+                "DO $$ DECLARE oid_ oid; BEGIN oid_ := lo_import('/etc/hostname'); PERFORM lo_unlink(oid_); END $$; SELECT 'lo_import_done';"]
     expectedDetections: []
 
   # T1074 — Data Staged: COPY TO file (SQL only, no PROGRAM)
