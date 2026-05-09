@@ -82,8 +82,14 @@ if ! kubectl get ns "$NS" >/dev/null 2>&1; then
   echo "FAIL: namespace $NS not found. Did you deploy $APP? Run local-ci.sh --setup-only --app $APP first." >&2
   exit 2
 fi
+# `head -1` causes SIGPIPE upstream which trips `set -o pipefail`. Use awk's
+# `exit` instead — it consumes all input but stops processing after first match.
+# Match PROFILE_MATCH as a substring anywhere in the line (so `pg-client`
+# matches `pod-pg-client`, `replicaset-misp` matches `replicaset-misp-app`, etc.)
+# but exclude bobctl-managed iteration profiles (ug- prefix) so we don't
+# discover yesterday's tune output as the "learned" profile.
 PROFILE_NAME="$(kubectl get applicationprofiles.spdx.softwarecomposition.kubescape.io -n "$NS" -o name 2>/dev/null \
-  | grep -E "/$PROFILE_MATCH" | grep -v '/ug-' | head -1 | sed 's|.*/||')"
+  | awk -v match_re="$PROFILE_MATCH" '$0 ~ match_re && $0 !~ /\/ug-/ { sub(/^[^\/]*\//, ""); print; exit }')"
 if [[ -z "$PROFILE_NAME" ]]; then
   echo "FAIL: no learned profile matching '$PROFILE_MATCH' in $NS. Run learning first." >&2
   kubectl get applicationprofiles.spdx.softwarecomposition.kubescape.io -n "$NS" -o name >&2
@@ -103,11 +109,20 @@ if ! $SKIP_BUILD; then
 fi
 log "  bobctl:   bin/bobctl ($(stat -c%s bin/bobctl 2>/dev/null || stat -f%z bin/bobctl) bytes)"
 
-# Wipe prior iteration profiles so the tune starts clean.
-log "=== Cleanup prior iterations ==="
-kubectl delete applicationprofiles.spdx.softwarecomposition.kubescape.io \
-  -n "$NS" -l "kubescape.io/managed-by=bobctl" \
-  --ignore-not-found 2>&1 | grep -E "deleted|warning" || true
+# Wipe prior iteration profiles so the tune starts clean. CRITICAL: use the
+# `ug-` name prefix, NEVER the kubescape.io/managed-by=bobctl label —
+# learned profiles also carry that label in some kubescape versions and a
+# label-based delete wipes the source profile too. Iteration profiles always
+# get the `ug-` prefix from applyProfile (see tuner.go), so name-based
+# matching is safe.
+log "=== Cleanup prior iterations (ug-* only) ==="
+ITER_PROFILES="$(kubectl get applicationprofiles.spdx.softwarecomposition.kubescape.io \
+  -n "$NS" -o name 2>/dev/null \
+  | awk '/\/ug-/ { sub(/^[^\/]*\//, ""); print }')"
+if [[ -n "$ITER_PROFILES" ]]; then
+  echo "$ITER_PROFILES" | xargs -r kubectl delete applicationprofiles.spdx.softwarecomposition.kubescape.io \
+    -n "$NS" --ignore-not-found 2>&1 | tail -5
+fi
 
 # Wipe prior results.
 mkdir -p results
