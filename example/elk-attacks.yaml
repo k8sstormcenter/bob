@@ -382,16 +382,25 @@ attacks:
 
   # CVE-2018-17246 — Kibana LFI via timelion (if Kibana exposed)
   # Severity: Critical (CVSS 9.8). Local file inclusion in Kibana's
-  # timelion or console endpoints.
-  - name: cve-2018-17246-kibana-lfi-probe
+  # CVE-2018-17246 (Kibana Console plugin LFI) was originally probed via
+  # /api/console/api_server, but that endpoint exists ONLY on Kibana. The
+  # current suite target is el-es-http (Elasticsearch), which doesn't serve
+  # the Kibana console plugin, so the request never reaches the vulnerable
+  # component (and the allowed 404 makes it look misleadingly covered).
+  #
+  # Until a separate Kibana suite exists, replace the probe with an
+  # ES-served alternative that exercises path-traversal handling at the
+  # gateway: a benign ES status request that includes the same traversal
+  # payload as a query parameter. ES will reject it cleanly; if it ever
+  # starts returning sensitive content, that's a real signal.
+  - name: cve-2018-17246-es-traversal-probe
     type: ssrf
     http:
       method: GET
-      path: /api/console/api_server?sense_version=@@SENSE_VERSION&apis=../../../../../../../etc/passwd
+      path: /_cluster/health?path=../../../../../../../etc/passwd
     successIndicators:
-      - statusCode: 200
+      - statusCode: 200 # ES returns its own health JSON; traversal is ignored
       - statusCode: 400
-      - statusCode: 404
     expectedDetections: []
 
   # T1059 — Painless script with Runtime.exec attempt

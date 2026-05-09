@@ -458,11 +458,14 @@ attacks:
   # ═══════════════════════════════════════════════════════════════════════════
 
   # T1485 — Data Destruction: DROP TABLE (SQL)
+  # Self-contained: CREATE+INSERT+DROP so the probe actually destroys data and
+  # produces server-side detections, rather than being a no-op DROP IF EXISTS
+  # against a never-created target.
   - name: sql-drop-table
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "DROP TABLE IF EXISTS bobtest_exfil;"]
+                "CREATE TABLE IF NOT EXISTS bobtest_exfil (id INT PRIMARY KEY, payload TEXT); INSERT INTO bobtest_exfil VALUES (1, 'about-to-be-destroyed') ON CONFLICT DO NOTHING; DROP TABLE bobtest_exfil; SELECT 'table_dropped';"]
     expectedDetections: []
 
   # T1496 — Resource Hijacking: crypto mining DNS signal (exec)

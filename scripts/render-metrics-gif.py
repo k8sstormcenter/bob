@@ -98,12 +98,24 @@ PHASE_PREFIXES = {
     "api-bulk-export": "Collection", "api-export-stix": "Collection",
     "api-upload": "Collection", "api-galaxy": "Collection",
     "sql-copy": "Collection", "sql-large": "Collection",
-    "exfil": "Exfil", "reindex-exfil": "Exfil", "reindex-remote": "Exfil",
+    "exfil": "Exfil",
+    "reindex-remote": "Exfil",
     "cmdinject-c2-beacon": "Exfil", "cmdinject-dns-anomaly": "Exfil",
     "postexploit-dns": "Exfil", "exec-dns-anomaly": "Exfil",
-    "lua-dns": "Exfil", "snapshot-repo": "Exfil",
+    "lua-dns": "Exfil",
+    # The next two were misclassified as Exfil. The actual suites place
+    # snapshot-repo-* under "Phase 9: LATERAL MOVEMENT" (elk-attacks.yaml)
+    # and reindex-exfil under "Phase 10: COLLECTION".
+    # See scripts/render-metrics-gif.py rabbit on PR 119.
+    "snapshot-repo": "Lat Movement",
+    "reindex-exfil": "Collection",
     "impact": "Impact", "cmdinject-crypto": "Impact", "exec-crypto": "Impact",
     "sql-drop": "Impact",
+    # api-create-malicious-event is a Reconnaissance probe in
+    # misp-attacks.yaml (Phase 1). The longer prefix wins per the
+    # length-based match in classify_attack(), so list it BEFORE the
+    # generic api-create entry below.
+    "api-create-malicious-event": "Recon",
     "api-create": "Execution", "api-ssrf": "Init Access",
     "api-fetch": "Init Access", "ssrf-cloud": "Init Access",
     "ssrf-internal": "Init Access", "sqli": "Init Access",
