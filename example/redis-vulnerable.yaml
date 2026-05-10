@@ -102,6 +102,18 @@ spec:
         - name: redis
           image: ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10
           command: ["redis-server", "/etc/redis/redis.conf"]
+          # ─── INTENTIONAL MISCONFIGURATIONS for attack-detection testing ────
+          # These mirror real-world Redis-targeting malware footprints
+          # (P2Pinfect, HeadCrab, Muhstik) which all exploit weak isolation.
+          # Do NOT copy this securityContext to a production manifest.
+          securityContext:
+            runAsUser: 999            # redis user
+            allowPrivilegeEscalation: false
+            capabilities:
+              add:
+                - SYS_PTRACE          # T1611 attempt: ptrace host-visible PIDs
+              drop:
+                - NET_RAW
           ports:
             - containerPort: 6379
               name: redis
@@ -110,6 +122,29 @@ spec:
             - name: config
               mountPath: /etc/redis
               readOnly: true
+            # ─── Real-world misconfig #1: Docker socket mount ──
+            # The single most common container-escape vector. Any container
+            # with this mount can fully control the host's container runtime.
+            # MITRE T1610 (Deploy Container) — read-only here so the test
+            # detects the *enumeration* attempt without enabling actual
+            # privileged-container creation.
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+              readOnly: true
+            # ─── Real-world misconfig #2: Host /etc mount (read-only) ──
+            # Frequently seen on misconfigured statefulset templates that mount
+            # /etc to "share certificates". Allows reading host-level secrets
+            # (/etc/shadow, /etc/kubernetes/admin.conf, /etc/ssh/*).
+            # MITRE T1083, T1552.001
+            - name: host-etc
+              mountPath: /host-etc
+              readOnly: true
+            # ─── Real-world misconfig #3: Writable host /tmp ──
+            # Allows persistence file drops (cron, systemd unit fragments,
+            # webshell stages) reachable from other containers/processes.
+            # MITRE T1053.003 (Cron persistence)
+            - name: host-tmp
+              mountPath: /host-tmp
           resources:
             requests:
               cpu: 250m
@@ -131,6 +166,18 @@ spec:
         - name: config
           configMap:
             name: redis-config
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: host-etc
+          hostPath:
+            path: /etc
+            type: Directory
+        - name: host-tmp
+          hostPath:
+            path: /tmp
+            type: Directory
 ---
 apiVersion: v1
 kind: Service

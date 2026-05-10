@@ -1,0 +1,143 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgres-vuln
+---
+# Init SQL: create baseline table for COPY attacks.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pg-vuln-init
+  namespace: postgres-vuln
+data:
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS bobtest (
+      id SERIAL PRIMARY KEY,
+      key TEXT NOT NULL,
+      value TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    INSERT INTO bobtest (key, value) VALUES ('init', 'baseline');
+---
+# PostgreSQL server — deliberately misconfigured with superuser access.
+#
+# CVE-2019-9193: COPY FROM/TO PROGRAM allows any superuser to execute
+# arbitrary OS commands via SQL. This is "by design" for superusers since
+# PostgreSQL 9.3, but misconfigured grants (or direct superuser exposure)
+# turn it into an RCE vector. Exploited by TeamTNT and Kinsing crypto miners.
+#
+# This deployment exposes the `postgres` superuser directly, simulating a
+# common misconfiguration where applications connect as superuser instead of
+# a least-privilege role.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pg-vuln
+  namespace: postgres-vuln
+  labels:
+    app: pg-vuln
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pg-vuln
+  template:
+    metadata:
+      labels:
+        app: pg-vuln
+    spec:
+      containers:
+        - name: postgres
+          image: postgres-vuln:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              value: "app"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "bobctltest"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: init-sql
+          configMap:
+            name: pg-vuln-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-vuln
+  namespace: postgres-vuln
+spec:
+  selector:
+    app: pg-vuln
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
+---
+# Client pod for running psql attacks against the superuser-exposed server.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pg-vuln-client
+  namespace: postgres-vuln
+  labels:
+    app: pg-vuln-client
+    app.kubernetes.io/name: pg-vuln-client
+spec:
+  containers:
+    - name: pg-vuln-client
+      image: postgres-vuln:latest
+      imagePullPolicy: IfNotPresent
+      command: ["sleep", "infinity"]
+      env:
+        - name: PGHOST
+          value: "pg-vuln"
+        - name: PGPORT
+          value: "5432"
+        - name: PGDATABASE
+          value: "app"
+        - name: PGUSER
+          value: "postgres"
+        - name: PGPASSWORD
+          value: "bobctltest"
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+  restartPolicy: Never
+---
+# Headless service for pg-vuln-client (bobctl needs this for exec resolution).
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-vuln-client
+  namespace: postgres-vuln
+spec:
+  selector:
+    app: pg-vuln-client
+  clusterIP: None
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432

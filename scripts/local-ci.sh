@@ -77,13 +77,24 @@ case "$APP" in
     APP_NS=postgres
     APP_FUNC_TESTS=example/postgres-functional-tests.yaml
     APP_ATTACKS=example/postgres-attacks.yaml
-    APP_SERVICE=pg-rw
+    APP_SERVICE=pg-client
     APP_PORT=5432
-    APP_PROFILE_MATCH="pg-"
+    APP_SCHEME=tcp
+    APP_PROFILE_MATCH="pg-client"
+    APP_SCORE_THRESHOLD=0
+    ;;
+  postgres-vuln)
+    APP_NS=postgres-vuln
+    APP_FUNC_TESTS=example/postgres-vuln-functional-tests.yaml
+    APP_ATTACKS=example/postgres-vuln-attacks.yaml
+    APP_SERVICE=pg-vuln-client
+    APP_PORT=5432
+    APP_SCHEME=tcp
+    APP_PROFILE_MATCH="replicaset-pg-vuln"
     APP_SCORE_THRESHOLD=0
     ;;
   *)
-    die "Unknown app: $APP (use webapp, redis, misp, elk, or postgres)"
+    die "Unknown app: $APP (use webapp, redis, misp, elk, postgres, or postgres-vuln)"
     ;;
 esac
 
@@ -181,6 +192,7 @@ else
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
     PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$APP" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | head -1)
     [[ -n "$PROFILE" ]] || die "No completed learned profile found in $APP_NS. Run without --tune-only first."
