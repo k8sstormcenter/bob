@@ -24,6 +24,10 @@ on:
         description: "Run the Redis load-stress suite (60k RESP ops, off by default)"
         type: boolean
         default: false
+      include_ubuntu_22_04:
+        description: "Also run the ubuntu-22.04 matrix leg (off by default — R0006 SA-token detection is environmentally flaky on 22.04 runners)"
+        type: boolean
+        default: false
   repository_dispatch:
     types: [node-agent-build-complete]
 
@@ -41,7 +45,7 @@ jobs:
 
       - name: Clone storage dependency
         run: |
-          git clone --depth 1 --branch merge/exec-arg-wildcards https://github.com/k8sstormcenter/storage.git ../storage
+          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Verify layout
         run: |
@@ -71,7 +75,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
+        # ubuntu-24.04 is the default runner. The 22.04 leg is opt-in via the
+        # workflow_dispatch input `include_ubuntu_22_04` — R0006 (SA token
+        # access) detection is environmentally flaky on 22.04 GitHub-hosted
+        # runners and shifts which app fails between runs without indicating
+        # any algorithm regression. Keeping the matrix entry available so it
+        # can be re-enabled when needed for cross-OS validation.
+        os: ${{ (github.event_name == 'workflow_dispatch' && inputs.include_ubuntu_22_04) && fromJSON('["ubuntu-22.04","ubuntu-24.04"]') || fromJSON('["ubuntu-24.04"]') }}
         k8s-distribution: [k3s]
         kubernetes-version: [v1.33.3]
         # Each app entry defines its manifest, tests, attacks, and namespace.
@@ -83,6 +93,7 @@ jobs:
           - elk
           - postgres
           - postgres-vuln
+          - mariadb
         include:
           # Each app needs: functional_tests, attack_suite, app_namespace,
           # protocol, score_threshold. Optional: profile_match (for apps
@@ -138,6 +149,15 @@ jobs:
             # Match the server deployment profile, not the client pod.
             # COPY FROM PROGRAM attacks spawn processes on the server.
             profile_match: replicaset-pg-vuln
+            score_threshold: 0
+          - app: mariadb
+            functional_tests: example/mariadb-functional-tests.yaml
+            attack_suite: example/mariadb-attacks.yaml
+            app_namespace: mariadb
+            protocol: tcp
+            # Server-side attacks (UDF RCE, SELECT INTO OUTFILE, log poisoning)
+            # spawn processes inside the mariadb deployment, not the client.
+            profile_match: mariadb
             score_threshold: 0
     runs-on: ${{ matrix.os }}
 

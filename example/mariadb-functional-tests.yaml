@@ -1,0 +1,132 @@
+# Benign MariaDB workload — used as the "normal traffic" baseline so the tuner
+# can distinguish attack-driven anomalies from everyday queries. Modeled on
+# upstream mariadb-test (mtr) basic suite + tpcc-style operations.
+#
+# The mariadb-client pod is bundled in mariadb-vulnerable.yaml with the same
+# image as the server, so `mariadb` and `mysqldump` are present.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: mariadb-benign-workload
+target:
+  service: mariadb-client
+  namespace: mariadb
+  port: 3306
+  scheme: tcp
+
+tests:
+  # ── Connectivity / version probes (the absolute baseline) ────────────────
+  - name: ping-server
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb-admin", "-h", "mariadb", "-uroot", "-prootpwd", "ping"]
+    successIndicators:
+      - responseContains: "alive"
+
+  - name: select-version
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-N", "-e", "SELECT VERSION();"]
+    successIndicators:
+      - responseContains: "MariaDB"
+
+  - name: select-1
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "SELECT 1;"]
+    successIndicators:
+      - responseContains: "1"
+
+  # ── Schema introspection (mtr-style) ─────────────────────────────────────
+  - name: show-databases
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-e", "SHOW DATABASES;"]
+    successIndicators:
+      - responseContains: "bob_test"
+
+  - name: use-database-and-show-tables
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-e", "USE bob_test; SHOW TABLES;"]
+    successIndicators:
+      - responseContains: "bench"
+
+  - name: describe-bench
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-e", "USE bob_test; DESCRIBE bench;"]
+    successIndicators:
+      - responseContains: "id"
+
+  - name: show-status-uptime
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "SHOW GLOBAL STATUS LIKE 'Uptime';"]
+    successIndicators:
+      - responseContains: "Uptime"
+
+  # ── DML round-trip (insert / update / delete) ────────────────────────────
+  - name: insert-row
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; INSERT INTO bench (k, v) VALUES ('benign-functional', 'ping'); SELECT ROW_COUNT();"]
+    successIndicators:
+      - responseContains: "1"
+
+  - name: select-row
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; SELECT k, v FROM bench WHERE k='benign-functional' LIMIT 1;"]
+    successIndicators:
+      - responseContains: "benign-functional"
+
+  - name: update-row
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; UPDATE bench SET v='pong' WHERE k='benign-functional'; SELECT ROW_COUNT();"]
+    successIndicators:
+      - responseContains: "1"
+
+  - name: delete-row
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; DELETE FROM bench WHERE k='benign-functional'; SELECT ROW_COUNT();"]
+    successIndicators:
+      - responseContains: "1"
+
+  # ── Aggregations (read-heavy) ────────────────────────────────────────────
+  - name: aggregate-count
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; SELECT COUNT(*) FROM bench;"]
+    successIndicators:
+      - responseRegex: "[0-9]+"
+
+  # ── Transactions (simulates a typical app session) ───────────────────────
+  - name: txn-insert-rollback
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; START TRANSACTION; INSERT INTO bench (k, v) VALUES ('rollback-test', '1'); ROLLBACK; SELECT COUNT(*) FROM bench WHERE k='rollback-test';"]
+    successIndicators:
+      - responseContains: "0"
+
+  - name: txn-insert-commit
+    exec:
+      pod: mariadb-client
+      container: client
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; START TRANSACTION; INSERT INTO bench (k, v) VALUES ('commit-test', '1'); COMMIT; DELETE FROM bench WHERE k='commit-test';"]
+    successIndicators: []
