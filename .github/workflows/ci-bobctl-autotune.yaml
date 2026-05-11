@@ -225,6 +225,39 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=storage -n honey --timeout=180s
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 
+      # ---------- App-specific auth-token substitution ----------
+      # MISP's attack suite uses HTTP requests with the placeholder
+      # __MISP_API_KEY__ in the Authorization header. The Helm chart generates
+      # a random 40-char API key on install and stores it in the `misp` secret
+      # under key `apikey`, and the entrypoint sets that as the admin user's
+      # authkey on first boot. Resolve the real value here so the suite's
+      # ssrf/sqli/lfi attacks authenticate instead of returning 403.
+      - name: Substitute MISP API key in attack suite
+        if: matrix.app == 'misp'
+        run: |
+          # Wait briefly for the secret to materialise (Helm may still be reconciling).
+          for i in $(seq 1 30); do
+            KEY=$(kubectl get secret -n misp misp -o jsonpath='{.data.apikey}' 2>/dev/null | base64 -d 2>/dev/null || true)
+            if [ -n "$KEY" ] && [ "${#KEY}" -ge 32 ]; then break; fi
+            echo "  waiting for misp/apikey secret ($i/30)..."; sleep 5
+          done
+          if [ -z "$KEY" ] || [ "${#KEY}" -lt 32 ]; then
+            echo "FAIL: could not retrieve misp apikey (got len=${#KEY})"
+            kubectl get secret -n misp misp -o yaml 2>&1 | head -30
+            exit 1
+          fi
+          echo "MISP api key length: ${#KEY}"
+          # In-place substitute. The placeholder is unique enough that a naive
+          # sed won't collide with other YAML content.
+          sed -i "s|__MISP_API_KEY__|$KEY|g" ${{ matrix.attack_suite }}
+          # Verify substitution happened.
+          REMAINING=$(grep -c "__MISP_API_KEY__" ${{ matrix.attack_suite }} || true)
+          if [ "$REMAINING" != "0" ]; then
+            echo "FAIL: $REMAINING placeholders still present after substitution"
+            exit 1
+          fi
+          echo "MISP API key substituted into ${{ matrix.attack_suite }}"
+
       # ---------- Profile learning (unified) ----------
       - name: Learn application profile
         id: profile

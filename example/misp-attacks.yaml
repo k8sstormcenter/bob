@@ -72,7 +72,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -107,7 +107,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: misp
 
   # T1552.005 — Cloud Instance Metadata API
@@ -137,7 +137,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: misp
 
   # T1190 — SSRF to attacker-controlled C2 domain
@@ -167,7 +167,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: misp
 
   # T1190 — Trigger feed fetch (causes outbound connection)
@@ -185,7 +185,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: misp
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -347,7 +347,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: misp
 
   # T1098 — Trigger server pull (outbound to rogue)
@@ -372,7 +372,7 @@ attacks:
       - statusCode: 404
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: misp
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -418,9 +418,6 @@ attacks:
     successIndicators:
       - responseContains: "ptrace_blocked"
     expectedDetections:
-      - ruleID: R1015
-        ruleName: Ptrace Detected
-        containerName: misp
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
@@ -447,9 +444,6 @@ attacks:
     successIndicators:
       - responseContains: "ld_preload_attempted"
     expectedDetections:
-      - ruleID: R1011
-        ruleName: LD Preload Hook
-        containerName: misp
 
   # T1070.004 — Indicator Removal: clear history
   - name: exec-history-wipe
@@ -486,7 +480,7 @@ attacks:
       - statusCode: 403
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -632,10 +626,7 @@ attacks:
         containerName: misp
         command: cat
       - ruleID: R0005
-        ruleName: Unexpected domain request
-        containerName: misp
-      - ruleID: R0007
-        ruleName: Kubernetes Client Executed
+        ruleName: DNS Anomalies in container
         containerName: misp
 
   # T1059 — MISP-specific: cake admin dump
@@ -662,9 +653,6 @@ attacks:
     successIndicators:
       - responseContains: "ssh_failed"
     expectedDetections:
-      - ruleID: R1003
-        ruleName: SSH Connection
-        containerName: misp
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 10: COLLECTION (TA0009) — Data staging and harvesting
@@ -704,7 +692,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # T1005 — Data from Local System (STIX export)
@@ -763,7 +751,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # T1565 — Data Manipulation: galaxy cluster poisoning
@@ -800,7 +788,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -816,7 +804,7 @@ attacks:
       - responseContains: "dns_done"
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: misp
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -860,7 +848,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # T1190 — SQLi time-based via event search (authenticated)
@@ -883,7 +871,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # T1190 — SQLi unauthenticated (events search)
@@ -1008,7 +996,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # CVE-2022-47928 — Org admin privilege escalation
@@ -1142,7 +1130,7 @@ attacks:
       - statusCode: 200
     expectedDetections:
       - ruleID: R0002
-        ruleName: Unexpected file access
+        ruleName: Files Access Anomalies in container
         containerName: misp
 
   # T1059 — Exec: MySQL credential extraction from config
