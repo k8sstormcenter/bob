@@ -310,13 +310,19 @@ attacks:
       - responseContains: "Query OK"
     expectedDetections: []
 
+  # Cleanups accept either "Query OK" (the mutation was present and got reverted)
+  # or a specific not-applicable error code (the mutation never landed, so the
+  # cleanup is a no-op). Broad "ERROR" was masking permission/connectivity
+  # failures as cleanup success.
   - name: cleanup-drop-udf-function
     type: sqli
     exec:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "DROP FUNCTION IF EXISTS sys_exec;"]
     successIndicators:
       - responseContains: "Query OK"
-      - responseContains: "ERROR"
+      # DROP FUNCTION IF EXISTS only warns when missing; no specific error code
+      # to match. If DROP fails for permission/connection reasons, the cleanup
+      # legitimately failed and the suite SHOULD surface that.
     expectedDetections: []
 
   - name: cleanup-reset-replication
@@ -325,7 +331,9 @@ attacks:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "RESET SLAVE ALL;"]
     successIndicators:
       - responseContains: "Query OK"
-      - responseContains: "ERROR"
+      # ER_SLAVE_CHANNEL_DOES_NOT_EXIST (1942) is the legitimate "no replication
+      # to reset" case — accept that specific code only, not bare ERROR.
+      - responseContains: "ERROR 1942"
     expectedDetections: []
 
   # Restore general_log_file to its original /var/log/mysql/general.log path.
