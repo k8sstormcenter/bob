@@ -235,15 +235,18 @@ jobs:
       - name: Substitute MISP API key in attack suite
         if: matrix.app == 'misp'
         run: |
-          # Wait briefly for the secret to materialise (Helm may still be reconciling).
+          # The Helm chart names the secret `<release>-misp-secrets` (release
+          # "misp" + chart "misp" + suffix). Wait briefly for it to materialise
+          # — Helm may still be reconciling when this step starts.
+          SECRET=misp-misp-secrets
           for i in $(seq 1 30); do
-            KEY=$(kubectl get secret -n misp misp -o jsonpath='{.data.apikey}' 2>/dev/null | base64 -d 2>/dev/null || true)
+            KEY=$(kubectl get secret -n misp "$SECRET" -o jsonpath='{.data.apikey}' 2>/dev/null | base64 -d 2>/dev/null || true)
             if [ -n "$KEY" ] && [ "${#KEY}" -ge 32 ]; then break; fi
-            echo "  waiting for misp/apikey secret ($i/30)..."; sleep 5
+            echo "  waiting for $SECRET/apikey ($i/30)..."; sleep 5
           done
           if [ -z "$KEY" ] || [ "${#KEY}" -lt 32 ]; then
-            echo "FAIL: could not retrieve misp apikey (got len=${#KEY})"
-            kubectl get secret -n misp misp -o yaml 2>&1 | head -30
+            echo "FAIL: could not retrieve misp apikey from $SECRET (got len=${#KEY})"
+            kubectl -n misp get secrets 2>&1 | head -10
             exit 1
           fi
           echo "MISP api key length: ${#KEY}"
