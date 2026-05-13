@@ -15,7 +15,7 @@ spec:
           - eventType: exec
             expression: >-
               !ap.was_executed(event.containerId,
-              parse.get_exec_path(event.args, event.comm))
+              parse.get_exec_path(event.args, event.comm, event.exepath))
         uniqueId: event.comm + '_' + event.exepath
       id: R0001
       isTriggerAlert: true
@@ -168,7 +168,7 @@ spec:
             expression: >-
               (event.comm == 'kubectl' || event.exepath.endsWith('/kubectl')) &&
               !ap.was_executed(event.containerId,
-              parse.get_exec_path(event.args, event.comm))
+              parse.get_exec_path(event.args, event.comm, event.exepath))
           - eventType: network
             expression: >-
               event.pktType == 'OUTGOING' &&
@@ -331,7 +331,7 @@ spec:
               (event.upperlayer == true ||
                event.pupperlayer == true) &&
               !ap.was_executed(event.containerId,
-              parse.get_exec_path(event.args, event.comm))
+              parse.get_exec_path(event.args, event.comm, event.exepath))
         uniqueId: event.comm + '_' + event.exepath + '_' + event.pcomm
       id: R1001
       isTriggerAlert: true
@@ -407,10 +407,10 @@ spec:
           - eventType: exec
             expression: >-
               !ap.was_executed(event.containerId,
-              parse.get_exec_path(event.args, event.comm)) &&
+              parse.get_exec_path(event.args, event.comm, event.exepath)) &&
               k8s.get_container_mount_paths(event.namespace, event.podName,
               event.containerName).exists(mount, event.exepath.startsWith(mount)
-              || parse.get_exec_path(event.args, event.comm).startsWith(mount))
+              || parse.get_exec_path(event.args, event.comm, event.exepath).startsWith(mount))
         uniqueId: event.comm
       id: R1004
       isTriggerAlert: true
