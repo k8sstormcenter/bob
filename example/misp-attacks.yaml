@@ -530,8 +530,14 @@ attacks:
       command: ["sh", "-c", "grep -r 'redis_password\\|redis_host\\|SimpleBackgroundJobs' /var/www/MISP/app/Config/ 2>/dev/null | head -10 || echo no_redis_config"]
     successIndicators:
       - responseContains: "redis"
-    # NOTE: grep in baseline; real cred-read fires R0010 via unix_chkpwd (covered) — assertion dropped, attack still runs.
-    expectedDetections: []
+    # The grep walk triggers NSS lookups through unix_chkpwd, which reads
+    # /etc/shadow as part of its PAM flow — that opens R0010 (Sensitive
+    # File Access). Verified firing in CI (see Late-match log on PR #120).
+    expectedDetections:
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: misp
+        command: unix_chkpwd
   # T1552 — Symlink over sensitive file
   - name: exec-symlink-shadow
     type: cmdinject
