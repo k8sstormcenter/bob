@@ -527,9 +527,13 @@ attacks:
   - name: exec-read-valkey-creds
     type: cmdinject
     exec:
-      command: ["sh", "-c", "grep -r 'redis_password\\|redis_host\\|SimpleBackgroundJobs' /var/www/MISP/app/Config/ 2>/dev/null | head -10 || echo no_redis_config"]
+      # grep -rqE returns 0 only when a match is found. The fallback sentinel
+      # 'no_valkey_creds' is deliberately disjoint from the success sentinel
+      # 'valkey_creds_found' so the probe cannot false-pass when /var/www/
+      # MISP/app/Config is empty or unreadable.
+      command: ["sh", "-c", "grep -rqE 'redis_password|redis_host|SimpleBackgroundJobs' /var/www/MISP/app/Config/ 2>/dev/null && echo valkey_creds_found || echo no_valkey_creds"]
     successIndicators:
-      - responseContains: "redis"
+      - responseContains: "valkey_creds_found"
     # The grep walk triggers NSS lookups through unix_chkpwd, which reads
     # /etc/shadow as part of its PAM flow — that opens R0010 (Sensitive
     # File Access). Verified firing in CI (see Late-match log on PR #120).
@@ -1285,7 +1289,13 @@ attacks:
   - name: lateral-mariadb-show-databases
     type: cmdinject
     exec:
-      command: ["sh", "-c", "MYSQL_PWD=\"$(cat /vault/mariadb/mariadb-password 2>/dev/null)\" mysql -h misp-mariadb -u misp -N -e 'SHOW DATABASES; SELECT user FROM mysql.user;' 2>/dev/null | grep -q '^misp$' && echo mariadb_enum_ok"]
+      # Use bash + pipefail so a denied SELECT on the privileged mysql.user
+      # table propagates through the pipe instead of getting swallowed by
+      # grep's exit code. The awk counter requires TWO "misp" lines (one
+      # from SHOW DATABASES, one from SELECT user FROM mysql.user) — if
+      # either query is denied or returns nothing, the count stays <2 and
+      # the sentinel is not emitted.
+      command: ["bash", "-o", "pipefail", "-c", "MYSQL_PWD=\"$(cat /vault/mariadb/mariadb-password 2>/dev/null)\" mysql -h misp-mariadb -u misp -N -e \"SHOW DATABASES LIKE 'misp'; SELECT user FROM mysql.user WHERE user='misp';\" 2>/dev/null | awk '$0==\"misp\"{c++} END{exit !(c>=2)}' && echo mariadb_enum_ok"]
     successIndicators:
       - responseContains: "mariadb_enum_ok"
     expectedDetections: []
