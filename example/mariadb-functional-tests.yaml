@@ -128,5 +128,9 @@ tests:
     exec:
       pod: mariadb-client
       container: client
-      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; START TRANSACTION; INSERT INTO bench (k, v) VALUES ('commit-test', '1'); COMMIT; DELETE FROM bench WHERE k='commit-test';"]
-    successIndicators: []
+      # Assert the row count after COMMIT (must be 1) before deleting it —
+      # otherwise the test passes on any successful exec, even if COMMIT
+      # silently rolled back.
+      command: ["mariadb", "-h", "mariadb", "-uapp", "-papppass", "-N", "-e", "USE bob_test; START TRANSACTION; INSERT INTO bench (k, v) VALUES ('commit-test', '1'); COMMIT; SELECT CONCAT('committed-rows=', COUNT(*)) FROM bench WHERE k='commit-test'; DELETE FROM bench WHERE k='commit-test';"]
+    successIndicators:
+      - responseContains: "committed-rows=1"

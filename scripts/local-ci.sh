@@ -97,7 +97,10 @@ case "$APP" in
     APP_NS=mariadb
     APP_FUNC_TESTS=example/mariadb-functional-tests.yaml
     APP_ATTACKS=example/mariadb-attacks.yaml
-    APP_SERVICE=mariadb
+    # Target service must match what both suites declare (mariadb-client) —
+    # otherwise local runs exercise a different exec-resolve path than CI
+    # and can mask client-side regressions.
+    APP_SERVICE=mariadb-client
     APP_PORT=3306
     APP_SCHEME=tcp
     # Match the server deployment profile: server-side attacks (UDF RCE,

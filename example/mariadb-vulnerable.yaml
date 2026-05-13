@@ -126,6 +126,14 @@ spec:
           env:
             - name: MARIADB_ROOT_PASSWORD
               value: rootpwd
+            # MARIADB_ROOT_HOST=% — the official entrypoint only creates
+            # root@'localhost' from MARIADB_ROOT_PASSWORD; without this var
+            # cross-pod auth from mariadb-client (`mariadb -h mariadb -uroot`)
+            # fails with ER_HOST_NOT_PRIVILEGED. Setting it to "%" lets the
+            # client suites authenticate. The init.sql GRANT to root@'%' is
+            # also there as a belt-and-braces backup.
+            - name: MARIADB_ROOT_HOST
+              value: "%"
             - name: MARIADB_DATABASE
               value: bob_test
           args:
