@@ -605,7 +605,11 @@ attacks:
   - name: escape-mount-enumeration
     type: cmdinject
     exec:
-      command: ["sh", "-c", "grep -E 'docker.sock|/host-etc|/host-tmp' /proc/self/mountinfo | head -10; echo mount_enum_done"]
+      # `grep -qE` returns 0 only when at least one hostPath mount is present.
+      # Without the && guard, a clean container with no hostPath misconfig
+      # would still emit `mount_enum_done` and falsely report the recon
+      # primitive as working — masking a regression in the test fixture.
+      command: ["sh", "-c", "grep -qE 'docker.sock|/host-etc|/host-tmp' /proc/self/mountinfo && echo mount_enum_done"]
     successIndicators:
       - responseContains: "mount_enum_done"
     expectedDetections:
