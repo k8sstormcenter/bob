@@ -92,7 +92,9 @@ attacks:
     exec:
       command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-N", "-e", "SELECT LOAD_FILE('/host-etc/os-release');"]
     successIndicators:
-      - responseRegex: ".+"
+      # Match a stable /etc/os-release marker — accepting any non-empty
+      # output would pass on error text too.
+      - responseRegex: "^(NAME=|ID=|PRETTY_NAME=)"
     # NOTE: R0002 (Files Access Anomalies) fires locally for these server-side
     # paths but does NOT propagate to the bobctl verify window in CI's k3s
     # cluster (the alert is generated but lands after the per-attack alert
@@ -242,7 +244,9 @@ attacks:
     exec:
       command: ["cat", "/etc/shadow"]
     successIndicators:
-      - responseRegex: ".+"
+      # Require the shadow-file shape (root entry) — wildcard regex would
+      # pass on "Permission denied" or "No such file" too.
+      - responseContains: "root:"
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
