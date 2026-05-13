@@ -73,6 +73,15 @@ deploy-redis:
 	kubectl apply -f example/redis-vulnerable.yaml
 	kubectl wait --for=condition=available --timeout=120s deployment/redis -n redis
 
+.PHONY: deploy-mariadb
+deploy-mariadb:
+	@echo "=== Deploying mariadb (manifest, intentionally insecure) ==="
+	kubectl apply -f example/mariadb-vulnerable.yaml
+	kubectl wait --for=condition=available --timeout=180s deployment/mariadb -n mariadb
+	kubectl wait --for=condition=available --timeout=120s deployment/mariadb-client -n mariadb
+	@echo "=== Pods in mariadb ==="
+	kubectl get pods -n mariadb
+
 .PHONY: deploy-misp
 deploy-misp:
 	@echo "=== Deploying misp (helm) ==="

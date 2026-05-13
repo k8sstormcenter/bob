@@ -93,8 +93,24 @@ case "$APP" in
     APP_PROFILE_MATCH="replicaset-pg-vuln"
     APP_SCORE_THRESHOLD=0
     ;;
+  mariadb)
+    APP_NS=mariadb
+    APP_FUNC_TESTS=example/mariadb-functional-tests.yaml
+    APP_ATTACKS=example/mariadb-attacks.yaml
+    # Target service must match what both suites declare (mariadb-client) —
+    # otherwise local runs exercise a different exec-resolve path than CI
+    # and can mask client-side regressions.
+    APP_SERVICE=mariadb-client
+    APP_PORT=3306
+    APP_SCHEME=tcp
+    # Match the server deployment profile: server-side attacks (UDF RCE,
+    # SELECT INTO OUTFILE, log poisoning) spawn processes inside the
+    # mariadb pod. The client pod has its own profile.
+    APP_PROFILE_MATCH="replicaset-mariadb"
+    APP_SCORE_THRESHOLD=0
+    ;;
   *)
-    die "Unknown app: $APP (use webapp, redis, misp, elk, postgres, or postgres-vuln)"
+    die "Unknown app: $APP (use webapp, redis, misp, elk, postgres, postgres-vuln, or mariadb)"
     ;;
 esac
 

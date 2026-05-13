@@ -1,0 +1,308 @@
+# MariaDB 11.x — INTENTIONALLY VULNERABLE deployment for bobctl detection tests.
+#
+# Misconfigurations baked in (mirrors common real-world mistakes):
+#   - root password is well-known ("rootpwd")
+#   - secure_file_priv = ""  (allows SELECT … INTO OUTFILE / LOAD_FILE() to/from anywhere)
+#   - local_infile = ON      (allows LOAD DATA LOCAL INFILE client-server file read)
+#   - hostPath /etc          mounted at /host-etc (read-only) → host-secret reads
+#   - hostPath /tmp          mounted at /host-tmp (writable) → cross-NS staging
+#   - hostPath containerd.sock mounted at /var/run/runtime.sock → T1610 probe
+#   - CAP_SYS_PTRACE granted → ptrace of in-namespace PIDs
+#
+# This image is not vendored here — it's the official mariadb container
+# (no custom build needed). Apply: kubectl apply -f mariadb-vulnerable.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mariadb
+  labels:
+    app.kubernetes.io/name: mariadb
+    app.kubernetes.io/part-of: bob-attack-detection
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mariadb
+  namespace: mariadb
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mariadb
+  namespace: mariadb
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mariadb
+  namespace: mariadb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mariadb
+subjects:
+  - kind: ServiceAccount
+    name: mariadb
+    namespace: mariadb
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mariadb-config
+  namespace: mariadb
+data:
+  # MariaDB server config with the intentional FILE/local_infile relaxations.
+  # The empty `secure_file_priv` is the single most common real-world misconfig
+  # (often left empty during development, then forgotten). It enables UDF
+  # library loading, SELECT INTO OUTFILE webshell drops, and LOAD_FILE() reads.
+  my.cnf: |
+    [mysqld]
+    bind-address = 0.0.0.0
+    port = 3306
+    datadir = /var/lib/mysql
+    socket = /var/run/mysqld/mysqld.sock
+    pid-file = /var/run/mysqld/mysqld.pid
+    log_error = /var/log/mysql/error.log
+    general_log = OFF
+    general_log_file = /var/log/mysql/general.log
+
+    # === INTENTIONAL MISCONFIGURATIONS ===
+    secure_file_priv =
+    local_infile = ON
+    plugin_dir = /var/lib/mysql-plugins
+
+    # Plugins
+    plugin_load_add = file_key_management
+
+    # Allow sufficient connections for the tuner
+    max_connections = 100
+    max_allowed_packet = 64M
+
+  # Init script — creates the test database, a low-priv user, and grants
+  # FILE on the root account so SELECT INTO OUTFILE can be exercised.
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS bob_test;
+    USE bob_test;
+    CREATE TABLE IF NOT EXISTS bench (id INT AUTO_INCREMENT PRIMARY KEY, k VARCHAR(64), v TEXT);
+    INSERT INTO bench (k, v) VALUES ('seed', 'initial-row');
+
+    -- Low-priv app user for the functional tests (read/write on bob_test only).
+    CREATE USER IF NOT EXISTS 'app'@'%' IDENTIFIED BY 'apppass';
+    GRANT SELECT, INSERT, UPDATE, DELETE ON bob_test.* TO 'app'@'%';
+
+    -- Root retains FILE + SUPER (needed to exercise UDF / OUTFILE attacks).
+    GRANT FILE, SUPER ON *.* TO 'root'@'%';
+    FLUSH PRIVILEGES;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: mariadb
+  labels:
+    app.kubernetes.io/name: mariadb
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mariadb
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mariadb
+    spec:
+      serviceAccountName: mariadb
+      containers:
+        - name: mariadb
+          image: mariadb:11.4
+          # Well-known root password — this is part of the misconfig.
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              value: rootpwd
+            # MARIADB_ROOT_HOST=% — the official entrypoint only creates
+            # root@'localhost' from MARIADB_ROOT_PASSWORD; without this var
+            # cross-pod auth from mariadb-client (`mariadb -h mariadb -uroot`)
+            # fails with ER_HOST_NOT_PRIVILEGED. Setting it to "%" lets the
+            # client suites authenticate. The init.sql GRANT to root@'%' is
+            # also there as a belt-and-braces backup.
+            - name: MARIADB_ROOT_HOST
+              value: "%"
+            - name: MARIADB_DATABASE
+              value: bob_test
+          args:
+            - --defaults-extra-file=/etc/mariadb-extra/my.cnf
+          ports:
+            - containerPort: 3306
+              name: mysql
+              protocol: TCP
+          # ─── INTENTIONAL securityContext misconfig ──────────────────────
+          # CAP_SYS_PTRACE allows ptrace of any process in the same PID
+          # namespace — sufficient to exfiltrate memory of mysqld peers.
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: true
+            capabilities:
+              add:
+                - SYS_PTRACE
+          volumeMounts:
+            - name: config
+              mountPath: /etc/mariadb-extra
+              readOnly: true
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/mysql
+            - name: plugins
+              mountPath: /var/lib/mysql-plugins
+            # ─── Real-world misconfig #1: container-runtime socket ─────────
+            # T1610 (Deploy Container). Frequently seen on dev clusters
+            # where the team mounts the docker/containerd socket "for
+            # debugging" and never removes it.
+            - name: runtime-sock
+              mountPath: /var/run/runtime.sock
+              readOnly: true
+            # ─── Real-world misconfig #2: host /etc read-only ──────────────
+            # T1083 / T1552.001. Allows reading host-level secrets from
+            # within the database container (passwords, ssh, kube admin
+            # configs) without any RCE.
+            - name: host-etc
+              mountPath: /host-etc
+              readOnly: true
+            # ─── Real-world misconfig #3: writable host /tmp ───────────────
+            # T1053.003 / T1611. Cross-namespace staging via a path that
+            # other host services or sibling pods may consume.
+            - name: host-tmp
+              mountPath: /host-tmp
+            # ─── Real-world misconfig #4: log directory shared ─────────────
+            # Used by the log-poisoning attack — writing PHP/JSP-flavoured
+            # SQL queries into general_log_file produces a "logfile webshell"
+            # if the application server reads /var/log/mysql.
+            - name: mysql-logs
+              mountPath: /var/log/mysql
+          resources:
+            requests:
+              cpu: 250m
+              memory: 384Mi
+            limits:
+              cpu: "1"
+              memory: 768Mi
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "mariadb-admin -uroot -prootpwd ping || mysqladmin -uroot -prootpwd ping"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "mariadb-admin -uroot -prootpwd ping || mysqladmin -uroot -prootpwd ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: mariadb-config
+            items:
+              - key: my.cnf
+                path: my.cnf
+        - name: initdb
+          configMap:
+            name: mariadb-config
+            items:
+              - key: init.sql
+                path: 01-init.sql
+        - name: data
+          emptyDir: {}
+        - name: plugins
+          emptyDir: {}
+        - name: mysql-logs
+          emptyDir: {}
+        - name: runtime-sock
+          hostPath:
+            # Auto-falls-back to docker.sock if containerd isn't present.
+            # Works on Kind (containerd) and on standard CI runners (docker).
+            path: /var/run/containerd/containerd.sock
+            type: ""
+        - name: host-etc
+          hostPath:
+            path: /etc
+            type: Directory
+        - name: host-tmp
+          hostPath:
+            path: /tmp
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: mariadb
+  labels:
+    app.kubernetes.io/name: mariadb
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: mariadb
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
+      name: mysql
+---
+# Client pod — a separate workload that connects to MariaDB over the network.
+# Functional tests and many attacks run as `kubectl exec mariadb-client -- mariadb …`,
+# so most exec-flavoured attacks land in this pod's profile, while server-side
+# attacks (UDF RCE, INTO OUTFILE, log poisoning) land in the mariadb deployment.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-client
+  namespace: mariadb
+  labels:
+    app.kubernetes.io/name: mariadb-client
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: mariadb-client
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
+      name: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb-client
+  namespace: mariadb
+  labels:
+    app.kubernetes.io/name: mariadb-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mariadb-client
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mariadb-client
+    spec:
+      containers:
+        - name: client
+          image: mariadb:11.4
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

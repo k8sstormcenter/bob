@@ -61,7 +61,7 @@ attacks:
       command: ["sh", "-c", "getent hosts evil.attacker.example.com || echo dns_done"]
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: redis-client
 
   # T1613 — Container and Resource Discovery: K8s API
@@ -77,7 +77,7 @@ attacks:
         containerName: redis-client
         command: cat
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: redis-client
       - ruleID: R0001
         ruleName: Unexpected process launched

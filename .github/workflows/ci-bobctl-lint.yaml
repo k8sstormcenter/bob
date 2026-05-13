@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - feat/crd
+      - feat/tdd
+      - feat/mariadb
     paths:
       - 'pkg/**'
       - '.github/workflows/ci-bobctl-lint.yaml'
@@ -31,7 +33,7 @@ jobs:
 
       - name: Clone storage dependency
         run: |
-          git clone --depth 1 --branch merge/exec-arg-wildcards https://github.com/k8sstormcenter/storage.git ../storage
+          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -60,7 +62,7 @@ jobs:
 
       - name: Clone storage dependency
         run: |
-          git clone --depth 1 --branch merge/exec-arg-wildcards https://github.com/k8sstormcenter/storage.git ../storage
+          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Set up Go
         uses: actions/setup-go@v5
