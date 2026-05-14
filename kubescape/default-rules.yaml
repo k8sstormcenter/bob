@@ -46,7 +46,9 @@ spec:
               !ap.was_executed_with_args(event.containerId,
               parse.get_exec_path(event.args, event.comm, event.exepath),
               event.args)
-        uniqueId: event.comm + '_' + event.exepath
+        uniqueId: >-
+          event.comm + '_' + parse.get_exec_path(event.args, event.comm,
+          event.exepath)
       id: R0040
       isTriggerAlert: true
       mitreTactic: TA0002
