@@ -776,3 +776,24 @@ spec:
         - tls
         - exec
         - container_administration_command
+    - description: >-
+        Detects when a previously signed ApplicationProfile or
+        NetworkNeighborhood has been tampered with (signature no longer
+        valid).
+      enabled: true
+      expressions:
+        message: "'Signed profile tampered'"
+        uniqueId: "'R1016'"
+        ruleExpression: []
+      id: R1016
+      isTriggerAlert: false
+      mitreTactic: TA0005
+      mitreTechnique: T1565
+      name: Signed profile tampered
+      profileDependency: 2
+      severity: 10
+      supportPolicy: false
+      tags:
+        - integrity
+        - signature
+        - tamper
