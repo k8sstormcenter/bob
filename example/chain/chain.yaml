@@ -1,0 +1,274 @@
+# Four-component chain demo namespace. Reuses the existing redis-vulnerable
+# image (redis:7.2-alpine + tools) and the existing postgres-vuln image
+# (built by `make build-postgres-vuln`). Backend is built from
+# example/chain/backend/. Frontend is the upstream Pixie protocol_loadtest_
+# server image — used as a benign HTTP server that backend can call for
+# enrichment, NOT as the attacker entrypoint.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chain
+  labels:
+    kubescape.io/ignore: "false"
+
+# ────────────────────── postgres-vuln ─────────────────────────────────
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chain-postgres
+  namespace: chain
+spec:
+  selector:
+    app: chain-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-postgres
+  namespace: chain
+  labels:
+    app: chain-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chain-postgres
+  template:
+    metadata:
+      labels:
+        app: chain-postgres
+    spec:
+      containers:
+        - name: pg-vuln
+          # Upstream postgres:16 already ships postgres-contrib (dblink,
+          # COPY FROM PROGRAM as superuser) — the only things the chain
+          # scenarios need from a "vuln" postgres. Avoiding the custom
+          # postgres-vuln:latest image means no local image-load step
+          # is required for the demo (kubelet pulls public postgres:16
+          # on its own via containerd).
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: postgres
+          ports:
+            - containerPort: 5432
+              name: pg
+          # Resource limits matter — chain demo cluster is shared with
+          # other apps. Without these one COPY FROM PROGRAM scenario can
+          # run away. (Per AUTOTUNING.md feedback_miner_resource_limits.)
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1
+              memory: 512Mi
+
+# ─────────────────────────── redis ────────────────────────────────────
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chain-redis-config
+  namespace: chain
+data:
+  redis.conf: |
+    protected-mode no
+    bind 0.0.0.0
+    port 6379
+    save ""
+    appendonly no
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru
+    loglevel notice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chain-redis
+  namespace: chain
+spec:
+  selector:
+    app: chain-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-redis
+  namespace: chain
+  labels:
+    app: chain-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chain-redis
+  template:
+    metadata:
+      labels:
+        app: chain-redis
+    spec:
+      containers:
+        - name: redis
+          # Use the repo's deliberately-vulnerable redis image — same one
+          # example/redis-vulnerable.yaml + redis-attacks.yaml use. It
+          # patches Lua's __newindex protection so package.loadlib + io
+          # become reachable from EVAL, reproducing the CVE-2022-0543
+          # sandbox escape that vanilla redis:7.2 hardens against. THIS
+          # is the "redis has a fileless vulnerability" precondition the
+          # chain story needs.
+          image: ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10
+          imagePullPolicy: IfNotPresent
+          command: ["redis-server", "/etc/redis/redis.conf"]
+          ports:
+            - containerPort: 6379
+              name: redis
+          volumeMounts:
+            - name: config
+              mountPath: /etc/redis
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: chain-redis-config
+
+# ────────────────────────── backend ───────────────────────────────────
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chain-backend
+  namespace: chain
+spec:
+  selector:
+    app: chain-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-backend
+  namespace: chain
+  labels:
+    app: chain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chain-backend
+  template:
+    metadata:
+      labels:
+        app: chain-backend
+    spec:
+      containers:
+        - name: chain-backend
+          image: chain-backend:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DSN
+              value: "host=chain-postgres port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
+            - name: LISTEN_ADDR
+              value: ":8080"
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 12
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+
+# ────────────────────────── frontend ──────────────────────────────────
+# Custom Go service exposing:
+#   - /api/products    → proxies to chain-backend
+#   - /api/cache/eval  → proxies user-supplied Lua to redis EVAL
+#                        (legitimate atomic-counter pattern; the script
+#                         being untrusted is the chain demo's vector)
+# Frontend's NetworkNeighborhood will record edges to BOTH backend AND
+# redis after learning — so the attack's TCP connection from frontend
+# to redis is NOT a NN violation. The exploit fires in the redis pod.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chain-frontend
+  namespace: chain
+spec:
+  selector:
+    app: chain-frontend
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-frontend
+  namespace: chain
+  labels:
+    app: chain-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chain-frontend
+  template:
+    metadata:
+      labels:
+        app: chain-frontend
+    spec:
+      containers:
+        - name: chain-frontend
+          image: chain-frontend:latest   # rewritten by local-ci-chain.sh
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BACKEND_URL
+              value: "http://chain-backend.chain.svc:8080"
+            - name: REDIS_ADDR
+              value: "chain-redis.chain.svc:6379"
+            - name: LISTEN_ADDR
+              value: ":8080"
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 12
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

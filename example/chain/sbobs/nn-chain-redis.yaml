@@ -1,0 +1,44 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-chain/kind-ReplicaSet/name-chain-redis-65bbb4cd87
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: f0094f014e60f8c1f9c9c82b3f9e2a64683cc79600e8964468623271c47377b4
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-chain/deployment-chain-redis
+  creationTimestamp: "2026-05-16T17:41:08Z"
+  labels:
+    kubescape.io/instance-template-hash: 65bbb4cd87
+    kubescape.io/learning-period: 2m
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-redis
+    kubescape.io/workload-namespace: chain
+    kubescape.io/workload-resource-version: "21488"
+  name: replicaset-chain-redis-65bbb4cd87
+  namespace: chain
+  resourceVersion: "1"
+spec:
+  containers:
+  - egress: null
+    ingress:
+    - dns: ""
+      dnsNames: null
+      identifier: 848dd30b2832a5a08303b089c448b5a8e51d9ffeca76f0ff7b93060d50e44a36
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-frontend
+      ports:
+      - name: TCP-6379
+        port: 6379
+        protocol: TCP
+      type: internal
+    name: redis
+  ephemeralContainers: null
+  initContainers: null
+  matchLabels:
+    app: chain-redis
