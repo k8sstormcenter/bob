@@ -48,10 +48,13 @@ jobs:
 
       - name: Clone storage dependency
         run: |
-          # The merge-upstream-rearch branch carries the v0.0.2
-          # NetworkNeighbor.IPAddresses field that bobctl's network_collapse.go
-          # depends on. Once merged to main this will switch to main.
-          git clone --depth 1 --branch merge/upstream-profile-rearch https://github.com/k8sstormcenter/storage.git ../storage
+          # main now carries the v0.0.2 NetworkNeighbor refactor that
+          # bobctl's network_collapse.go depends on (the prior
+          # merge/upstream-profile-rearch branch was merged into main
+          # and deleted upstream on 2026-05-16; CI built green on
+          # that SHA but the very next push failed with "Remote branch
+          # merge/upstream-profile-rearch not found").
+          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Verify layout
         run: |
