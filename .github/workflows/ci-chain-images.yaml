@@ -52,6 +52,13 @@ jobs:
       # would break the chain demo, this test catches it pre-push.
       - name: Run unit tests
         working-directory: example/chain/${{ matrix.component }}
+        # GOWORK=off because the repo's root go.work pulls in the pkg/
+        # submodule which isn't cloned in this checkout (and isn't
+        # needed by chain components — they have isolated go.mods).
+        # Without this, go test errors with "cannot load module
+        # ../../../pkg listed in go.work file".
+        env:
+          GOWORK: off
         run: go test -v ./...
 
       - name: Compute image tags
