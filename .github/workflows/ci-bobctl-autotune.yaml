@@ -9,6 +9,7 @@ on:
       - feat/tdd
       - feat/mariadb
       - feat/network-endpoint-tuning
+      - feat/postgres-endpoint-attacks
     paths:
       - 'pkg'
       - 'pkg/**'
@@ -293,12 +294,16 @@ jobs:
           [ -z "$MATCH" ] && MATCH="${{ matrix.app }}"
 
           # Run functional tests to exercise the app while node-agent learns.
-          # Each invocation runs for up to 30s (2 ticks at 15s interval), exercising
-          # the app on each tick. 8 invocations x 30s = 4 min of active test traffic.
+          # --timeout must comfortably exceed the time it takes RunAll to do
+          # 76 kubectl-execs serially (postgres / postgres-vuln). 30s killed
+          # tail tests mid-execution with "rate limiter Wait returned an
+          # error: context deadline exceeded" — the bobctl ctx, not a real
+          # throttle. 180s leaves ample headroom while still letting the
+          # loop exit early when the profile completes (typically ~2 min).
           for i in $(seq 1 8); do
             bin/bobctl learn \
               --functional-tests ${{ matrix.functional_tests }} \
-              -n ${{ matrix.app_namespace }} --timeout 30s --interval 10s -v 2>&1 | tail -5 || true
+              -n ${{ matrix.app_namespace }} --timeout 180s --interval 15s -v 2>&1 | tail -5 || true
             sleep 5
           done
 
