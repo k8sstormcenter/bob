@@ -15,13 +15,45 @@ spec:
           - eventType: exec
             expression: >-
               !ap.was_executed(event.containerId,
-              parse.get_exec_path(event.args, event.comm))
+              parse.get_exec_path(event.args, event.comm, event.exepath))
         uniqueId: event.comm + '_' + event.exepath
       id: R0001
       isTriggerAlert: true
       mitreTactic: TA0002
       mitreTechnique: T1059
       name: Unexpected process launched
+      profileDependency: 0
+      severity: 1
+      supportPolicy: false
+      tags:
+        - anomaly
+        - process
+        - exec
+        - applicationprofile
+    - description: >-
+        Process path is allowed by profile but argument vector does not match
+        any profile entry's arg pattern (literal or wildcard ⋯/*)
+      enabled: true
+      expressions:
+        message: >-
+          'Unexpected process arguments: ' + event.comm + ' with PID ' +
+          string(event.pid)
+        ruleExpression:
+          - eventType: exec
+            expression: >-
+              ap.was_executed(event.containerId,
+              parse.get_exec_path(event.args, event.comm, event.exepath)) &&
+              !ap.was_executed_with_args(event.containerId,
+              parse.get_exec_path(event.args, event.comm, event.exepath),
+              event.args)
+        uniqueId: >-
+          event.comm + '_' + parse.get_exec_path(event.args, event.comm,
+          event.exepath)
+      id: R0040
+      isTriggerAlert: true
+      mitreTactic: TA0002
+      mitreTechnique: T1059
+      name: Unexpected process arguments
       profileDependency: 0
       severity: 1
       supportPolicy: false
@@ -168,7 +200,7 @@ spec:
             expression: >-
               (event.comm == 'kubectl' || event.exepath.endsWith('/kubectl')) &&
               !ap.was_executed(event.containerId,
-              parse.get_exec_path(event.args, event.comm))
+              parse.get_exec_path(event.args, event.comm, event.exepath))
           - eventType: network
             expression: >-
               event.pktType == 'OUTGOING' &&
@@ -331,7 +363,7 @@ spec:
               (event.upperlayer == true ||
                event.pupperlayer == true) &&
               !ap.was_executed(event.containerId,
-              parse.get_exec_path(event.args, event.comm))
+              parse.get_exec_path(event.args, event.comm, event.exepath))
         uniqueId: event.comm + '_' + event.exepath + '_' + event.pcomm
       id: R1001
       isTriggerAlert: true
@@ -407,10 +439,10 @@ spec:
           - eventType: exec
             expression: >-
               !ap.was_executed(event.containerId,
-              parse.get_exec_path(event.args, event.comm)) &&
+              parse.get_exec_path(event.args, event.comm, event.exepath)) &&
               k8s.get_container_mount_paths(event.namespace, event.podName,
               event.containerName).exists(mount, event.exepath.startsWith(mount)
-              || parse.get_exec_path(event.args, event.comm).startsWith(mount))
+              || parse.get_exec_path(event.args, event.comm, event.exepath).startsWith(mount))
         uniqueId: event.comm
       id: R1004
       isTriggerAlert: true
@@ -744,3 +776,24 @@ spec:
         - tls
         - exec
         - container_administration_command
+    - description: >-
+        Detects when a previously signed ApplicationProfile or
+        NetworkNeighborhood has been tampered with (signature no longer
+        valid).
+      enabled: true
+      expressions:
+        message: "'Signed profile tampered'"
+        uniqueId: "'R1016'"
+        ruleExpression: []
+      id: R1016
+      isTriggerAlert: false
+      mitreTactic: TA0005
+      mitreTechnique: T1565
+      name: Signed profile tampered
+      profileDependency: 2
+      severity: 10
+      supportPolicy: false
+      tags:
+        - integrity
+        - signature
+        - tamper
