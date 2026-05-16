@@ -183,24 +183,54 @@ if ! $ATTACK_ONLY; then
         "http://chain-frontend.'$NS'.svc:8080/api/cache/eval"' >/dev/null 2>&1 || true
   done
 
-  log "=== Wait for sbob learning to mark profile completed ($LEARN_WAIT) ==="
-  # kubescape creates the AP CR a bit AFTER the pod starts. `kubectl
-  # wait` exits immediately when there's no matching resource, so we
-  # poll for existence first and then completion. Selector picks the
-  # replicaset-named AP for each app (excludes the transient pod-curl-*
-  # APs kubescape creates for our benign-traffic curl pods).
-  deadline=$(( $(date +%s) + ${LEARN_WAIT%s} ))
+  log "=== Wait for sbob learning to mark profile completed AND non-empty ($LEARN_WAIT) ==="
+  # kubescape creates the AP CR after the pod starts AND sometimes
+  # seals it with execs=0 if no process activity was observed inside
+  # the learning window (race between pod start and node-agent BPF
+  # attach). An empty AP is fail-open — no R0001 will ever fire on
+  # such a pod. To keep the demo reliable, we wait for BOTH
+  # `kubescape.io/status: completed` AND at least one exec entry.
+  # If the window expires with execs=0 we delete the AP and force a
+  # fresh learn (which restarts the kubescape clock for that pod);
+  # the deletion is cheap because the AP is empty anyway.
   for app in chain-backend chain-postgres chain-redis chain-frontend; do
-    log "  waiting for $app profile"
+    log "  waiting for $app profile (completed + execs>0)"
+    deadline=$(( $(date +%s) + ${LEARN_WAIT%s} ))
     while [[ $(date +%s) -lt $deadline ]]; do
-      status=$(kubectl get applicationprofile -n "$NS" -o json 2>/dev/null \
+      info=$(kubectl get applicationprofile -n "$NS" -o json 2>/dev/null \
         | jq -r --arg app "$app" '
           [.items[] | select(.metadata.name | startswith("replicaset-" + $app))][0]
-          | .metadata.annotations["kubescape.io/status"] // "missing"')
-      [[ "$status" == "completed" ]] && { log "    $app: completed"; break; }
-      sleep 3
+          | (.metadata.annotations["kubescape.io/status"] // "missing") + "|" + ((.spec.containers[0].execs // []) | length | tostring)')
+      status="${info%%|*}"
+      execs="${info##*|}"
+      if [[ "$status" == "completed" && "$execs" -gt 0 ]]; then
+        log "    $app: completed (execs=$execs)"
+        break
+      fi
+      # If sealed empty, delete + retry. Topping up benign traffic
+      # is what gives kubescape something to learn.
+      if [[ "$status" == "completed" && "$execs" -eq 0 ]]; then
+        log "    $app: completed-but-empty, deleting AP+NN to force re-learn"
+        ap_name=$(kubectl get applicationprofile -n "$NS" -o json | jq -r --arg app "$app" '[.items[] | select(.metadata.name | startswith("replicaset-" + $app))][0].metadata.name')
+        nn_name=$(kubectl get networkneighborhood -n "$NS" -o json | jq -r --arg app "$app" '[.items[] | select(.metadata.name | startswith("replicaset-" + $app))][0].metadata.name')
+        [[ -n "$ap_name" && "$ap_name" != "null" ]] && kubectl delete applicationprofile -n "$NS" "$ap_name" --ignore-not-found >/dev/null 2>&1
+        [[ -n "$nn_name" && "$nn_name" != "null" ]] && kubectl delete networkneighborhood -n "$NS" "$nn_name" --ignore-not-found >/dev/null 2>&1
+        # Force fresh learning by restarting the deployment and
+        # generating a burst of benign traffic so the new pod has
+        # observable activity during its learning window.
+        kubectl rollout restart deployment/"$app" -n "$NS" >/dev/null 2>&1
+        kubectl rollout status deployment/"$app" -n "$NS" --timeout=60s >/dev/null 2>&1 || true
+        # Hit the relevant frontend endpoints to give the pod traffic.
+        for _ in 1 2 3 4 5; do
+          kubectl run curl-t-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.10.1 \
+            --namespace="$NS" --quiet -- \
+            curl -sf "http://chain-frontend.$NS.svc:8080/api/products" >/dev/null 2>&1 || true
+        done
+      fi
+      sleep 4
     done
-    [[ "$status" == "completed" ]] || log "    WARN: $app profile status=$status (continuing)"
+    [[ "$status" == "completed" && "$execs" -gt 0 ]] \
+      || log "    WARN: $app profile status=$status execs=$execs (continuing — detections may be unreliable)"
   done
 fi  # end setup
 
