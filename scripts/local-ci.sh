@@ -160,12 +160,18 @@ if ! $TUNE_ONLY; then
   log "=== Learn $APP ==="
   MATCH="${APP_PROFILE_MATCH:-$APP}"
 
-  # Run functional tests to exercise the app while node-agent learns
+  # Run functional tests to exercise the app while node-agent learns.
+  # --timeout must comfortably exceed the time it takes to run all functional
+  # tests serially. The postgres suite is ~76 tests at ~500ms each = ~40s,
+  # so 30s was too small and the tail tests systematically aborted with
+  # "client rate limiter Wait returned an error: context deadline exceeded"
+  # (the bobctl ctx, not a real throttle — the request was waiting in the
+  # rate limiter when ctx expired). 180s leaves ample headroom.
   log "Running functional tests during learning period..."
   for i in $(seq 1 8); do
     bin/bobctl learn \
       --functional-tests "$APP_FUNC_TESTS" \
-      -n "$APP_NS" --timeout 30s --interval 10s -v 2>&1 | tail -5 || true
+      -n "$APP_NS" --timeout 180s --interval 15s -v 2>&1 | tail -5 || true
     sleep 5
   done
 
@@ -368,7 +374,15 @@ with open('results/metrics.json') as f:
     records = json.load(f)
 tested = [r for r in records if r['phase'] != 'raw-baseline']
 if tested:
-    best = min(tested, key=lambda r: r['score'])
+    # Tie-break on profile size when score is equal: a Phase-B-minimised
+    # iteration with the same zero score is strictly preferable to the
+    # uncompacted baseline (both pass detection, smaller profile is the
+    # tuner's actual best). Without this, score=0 ties always picked the
+    # first iteration (the baseline) and shipped a profile with 3-5x the
+    # exec entries. Mirrors the tuner's isStrictlyBetter ordering at
+    # pkg/autotune/best_recovery.go:65. The total-entries field is a
+    # flat key on each metrics.json record (NOT nested under 'metrics').
+    best = min(tested, key=lambda r: (r['score'], r.get('total_entries', 0)))
     print(best['iteration'])
 " 2>/dev/null || echo "")
   BEST_FILE="results/${PROFILE}-iteration${BEST_ITER}.yaml"

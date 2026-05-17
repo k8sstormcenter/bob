@@ -1,0 +1,76 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: chain-benign-baseline
+  description: |
+    Benign HTTP traffic against the frontend's legitimate paths.
+    Run during learning to populate the FOUR sbobs in the chain
+    namespace:
+
+      chain-frontend.ApplicationProfile  → /chain-frontend Go binary
+      chain-frontend.NetworkNeighborhood → kube-dns, chain-backend,
+                                            chain-redis (EVAL traffic)
+      chain-backend.ApplicationProfile   → /chain-backend Go binary
+      chain-backend.NetworkNeighborhood  → kube-dns, chain-postgres
+      chain-redis.ApplicationProfile     → redis-server, sh, alpine init
+      chain-redis.NetworkNeighborhood    → kube-dns (CN+server init)
+      chain-postgres.ApplicationProfile  → postgres + admin tools
+      chain-postgres.NetworkNeighborhood → kube-dns (resolver init)
+
+    Note: /api/cache/eval IS in the benign baseline — the demo's
+    premise is that this endpoint is a real feature, not a backdoor.
+    The Lua scripts here are LEGITIMATE (atomic counter increments);
+    that puts the frontend→redis TCP edge into the NetworkNeighborhood
+    so the chain attack's first stage looks like normal traffic.
+
+target:
+  service: chain-frontend
+  namespace: chain
+  port: 8080
+  scheme: http
+
+tests:
+  - name: healthz
+    http:
+      method: GET
+      path: /healthz
+      expectedStatus: 200
+
+  - name: list-products-1
+    http:
+      method: GET
+      path: /api/products
+      expectedStatus: 200
+
+  - name: list-products-2
+    http:
+      method: GET
+      path: /api/products
+      expectedStatus: 200
+
+  - name: cache-eval-counter-1
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      body: '{"script":"local k=KEYS[1] or \"chain:bench\"; return redis.call(\"INCR\", k)","keys":["chain:bench"]}'
+      expectedStatus: 200
+
+  - name: cache-eval-counter-2
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      body: '{"script":"local k=KEYS[1] or \"chain:bench\"; return redis.call(\"INCR\", k)","keys":["chain:bench"]}'
+      expectedStatus: 200
+
+  - name: cache-eval-counter-3
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      body: '{"script":"local k=KEYS[1] or \"chain:bench\"; return redis.call(\"INCR\", k)","keys":["chain:bench"]}'
+      expectedStatus: 200

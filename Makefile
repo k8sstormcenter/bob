@@ -133,6 +133,11 @@ deploy-postgres:
 	helm repo add cnpg https://cloudnative-pg.github.io/charts 2>/dev/null || true
 	helm upgrade --install cnpg cnpg/cloudnative-pg \
 		-n cnpg-system --create-namespace --wait --timeout 5m
+	@# pg-client Service is declared headless (clusterIP: None) in
+	@# postgres/cluster.yaml. Pre-existing clusterIP-typed Services from
+	@# earlier deploys cannot be mutated in-place (K8s spec.clusterIP is
+	@# immutable once set), so delete it before apply.
+	-kubectl delete svc pg-client -n postgres --ignore-not-found
 	kubectl apply -f postgres/cluster.yaml
 	@echo "Waiting for CNPG cluster to be ready..."
 	@TIMEOUT=300; ELAPSED=0; \
