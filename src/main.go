@@ -394,7 +394,16 @@ func parseAppArmorProfile(filename string) (*ApplicationProfile, error) {
 }
 
 func writeAppArmorProfile(filename string, config *TemplateConfig, profile *ApplicationProfile) error {
-	// TODO: Implement serialization to AppArmor format
-	return fmt.Errorf("AppArmor output not implemented")
+	content := NewAppArmorConverter(profile, config).Convert()
+
+    dir := filepath.Dir(filename)
+    if err := os.MkdirAll(dir, 0755); err != nil {
+        return fmt.Errorf("creating directory %s: %w", dir, err)
+    }
+    if err := os.WriteFile(filename, []byte(content), 0644); err != nil {
+        return fmt.Errorf("writing file %s: %w", filename, err)
+    }
+    log.Printf("Wrote AppArmor profile to %s", filename)
+    return nil
 }
 
