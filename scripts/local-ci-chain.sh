@@ -60,9 +60,10 @@ die()  { log "ERROR: $*"; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || die "missing tool: $1"; }
 
 need kubectl
-need docker
 need jq
-need go
+# docker + go are only needed when building locally (not for --teardown
+# or --use-published). Gated below at the build site so flag-only paths
+# work on dev boxes without docker (rabbit-flagged 2026-05-17).
 
 if $TEARDOWN; then
   log "=== Teardown $NS namespace ==="
@@ -94,6 +95,11 @@ if ! $ATTACK_ONLY; then
     log "  backend:  $CHAIN_BACKEND_IMG"
     log "  frontend: $CHAIN_FRONTEND_IMG"
   else
+    # Local-build path needs docker + go on PATH; --use-published
+    # skipped both. Gate here instead of upfront so --teardown +
+    # --use-published work on dev boxes without either.
+    need docker
+    need go
     log "=== TDD gate: chain-backend + chain-frontend tests must pass ==="
     for component in backend frontend; do
       (cd "example/chain/$component" && \
@@ -220,11 +226,20 @@ if ! $ATTACK_ONLY; then
         # observable activity during its learning window.
         kubectl rollout restart deployment/"$app" -n "$NS" >/dev/null 2>&1
         kubectl rollout status deployment/"$app" -n "$NS" --timeout=60s >/dev/null 2>&1 || true
-        # Hit the relevant frontend endpoints to give the pod traffic.
+        # Hit BOTH benign endpoints — /api/products only reaches backend
+        # +postgres, /api/cache/eval is what reaches redis. Without
+        # the eval calls, chain-redis would re-seal empty again because
+        # no redis-server activity was observed during its second
+        # learning window. (rabbit-flagged 2026-05-17.)
         for _ in 1 2 3 4 5; do
           kubectl run curl-t-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.10.1 \
             --namespace="$NS" --quiet -- \
             curl -sf "http://chain-frontend.$NS.svc:8080/api/products" >/dev/null 2>&1 || true
+        done
+        for _ in 1 2 3 4 5; do
+          kubectl run curl-t-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.10.1 \
+            --namespace="$NS" --quiet -- \
+            sh -c 'curl -sf -X POST -H "Content-Type: application/json" --data "{\"script\":\"return redis.call(\\\"INCR\\\", KEYS[1])\",\"keys\":[\"chain:bench\"]}" "http://chain-frontend.'$NS'.svc:8080/api/cache/eval"' >/dev/null 2>&1 || true
         done
       fi
       sleep 4
@@ -252,10 +267,15 @@ GOPATH=/mnt/dev-data/go GOMODCACHE=/mnt/dev-data/go/pkg/mod GOCACHE=/mnt/dev-dat
   go build -o bin/bobctl ./pkg/main.go
 
 log "=== Run chain-attacks suite ==="
+# Don't pass --service: the AttackSuite YAML's target.service is the
+# source of truth (chain-frontend, port 8080). Passing --service
+# chain-backend made bobctl route the POSTs to a pod that doesn't
+# even serve /api/cache/eval — every request 404'd but the coverage
+# table still showed DETECTED because alertmanager still held alerts
+# from earlier ad-hoc /api/cache/eval calls (rabbit-flagged
+# 2026-05-17).
 bin/bobctl attack \
   --attack-suite example/chain/chain-attacks.yaml \
-  --service chain-backend \
-  --service-port 8080 \
   --namespace "$NS" \
   --format markdown \
   | tee /tmp/chain-attack-results.md
