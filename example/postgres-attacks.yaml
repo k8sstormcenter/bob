@@ -282,12 +282,16 @@ attacks:
   # ═══════════════════════════════════════════════════════════════════════════
 
   # T1071.004 — Application Layer Protocol: DNS (direct query to non-cluster resolver)
+  # Per rabbit on PR #122: assert "did we attempt the syscall" (always
+  # emits) rather than "did the remote answer" (egress-dependent). The
+  # connect() fires before the timeout / refusal returns, so R0005 sees
+  # the OUTGOING packet regardless of whether 1.1.1.1 is reachable.
   - name: endpoint-tcp-cloudflare-dns
     type: cmdinject
     exec:
-      command: ["sh", "-c", "python3 -c \"import socket; s=socket.socket(); s.settimeout(3); s.connect(('1.1.1.1',53)); s.close(); print('ep_cloudflare_dns_ok')\" 2>&1 || echo ep_cloudflare_dns_failed"]
+      command: ["python3", "-c", "import socket\ntry:\n  s=socket.socket(); s.settimeout(3); s.connect(('1.1.1.1',53)); s.close()\nexcept Exception: pass\nprint('ep_cloudflare_dns_attempted')"]
     successIndicators:
-      - responseContains: "ep_cloudflare_dns_ok"
+      - responseContains: "ep_cloudflare_dns_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -297,9 +301,9 @@ attacks:
   - name: endpoint-devtcp-google-dns
     type: cmdinject
     exec:
-      command: ["bash", "-c", "timeout 3 bash -c 'exec 3<>/dev/tcp/8.8.8.8/53' >/dev/null 2>&1 && echo ep_google_dns_ok || echo ep_google_dns_failed"]
+      command: ["bash", "-c", "timeout 3 bash -c 'exec 3<>/dev/tcp/8.8.8.8/53' >/dev/null 2>&1; echo ep_google_dns_attempted"]
     successIndicators:
-      - responseContains: "ep_google_dns_ok"
+      - responseContains: "ep_google_dns_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -309,9 +313,9 @@ attacks:
   - name: endpoint-tcp-public-https
     type: cmdinject
     exec:
-      command: ["sh", "-c", "python3 -c \"import socket; s=socket.socket(); s.settimeout(3); s.connect(('1.1.1.1',443)); s.close(); print('ep_public_https_ok')\" 2>&1 || echo ep_public_https_failed"]
+      command: ["python3", "-c", "import socket\ntry:\n  s=socket.socket(); s.settimeout(3); s.connect(('1.1.1.1',443)); s.close()\nexcept Exception: pass\nprint('ep_public_https_attempted')"]
     successIndicators:
-      - responseContains: "ep_public_https_ok"
+      - responseContains: "ep_public_https_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -321,9 +325,9 @@ attacks:
   - name: endpoint-tcp-quad9-dns
     type: cmdinject
     exec:
-      command: ["sh", "-c", "python3 -c \"import socket; s=socket.socket(); s.settimeout(3); s.connect(('9.9.9.9',53)); s.close(); print('ep_quad9_dns_ok')\" 2>&1 || echo ep_quad9_dns_failed"]
+      command: ["python3", "-c", "import socket\ntry:\n  s=socket.socket(); s.settimeout(3); s.connect(('9.9.9.9',53)); s.close()\nexcept Exception: pass\nprint('ep_quad9_dns_attempted')"]
     successIndicators:
-      - responseContains: "ep_quad9_dns_ok"
+      - responseContains: "ep_quad9_dns_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -351,9 +355,9 @@ attacks:
   - name: endpoint-bash-devtcp-pastebin
     type: cmdinject
     exec:
-      command: ["bash", "-c", "timeout 3 bash -c 'exec 3<>/dev/tcp/pastebin.com/443' >/dev/null 2>&1 && echo ep_pastebin_ok || echo ep_pastebin_failed"]
+      command: ["bash", "-c", "timeout 3 bash -c 'exec 3<>/dev/tcp/pastebin.com/443' >/dev/null 2>&1; echo ep_pastebin_attempted"]
     successIndicators:
-      - responseContains: "ep_pastebin_ok"
+      - responseContains: "ep_pastebin_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -374,13 +378,16 @@ attacks:
         ruleName: DNS Anomalies in container
         containerName: pg-client
 
-  # T1571 — Non-Standard Port (Perl socket connect to public DNS over TCP)
+  # T1571 — Non-Standard Port (Perl socket connect to public DNS over TCP).
+  # The connect() syscall fires (R0005's trigger) regardless of whether the
+  # remote answers, so the sentinel is emitted unconditionally outside the
+  # success branch — see rabbit guidance on PR #122.
   - name: endpoint-perl-socket-external
     type: cmdinject
     exec:
-      command: ["sh", "-c", "perl -MSocket -e 'alarm 3; socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\")); connect(S,sockaddr_in(53,inet_aton(\"8.8.4.4\"))) && print \"ep_perl_socket_ok\\n\"; close(S);' 2>&1 || echo ep_perl_socket_failed"]
+      command: ["sh", "-c", "perl -MSocket -e 'alarm 3; socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\")); connect(S,sockaddr_in(53,inet_aton(\"8.8.4.4\"))); close(S);' >/dev/null 2>&1; echo ep_perl_socket_attempted"]
     successIndicators:
-      - responseContains: "ep_perl_socket_ok"
+      - responseContains: "ep_perl_socket_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -390,9 +397,9 @@ attacks:
   - name: endpoint-python-http-out
     type: cmdinject
     exec:
-      command: ["sh", "-c", "python3 -c \"import socket; s=socket.socket(); s.settimeout(3); s.connect(('example.com',80)); s.sendall(b'HEAD / HTTP/1.0\\r\\nHost: example.com\\r\\n\\r\\n'); s.close(); print('ep_http_out_ok')\" 2>&1 || echo ep_http_out_failed"]
+      command: ["python3", "-c", "import socket\ntry:\n  s=socket.socket(); s.settimeout(3); s.connect(('example.com',80))\n  s.sendall(b'HEAD / HTTP/1.0\\r\\nHost: example.com\\r\\n\\r\\n'); s.close()\nexcept Exception: pass\nprint('ep_http_out_attempted')"]
     successIndicators:
-      - responseContains: "ep_http_out_ok"
+      - responseContains: "ep_http_out_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -402,9 +409,9 @@ attacks:
   - name: endpoint-python-resolve-connect-public
     type: cmdinject
     exec:
-      command: ["sh", "-c", "python3 -c \"import socket; ip=socket.gethostbyname('one.one.one.one'); s=socket.socket(); s.settimeout(3); s.connect((ip,443)); s.close(); print('ep_one_one_ok')\" 2>&1 || echo ep_one_one_failed"]
+      command: ["python3", "-c", "import socket\ntry:\n  ip=socket.gethostbyname('one.one.one.one')\n  s=socket.socket(); s.settimeout(3); s.connect((ip,443)); s.close()\nexcept Exception: pass\nprint('ep_one_one_attempted')"]
     successIndicators:
-      - responseContains: "ep_one_one_ok"
+      - responseContains: "ep_one_one_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container

