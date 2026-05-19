@@ -9,6 +9,7 @@ on:
       - feat/tdd
       - feat/mariadb
       - feat/network-endpoint-tuning
+      - feat/postgres-endpoint-attacks
     paths:
       - 'pkg'
       - 'pkg/**'
@@ -47,10 +48,13 @@ jobs:
 
       - name: Clone storage dependency
         run: |
-          # The merge-upstream-rearch branch carries the v0.0.2
-          # NetworkNeighbor.IPAddresses field that bobctl's network_collapse.go
-          # depends on. Once merged to main this will switch to main.
-          git clone --depth 1 --branch merge/upstream-profile-rearch https://github.com/k8sstormcenter/storage.git ../storage
+          # main now carries the v0.0.2 NetworkNeighbor refactor that
+          # bobctl's network_collapse.go depends on (the prior
+          # merge/upstream-profile-rearch branch was merged into main
+          # and deleted upstream on 2026-05-16; CI built green on
+          # that SHA but the very next push failed with "Remote branch
+          # merge/upstream-profile-rearch not found").
+          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
 
       - name: Verify layout
         run: |
@@ -173,7 +177,22 @@ jobs:
             # Match the server deployment profile, not the client pod.
             # COPY FROM PROGRAM attacks spawn processes on the server.
             profile_match: replicaset-pg-vuln
-            score_threshold: 0
+            # score_threshold=1 reflects one known-unrecoverable R0002 FP
+            # from `pg_isready` opening a dynamic file path inside the
+            # postgres server container (kubelet liveness/readiness probe
+            # exec's pg_isready repeatedly; the inner libssl/libpam open
+            # set varies per invocation and lands outside whatever
+            # node-agent captured during the learn window). The autotuner
+            # runs the FULL pipeline (Phase 0a baseline + Phase 2 FP
+            # refinement + Phase B size-min, all attacks detected via
+            # R0005 in Late-match) and produces metrics.json; it just
+            # can't suppress this specific R0002 because the opening
+            # path differs between learn and post-tune windows. Same
+            # structural pattern as webapp's score_threshold=2 (R0006
+            # SA-token noise). A future fix routes through either a
+            # CollapseConfig wildcard for /usr/lib/x86_64-linux-gnu/*
+            # or an R0002 content-aware allow-list — not bobctl tune.
+            score_threshold: 1
           - app: mariadb
             functional_tests: example/mariadb-functional-tests.yaml
             attack_suite: example/mariadb-attacks.yaml
@@ -293,12 +312,16 @@ jobs:
           [ -z "$MATCH" ] && MATCH="${{ matrix.app }}"
 
           # Run functional tests to exercise the app while node-agent learns.
-          # Each invocation runs for up to 30s (2 ticks at 15s interval), exercising
-          # the app on each tick. 8 invocations x 30s = 4 min of active test traffic.
+          # --timeout must comfortably exceed the time it takes RunAll to do
+          # 76 kubectl-execs serially (postgres / postgres-vuln). 30s killed
+          # tail tests mid-execution with "rate limiter Wait returned an
+          # error: context deadline exceeded" — the bobctl ctx, not a real
+          # throttle. 180s leaves ample headroom while still letting the
+          # loop exit early when the profile completes (typically ~2 min).
           for i in $(seq 1 8); do
             bin/bobctl learn \
               --functional-tests ${{ matrix.functional_tests }} \
-              -n ${{ matrix.app_namespace }} --timeout 30s --interval 10s -v 2>&1 | tail -5 || true
+              -n ${{ matrix.app_namespace }} --timeout 180s --interval 15s -v 2>&1 | tail -5 || true
             sleep 5
           done
 

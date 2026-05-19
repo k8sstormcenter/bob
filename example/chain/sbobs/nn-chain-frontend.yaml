@@ -1,0 +1,72 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-chain/kind-ReplicaSet/name-chain-frontend-5b74946fd5
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: c0570ee96ac2860203088cf9dbee446433b3e109093e1445b2e4bd9b3d6b7b07
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-chain/deployment-chain-frontend
+  creationTimestamp: "2026-05-16T17:53:39Z"
+  labels:
+    kubescape.io/instance-template-hash: 5b74946fd5
+    kubescape.io/learning-period: 2m
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-frontend
+    kubescape.io/workload-namespace: chain
+    kubescape.io/workload-resource-version: "23345"
+  name: replicaset-chain-frontend-5b74946fd5
+  namespace: chain
+  resourceVersion: "1"
+spec:
+  containers:
+  - egress:
+    - dns: ""
+      dnsNames: null
+      identifier: cf8a8c88ab4500fa893432041fda31d5d0c85592360a3042809024c3f7fe94c2
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-redis
+      ports:
+      - name: TCP-6379
+        port: 6379
+        protocol: TCP
+      type: internal
+    - dns: ""
+      dnsNames: null
+      identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+      ipAddress: ""
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      ports:
+      - name: UDP-53
+        port: 53
+        protocol: UDP
+      type: internal
+    - dns: ""
+      dnsNames: null
+      identifier: 9eee1023834c90907b714890a0afaf4f00f2f1758e46c60955cc65af97aa4753
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-backend
+      ports:
+      - name: TCP-8080
+        port: 8080
+        protocol: TCP
+      type: internal
+    ingress: null
+    name: chain-frontend
+  ephemeralContainers: null
+  initContainers: null
+  matchLabels:
+    app: chain-frontend

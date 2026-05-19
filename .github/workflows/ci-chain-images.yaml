@@ -1,0 +1,113 @@
+name: CI - Chain demo images
+
+# Builds and publishes the two custom Go services that anchor the
+# chain demo (example/chain/) to GHCR. Mirrors ci-redis-image.yaml's
+# shape; uses immutable GitHub Actions SHAs per the repo's pinning
+# policy.
+#
+# Tags pushed:
+#   - ghcr.io/k8sstormcenter/chain-{frontend,backend}:<short-sha>
+#   - ghcr.io/k8sstormcenter/chain-{frontend,backend}:<branch>
+#   - ghcr.io/k8sstormcenter/chain-{frontend,backend}:latest    (main only)
+#
+# Consumers (scripts/local-ci-chain.sh --use-published, manual demos)
+# pull `latest` by default; CI matrix runs pin to a specific SHA.
+
+on:
+  push:
+    branches:
+      - main
+      - feat/postgres-endpoint-attacks
+    paths:
+      - 'example/chain/frontend/**'
+      - 'example/chain/backend/**'
+      - '.github/workflows/ci-chain-images.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    name: ${{ matrix.component }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [frontend, backend]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Go (TDD gate)
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: example/chain/${{ matrix.component }}/go.sum
+
+      # TDD gate — same go test the local-ci-chain.sh script enforces.
+      # Both Go services pin vuln-endpoint contracts (forward-verbatim
+      # for /api/cache/eval, /api/admin/sql) — a sanitisation drive-by
+      # would break the chain demo, this test catches it pre-push.
+      - name: Run unit tests
+        working-directory: example/chain/${{ matrix.component }}
+        # GOWORK=off because the repo's root go.work pulls in the pkg/
+        # submodule which isn't cloned in this checkout (and isn't
+        # needed by chain components — they have isolated go.mods).
+        # Without this, go test errors with "cannot load module
+        # ../../../pkg listed in go.work file".
+        env:
+          GOWORK: off
+        run: go test -v ./...
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          BRANCH_SAFE="${GITHUB_REF_NAME//\//-}"
+          IMG=ghcr.io/${{ github.repository_owner }}/chain-${{ matrix.component }}
+          TAGS="${IMG}:${SHORT_SHA},${IMG}:${BRANCH_SAFE}"
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            TAGS="${TAGS},${IMG}:latest"
+          fi
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "primary=${IMG}:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+
+      - name: Build and push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: example/chain/${{ matrix.component }}
+          file: example/chain/${{ matrix.component }}/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+
+      - name: Smoke-test pushed image
+        run: |
+          docker run -d --name chain-${{ matrix.component }}-smoke \
+            -p 18080:8080 ${{ steps.tags.outputs.primary }}
+          # Wait for /healthz — fail loudly if the new image doesn't
+          # come up clean. Bounded retry rather than fixed sleep.
+          for i in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:18080/healthz >/dev/null; then
+              echo "OK: chain-${{ matrix.component }} healthz"
+              docker rm -f chain-${{ matrix.component }}-smoke
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "FAIL: chain-${{ matrix.component }} never became healthy"
+          docker logs chain-${{ matrix.component }}-smoke
+          docker rm -f chain-${{ matrix.component }}-smoke
+          exit 1
