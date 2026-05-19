@@ -5,7 +5,7 @@ namespace and produces a coverage table showing which detection rules
 fired and which were silent. Both classes are demo features — the
 silent ones map directly to operator knobs you can flip.
 
-## The chain (one attacker, four stages, three pods involved)
+## The chain (one attacker, six stages, four pods involved)
 
 ```
                        ┌─ user / attacker ─┐
@@ -22,13 +22,20 @@ silent ones map directly to operator knobs you can flip.
             │                          │  │ reachable from EVAL.               │
             └──────────┬───────────────┘  │ During attack chain:               │
                        │ pg-wire           │   spawns: cat, bash, perl          │
-                       ▼                   │   bash uses /dev/tcp → postgres    │
-            ┌─ chain-postgres ─────────┐  │   perl uses IO::Socket → external  │
-            │  postgres:16              │  └──────────────┬─────────────────────┘
-            └───────────────────────────┘                 │ raw TCP (pg-wire bytes)
-                       ▲                                  │ + outbound HTTP
-                       │                                  ▼
-                       └────── novel egress ──── attacker.example.com (exfil)
+                       ▼                   │   s2  cat → /etc/shadow            │
+            ┌─ chain-postgres ─────────┐  │   s3  bash → /dev/tcp:5432 (SSL probe)│
+            │  postgres:16              │  │   s4  perl → external:80 (HTTP)    │
+            │  AUTH_METHOD=trust        │  │   s5  perl → pg-wire Startup+Query  │
+            │  (extended chain)         │  │       (extracts ROW back via HTTP)  │
+            └──────────────▲────────────┘  │   s6  perl → DNS labels w/ base32   │
+                           │               │       encoded ROW (one per chunk)   │
+                           │               └──────┬──────────────────────┬──────┘
+              pg-wire data (s5 row)               │                      │
+                           │                      │ raw TCP / UDP        │ DNS
+                           └──────────────────────┘                      ▼
+                                                            attacker.example.com
+                                                          (data leaves the cluster
+                                                          encoded into HTTP query / DNS labels)
 ```
 
 ### Stage 1 · `s1-recon-benign-eval` — **BLIND by design**
@@ -75,7 +82,48 @@ cluster.
 | R0005 DNS Anomalies in container | redis | DNS lookup of attacker.example.com | **BLIND** — `networkEventsStreaming: disable` |
 | R0011 Unexpected Egress Network Traffic | redis | external:80 not in NN | **BLIND** — same as Stage 3 |
 
+### Stage 5 · `s5-pivot-pg-protocol-extract-row` — **EXTENDED, partially DETECTED**
+*(opt-in via `--extended`; basic chain ends at Stage 4)*
+
+Stage 3 only sent a single 8-byte SSLRequest and parsed the `N` reply —
+proves connectivity but never speaks an actual session. Stage 5 fixes
+that:
+
+- perl one-liner inside `io.popen` opens TCP to `chain-postgres:5432`
+- Sends a v3 StartupMessage (`user=postgres database=postgres`)
+- Reads back `R` AuthenticationOk (requires `POSTGRES_HOST_AUTH_METHOD=trust`)
+- Sends `Q SELECT current_database()||':'||current_user||':'||version()`
+- Parses the `D` DataRow and prints `PG_ROW=<actual-postgres-row-content>`
+
+The HTTP response from `/api/cache/eval` now carries the extracted
+postgres row back through the frontend — actual cross-pod data leak,
+not just a connectivity probe.
+
+| Rule | Container | Trigger | Status |
+|---|---|---|---|
+| R0001 Unexpected process launched | redis | comm=`perl` not in AP | DETECTED |
+| R0011 Unexpected Egress Network Traffic | redis | chain-postgres:5432 not in NN | **BLIND** — same as Stage 3 |
+
+### Stage 6 · `s6-dns-exfil-of-stolen-row` — **EXTENDED, partially DETECTED**
+*(opt-in via `--extended`)*
+
+Same primitive as s5, different sink. After extracting the postgres
+row, perl base32-encodes it and issues one DNS query per 30-char chunk
+to `<chunk>.attacker.example.com`. Each lookup is recorded as a
+separate network event; with `networkEventsStreaming: enable` each
+becomes an R0005 alert with the encoded label visible in
+`alert.labels.address` — operators see the leaked bytes in the SIEM
+rather than just an anomaly count.
+
+| Rule | Container | Trigger | Status |
+|---|---|---|---|
+| R0001 Unexpected process launched | redis | comm=`perl` | DETECTED |
+| R0005 DNS Anomalies in container | redis | DNS query per encoded chunk | **BLIND** — `networkEventsStreaming: disable` |
+| R0011 Unexpected Egress Network Traffic | redis | UDP/53 + external resolver | **BLIND** — same |
+
 ### Coverage summary
+
+Basic chain (4 stages, default `./scripts/local-ci-chain.sh`):
 
 ```
 Coverage: 4 / 7 expected detections matched
@@ -85,14 +133,29 @@ s3 (pivot via /dev/tcp):       R0001 ✓  R0011 ✗
 s4 (exfil via perl):           R0001 ✓  R0005 ✗  R0011 ✗
 ```
 
-**The 3 BLINDs are not bugs — they map to two operator knobs:**
+Extended chain (6 stages, `--extended`):
+
+```
+Coverage: 6 / 12 expected detections matched
+
+s2 (escape+sensitive-read):                R0001 ✓  R0010 ✓
+s3 (pivot via /dev/tcp):                   R0001 ✓  R0011 ✗
+s4 (exfil via perl):                       R0001 ✓  R0005 ✗  R0011 ✗
+s5 (real pg-wire + row extract):           R0001 ✓  R0011 ✗
+s6 (DNS exfil of stolen row, base32):      R0001 ✓  R0005 ✗  R0011 ✗
+```
+
+**The BLINDs are not bugs — they map to two operator knobs:**
 
 - `kubescape/values.yaml: networkEventsStreaming: enable` (today: disable) →
-  unblinds R0005 (s4-DNS) and R0011 (s3, s4 — provided the next knob also flips)
+  unblinds R0005 (s4-DNS, s6-DNS×N) and R0011 (s3, s4, s5, s6 — provided the next knob also flips)
 - `default-rules.yaml: R0011.isTriggerAlert: true` (today: false) →
   unblinds R0011 alerts in alertmanager
 
-Flip both → 7/7 coverage. The demo's value is making the gap measurable.
+Flip both → 7/7 basic, 12/12 extended. The demo's value is making the
+gap measurable AND making it bigger: s5's pg-wire exchange is real
+data exfiltration, and s6 shows the operator the leaked bytes
+(base32-encoded into DNS labels) when the knobs are flipped.
 
 ## sbobs (learned by kubescape, exported under `sbobs/`)
 

@@ -58,6 +58,16 @@ spec:
               value: postgres
             - name: POSTGRES_DB
               value: postgres
+            # POSTGRES_HOST_AUTH_METHOD=trust replaces the default
+            # scram-sha-256 with an unauthenticated allow for host
+            # connections. The extended chain (chain-attacks-extended
+            # s5) pivots redis → postgres over pg-wire WITHOUT
+            # credentials and pulls one row. This is a realistic
+            # demo-grade misconfig (think devs leaving an internal-only
+            # postgres unauthenticated because "it's behind the cluster
+            # network"); the non-extended chain still works either way.
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: trust
           ports:
             - containerPort: 5432
               name: pg

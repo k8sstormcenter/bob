@@ -37,6 +37,7 @@ SETUP_ONLY=false
 ATTACK_ONLY=false
 TEARDOWN=false
 USE_PUBLISHED=false
+EXTENDED=false
 PUBLISHED_TAG="${CHAIN_PUBLISHED_TAG:-latest}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -49,6 +50,17 @@ while [[ $# -gt 0 ]]; do
     # `latest` or whatever CHAIN_PUBLISHED_TAG env var is set to —
     # CI matrix jobs pin to a short-sha for reproducibility.
     --use-published) USE_PUBLISHED=true ;;
+    # --extended: also run example/chain/chain-attacks-extended.yaml
+    # after the basic chain. Adds two stages:
+    #   s5 — full pg-wire conversation (StartupMessage + Query + parse
+    #        DataRow) from inside redis pod, extracts ONE postgres row
+    #        via the lateral pivot.
+    #   s6 — DNS exfiltration of the extracted row: base32-encoded
+    #        label per chunk, one DNS query per chunk so the leaked
+    #        bytes show up in alert.labels.address.
+    # Requires chain.yaml's POSTGRES_HOST_AUTH_METHOD=trust (already
+    # set). The basic chain still runs first regardless of this flag.
+    --extended)      EXTENDED=true ;;
     -h|--help)       sed -n '2,18p' "$0"; exit 0 ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
@@ -280,6 +292,19 @@ bin/bobctl attack \
   --format markdown \
   | tee /tmp/chain-attack-results.md
 
+if $EXTENDED; then
+  log "=== Run chain-attacks-extended (s5 pg-wire + s6 DNS exfil) ==="
+  # The extended suite shares the redis sandbox-escape primitive with
+  # the basic chain — it just chains additional outbound traffic onto
+  # the same io.popen. Runs AFTER the basic suite so all expectations
+  # from both YAMLs land in alertmanager before the coverage step.
+  bin/bobctl attack \
+    --attack-suite example/chain/chain-attacks-extended.yaml \
+    --namespace "$NS" \
+    --format markdown \
+    | tee /tmp/chain-attack-results-extended.md
+fi
+
 log "=== Wait $PROPAGATION_WAIT s for alert propagation ==="
 sleep "$PROPAGATION_WAIT"
 
@@ -322,7 +347,14 @@ log "=== Coverage report ==="
 COVERAGE=$(mktemp /tmp/chain-coverage.XXX.json)
 EXPECTATIONS=$(mktemp /tmp/chain-expect.XXX.json)
 
-# 1. Build [{scenario, ruleID, containerName, command}, ...] from YAML
+# 1. Build [{scenario, ruleID, containerName, command}, ...] from YAML.
+# Parses BOTH chain-attacks.yaml AND (when --extended was passed)
+# chain-attacks-extended.yaml so the coverage table covers every
+# expectation that bobctl attack actually ran.
+SUITE_FILES=( "$REPO_ROOT/example/chain/chain-attacks.yaml" )
+if $EXTENDED; then
+  SUITE_FILES+=( "$REPO_ROOT/example/chain/chain-attacks-extended.yaml" )
+fi
 awk '
   BEGIN { OFS=""; printing=0; scn=""; rule=""; rname=""; cnt=""; cmd="" }
   function flush() {
@@ -342,7 +374,7 @@ awk '
   in_exp && /^        command:/  { cmd=$2 }
   /^  - name:/ && in_exp         { in_exp=0 }
   END { flush(); print "]" }
-' "$REPO_ROOT/example/chain/chain-attacks.yaml" > "$EXPECTATIONS"
+' "${SUITE_FILES[@]}" > "$EXPECTATIONS"
 
 EXP_COUNT=$(jq 'length' "$EXPECTATIONS")
 log "  expectations parsed: $EXP_COUNT"
