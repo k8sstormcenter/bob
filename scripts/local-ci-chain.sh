@@ -12,7 +12,10 @@
 #   ./scripts/local-ci-chain.sh --use-published       # skip build, pull GHCR images
 #   ./scripts/local-ci-chain.sh --setup-only          # deploy + learn, stop
 #   ./scripts/local-ci-chain.sh --attack-only         # skip setup, re-run chain
+#   ./scripts/local-ci-chain.sh --extended            # also run s5 (pg-wire) + s6 (DNS exfil)
 #   ./scripts/local-ci-chain.sh --teardown            # delete the chain ns
+#
+#   Flags compose: --use-published --extended, --attack-only --extended, etc.
 #
 #   CHAIN_PUBLISHED_TAG=<sha>   override default `latest` for --use-published
 #
@@ -61,7 +64,7 @@ while [[ $# -gt 0 ]]; do
     # Requires chain.yaml's POSTGRES_HOST_AUTH_METHOD=trust (already
     # set). The basic chain still runs first regardless of this flag.
     --extended)      EXTENDED=true ;;
-    -h|--help)       sed -n '2,18p' "$0"; exit 0 ;;
+    -h|--help)       sed -n '2,22p' "$0"; exit 0 ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
   shift

