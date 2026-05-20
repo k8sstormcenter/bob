@@ -3,24 +3,16 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-chain/kind-ReplicaSet/name-chain-backend-54b8946f8f
-    kubescape.io/resource-size: "27"
     kubescape.io/status: completed
-    kubescape.io/sync-checksum: 8ae96cbdad9c469fa2a31967db854e88e5130bee27ff62de4958a116141425bd
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-chain/deployment-chain-backend
-  creationTimestamp: "2026-05-16T17:53:39Z"
+    kubescape.io/managed-by: User
   labels:
-    kubescape.io/instance-template-hash: 54b8946f8f
-    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-backend
     kubescape.io/workload-namespace: chain
-    kubescape.io/workload-resource-version: "23341"
-  name: replicaset-chain-backend-54b8946f8f
+  name: chain-backend
   namespace: chain
-  resourceVersion: "1"
 spec:
   architectures:
   - amd64
@@ -55,8 +47,12 @@ spec:
       - /chain-backend
       path: /chain-backend
     identifiedCallStacks: null
-    imageID: ttl.sh/chain-backend-3cef61dd-eda3-4ab8-9073-64ebd142cbba@sha256:6f0c3a5c94f4ae34e945c754ca4fcf3929898ea79d03be5fbf29af79bfc86204
-    imageTag: ttl.sh/chain-backend-5bffddd0-b145-4128-b94c-6df4dc4914bf:24h
+    # imageID is the content digest at learn time. A different GHCR
+    # push of the same :latest tag has a different digest; this snapshot
+    # was sealed against the GHCR registry image. Re-learn against the
+    # customer's pulled image to refresh after a chain-backend rebuild.
+    imageID: ghcr.io/k8sstormcenter/chain-backend@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    imageTag: ghcr.io/k8sstormcenter/chain-backend:latest
     name: chain-backend
     opens:
     - flags:
@@ -101,7 +97,7 @@ spec:
     rulePolicies: {}
     seccompProfile:
       spec:
-        defaultAction: ""
+        defaultAction: ''
     syscalls:
     - accept4
     - epoll_ctl

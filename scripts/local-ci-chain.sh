@@ -41,9 +41,17 @@ ATTACK_ONLY=false
 TEARDOWN=false
 USE_PUBLISHED=false
 EXTENDED=false
+LEARN_SBOBS=false
 PUBLISHED_TAG="${CHAIN_PUBLISHED_TAG:-latest}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    # CUSTOMER FLOW (default + --setup-only): apply the pre-shipped
+    # ApplicationProfile / NetworkNeighborhood YAMLs from
+    # example/chain/sbobs/ BEFORE the chain pods start. Pods carry
+    # `kubescape.io/user-defined-profile` + `user-defined-network`
+    # labels referencing those resources by name — node-agent picks
+    # them up directly and skips the learning phase entirely. This is
+    # the "vendor ships sealed sbobs, customer applies and runs" flow.
     --setup-only)    SETUP_ONLY=true ;;
     --attack-only)   ATTACK_ONLY=true ;;
     --teardown)      TEARDOWN=true ;;
@@ -64,7 +72,17 @@ while [[ $# -gt 0 ]]; do
     # Requires chain.yaml's POSTGRES_HOST_AUTH_METHOD=trust (already
     # set). The basic chain still runs first regardless of this flag.
     --extended)      EXTENDED=true ;;
-    -h|--help)       sed -n '2,22p' "$0"; exit 0 ;;
+    # VENDOR FLOW: skip applying the pre-shipped sbobs, strip the
+    # user-defined-profile labels from chain.yaml at deploy time so
+    # node-agent doesn't try to use the supplied AP/NN (which we
+    # don't want for a fresh learn anyway), then run benign traffic
+    # while kubescape learns. The vendor regenerates the sbobs by
+    # exporting whatever kubescape sealed and hand-cleaning it
+    # (annotation strip + version-segment wildcarding) into
+    # example/chain/sbobs/ — the tuner will eventually do this
+    # auto-cleanup, but today it's a one-off manual edit.
+    --learn-sbobs)   LEARN_SBOBS=true ;;
+    -h|--help)       sed -n '2,32p' "$0"; exit 0 ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
   shift

@@ -3,24 +3,16 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-chain/kind-ReplicaSet/name-chain-frontend-5b74946fd5
-    kubescape.io/resource-size: "50"
     kubescape.io/status: completed
-    kubescape.io/sync-checksum: dd7ee17135f2f8899ec8f0fd05f35897e6c49ddf604675f800a7a28152e279f5
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-chain/deployment-chain-frontend
-  creationTimestamp: "2026-05-16T17:53:39Z"
+    kubescape.io/managed-by: User
   labels:
-    kubescape.io/instance-template-hash: 5b74946fd5
-    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-frontend
     kubescape.io/workload-namespace: chain
-    kubescape.io/workload-resource-version: "23345"
-  name: replicaset-chain-frontend-5b74946fd5
+  name: chain-frontend
   namespace: chain
-  resourceVersion: "1"
 spec:
   architectures:
   - amd64
@@ -71,8 +63,10 @@ spec:
       - /chain-frontend
       path: /chain-frontend
     identifiedCallStacks: null
-    imageID: ttl.sh/chain-frontend-3cef61dd-eda3-4ab8-9073-64ebd142cbba@sha256:533bebc82820a994d1c4ff767adef32c5d3bc30dd0128dd3e400175f9870b42c
-    imageTag: ttl.sh/chain-frontend-5bffddd0-b145-4128-b94c-6df4dc4914bf:24h
+    # imageID is the content digest at learn time. Re-learn against
+    # the customer's pulled image after chain-frontend is rebuilt.
+    imageID: ghcr.io/k8sstormcenter/chain-frontend@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    imageTag: ghcr.io/k8sstormcenter/chain-frontend:latest
     name: chain-frontend
     opens:
     - flags:
@@ -117,7 +111,7 @@ spec:
     rulePolicies: {}
     seccompProfile:
       spec:
-        defaultAction: ""
+        defaultAction: ''
     syscalls:
     - bind
     - capset
