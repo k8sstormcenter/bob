@@ -1,0 +1,80 @@
+# Benign baseline traffic generator for the chain demo.
+#
+# Lives in its OWN namespace (`chain-loadgen`) so node-agent's
+# `excludeNamespaces` rule skips it entirely — otherwise the curl pods
+# would land in chain-ns ApplicationProfiles and produce R0001 / R0002
+# noise that pollutes the sbobs the demo is trying to ship.
+#
+# Two layers of "kubescape, please ignore":
+#   1. The dedicated namespace is added to
+#      `excludeNamespaces` in bob/kubescape/values.yaml — this is the
+#      code-honored mechanism (node-agent/pkg/config/config.go
+#      SkipNamespace + IgnoreContainer).
+#   2. `kubescape.io/ignore: "true"` label on the namespace and pod —
+#      Armo convention used by kubescape's own components
+#      (storage/clusterrole.yaml etc.). Not honored by node-agent's
+#      runtime filter today (excludeLabels in the live configmap is
+#      null), but kept as a documented intent marker — if a future
+#      kubescape release wires the label through, this works day-one.
+#
+# The Job runs the SAME two curl patterns the previous inline
+# `kubectl run curl-tmp-$RANDOM` calls did, in the same order:
+#   1. /api/products  → frontend → backend → postgres (HTTP + pg-wire)
+#   2. /api/cache/eval → frontend → redis EVAL  (RESP, atomic counter)
+# Both are required for the chain demo's network neighborhood learning
+# (without the eval traffic, redis's NN never sees the frontend → redis
+# edge and the chain attack's first redis call would itself be a
+# violation, defeating the demo's premise).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chain-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+    app.kubernetes.io/part-of: chain-demo
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chain-loadgen
+  namespace: chain-loadgen
+  labels:
+    app: chain-loadgen
+    kubescape.io/ignore: "true"
+spec:
+  # ttl: Job + pods clean themselves up 60s after the curl loop exits,
+  # so re-running setup against an existing cluster is idempotent
+  # without an explicit teardown step.
+  ttlSecondsAfterFinished: 60
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: chain-loadgen
+        kubescape.io/ignore: "true"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: curl
+          image: curlimages/curl:8.10.1
+          # No resource limits — the loop is bounded (30 requests
+          # total, sequential, against in-cluster services). Adding
+          # limits here would just add a knob nobody touches.
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              FRONTEND=http://chain-frontend.chain.svc:8080
+              echo "loadgen: hitting /api/products (15x)"
+              for _ in $(seq 1 15); do
+                curl -sf "$FRONTEND/api/products" >/dev/null 2>&1 || true
+              done
+              echo "loadgen: hitting /api/cache/eval (15x)"
+              for _ in $(seq 1 15); do
+                curl -sf -X POST -H "Content-Type: application/json" \
+                  --data '{"script":"return redis.call(\"INCR\", KEYS[1])","keys":["chain:bench"]}' \
+                  "$FRONTEND/api/cache/eval" >/dev/null 2>&1 || true
+              done
+              echo "loadgen: done"

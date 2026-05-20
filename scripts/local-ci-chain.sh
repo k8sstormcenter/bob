@@ -35,6 +35,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 NS=chain
+LOADGEN_NS=chain-loadgen
 KS_NS=honey
 LEARN_WAIT=180s
 PROPAGATION_WAIT=20
@@ -146,6 +147,9 @@ if $TEARDOWN; then
   # doesn't race against the still-terminating namespace and fail with
   # "namespace is being terminated" on every apply.
   kubectl delete ns "$NS" --ignore-not-found --wait=true
+  # Loadgen lives in its own namespace (example/chain/loadgen.yaml); tear
+  # it down alongside the chain ns so re-running setup is fully idempotent.
+  kubectl delete ns "$LOADGEN_NS" --ignore-not-found --wait=true
   exit 0
 fi
 
@@ -274,26 +278,23 @@ if ! $ATTACK_ONLY; then
     || die "frontend never became ready"
 
   log "=== Generate benign baseline traffic for sbob learning ==="
-  # Two benign patterns, both via frontend (which is the user-facing
-  # entrypoint of the chain):
+  # Loadgen lives in its OWN namespace ($LOADGEN_NS) which is listed in
+  # bob/kubescape/values.yaml `excludeNamespaces` — node-agent's
+  # SkipNamespace path drops the curl pod entirely, so it never lands
+  # in chain-ns ApplicationProfiles and never produces R0001 / R0002
+  # noise. (Previously, inline `kubectl run curl-tmp-…` pods ran inside
+  # the chain ns, which kubescape observed → polluted sbobs.)
+  # Two benign request patterns, both via frontend:
   #   1. /api/products  — frontend → backend → postgres  (HTTP, pg-wire)
   #   2. /api/cache/eval — frontend → redis EVAL (RESP, atomic counter)
   # Both populate the relevant NetworkNeighborhood edges; without (2)
   # the chain attack's first redis call would be a NN violation, which
   # would defeat the demo's premise (the eval endpoint is a FEATURE,
   # not a backdoor — the SCRIPT being untrusted is the vuln).
-  for _ in $(seq 1 15); do
-    kubectl run curl-tmp-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.10.1 \
-      --namespace="$NS" --quiet -- \
-      curl -sf "http://chain-frontend.$NS.svc:8080/api/products" >/dev/null 2>&1 || true
-  done
-  for _ in $(seq 1 15); do
-    kubectl run curl-tmp-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.10.1 \
-      --namespace="$NS" --quiet -- \
-      sh -c 'curl -sf -X POST -H "Content-Type: application/json" \
-        --data "{\"script\":\"return redis.call(\\\"INCR\\\", KEYS[1])\",\"keys\":[\"chain:bench\"]}" \
-        "http://chain-frontend.'$NS'.svc:8080/api/cache/eval"' >/dev/null 2>&1 || true
-  done
+  kubectl delete job chain-loadgen -n "$LOADGEN_NS" --ignore-not-found >/dev/null 2>&1
+  kubectl apply -f "$REPO_ROOT/example/chain/loadgen.yaml" >/dev/null
+  kubectl wait --for=condition=complete job/chain-loadgen -n "$LOADGEN_NS" --timeout=120s \
+    || log "  WARN: loadgen job did not complete cleanly (continuing — partial baseline still useful)"
 
   if [[ ${#LEARN_PODS[@]} -eq 0 ]]; then
     log "=== All pods use user-supplied sbobs — skipping learn-wait ==="
@@ -341,16 +342,13 @@ if ! $ATTACK_ONLY; then
         # the eval calls, chain-redis would re-seal empty again because
         # no redis-server activity was observed during its second
         # learning window. (rabbit-flagged 2026-05-17.)
-        for _ in 1 2 3 4 5; do
-          kubectl run curl-t-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.10.1 \
-            --namespace="$NS" --quiet -- \
-            curl -sf "http://chain-frontend.$NS.svc:8080/api/products" >/dev/null 2>&1 || true
-        done
-        for _ in 1 2 3 4 5; do
-          kubectl run curl-t-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.10.1 \
-            --namespace="$NS" --quiet -- \
-            sh -c 'curl -sf -X POST -H "Content-Type: application/json" --data "{\"script\":\"return redis.call(\\\"INCR\\\", KEYS[1])\",\"keys\":[\"chain:bench\"]}" "http://chain-frontend.'$NS'.svc:8080/api/cache/eval"' >/dev/null 2>&1 || true
-        done
+        # Re-run the loadgen Job (it's idempotent: ttlSecondsAfterFinished
+        # clears the previous pod, and delete+apply guarantees a fresh
+        # run). Same loadgen lives in $LOADGEN_NS so the curl pod stays
+        # out of the chain-ns profiles.
+        kubectl delete job chain-loadgen -n "$LOADGEN_NS" --ignore-not-found >/dev/null 2>&1
+        kubectl apply -f "$REPO_ROOT/example/chain/loadgen.yaml" >/dev/null
+        kubectl wait --for=condition=complete job/chain-loadgen -n "$LOADGEN_NS" --timeout=60s >/dev/null 2>&1 || true
       fi
       sleep 4
     done
