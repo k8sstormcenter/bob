@@ -3,30 +3,23 @@ kind: NetworkNeighborhood
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-chain/kind-ReplicaSet/name-chain-backend-54b8946f8f
     kubescape.io/status: completed
-    kubescape.io/sync-checksum: 76e28147e31991cb9231ecd804ffd2cf8ed714be8efe2ef39b29450423adf7f1
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-chain/deployment-chain-backend
-  creationTimestamp: "2026-05-16T17:53:39Z"
+    kubescape.io/managed-by: User
   labels:
-    kubescape.io/instance-template-hash: 54b8946f8f
-    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-backend
     kubescape.io/workload-namespace: chain
-    kubescape.io/workload-resource-version: "23341"
-  name: replicaset-chain-backend-54b8946f8f
+  name: chain-backend
   namespace: chain
-  resourceVersion: "1"
 spec:
   containers:
   - egress:
-    - dns: ""
+    - dns: ''
       dnsNames: null
       identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
-      ipAddress: ""
+      ipAddress: ''
       namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: kube-system
@@ -38,10 +31,10 @@ spec:
         port: 53
         protocol: UDP
       type: internal
-    - dns: ""
+    - dns: ''
       dnsNames: null
       identifier: 29ac3db8b78a2e89ec3fe4d3e3c13e8e7ad879f36c269409a3479b1e78667bb7
-      ipAddress: ""
+      ipAddress: ''
       namespaceSelector: null
       podSelector:
         matchLabels:

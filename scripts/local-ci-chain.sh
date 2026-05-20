@@ -12,7 +12,13 @@
 #   ./scripts/local-ci-chain.sh --use-published       # skip build, pull GHCR images
 #   ./scripts/local-ci-chain.sh --setup-only          # deploy + learn, stop
 #   ./scripts/local-ci-chain.sh --attack-only         # skip setup, re-run chain
+#   ./scripts/local-ci-chain.sh --extended            # also run s5 (pg-wire) + s6 (DNS exfil)
+#   ./scripts/local-ci-chain.sh --learn-sbobs         # vendor flow: ignore sbobs/, learn
+#   ./scripts/local-ci-chain.sh --isolate=<pod>       # only <pod> uses sbobs; others learn
 #   ./scripts/local-ci-chain.sh --teardown            # delete the chain ns
+#
+#   Flags compose: --use-published --extended, --attack-only --extended, etc.
+#   --isolate values: chain-redis | chain-postgres | chain-backend | chain-frontend
 #
 #   CHAIN_PUBLISHED_TAG=<sha>   override default `latest` for --use-published
 #
@@ -37,9 +43,20 @@ SETUP_ONLY=false
 ATTACK_ONLY=false
 TEARDOWN=false
 USE_PUBLISHED=false
+EXTENDED=false
+LEARN_SBOBS=false
+ISOLATE=""
+ALL_PODS=(chain-postgres chain-redis chain-backend chain-frontend)
 PUBLISHED_TAG="${CHAIN_PUBLISHED_TAG:-latest}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    # CUSTOMER FLOW (default + --setup-only): apply the pre-shipped
+    # ApplicationProfile / NetworkNeighborhood YAMLs from
+    # example/chain/sbobs/ BEFORE the chain pods start. Pods carry
+    # `kubescape.io/user-defined-profile` + `user-defined-network`
+    # labels referencing those resources by name — node-agent picks
+    # them up directly and skips the learning phase entirely. This is
+    # the "vendor ships sealed sbobs, customer applies and runs" flow.
     --setup-only)    SETUP_ONLY=true ;;
     --attack-only)   ATTACK_ONLY=true ;;
     --teardown)      TEARDOWN=true ;;
@@ -49,7 +66,42 @@ while [[ $# -gt 0 ]]; do
     # `latest` or whatever CHAIN_PUBLISHED_TAG env var is set to —
     # CI matrix jobs pin to a short-sha for reproducibility.
     --use-published) USE_PUBLISHED=true ;;
-    -h|--help)       sed -n '2,18p' "$0"; exit 0 ;;
+    # --extended: also run example/chain/chain-attacks-extended.yaml
+    # after the basic chain. Adds two stages:
+    #   s5 — full pg-wire conversation (StartupMessage + Query + parse
+    #        DataRow) from inside redis pod, extracts ONE postgres row
+    #        via the lateral pivot.
+    #   s6 — DNS exfiltration of the extracted row: base32-encoded
+    #        label per chunk, one DNS query per chunk so the leaked
+    #        bytes show up in alert.labels.address.
+    # Requires chain.yaml's POSTGRES_HOST_AUTH_METHOD=trust (already
+    # set). The basic chain still runs first regardless of this flag.
+    --extended)      EXTENDED=true ;;
+    # VENDOR FLOW: skip applying the pre-shipped sbobs, strip the
+    # user-defined-profile labels from chain.yaml at deploy time so
+    # node-agent doesn't try to use the supplied AP/NN (which we
+    # don't want for a fresh learn anyway), then run benign traffic
+    # while kubescape learns. The vendor regenerates the sbobs by
+    # exporting whatever kubescape sealed and hand-cleaning it
+    # (annotation strip + version-segment wildcarding) into
+    # example/chain/sbobs/ — the tuner will eventually do this
+    # auto-cleanup, but today it's a one-off manual edit.
+    --learn-sbobs)   LEARN_SBOBS=true ;;
+    # --isolate=<pod>: VERIFICATION FLOW — apply only one pod's
+    # sbobs (user-supplied AP+NN), strip the user-defined-* labels
+    # from the OTHER three pods so they fall back to the normal learn
+    # path. Lets us prove each pod's AP+NN is individually well-formed
+    # (node-agent picks it up, the right rules fire on the right pod)
+    # without coupling the result to the other three sbobs. Run once
+    # per pod to cover the matrix.
+    --isolate=*)
+      ISOLATE="${1#*=}"
+      case " ${ALL_PODS[*]} " in
+        *" $ISOLATE "*) ;;
+        *) echo "--isolate must be one of: ${ALL_PODS[*]}" >&2; exit 2 ;;
+      esac
+      ;;
+    -h|--help)       sed -n '2,32p' "$0"; exit 0 ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
   shift
@@ -58,6 +110,29 @@ done
 log()  { echo "[$(date +%H:%M:%S)] $*"; }
 die()  { log "ERROR: $*"; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || die "missing tool: $1"; }
+
+# Compute which pods carry user-supplied sbobs (SBOB_PODS) and which
+# fall back to the normal learn path (LEARN_PODS). Default = all four
+# use sbobs (CUSTOMER FLOW). --learn-sbobs flips every pod to learning
+# (VENDOR FLOW). --isolate restricts sbob use to one pod (VERIFICATION
+# FLOW) — the remaining three learn, which lets us prove the named
+# pod's AP+NN is individually well-formed without coupling the result
+# to the other three sbobs.
+if $LEARN_SBOBS && [[ -n "$ISOLATE" ]]; then
+  die "--learn-sbobs and --isolate are mutually exclusive"
+fi
+SBOB_PODS=()
+LEARN_PODS=()
+if $LEARN_SBOBS; then
+  LEARN_PODS=("${ALL_PODS[@]}")
+elif [[ -n "$ISOLATE" ]]; then
+  SBOB_PODS=("$ISOLATE")
+  for p in "${ALL_PODS[@]}"; do
+    [[ "$p" != "$ISOLATE" ]] && LEARN_PODS+=("$p")
+  done
+else
+  SBOB_PODS=("${ALL_PODS[@]}")
+fi
 
 need kubectl
 need jq
@@ -156,6 +231,37 @@ if ! $ATTACK_ONLY; then
       -e "s|image: chain-frontend:latest|image: ${CHAIN_FRONTEND_IMG}|" \
     example/chain/chain.yaml > "$CHAIN_MANIFEST"
 
+  # For LEARN_PODS, strip the kubescape.io/user-defined-{profile,network}
+  # labels from the rendered manifest so node-agent ignores any leftover
+  # or supplied sbob for that pod and falls back to the normal learn path.
+  # The label values always equal the pod / deployment name, so we match
+  # the exact line. (Each `chain.yaml` deployment has two such lines
+  # under its `spec.template.metadata.labels` block.)
+  for p in "${LEARN_PODS[@]}"; do
+    sed -i \
+      -e "/kubescape.io\/user-defined-profile: $p$/d" \
+      -e "/kubescape.io\/user-defined-network: $p$/d" \
+      "$CHAIN_MANIFEST"
+  done
+
+  # CUSTOMER FLOW: apply user-supplied sbobs (AP+NN) into $NS BEFORE
+  # the chain pods start so node-agent sees them on first pod start
+  # and skips learning. The sbobs in example/chain/sbobs/ carry
+  # `kubescape.io/managed-by: User` (required by node-agent's
+  # isUserManagedProfile / isUserManagedNN gate) and have stable
+  # workload-name = chain-<role> so the pod's user-defined-* labels
+  # match them by name.
+  if [[ ${#SBOB_PODS[@]} -gt 0 ]]; then
+    kubectl create namespace "$NS" --dry-run=client -o yaml \
+      | kubectl apply -f - >/dev/null
+    log "=== Apply user-supplied sbobs to $NS (${SBOB_PODS[*]}) ==="
+    for p in "${SBOB_PODS[@]}"; do
+      kubectl apply -n "$NS" -f "$REPO_ROOT/example/chain/sbobs/ap-$p.yaml" >/dev/null
+      kubectl apply -n "$NS" -f "$REPO_ROOT/example/chain/sbobs/nn-$p.yaml" >/dev/null
+      log "  applied ap/nn for $p"
+    done
+  fi
+
   log "=== Deploy 4 components into $NS ==="
   kubectl apply -f "$CHAIN_MANIFEST"
   for d in chain-postgres chain-redis chain-backend chain-frontend; do
@@ -189,7 +295,11 @@ if ! $ATTACK_ONLY; then
         "http://chain-frontend.'$NS'.svc:8080/api/cache/eval"' >/dev/null 2>&1 || true
   done
 
-  log "=== Wait for sbob learning to mark profile completed AND non-empty ($LEARN_WAIT) ==="
+  if [[ ${#LEARN_PODS[@]} -eq 0 ]]; then
+    log "=== All pods use user-supplied sbobs — skipping learn-wait ==="
+  fi
+  [[ ${#LEARN_PODS[@]} -gt 0 ]] && \
+    log "=== Wait for sbob learning to mark profile completed AND non-empty ($LEARN_WAIT) ==="
   # kubescape creates the AP CR after the pod starts AND sometimes
   # seals it with execs=0 if no process activity was observed inside
   # the learning window (race between pod start and node-agent BPF
@@ -199,7 +309,7 @@ if ! $ATTACK_ONLY; then
   # If the window expires with execs=0 we delete the AP and force a
   # fresh learn (which restarts the kubescape clock for that pod);
   # the deletion is cheap because the AP is empty anyway.
-  for app in chain-backend chain-postgres chain-redis chain-frontend; do
+  for app in "${LEARN_PODS[@]}"; do
     log "  waiting for $app profile (completed + execs>0)"
     deadline=$(( $(date +%s) + ${LEARN_WAIT%s} ))
     while [[ $(date +%s) -lt $deadline ]]; do
@@ -280,6 +390,19 @@ bin/bobctl attack \
   --format markdown \
   | tee /tmp/chain-attack-results.md
 
+if $EXTENDED; then
+  log "=== Run chain-attacks-extended (s5 pg-wire + s6 DNS exfil) ==="
+  # The extended suite shares the redis sandbox-escape primitive with
+  # the basic chain — it just chains additional outbound traffic onto
+  # the same io.popen. Runs AFTER the basic suite so all expectations
+  # from both YAMLs land in alertmanager before the coverage step.
+  bin/bobctl attack \
+    --attack-suite example/chain/chain-attacks-extended.yaml \
+    --namespace "$NS" \
+    --format markdown \
+    | tee /tmp/chain-attack-results-extended.md
+fi
+
 log "=== Wait $PROPAGATION_WAIT s for alert propagation ==="
 sleep "$PROPAGATION_WAIT"
 
@@ -322,7 +445,14 @@ log "=== Coverage report ==="
 COVERAGE=$(mktemp /tmp/chain-coverage.XXX.json)
 EXPECTATIONS=$(mktemp /tmp/chain-expect.XXX.json)
 
-# 1. Build [{scenario, ruleID, containerName, command}, ...] from YAML
+# 1. Build [{scenario, ruleID, containerName, command}, ...] from YAML.
+# Parses BOTH chain-attacks.yaml AND (when --extended was passed)
+# chain-attacks-extended.yaml so the coverage table covers every
+# expectation that bobctl attack actually ran.
+SUITE_FILES=( "$REPO_ROOT/example/chain/chain-attacks.yaml" )
+if $EXTENDED; then
+  SUITE_FILES+=( "$REPO_ROOT/example/chain/chain-attacks-extended.yaml" )
+fi
 awk '
   BEGIN { OFS=""; printing=0; scn=""; rule=""; rname=""; cnt=""; cmd="" }
   function flush() {
@@ -342,7 +472,7 @@ awk '
   in_exp && /^        command:/  { cmd=$2 }
   /^  - name:/ && in_exp         { in_exp=0 }
   END { flush(); print "]" }
-' "$REPO_ROOT/example/chain/chain-attacks.yaml" > "$EXPECTATIONS"
+' "${SUITE_FILES[@]}" > "$EXPECTATIONS"
 
 EXP_COUNT=$(jq 'length' "$EXPECTATIONS")
 log "  expectations parsed: $EXP_COUNT"

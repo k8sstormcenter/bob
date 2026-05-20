@@ -42,6 +42,15 @@ spec:
     metadata:
       labels:
         app: chain-postgres
+        # User-supplied profile + network labels (node-agent contract:
+        # pkg/objectcache/shared_container_data.go:26,167,177).
+        # When example/chain/sbobs/{ap,nn}-chain-postgres.yaml are
+        # applied BEFORE the pod starts, node-agent loads them directly
+        # without going through the learning phase. If the sbobs aren't
+        # present, the pod still runs and kubescape relearns from
+        # scratch — labels are harmless absent the referenced AP/NN.
+        kubescape.io/user-defined-profile: chain-postgres
+        kubescape.io/user-defined-network: chain-postgres
     spec:
       containers:
         - name: pg-vuln
@@ -58,6 +67,16 @@ spec:
               value: postgres
             - name: POSTGRES_DB
               value: postgres
+            # POSTGRES_HOST_AUTH_METHOD=trust replaces the default
+            # scram-sha-256 with an unauthenticated allow for host
+            # connections. The extended chain (chain-attacks-extended
+            # s5) pivots redis → postgres over pg-wire WITHOUT
+            # credentials and pulls one row. This is a realistic
+            # demo-grade misconfig (think devs leaving an internal-only
+            # postgres unauthenticated because "it's behind the cluster
+            # network"); the non-extended chain still works either way.
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: trust
           ports:
             - containerPort: 5432
               name: pg
@@ -118,6 +137,8 @@ spec:
     metadata:
       labels:
         app: chain-redis
+        kubescape.io/user-defined-profile: chain-redis
+        kubescape.io/user-defined-network: chain-redis
     spec:
       containers:
         - name: redis
@@ -179,6 +200,8 @@ spec:
     metadata:
       labels:
         app: chain-backend
+        kubescape.io/user-defined-profile: chain-backend
+        kubescape.io/user-defined-network: chain-backend
     spec:
       containers:
         - name: chain-backend
@@ -244,6 +267,8 @@ spec:
     metadata:
       labels:
         app: chain-frontend
+        kubescape.io/user-defined-profile: chain-frontend
+        kubescape.io/user-defined-network: chain-frontend
     spec:
       containers:
         - name: chain-frontend

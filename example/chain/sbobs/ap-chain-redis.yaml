@@ -3,24 +3,16 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-chain/kind-ReplicaSet/name-chain-redis-65bbb4cd87
-    kubescape.io/resource-size: "22"
     kubescape.io/status: completed
-    kubescape.io/sync-checksum: a4fd62ddd5ae3fd99d79842ab9c22b41319181e3db25f122caaa49afb42f3a4c
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-chain/deployment-chain-redis
-  creationTimestamp: "2026-05-16T17:41:08Z"
+    kubescape.io/managed-by: User
   labels:
-    kubescape.io/instance-template-hash: 65bbb4cd87
-    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-redis
     kubescape.io/workload-namespace: chain
-    kubescape.io/workload-resource-version: "21488"
-  name: replicaset-chain-redis-65bbb4cd87
+  name: chain-redis
   namespace: chain
-  resourceVersion: "1"
 spec:
   architectures:
   - amd64
@@ -52,7 +44,10 @@ spec:
       path: /etc/ld.so.cache
     - flags:
       - O_RDONLY
-      path: /etc/redis/..2026_05_16_17_38_44.1722384722/redis.conf
+      # k8s ConfigMap symlink target — `..YYYY_MM_DD_HH_MM_SS.SECS`
+      # tempdir, changes on every ConfigMap remount. Whole-segment
+      # wildcard.
+      path: /etc/redis/⋯/redis.conf
     - flags:
       - O_RDONLY
       path: /proc/⋯/net/core/somaxconn
@@ -88,7 +83,7 @@ spec:
     rulePolicies: {}
     seccompProfile:
       spec:
-        defaultAction: ""
+        defaultAction: ''
     syscalls:
     - clone3
     - epoll_create

