@@ -44,9 +44,6 @@ spec:
       path: /etc/ld.so.cache
     - flags:
       - O_RDONLY
-      # k8s ConfigMap symlink target — `..YYYY_MM_DD_HH_MM_SS.SECS`
-      # tempdir, changes on every ConfigMap remount. Whole-segment
-      # wildcard.
       path: /etc/redis/⋯/redis.conf
     - flags:
       - O_RDONLY

@@ -47,10 +47,6 @@ spec:
       - /chain-backend
       path: /chain-backend
     identifiedCallStacks: null
-    # imageID is the content digest at learn time. A different GHCR
-    # push of the same :latest tag has a different digest; this snapshot
-    # was sealed against the GHCR registry image. Re-learn against the
-    # customer's pulled image to refresh after a chain-backend rebuild.
     imageID: ghcr.io/k8sstormcenter/chain-backend@sha256:0000000000000000000000000000000000000000000000000000000000000000
     imageTag: ghcr.io/k8sstormcenter/chain-backend:latest
     name: chain-backend

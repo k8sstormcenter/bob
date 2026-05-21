@@ -284,6 +284,9 @@ spec:
       path: /
     - flags:
       - O_RDONLY
+      path: /8s.io/⋯/config.json
+    - flags:
+      - O_RDONLY
       path: /backup_label
     - flags:
       - O_CLOEXEC
@@ -308,11 +311,6 @@ spec:
       - O_TRUNC
       - O_RDONLY
       path: /dev/null
-    # Collapsed 11 PostgreSQL.random-digits entries into one
-    # wildcarded path. The numeric suffix is a per-postmaster-start
-    # random shared-memory ID. Per the kubescape spec, a parent node
-    # with high-cardinality children collapses to the whole-segment
-    # wildcard, not a partial-suffix match.
     - flags:
       - O_RDWR
       - O_CREAT
@@ -376,8 +374,6 @@ spec:
     - flags:
       - O_CLOEXEC
       - O_RDWR
-      # WAL segment files rotate continuously; the 24-hex-char name is
-      # purely cluster-state-dependent. Whole-segment wildcard.
       path: /pg_wal/⋯
     - flags:
       - O_CLOEXEC
@@ -1043,7 +1039,6 @@ spec:
       - O_RDWR
       - O_CLOEXEC
       - O_RDONLY
-      # WAL segment file — rotating hex name, whole-segment wildcard.
       path: /var/lib/postgresql/data/pg_wal/⋯
     - flags:
       - O_RDONLY
