@@ -171,13 +171,11 @@ flowchart LR
   s3 ==>|fires| r0001b
   s3 -.->|silent| r0011a
   s4 ==>|fires| r0001c
-  s4 -.->|silent| r0005a
-  s4 -.->|silent| r0011b
+  s4 ==>|fires| r0011b
   s5 ==>|fires| r0001d
   s5 -.->|silent| r0011c
   s6 ==>|fires| r0001e
-  s6 -.->|silent| r0005b
-  s6 -.->|silent| r0011d
+  s6 ==>|fires| r0005b
 
   linkStyle default stroke:#7a808c,stroke-width:1.2px
 ```
@@ -346,9 +344,9 @@ flowchart LR
 
   d2["<b>R0001 / R0010</b><br/>process + file rules<br/><i>caught</i>"]:::ok
   d3["<b>R0001</b> caught<br/><b>R0011</b> <i>blind</i>"]:::cmp
-  d4["<b>R0001</b> caught<br/><b>R0005 / R0011</b> <i>blind</i>"]:::cmp
-  d5["<b>R0001</b> caught<br/><b>R0011</b> <i>blind</i>"]:::cmp
-  d6["<b>R0001</b> caught<br/><b>R0005 ×N / R0011</b> <i>blind</i>"]:::cmp
+  d4["<b>R0001 / R0011</b> caught"]:::ok
+  d5["<b>R0001</b> caught<br/><b>R0011</b> <i>blind (private IP)</i>"]:::cmp
+  d6["<b>R0001 / R0005 ×N</b> caught"]:::ok
 
   s1 --> s2 --> s3 --> s4
   s4 -. extended .-> s5 --> s6
@@ -389,27 +387,25 @@ flowchart TB
     s3_r0011["R0011 ✗"]:::warn
   end
 
-  subgraph row_s4 [" s4 · exfil (HTTP) "]
+  subgraph row_s4 [" s4 · exfil (HTTP → 1.1.1.1:80) "]
     direction LR
     s4_r0001["R0001 ✓"]:::ok
-    s4_r0005["R0005 ✗"]:::warn
-    s4_r0011["R0011 ✗"]:::warn
+    s4_r0011["R0011 ✓"]:::ok
   end
 
   subgraph row_s5 [" s5 · pg-wire + row (extended) "]
     direction LR
     s5_r0001["R0001 ✓"]:::ok
-    s5_r0011["R0011 ✗"]:::ext
+    s5_r0011["R0011 ✗*"]:::ext
   end
 
   subgraph row_s6 [" s6 · DNS exfil row (extended) "]
     direction LR
     s6_r0001["R0001 ✓"]:::ok
-    s6_r0005["R0005 ✗"]:::ext
-    s6_r0011["R0011 ✗"]:::ext
+    s6_r0005["R0005 ✓"]:::ok
   end
 
-  total[["<b>Coverage 4 / 7 basic · 6 / 12 extended</b><br/><i>same 2 knobs unblind everything</i>"]]:::cmp
+  total[["<b>Coverage 6 / 6 basic · 10 / 10 extended</b><br/><i>* R0011 filters private IPs by design</i>"]]:::ok
 
   row_s2 ~~~ row_s3 ~~~ row_s4 ~~~ row_s5 ~~~ row_s6 ~~~ total
 
@@ -432,42 +428,38 @@ flowchart LR
   classDef cmp  fill:#fff5d6,stroke:#9a8208,color:#0a0a0a,stroke-width:1.2px
   classDef live fill:#0a0a0a,stroke:#0a0a0a,color:#fff,stroke-width:1.4px
 
-  subgraph defaults [" defaults today (extended chain) "]
+  subgraph defaults [" without network knobs (extended chain) "]
     direction TB
     a1["s2 R0001 cat ✓"]:::ok
     a2["s2 R0010 shadow ✓"]:::ok
     a3["s3 R0001 bash ✓"]:::ok
     a4["s3 R0011 egress ✗"]:::warn
     a5["s4 R0001 perl ✓"]:::ok
-    a6["s4 R0005 DNS ✗"]:::warn
     a7["s4 R0011 egress ✗"]:::warn
     a8["s5 R0001 perl ✓"]:::ok
     a9["s5 R0011 egress ✗"]:::warn
     a10["s6 R0001 perl ✓"]:::ok
     a11["s6 R0005 DNS ×N ✗"]:::warn
-    a12["s6 R0011 egress ✗"]:::warn
-    cov_a[["<b>6 / 12 extended</b><br/><i>4 / 7 basic</i>"]]:::cmp
-    a1 ~~~ a2 ~~~ a3 ~~~ a4 ~~~ a5 ~~~ a6 ~~~ a7 ~~~ a8 ~~~ a9 ~~~ a10 ~~~ a11 ~~~ a12 ~~~ cov_a
+    cov_a[["<b>4 / 10 extended</b><br/><i>2 / 6 basic</i>"]]:::cmp
+    a1 ~~~ a2 ~~~ a3 ~~~ a4 ~~~ a5 ~~~ a7 ~~~ a8 ~~~ a9 ~~~ a10 ~~~ a11 ~~~ cov_a
   end
 
   switch["⚙️ flip 2 knobs<br/><i>networkEventsStreaming: enable</i><br/><i>R0011.isTriggerAlert: true</i>"]:::live
 
-  subgraph flipped [" knobs flipped "]
+  subgraph flipped [" knobs flipped (current) "]
     direction TB
     b1["s2 R0001 cat ✓"]:::ok
     b2["s2 R0010 shadow ✓"]:::ok
     b3["s3 R0001 bash ✓"]:::ok
-    b4["s3 R0011 egress ✓"]:::ok
+    b4["s3 R0011 egress ✓*"]:::ok
     b5["s4 R0001 perl ✓"]:::ok
-    b6["s4 R0005 DNS ✓"]:::ok
     b7["s4 R0011 egress ✓"]:::ok
     b8["s5 R0001 perl ✓"]:::ok
-    b9["s5 R0011 egress ✓"]:::ok
+    b9["s5 R0011 egress ✓*"]:::ok
     b10["s6 R0001 perl ✓"]:::ok
     b11["s6 R0005 DNS ×N ✓"]:::ok
-    b12["s6 R0011 egress ✓"]:::ok
-    cov_b[["<b>12 / 12 extended</b><br/><i>7 / 7 basic</i>"]]:::ok
-    b1 ~~~ b2 ~~~ b3 ~~~ b4 ~~~ b5 ~~~ b6 ~~~ b7 ~~~ b8 ~~~ b9 ~~~ b10 ~~~ b11 ~~~ b12 ~~~ cov_b
+    cov_b[["<b>10 / 10 extended</b><br/><i>6 / 6 basic · * via s4 R0011 match</i>"]]:::ok
+    b1 ~~~ b2 ~~~ b3 ~~~ b4 ~~~ b5 ~~~ b7 ~~~ b8 ~~~ b9 ~~~ b10 ~~~ b11 ~~~ cov_b
   end
 
   defaults --> switch --> flipped
