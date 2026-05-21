@@ -67,14 +67,32 @@ spec:
             - |
               set -eu
               FRONTEND=http://chain-frontend.chain.svc:8080
+              # Count successful requests per endpoint. The previous
+              # `|| true` swallowed every curl failure, so the Job
+              # could report Complete with zero baseline traffic
+              # generated — which is silent corruption from the
+              # learner's POV (no NN edges learned → R0011 false
+              # positives downstream). If EITHER loop produces zero
+              # successes, fail the Job loudly. Individual transient
+              # failures are still tolerated (we want best-effort
+              # baseline, not strict).
+              ok_products=0
+              ok_eval=0
               echo "loadgen: hitting /api/products (15x)"
               for _ in $(seq 1 15); do
-                curl -sf "$FRONTEND/api/products" >/dev/null 2>&1 || true
+                if curl -sf "$FRONTEND/api/products" >/dev/null 2>&1; then
+                  ok_products=$((ok_products + 1))
+                fi
               done
               echo "loadgen: hitting /api/cache/eval (15x)"
               for _ in $(seq 1 15); do
-                curl -sf -X POST -H "Content-Type: application/json" \
-                  --data '{"script":"return redis.call(\"INCR\", KEYS[1])","keys":["chain:bench"]}' \
-                  "$FRONTEND/api/cache/eval" >/dev/null 2>&1 || true
+                if curl -sf -X POST -H "Content-Type: application/json" \
+                    --data '{"script":"return redis.call(\"INCR\", KEYS[1])","keys":["chain:bench"]}' \
+                    "$FRONTEND/api/cache/eval" >/dev/null 2>&1; then
+                  ok_eval=$((ok_eval + 1))
+                fi
               done
+              echo "loadgen: products ok=$ok_products/15  eval ok=$ok_eval/15"
+              [ "$ok_products" -gt 0 ] || { echo "loadgen: zero successful /api/products calls — chain-postgres NN won't learn"; exit 1; }
+              [ "$ok_eval" -gt 0 ] || { echo "loadgen: zero successful /api/cache/eval calls — chain-redis NN won't learn"; exit 1; }
               echo "loadgen: done"

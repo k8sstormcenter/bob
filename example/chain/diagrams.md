@@ -104,9 +104,9 @@ flowchart TB
   s1["<b>s1 · recon</b><br/><i>script: INCR counter</i><br/>blind by design"]:::cmp
   s2["<b>s2 · escape + shadow</b><br/><i>loadlib → io.popen('cat /etc/shadow')</i>"]:::warn
   s3["<b>s3 · pivot</b><br/><i>io.popen('bash -c &quot;exec 3&lt;&gt;/dev/tcp/chain-postgres/5432&quot;')</i><br/>(SSL probe only)"]:::warn
-  s4["<b>s4 · exfil</b><br/><i>io.popen('perl IO::Socket → attacker.example.com')</i>"]:::warn
+  s4["<b>s4 · exfil</b><br/><i>io.popen('perl IO::Socket → 1.1.1.1:80')</i>"]:::warn
   s5["<b>s5 · real pg-wire</b><br/><i>perl: Startup + Query + parse DataRow</i><br/>(extracts ROW back)"]:::ext
-  s6["<b>s6 · DNS exfil</b><br/><i>perl: base32(ROW) → getent</i><br/>chunk.attacker.example.com per label"]:::ext
+  s6["<b>s6 · DNS exfil</b><br/><i>perl: base32(ROW) → getent</i><br/>chunk.1.1.1.1.nip.io per label"]:::ext
 
   fe["<b>chain-frontend</b><br/><i>RESP proxy to redis</i>"]:::live
   rd["<b>chain-redis</b><br/><i>vulnerable Lua sandbox</i>"]:::ref
@@ -159,13 +159,11 @@ flowchart LR
     r0001b(["<b>R0001 bash</b>"]):::ok
     r0011a(["<b>R0011 → postgres</b>"]):::warn
     r0001c(["<b>R0001 perl</b><br/>external</b>"]):::ok
-    r0005a(["<b>R0005 attacker.example.com</b>"]):::warn
-    r0011b(["<b>R0011 external:80</b>"]):::warn
+    r0011b(["<b>R0011 → 1.1.1.1:80</b>"]):::ok
     r0001d(["<b>R0001 perl</b><br/>pg-wire</b>"]):::ok
     r0011c(["<b>R0011 → postgres:5432</b>"]):::warn
     r0001e(["<b>R0001 perl</b><br/>dns-exfil</b>"]):::ok
-    r0005b(["<b>R0005 *.attacker.example.com (×N)</b>"]):::warn
-    r0011d(["<b>R0011 → DNS resolver</b>"]):::warn
+    r0005b(["<b>R0005 *.1.1.1.1.nip.io (×N)</b>"]):::ok
   end
 
   s2 ==>|fires| r0001a
@@ -241,9 +239,11 @@ The narrow learned profile on chain-redis (one exec, zero egress) is
 the precondition that makes 4 of 7 (basic) / 6 of 12 (extended)
 detections trigger reliably. Every comm the attack spawns (cat, bash,
 perl × stages) is novel to the AP → R0001; every outbound destination
-(postgres:5432, attacker.example.com, kube-dns for chunk lookups) is
-novel to the NN → R0011 / R0005 *would* fire if the network knobs
-were on.
+(postgres:5432 internal, 1.1.1.1:80 external, `*.1.1.1.1.nip.io` for
+chunk lookups) is novel to the NN → R0011 fires on the external leg
+(s4), R0005 fires on each DNS chunk (s6). The internal-pivot R0011
+expectations (s3, s5) remain BLIND-by-design because R0011's
+expression filters private IPs.
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#C3A50D","primaryTextColor":"#0a0a0a","primaryBorderColor":"#9a8208","lineColor":"#0a0a0a","secondaryColor":"#D43F5B","tertiaryColor":"#fff5d6"}}}%%

