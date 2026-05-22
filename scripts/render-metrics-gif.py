@@ -2,18 +2,32 @@
 """Render metrics.json into an animated GIF showing the tuning process.
 
 Layout: Hybrid Radar + Kill-Chain Heatmap with per-attack detection detail.
+Top-right KPI panel surfaces the 3-axis Pareto field equation (D/N/P) —
+replaces the prior scalar-Score display. AP panel shows NN-rewrite count
+in the upper-right corner (read from kpi.json sidecar if present).
 
-  ┌────────────┬──────────────────┬────────────┐
-  │  Radar     │  Profile Shrink  │  Score +   │
-  │  (MITRE    │  (bar chart,     │  Sparkline │
-  │   12-spoke │   ghost base,    │            │
-  │   detected │   fixed axes)    │            │
-  │   vs total)│                  │            │
-  ├────────────┴──────────────────┴────────────┤
-  │  Kill-Chain Detail Panel (full width)       │
-  │  Per-attack cells: green=detected,          │
-  │  red=missed, grey=no expectation            │
-  └─────────────────────────────────────────────┘
+  ┌────────────┬───────────────────┬──────────────┐
+  │  Radar     │  Profile Entries  │  KPI         │
+  │  (MITRE    │  (Opens / Execs / │  D: missed   │
+  │   12-spoke │   Endpoints /     │  N: local FP │
+  │   detected │   Rules)          │  P: probe FP │
+  │   vs total)│  (NN: <n>) ←──────│  + sparkline │
+  ├────────────┴───────────────────┴──────────────┤
+  │  Kill-Chain Detail Panel (full width)          │
+  │  Per-attack cells: green=detected,             │
+  │  red=missed, grey=no expectation               │
+  └────────────────────────────────────────────────┘
+
+Sidecar: kpi.json (same dir as metrics.json) carries the post-tune
+3-axis KPI + the Normalizer rewrite count emitted by Phase 5 of the
+Pareto-KPI rewrite. Missing kpi.json is fine — the renderer treats
+unknowns as "n/a" (P) or hides the indicator (NN).
+
+Differences vs the previous design:
+  - Syscalls dropped from the AP panel (they tune separately; their
+    absolute count crowded the bar layout without adding signal).
+  - "Score" panel replaced with 3-axis "KPI (D/N/P)" panel.
+  - NN-rewrites count surfaced in the previously-empty AP-panel corner.
 
 Requires: pip install pillow matplotlib numpy
 
@@ -168,10 +182,55 @@ def short_name(name: str) -> str:
 
 
 def compute_global_limits(records: list[dict]) -> dict:
-    keys = ["opens", "execs", "syscalls", "endpoints", "policy_rules"]
+    # Syscalls intentionally excluded from the displayed AP-panel categories
+    # (still in metrics.json but no longer in the gif). Per-axis upper bound
+    # for the KPI panel pulls from any of the three D/N/P axes.
+    keys = ["opens", "execs", "endpoints", "policy_rules"]
     max_val = max(r[k] for r in records for k in keys)
     max_score = max(r["score"] for r in records)
     return {"max_entries": int(max_val * 1.2) or 10, "max_score": max(max_score + 2, 3)}
+
+
+def _kpi_color(val) -> str:
+    """Colour for a KPI axis value: green=0, yellow=1-2, red=3+, dim=non-numeric/n/a."""
+    try:
+        v = int(val)
+    except (TypeError, ValueError):
+        return C_DIM
+    if v == 0:
+        return C_GREEN
+    if v <= 2:
+        return C_YELLOW
+    return C_RED
+
+
+def load_kpi_sidecar(metrics_path: str) -> dict:
+    """Load kpi.json from the same directory as metrics.json if present.
+
+    Returns a dict with keys {detectability, noisiness, portability, nn_rewrites}.
+    All default to None (renderer treats missing as "unknown" / "n/a").
+
+    kpi.json is the post-tune sidecar carrying the 3-axis Pareto KPI + the
+    Normalizer rewrite count. Per-iteration D/N are still sourced from
+    metrics.json (each iteration carries its own scoring); only the final
+    P and the NN-rewrite count come from kpi.json — they are tune-global,
+    not iteration-local.
+    """
+    p = Path(metrics_path).parent / "kpi.json"
+    out = {"detectability": None, "noisiness": None, "portability": None, "nn_rewrites": None}
+    if not p.is_file():
+        return out
+    try:
+        with open(p) as f:
+            j = json.load(f)
+        kpi = j.get("kpi") or {}
+        out["detectability"] = kpi.get("Detectability", kpi.get("detectability"))
+        out["noisiness"]     = kpi.get("Noisiness",     kpi.get("noisiness"))
+        out["portability"]   = kpi.get("Portability",   kpi.get("portability"))
+        out["nn_rewrites"]   = j.get("nn_rewrites")
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"WARN: could not read {p}: {e}", file=sys.stderr)
+    return out
 
 
 def build_attack_analysis(attacks, detections):
@@ -207,7 +266,7 @@ def build_attack_analysis(attacks, detections):
     return det_by_attack, phase_attacks
 
 
-def draw_frame(records, up_to, title, limits, width=1280, height=900):
+def draw_frame(records, up_to, title, limits, kpi_sidecar=None, width=1280, height=900):
     fig = plt.figure(figsize=(width / 100, height / 100), dpi=100)
     fig.patch.set_facecolor(C_BG)
 
@@ -282,14 +341,18 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
     ax_prof = fig.add_subplot(gs[0, 1])
     ax_prof.set_facecolor(C_PANEL)
 
-    categories = ["Opens", "Execs", "Syscalls", "Endpoints", "Rules"]
-    keys = ["opens", "execs", "syscalls", "endpoints", "policy_rules"]
-    colors = [C_BLUE, C_CYAN, C_DIM, C_GREEN, C_YELLOW]
+    # Syscalls dropped from the AP panel — they tune separately and their
+    # absolute count crowds the bar layout without adding signal. The
+    # upper-right corner of this panel now shows the NN-rewrite count
+    # (from kpi.json sidecar) — empty before this PR.
+    categories = ["Opens", "Execs", "Endpoints", "Rules"]
+    keys = ["opens", "execs", "endpoints", "policy_rules"]
+    colors = [C_BLUE, C_CYAN, C_GREEN, C_YELLOW]
     vals = [current[k] for k in keys]
 
     if up_to > 0:
         base = [records[0][k] for k in keys]
-        ax_prof.barh(categories, base, color=[C_GREY] * 5, height=0.55, alpha=0.25)
+        ax_prof.barh(categories, base, color=[C_GREY] * len(keys), height=0.55, alpha=0.25)
     bars = ax_prof.barh(categories, vals, color=colors, height=0.55)
 
     for i, (bar, val) in enumerate(zip(bars, vals)):
@@ -309,44 +372,96 @@ def draw_frame(records, up_to, title, limits, width=1280, height=900):
     for spine in ax_prof.spines.values():
         spine.set_color(C_BORDER)
 
-    # ══════════════════════════════════════════════════════════════════════
-    # TOP-RIGHT: Score + Sparkline + Stats
-    # ══════════════════════════════════════════════════════════════════════
-    ax_score = fig.add_subplot(gs[0, 2])
-    ax_score.set_facecolor(C_PANEL)
-    ax_score.axis("off")
+    # NN-rewrites count in upper-right corner of this panel.
+    # Only meaningful on the final frame (the Normalizer runs ONCE post-
+    # greedy, not per-iteration). On intermediate frames we render "NN ⋯"
+    # to telegraph that the value will land at end of tune.
+    nn_count = (kpi_sidecar or {}).get("nn_rewrites")
+    is_final = up_to == len(records) - 1
+    if is_final and nn_count is not None:
+        nn_color = C_GREEN if nn_count > 0 else C_DIM
+        nn_label = f"NN: {nn_count}"
+    elif nn_count is not None and nn_count > 0:
+        nn_color = C_DIM
+        nn_label = "NN: ⋯"
+    else:
+        nn_color = None
+        nn_label = None
+    if nn_label is not None:
+        ax_prof.text(0.97, 0.97, nn_label, transform=ax_prof.transAxes,
+                     fontsize=8, color=nn_color, ha="right", va="top",
+                     fontfamily="monospace", fontweight="bold")
 
-    ax_score.text(0.5, 0.72, str(score), fontsize=48, fontweight="bold", color=score_color,
-                  ha="center", va="center", fontfamily="monospace", transform=ax_score.transAxes)
+    # ══════════════════════════════════════════════════════════════════════
+    # TOP-RIGHT: KPI (3-axis field equation: D / N / P)
+    # ══════════════════════════════════════════════════════════════════════
+    # Replaces the prior single "Score" display. Three rows, one per axis:
+    #
+    #   Detectability   — missed expected attack detections (per-iteration)
+    #   Noisiness       — local benign-suite FP alerts      (per-iteration)
+    #   Portability     — differential-cluster FP alerts    (post-tune only,
+    #                     from kpi.json sidecar; "n/a" until measured)
+    #
+    # Per-axis colour: green=0, yellow=1-2, red=3+, dim=n/a.
+    ax_kpi = fig.add_subplot(gs[0, 2])
+    ax_kpi.set_facecolor(C_PANEL)
+    ax_kpi.axis("off")
 
-    # Sparkline
+    # Per-iteration D + N come straight from the metrics.json record.
+    d_val = current["missed_detections"]
+    n_val = current["false_positives"]
+
+    # P is post-tune; only meaningful on the final frame, and only when
+    # kpi.json provided a value other than the NotMeasured sentinel (-1).
+    p_val_raw = (kpi_sidecar or {}).get("portability")
+    if is_final and p_val_raw is not None and p_val_raw >= 0:
+        p_display = str(p_val_raw)
+        p_color   = _kpi_color(p_val_raw)
+    else:
+        p_display = "n/a"
+        p_color   = C_DIM
+
+    rows = [
+        ("D", d_val, _kpi_color(d_val), "Detectability"),
+        ("N", n_val, _kpi_color(n_val), "Noisiness"),
+        ("P", p_display, p_color, "Portability"),
+    ]
+
+    # Layout: title at top, three rows of (label / value / sub-label).
+    ax_kpi.set_title("KPI (D/N/P)", fontsize=9, color=C_TEXT, fontfamily="monospace")
+    y_top, y_step = 0.82, 0.24
+    for i, (axis, val, color, sub) in enumerate(rows):
+        y = y_top - i * y_step
+        # axis letter (left)
+        ax_kpi.text(0.10, y, axis, fontsize=22, fontweight="bold", color=color,
+                    ha="left", va="center", fontfamily="monospace",
+                    transform=ax_kpi.transAxes)
+        # value (centre, big)
+        ax_kpi.text(0.55, y, str(val), fontsize=32, fontweight="bold", color=color,
+                    ha="center", va="center", fontfamily="monospace",
+                    transform=ax_kpi.transAxes)
+        # sub-label (right, dim)
+        ax_kpi.text(0.97, y, sub, fontsize=6, color=C_DIM,
+                    ha="right", va="center", fontfamily="monospace",
+                    transform=ax_kpi.transAxes)
+
+    # Tiny sparkline of historical D+N totals (kept from prior design)
+    # below the three rows, so the user still sees the iteration trajectory.
     if up_to > 0:
         scores_hist = [r["score"] for r in records[:up_to + 1]]
         spark_x = np.linspace(0.15, 0.85, len(scores_hist))
-        spark_y_base = 0.42
-        spark_height = 0.08
+        spark_y_base = 0.06
+        spark_height = 0.05
         max_s = max(*scores_hist, 1)
         for j in range(len(scores_hist)):
             sy = spark_y_base + (scores_hist[j] / max_s) * spark_height
             sx = spark_x[j]
             c = C_GREEN if scores_hist[j] == 0 else C_YELLOW if scores_hist[j] <= 2 else C_RED
-            ax_score.plot(sx, sy, "o", color=c, markersize=5, transform=ax_score.transAxes)
+            ax_kpi.plot(sx, sy, "o", color=c, markersize=4, transform=ax_kpi.transAxes)
             if j > 0:
                 sy_prev = spark_y_base + (scores_hist[j - 1] / max_s) * spark_height
-                ax_score.plot([spark_x[j - 1], sx], [sy_prev, sy], "-", color=C_BORDER,
-                              linewidth=1, transform=ax_score.transAxes)
-
-    ax_score.text(0.5, 0.28, f"missed {current['missed_detections']}  |  FP {current['false_positives']}",
-                  fontsize=8, color=C_DIM, ha="center", fontfamily="monospace",
-                  transform=ax_score.transAxes)
-    n_atk = len(attacks)
-    n_det = len([d for d in detections if d.get("found")])
-    n_exp = len([d for d in detections if d.get("rule_id")])
-    ax_score.text(0.5, 0.16, f"detected {n_det}/{n_exp}", fontsize=8, color=C_TEXT,
-                  ha="center", fontfamily="monospace", transform=ax_score.transAxes)
-    ax_score.text(0.5, 0.06, f"entries {current['total_entries']}", fontsize=7, color=C_DIM,
-                  ha="center", fontfamily="monospace", transform=ax_score.transAxes)
-    ax_score.set_title("Score", fontsize=9, color=C_TEXT, fontfamily="monospace")
+                ax_kpi.plot([spark_x[j - 1], sx], [sy_prev, sy], "-", color=C_BORDER,
+                              linewidth=1, transform=ax_kpi.transAxes)
 
     # ══════════════════════════════════════════════════════════════════════
     # BOTTOM: Kill-Chain Detail Heatmap (full width)
@@ -506,12 +621,18 @@ def main():
         print("No iterations", file=sys.stderr)
         sys.exit(1)
 
+    # Pareto-KPI sidecar (post-tune Portability + NN-rewrites count).
+    # Missing kpi.json is fine — renderer treats unknowns as "n/a".
+    kpi_sidecar = load_kpi_sidecar(args.metrics_json)
+    if kpi_sidecar.get("portability") is not None or kpi_sidecar.get("nn_rewrites") is not None:
+        print(f"Using kpi.json sidecar: {kpi_sidecar}", file=sys.stderr)
+
     limits = compute_global_limits(records)
-    print(f"Rendering {len(records)} frames (Design 5: Hybrid)...", file=sys.stderr)
+    print(f"Rendering {len(records)} frames (Design 5: Hybrid + KPI)...", file=sys.stderr)
 
     frames = []
     for i in range(len(records)):
-        frame = draw_frame(records, i, args.title, limits)
+        frame = draw_frame(records, i, args.title, limits, kpi_sidecar=kpi_sidecar)
         frames.append(frame.convert("RGB").quantize(colors=128, method=Image.Quantize.MEDIANCUT))
 
     durations = [args.duration] * len(frames)
