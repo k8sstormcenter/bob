@@ -220,14 +220,27 @@ def load_kpi_sidecar(metrics_path: str) -> dict:
     out = {"detectability": None, "noisiness": None, "portability": None, "nn_rewrites": None}
     if not p.is_file():
         return out
+
+    def as_int(v):
+        # Coerce sidecar numeric fields safely: kpi.json values may be
+        # written as strings or be missing entirely; downstream code
+        # compares them numerically, so degrade malformed values to
+        # None rather than crashing with TypeError.
+        if v is None:
+            return None
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return None
+
     try:
         with open(p) as f:
             j = json.load(f)
         kpi = j.get("kpi") or {}
-        out["detectability"] = kpi.get("Detectability", kpi.get("detectability"))
-        out["noisiness"]     = kpi.get("Noisiness",     kpi.get("noisiness"))
-        out["portability"]   = kpi.get("Portability",   kpi.get("portability"))
-        out["nn_rewrites"]   = j.get("nn_rewrites")
+        out["detectability"] = as_int(kpi.get("Detectability", kpi.get("detectability")))
+        out["noisiness"]     = as_int(kpi.get("Noisiness",     kpi.get("noisiness")))
+        out["portability"]   = as_int(kpi.get("Portability",   kpi.get("portability")))
+        out["nn_rewrites"]   = as_int(j.get("nn_rewrites"))
     except (json.JSONDecodeError, OSError) as e:
         print(f"WARN: could not read {p}: {e}", file=sys.stderr)
     return out
