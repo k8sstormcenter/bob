@@ -191,6 +191,42 @@ def compute_global_limits(records: list[dict]) -> dict:
     return {"max_entries": int(max_val * 1.2) or 10, "max_score": max(max_score + 2, 3)}
 
 
+_SPARK_GLYPHS = "▁▂▃▄▅▆▇█"
+
+
+def _sparkline(series, width: int = 8) -> str:
+    """Render a sparkline of numeric values to ≤ `width` characters.
+
+    None / missing values render as a single space so animation frames
+    where the data only fills part of the series remain readable.
+    Values are quantised relative to the series' own min/max so a flat
+    series renders as the mid glyph rather than disappearing.
+    """
+    vals = [v for v in series if isinstance(v, (int, float))]
+    if not vals:
+        return " " * width
+    lo, hi = min(vals), max(vals)
+    span = hi - lo if hi > lo else 1.0
+    out = []
+    for v in series:
+        if not isinstance(v, (int, float)):
+            out.append(" ")
+            continue
+        # Quantise into 0..len(_SPARK_GLYPHS)-1 levels.
+        idx = int(round((v - lo) / span * (len(_SPARK_GLYPHS) - 1)))
+        if idx < 0:
+            idx = 0
+        elif idx >= len(_SPARK_GLYPHS):
+            idx = len(_SPARK_GLYPHS) - 1
+        out.append(_SPARK_GLYPHS[idx])
+    # Pad / truncate to width. Series shorter than width left-pads with
+    # space so growth animates from the right.
+    s = "".join(out)
+    if len(s) >= width:
+        return s[-width:]
+    return s.rjust(width)
+
+
 def _kpi_color(val) -> str:
     """Colour for a KPI axis value: green=0, yellow=1-2, red=3+, dim=non-numeric/n/a."""
     try:
@@ -385,25 +421,77 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, width=1280, heig
     for spine in ax_prof.spines.values():
         spine.set_color(C_BORDER)
 
-    # NN-rewrites count in upper-right corner of this panel.
-    # Only meaningful on the final frame (the Normalizer runs ONCE post-
-    # greedy, not per-iteration). On intermediate frames we render "NN ⋯"
-    # to telegraph that the value will land at end of tune.
-    nn_count = (kpi_sidecar or {}).get("nn_rewrites")
+    # NN diagnostics indicator in the AP panel's upper-right corner.
+    # Two display modes, chosen per-record availability:
+    #
+    #   (a) Full mode — when metrics.json carries per-iteration
+    #       nn_buckets (the post-PR layout): render two sparklines —
+    #       total entries growth + RFC-1918 share fraction. Both reveal
+    #       up to the CURRENT frame (`up_to`) so the lines animate.
+    #
+    #   (b) Legacy mode — kpi.json sidecar carries nn_rewrites count
+    #       but per-iteration nn_buckets is absent (historical runs):
+    #       show the old NN: <n> badge on the final frame, "NN ⋯"
+    #       placeholder on intermediate frames.
+    nn_buckets_series = [r.get("nn_buckets") for r in records[: up_to + 1]]
+    has_buckets = any(b is not None for b in nn_buckets_series)
     is_final = up_to == len(records) - 1
-    if is_final and nn_count is not None:
-        nn_color = C_GREEN if nn_count > 0 else C_DIM
-        nn_label = f"NN: {nn_count}"
-    elif nn_count is not None and nn_count > 0:
-        nn_color = C_DIM
-        nn_label = "NN: ⋯"
+
+    if has_buckets:
+        entries_series = [
+            (b.get("total_entries") if isinstance(b, dict) else None)
+            for b in nn_buckets_series
+        ]
+        share_series = []
+        for b in nn_buckets_series:
+            if not isinstance(b, dict):
+                share_series.append(None)
+                continue
+            total = b.get("total_entries") or 0
+            priv = b.get("rfc1918_private") or 0
+            share_series.append(priv / total if total > 0 else 0.0)
+
+        spark_entries = _sparkline(entries_series)
+        spark_share = _sparkline(share_series)
+
+        current_total = next(
+            (v for v in reversed(entries_series) if v is not None), 0
+        )
+        current_share = next(
+            (v for v in reversed(share_series) if v is not None), 0.0
+        )
+        line1 = f"NN  {spark_entries} {current_total:>5}"
+        line2 = f"1918{spark_share} {int(round(current_share * 100)):>4}%"
+        color1 = C_TEXT
+        color2 = C_GREEN if current_share >= 0.5 else C_DIM
+        ax_prof.text(
+            0.97, 0.97, line1, transform=ax_prof.transAxes,
+            fontsize=7, color=color1, ha="right", va="top",
+            fontfamily="monospace", fontweight="bold",
+        )
+        ax_prof.text(
+            0.97, 0.88, line2, transform=ax_prof.transAxes,
+            fontsize=7, color=color2, ha="right", va="top",
+            fontfamily="monospace", fontweight="bold",
+        )
     else:
-        nn_color = None
-        nn_label = None
-    if nn_label is not None:
-        ax_prof.text(0.97, 0.97, nn_label, transform=ax_prof.transAxes,
-                     fontsize=8, color=nn_color, ha="right", va="top",
-                     fontfamily="monospace", fontweight="bold")
+        # Legacy fallback — kpi.json sidecar only.
+        nn_count = (kpi_sidecar or {}).get("nn_rewrites")
+        if is_final and nn_count is not None:
+            nn_color = C_GREEN if nn_count > 0 else C_DIM
+            nn_label = f"NN: {nn_count}"
+        elif nn_count is not None and nn_count > 0:
+            nn_color = C_DIM
+            nn_label = "NN: ⋯"
+        else:
+            nn_color = None
+            nn_label = None
+        if nn_label is not None:
+            ax_prof.text(
+                0.97, 0.97, nn_label, transform=ax_prof.transAxes,
+                fontsize=8, color=nn_color, ha="right", va="top",
+                fontfamily="monospace", fontweight="bold",
+            )
 
     # ══════════════════════════════════════════════════════════════════════
     # TOP-RIGHT: KPI (3-axis field equation: D / N / P)
