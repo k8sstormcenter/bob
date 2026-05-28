@@ -199,21 +199,27 @@ spec:
         # signal is comm=sh (from Runtime.exec("/bin/sh","-c",...))
         # which is in NONE of these allowlists, so R0001 still fires.
         R0002:
+          # IMPORTANT: kernel TASK_COMM_LEN=16 truncates `comm` to 15
+          # visible chars + NUL. Any name above 15 chars MUST be
+          # written in its TRUNCATED form here, or the byte-equal
+          # comparison in node-agent's rule evaluator will miss.
+          # Empirically caught by PoC-agent on PR #131:
+          # "C1 CompilerThread" (17) → kernel stores "C1 CompilerThre" (15).
           processAllowed:
             # Pixie eBPF symbolization injector — re-attaches every
             # few minutes, reads /tmp/px-java-symbolization-artifacts/*
             # and /sys/fs/cgroup/memory.max. Cluster-specific to
             # pixie-instrumented setups.
-            - px_jattach
-            - Attach Listener
+            - px_jattach              # 10 chars
+            - Attach Listener         # 15 chars (no truncation)
             # JVM internal threads — touch JIT-related paths post-
-            # startup. Universal across Java workloads.
-            - C1 CompilerThread
-            - C2 CompilerThread
+            # startup. Universal across Java workloads. WRITTEN TRUNCATED.
+            - C1 CompilerThre         # was "C1 CompilerThread" (17)
+            - C2 CompilerThre         # was "C2 CompilerThread" (17)
             # Container runtime init phase — reads /runc,
             # /proc/N/task/N/fd, cgroup setgroups. Runtime-version-
             # specific; enumerate common forms.
-            - runc:[1:INIT]
+            - runc:[1:INIT]           # 13 chars (no truncation)
             - runc:[2:INIT]
             - runc:[3:INIT]
         R0004:

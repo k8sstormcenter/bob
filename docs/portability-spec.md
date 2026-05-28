@@ -76,6 +76,43 @@ locks R0001 OUT permanently).
 
 ---
 
+## D1b — Linux comm truncation (sub-dim of D1)
+
+**Failure mode**: `RulePolicy.AllowedProcesses` entry longer than 15
+characters silently fails to suppress its target rule, because the
+kernel's `task_struct.comm` field is `TASK_COMM_LEN=16` bytes (15
+visible + NUL). node-agent reads exactly what the kernel stored, and
+the rule evaluator does byte-equal comparison.
+
+**Source**: linux/sched.h `TASK_COMM_LEN`. Hits every process whose
+name exceeds 15 chars. Specifically:
+
+| Intended name | Length | Kernel-stored |
+|---|---:|---|
+| `C1 CompilerThread` | 17 | `C1 CompilerThre` |
+| `C2 CompilerThread` | 17 | `C2 CompilerThre` |
+| `pool-N-thread-N` | varies | truncated past 15 |
+
+**Empirical evidence**: PR #131 iter 3 — env_allowlist had the FULL
+names `"C1 CompilerThread"`, so on PoC-agent's cluster the 4 R0002
+fires from JIT threads were NOT suppressed despite the entry being
+present.
+
+**Countermeasure**: write the truncated form directly, OR truncate at
+emit time. Both: write truncated + assert ≤ 15 in a unit test so
+the regression class is locked.
+
+**Status in tuner**: ✅ shipped after the PR #131 catch — `MaxCommLen`
+constant + `TestEnvironmentalCommAllowlist_AllUnderCommLen` in
+[entlein/bob#20](https://github.com/entlein/bob/pull/20).
+
+**Deferred**:
+- `node-agent`'s rule-evaluator could log a WARN if the
+  AllowedProcesses entry exceeds 15 — operator-facing "you set
+  something that can't possibly match". Small upstream issue.
+
+---
+
 ## D2 — Base-image / libc divergence
 
 **Failure mode**: AP execs reference a binary path that's symlinked
@@ -211,6 +248,65 @@ ships.
 
 ---
 
+## D7 — Signal availability divergence in the OBSERVER
+
+**Failure mode**: the observer pipeline (pixie, falco, sysmon, etc.)
+doesn't capture every signal the diagnose framework expects. The
+verdict layer reads "signal not present" and concludes "behavior
+absent" when actually "observer can't see it".
+
+**Source** (per PoC-agent on PR #132):
+
+- **Pixie's `pgsql_events` is SAMPLED**, not event-stream. A sub-1s
+  psql query (e.g. log4j's `Payload` exec runs in ~50ms) gets missed.
+  Scenario A's `pgwire_datarow_backend_to_pg` signal returns
+  `no_event` even though the chain completed end-to-end → verdict
+  `A-stage3-blocked` instead of `A`.
+- **Pixie's `process_stats` is sampled**, not event-driven. A
+  short-lived `Runtime.exec → wait → exit` in <500ms misses entirely.
+  PoC-agent had to migrate `new_process_under_java` from pixie to
+  kubescape R0001 (event-driven) to recover the signal.
+
+**Architectural mirror of D3**: same "capability advertisement"
+pattern, different layer (observer vs rule).
+
+**Countermeasure** (none yet shipped):
+
+- Extend `kpi.json`'s `diagnostics` block with `signal_availability`:
+  ```json
+  {
+    "signal_availability": {
+      "pgwire_datarow_backend_to_pg": {
+        "source": "pixie/pgsql_events",
+        "sampling_rate": "1/100",
+        "expected_latency_ms": 800,
+        "fidelity": "best-effort"
+      },
+      "new_process_under_java": {
+        "source": "kubescape/R0001",
+        "fidelity": "event-driven"
+      }
+    },
+    "instrumentation": {
+      "pixie": true,
+      "falco": false
+    }
+  }
+  ```
+- Verdict layer marks "signal NOT present" vs "signal absent because
+  observer can't see it". Critical for any active-diagnosis claim —
+  without it, every observer gap looks like clean behavior.
+
+**Status in tuner**: ❌ not started. Co-belongs with D3.
+
+**Test plan**:
+- Mock an observer manifest declaring `signal_availability`
+- Tuner reads it pre-tune, emits `kpi.json.diagnostics.signal_availability`
+- Verdict layer's diagnose can distinguish "no fire" from "no
+  visibility"
+
+---
+
 ## D5 — Cross-attack time-window contamination (NOT an SBOB problem)
 
 **Failure mode**: diagnose framework reads alerts/conn_stats from a
@@ -256,11 +352,13 @@ deploying (avoid mid-tune ImagePullBackOff).
 |---|---|---|---|---|
 | D0 | Schema mismatch | ✅ resolved | — | — |
 | D1 | Env noise (pixie, runc) | ✅ in tuner | TuneConfig.EnvAllowlist + learn-env-noise mode | M |
+| D1b | Comm truncation (15-char) | ✅ in tuner | upstream WARN in node-agent | S |
 | D2 | Base-image / libc | ❌ not started | `pkg/profile/exec/` normalizer | L |
-| D3 | Rule availability | ❌ not started | pre-flight rule probe + nn-report.json field | M |
-| D4 | Strategic-merge strip | ⚠️ runbook | delete-before-apply in chain-apply-sbobs.sh | S |
+| D3 | Rule availability | ❌ not started | pre-flight rule probe + `kpi.json.diagnostics.rule_availability` | M |
+| D4 | Strategic-merge strip | ✅ runbook fix confirmed | `kubectl delete` before apply in `chain-apply-sbobs.sh` | S |
 | D5 | Time-window contamination | n/a | (harness owns it) | — |
 | D6 | Image distribution | ⚠️ runbook | GHCR publish workflow + image-reachable validation | S |
+| D7 | Observer signal availability | ❌ not started | `kpi.json.diagnostics.signal_availability` (co-PR with D3) | M |
 
 Effort tags: S = <1d, M = 1–3d, L = >3d.
 
@@ -268,33 +366,50 @@ Effort tags: S = <1d, M = 1–3d, L = >3d.
 
 ## For the parallel agent
 
-If another agent picks up implementation, suggested split (in
-descending priority by Monday-impact):
+Revised priority order (per PoC-agent's #132 feedback — D3+D7
+combined unblocks the diagnose-framework layer):
 
-1. **D4 fix in `scripts/lib/chain-apply-sbobs.sh`** (chain-pipeline
-   branch). Tiny, unblocks PoC-agent's lab.
-2. **D2 `pkg/profile/exec/` normalizer** in inner repo. Biggest
-   portability gain.
-3. **D1 follow-ups** (TuneConfig field + learn mode) in inner repo.
-4. **D3 rule probe** — coordinate with PoC-agent on the rulemanager
-   query endpoint shape first.
-5. **D6 GHCR publish workflow for log4j** — coordinate with PoC-agent.
+1. **D4 in `scripts/lib/chain-apply-sbobs.sh`** (chain-pipeline
+   branch). Tiny. Confirmed fix: `kubectl delete applicationprofile
+   <name> -n <ns>` before `kubectl apply`.
+2. **D3 + D7 together** (one inner-repo PR). Same architectural
+   pattern (capability advertisement: rules + signals). Schema goes
+   into `kpi.json.diagnostics`. Without it, every observer gap looks
+   like clean behavior. Co-ordinate with PoC-agent on the
+   rulemanager endpoint shape + the signal manifest format.
+3. **D2 `pkg/profile/exec/` normalizer** in inner repo (vote from
+   PoC-agent: expand the existing Normalizer pkg, don't add a new
+   top-level concern). Biggest portability gain.
+4. **D1 follow-ups** — `TuneConfig.EnvAllowlist` field + `bobctl tune
+   --learn-env-noise` mode.
+5. **D6 GHCR publish workflow for log4j**. Mechanical; mirrors
+   `ci-chain-images.yaml`.
 
 Each is independent of the chain-pipeline refactor (PR #132); they
 can land in parallel.
 
+**Additional utility from PoC-agent's #132 reply**: a
+`pkg/profile/kubescape_unflatten.go` helper to walk
+`RuntimeProcessDetails.processTree.childrenMap` and surface the leaf
+process's `comm`/`path`/`pid` at the top level. Used by any diagnose
+framework reading R0001's nested processTree — currently
+PoC-agent's `diagnose.py` has a private `_flatten_kubescape` impl.
+Lifting it into a shared package avoids re-implementation.
+
 ---
 
-## Open questions
+## Resolved questions (PoC-agent answered on PR #132)
 
-1. Is the `RulePolicy.AllowedProcesses` exact-match a node-agent
-   bug or a deliberate design? (Glob would simplify D1 dramatically.)
-2. Should the Normalizer pkg expand to cover D2 paths (`exec`
-   subpkg), or should that be a new top-level concern? Architecture
-   call.
-3. For D3, does the `rule_availability` belong in `kpi.json`'s
-   `diagnostics:` block or in a new `cluster.json`?
-
-Comment + iterate on this spec via PR #132 or open a fresh issue.
+1. **`RulePolicy.AllowedProcesses` exact-match vs glob**: deliberate
+   (consistent with how `execs` does exact path matching). Glob upstream
+   is a small node-agent issue worth filing — the test pattern from
+   `TestEnvironmentalCommAllowlist_ScopedToR0002R0004` carries over
+   (assert glob-allow doesn't accidentally widen to R0001).
+2. **Normalizer pkg expansion vs new top-level**: expand. D2's
+   exec-path rewrites are the same operation conceptually as the
+   existing CIDR/DNS rewrites — `pkg/profile/exec/` subpkg.
+3. **`rule_availability` placement**: `kpi.json.diagnostics`.
+   Adding a sibling key keeps the schema cohesive. See D7's expanded
+   shape (includes `signal_availability` + `instrumentation`).
 
 — BoB-agent
