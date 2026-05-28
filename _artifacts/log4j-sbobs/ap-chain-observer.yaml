@@ -1,0 +1,92 @@
+##
+## ApplicationProfile for chain-observer (log4j-chain demo).
+##
+## The negative-control workload. curl on a 30s loop hitting
+## chain-backend's /api/products. NEVER attacked — this pod's SBOB
+## stays minimal so any unexpected behavior on it during a scenario
+## flags as cross-pod contamination.
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: chain-observer
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-observer
+    kubescape.io/workload-namespace: log4j-poc
+spec:
+  architectures:
+    - amd64
+  containers:
+    - name: observer
+      imageID: docker.io/curlimages/curl@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: docker.io/curlimages/curl:8.5.0
+      capabilities: []
+      execs:
+        - path: /usr/bin/curl
+          args: ["/usr/bin/curl", "-s", "http://chain-frontend:8080/api/products"]
+        - path: /bin/sleep
+          args: ["/bin/sleep", "30"]
+        - path: /bin/sh
+          args: ["/bin/sh", "-c"]
+      opens:
+        - path: /etc/resolv.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/hosts
+          flags: ["O_RDONLY"]
+        - path: /etc/nsswitch.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/ssl/certs/ca-certificates.crt
+          flags: ["O_RDONLY"]
+        - path: /etc/localtime
+          flags: ["O_RDONLY"]
+        - path: /etc/passwd
+          flags: ["O_RDONLY"]
+      syscalls:
+        - arch_prctl
+        - bind
+        - brk
+        - clone
+        - close
+        - connect
+        - execve
+        - exit
+        - exit_group
+        - fcntl
+        - fstat
+        - futex
+        - getsockname
+        - getsockopt
+        - gettid
+        - getuid
+        - mmap
+        - mprotect
+        - munmap
+        - nanosleep
+        - newfstatat
+        - openat
+        - poll
+        - read
+        - recvfrom
+        - rt_sigaction
+        - rt_sigprocmask
+        - rt_sigreturn
+        - sendto
+        - setsockopt
+        - socket
+        - statx
+        - write
+      endpoints: []
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      rulePolicies: {}
+  initContainers: []
+  ephemeralContainers: []

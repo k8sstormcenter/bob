@@ -1,0 +1,152 @@
+##
+## ApplicationProfile for chain-backend (log4j-chain demo, log4j-poc namespace).
+##
+## Covers BOTH base images so the same AP works for scenario A
+## (eclipse-temurin /opt/java/openjdk/bin/java) and B (distroless
+## /usr/bin/java). Does NOT include /bin/sh, sh, bash, dash — those
+## are the attack discriminators (A → R0001 succeeds, B → R1100
+## ENOENT, C → never reached).
+##
+## Pod label required:
+##   kubescape.io/user-defined-profile: chain-backend
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: chain-backend
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-backend
+    kubescape.io/workload-namespace: log4j-poc
+spec:
+  architectures:
+    - amd64
+  containers:
+    - name: backend
+      imageID: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable:latest
+      capabilities: []
+      execs:
+        # Eclipse-Temurin base (scenarios A + C)
+        - path: /opt/java/openjdk/bin/java
+          args: ["/opt/java/openjdk/bin/java", "-jar", "/app/app.jar"]
+        # Distroless base (scenario B)
+        - path: /usr/bin/java
+          args: ["/usr/bin/java", "-jar", "/app/app.jar"]
+        # Health-check / liveness probe support
+        - path: /usr/bin/curl
+          args: ["/usr/bin/curl"]
+      opens:
+        # Application jar + JVM startup ladder
+        - path: /app/app.jar
+          flags: ["O_RDONLY"]
+        - path: /etc/localtime
+          flags: ["O_RDONLY"]
+        - path: /etc/resolv.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/hosts
+          flags: ["O_RDONLY"]
+        - path: /etc/nsswitch.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/host.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/passwd
+          flags: ["O_RDONLY"]
+        - path: /etc/group
+          flags: ["O_RDONLY"]
+        # Eclipse-Temurin JDK paths
+        - path: /opt/java/openjdk/lib
+          flags: ["O_RDONLY"]
+        - path: /opt/java/openjdk/conf
+          flags: ["O_RDONLY"]
+        # Distroless JDK paths
+        - path: /usr/lib/jvm
+          flags: ["O_RDONLY"]
+        # Java tmp + runtime dirs
+        - path: /tmp
+          flags: ["O_RDWR", "O_CREAT"]
+        - path: /proc/sys/net
+          flags: ["O_RDONLY"]
+        # Log4j internal reads (the inert path on scenario C)
+        - path: /app/BOOT-INF/lib
+          flags: ["O_RDONLY"]
+      syscalls:
+        - accept
+        - accept4
+        - bind
+        - brk
+        - clone
+        - close
+        - connect
+        - epoll_create1
+        - epoll_ctl
+        - epoll_pwait
+        - epoll_wait
+        - execve
+        - exit
+        - exit_group
+        - fcntl
+        - fstat
+        - futex
+        - getpeername
+        - getsockname
+        - getsockopt
+        - gettid
+        - getuid
+        - ioctl
+        - listen
+        - mmap
+        - mprotect
+        - munmap
+        - newfstatat
+        - openat
+        - poll
+        - prctl
+        - pread64
+        - pwrite64
+        - read
+        - readlink
+        - recvfrom
+        - recvmsg
+        - rt_sigaction
+        - rt_sigprocmask
+        - rt_sigreturn
+        - sched_yield
+        - sendfile
+        - sendto
+        - set_robust_list
+        - setsockopt
+        - sigaltstack
+        - socket
+        - stat
+        - statx
+        - tgkill
+        - write
+        - writev
+      endpoints:
+        # Backend serves the API the frontend calls
+        - endpoint: ":8080/api/products"
+          direction: inbound
+          methods: ["GET"]
+          internal: true
+        - endpoint: ":8080/api/login"
+          direction: inbound
+          methods: ["POST"]
+          internal: true
+        - endpoint: ":8080/healthz"
+          direction: inbound
+          methods: ["GET"]
+          internal: true
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      rulePolicies: {}
+  initContainers: []
+  ephemeralContainers: []

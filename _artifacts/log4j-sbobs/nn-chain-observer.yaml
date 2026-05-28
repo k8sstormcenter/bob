@@ -1,0 +1,61 @@
+##
+## NetworkNeighborhood for chain-observer (log4j-chain demo).
+##
+## Polls chain-frontend's /api/products every 30s. Negative-control
+## workload — never attacked, never exfiltrates.
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  name: chain-observer
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-observer
+    kubescape.io/workload-namespace: log4j-poc
+spec:
+  matchLabels:
+    app: chain-observer
+  containers:
+    - name: observer
+      ingress: []
+      egress:
+        - identifier: egress-kube-dns
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: UDP-53
+              port: 53
+              protocol: UDP
+            - name: TCP-53
+              port: 53
+              protocol: TCP
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+          type: internal
+        - identifier: egress-chain-frontend
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: TCP-8080
+              port: 8080
+              protocol: TCP
+          podSelector:
+            matchLabels:
+              app: chain-frontend
+          namespaceSelector: null
+          type: internal
+  initContainers: []
+  ephemeralContainers: []
