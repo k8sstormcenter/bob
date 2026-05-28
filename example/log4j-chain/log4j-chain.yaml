@@ -76,7 +76,11 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: postgres:15-alpine
+        # Debian-based on purpose — keeps the libc consistent with chain-backend
+        # (eclipse-temurin:11-jdk = debian-slim). An alpine pg in the same ns
+        # makes node-agent's R0002 fire on musl-vs-glibc path differences
+        # (see BoB-agent's portability finding #2 on PR #131).
+        image: postgres:15-bookworm
         env:
         - { name: POSTGRES_HOST_AUTH_METHOD, value: trust }
         - { name: POSTGRES_DB,               value: appdb }
@@ -157,10 +161,16 @@ spec:
     spec:
       containers:
       - name: observer
-        image: curlimages/curl:8.6.0
+        # Debian base (matches chain-backend's eclipse-temurin glibc).
+        # The previous curlimages/curl:8.6.0 was alpine/musl, which made
+        # /bin/sleep resolve to /bin/busybox and broke the chain-observer
+        # ApplicationProfile across libc boundaries (see BoB-agent's
+        # portability finding #2 on PR #131).
+        image: debian:12-slim
         command: [/bin/sh, -c]
         args:
         - |
+          apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates >/dev/null
           while true; do
             curl -sf http://chain-backend:8080/api/products \
               -H 'User-Agent: chain-observer/1.0' -o /dev/null || true
