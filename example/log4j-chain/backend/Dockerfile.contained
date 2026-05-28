@@ -1,0 +1,14 @@
+# Scenario B — same vulnerable log4j 2.14.1, but distroless runtime.
+# No /bin/sh, no psql, no curl. JVM-internal RCE only — execve() to anything
+# outside the JVM returns ENOENT. The class loads, runs in-JVM, fails to spawn.
+
+FROM maven:3.9-eclipse-temurin-11 AS build
+WORKDIR /src
+COPY pom.xml ./
+COPY src ./src
+RUN LOG4J_VERSION=2.14.1 mvn -B package -DskipTests
+
+FROM gcr.io/distroless/java11-debian11
+COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar /app/app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]

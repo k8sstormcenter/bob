@@ -1,0 +1,53 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pg-seed
+  namespace: log4j-poc
+data:
+  seed.sql: |
+    CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
+        email TEXT,
+        full_name TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    INSERT INTO users (email, full_name) VALUES
+        ('alice@example.com', 'Alice Anderson'),
+        ('bob@example.com',   'Bob Brown'),
+        ('carol@example.com', 'Carol Carter');
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-postgres
+  namespace: log4j-poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: chain-postgres }
+  template:
+    metadata:
+      labels: { app: chain-postgres }
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16
+        env:
+        - { name: POSTGRES_HOST_AUTH_METHOD, value: "trust" }
+        - { name: POSTGRES_DB, value: "appdb" }
+        ports: [{ containerPort: 5432 }]
+        volumeMounts:
+        - { name: seed, mountPath: /docker-entrypoint-initdb.d }
+      volumes:
+      - name: seed
+        configMap: { name: pg-seed }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chain-postgres
+  namespace: log4j-poc
+spec:
+  selector: { app: chain-postgres }
+  ports: [{ port: 5432, targetPort: 5432 }]

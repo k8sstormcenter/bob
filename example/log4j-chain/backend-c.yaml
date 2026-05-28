@@ -1,0 +1,32 @@
+# Scenario C: log4j 2.17.1 (patched) + same ubuntu base as A. JNDI substring
+# arrives intact but the library does not perform the lookup.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-backend
+  namespace: log4j-poc
+  labels: { scenario: "C" }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: chain-backend } }
+  template:
+    metadata:
+      labels: { app: chain-backend, scenario: "C" }
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/k8sstormcenter/log4j-chain-backend-patched:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - { name: POSTGRES_HOST, value: "chain-postgres" }
+        - { name: POSTGRES_DB,   value: "appdb" }
+        - { name: POSTGRES_USER, value: "postgres" }
+        ports: [{ containerPort: 8080 }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: chain-backend, namespace: log4j-poc }
+spec:
+  selector: { app: chain-backend }
+  ports: [{ port: 8080, targetPort: 8080 }]

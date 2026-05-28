@@ -1,0 +1,61 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: log4j-chain-benign-baseline
+  description: |
+    Benign HTTP traffic against the log4j chain's frontend. Run during
+    learning to populate the FOUR sbobs in the log4j-poc namespace:
+
+      chain-frontend.ApplicationProfile   → nginx + sh
+      chain-frontend.NetworkNeighborhood  → kube-dns, chain-backend
+      chain-backend.ApplicationProfile    → java + psql + getent + curl
+      chain-backend.NetworkNeighborhood   → kube-dns, chain-postgres
+      chain-postgres.ApplicationProfile   → postgres + admin tools
+      chain-postgres.NetworkNeighborhood  → kube-dns (resolver init)
+      chain-observer.ApplicationProfile   → curl + sh
+      chain-observer.NetworkNeighborhood  → kube-dns, chain-backend
+
+    Traffic shape is the user-facing API:
+      GET  /healthz                  — liveness
+      GET  /api/products?q=<term>    — read path → backend → pg-wire SELECT
+      POST /api/login {user,pass}    — auth path → backend issues JWT
+
+    chain-observer already runs this pattern on a 30s loop while it's
+    deployed (see observer.yaml). This FunctionalTestSuite gives bobctl
+    an explicit, replayable handle.
+
+target:
+  service: chain-frontend
+  namespace: log4j-poc
+  port: 8080
+  scheme: http
+
+tests:
+  - name: healthz
+    http:
+      method: GET
+      path: /healthz
+      expectedStatus: 200
+  - name: list-products
+    http:
+      method: GET
+      path: /api/products
+      expectedStatus: 200
+  - name: list-products-with-filter
+    http:
+      method: GET
+      path: /api/products?q=widget
+      expectedStatus: 200
+  - name: login
+    http:
+      method: POST
+      path: /api/login
+      headers:
+        Content-Type: application/json
+      body: '{"user":"alice","pass":"correct-horse-battery-staple"}'
+      expectedStatus: 200
+  - name: list-products-after-login
+    http:
+      method: GET
+      path: /api/products?q=gadget
+      expectedStatus: 200

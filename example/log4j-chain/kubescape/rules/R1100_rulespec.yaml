@@ -1,0 +1,25 @@
+# Enables R1100 on the chain-backend workload via node-agent's RuleSpec
+# CRD (kubescape.io/v1, RuntimeRuleAlertBinding).
+---
+apiVersion: kubescape.io/v1
+kind: RuntimeRuleAlertBinding
+metadata:
+  name: log4j-poc-r1100-binding
+  namespace: log4j-poc
+spec:
+  podSelector:
+    matchLabels:
+      app: chain-backend
+  rules:
+  - ruleID: R1100        # Failed execve (ENOENT) under JVM
+    parameters:
+      # No tunables in v1 — the rule is hard-coded to java + backend.
+      # When promoted out of PoC, the comm-name filter and container-name
+      # substring should move into parameters here.
+      {}
+  # Companion rules that are already in node-agent's default set and which
+  # the evaluator queries alongside R1100. Listed here for explicitness.
+  - ruleID: R0001        # Unexpected process launched
+  - ruleID: R0005        # DNS anomalies in container
+  - ruleID: R0010        # Unexpected sensitive file access
+  - ruleID: R0011        # Unexpected egress network traffic

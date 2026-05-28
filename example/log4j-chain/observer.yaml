@@ -1,0 +1,38 @@
+# chain-observer: benign HTTP client that polls chain-backend every 30 s.
+# This pod is NEVER attacked; it serves as the framework's negative-control
+# subject. The evaluator must correctly produce verdict "clean" (or
+# "inconclusive_no_evidence" if the pod is not in collection scope).
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-observer
+  namespace: log4j-poc
+  labels: { role: observer }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: chain-observer } }
+  template:
+    metadata:
+      labels: { app: chain-observer, role: observer }
+    spec:
+      containers:
+      - name: observer
+        image: curlimages/curl:8.6.0
+        command:
+        - /bin/sh
+        - -c
+        - |
+          while true; do
+            curl -sf http://chain-backend:8080/api/products \
+              -H 'User-Agent: chain-observer/1.0' \
+              -o /dev/null || true
+            sleep 30
+          done
+---
+apiVersion: v1
+kind: Service
+metadata: { name: chain-observer, namespace: log4j-poc }
+spec:
+  selector: { app: chain-observer }
+  ports: [{ port: 8080, targetPort: 8080 }]
