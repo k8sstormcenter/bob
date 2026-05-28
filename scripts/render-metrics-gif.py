@@ -191,6 +191,42 @@ def compute_global_limits(records: list[dict]) -> dict:
     return {"max_entries": int(max_val * 1.2) or 10, "max_score": max(max_score + 2, 3)}
 
 
+_SPARK_GLYPHS = "▁▂▃▄▅▆▇█"
+
+
+def _sparkline(series, width: int = 8) -> str:
+    """Render a sparkline of numeric values to ≤ `width` characters.
+
+    None / missing values render as a single space so animation frames
+    where the data only fills part of the series remain readable.
+    Values are quantised relative to the series' own min/max so a flat
+    series renders as the mid glyph rather than disappearing.
+    """
+    vals = [v for v in series if isinstance(v, (int, float))]
+    if not vals:
+        return " " * width
+    lo, hi = min(vals), max(vals)
+    span = hi - lo if hi > lo else 1.0
+    out = []
+    for v in series:
+        if not isinstance(v, (int, float)):
+            out.append(" ")
+            continue
+        # Quantise into 0..len(_SPARK_GLYPHS)-1 levels.
+        idx = int(round((v - lo) / span * (len(_SPARK_GLYPHS) - 1)))
+        if idx < 0:
+            idx = 0
+        elif idx >= len(_SPARK_GLYPHS):
+            idx = len(_SPARK_GLYPHS) - 1
+        out.append(_SPARK_GLYPHS[idx])
+    # Pad / truncate to width. Series shorter than width left-pads with
+    # space so growth animates from the right.
+    s = "".join(out)
+    if len(s) >= width:
+        return s[-width:]
+    return s.rjust(width)
+
+
 def _kpi_color(val) -> str:
     """Colour for a KPI axis value: green=0, yellow=1-2, red=3+, dim=non-numeric/n/a."""
     try:
@@ -202,6 +238,49 @@ def _kpi_color(val) -> str:
     if v <= 2:
         return C_YELLOW
     return C_RED
+
+
+def load_nn_report(metrics_path: str) -> dict:
+    """Load nn-report.json (the diagnostic sidecar from pkg/autotune/nn_report.go).
+
+    Returns a dict with keys {nn_count, total_entries, buckets, nn_rewrites,
+    entropy_bits, present}. `present` is the only field guaranteed non-None;
+    it's True iff the file exists and parsed. Renderer code checks `present`
+    before trusting any other field.
+
+    nn-report.json reflects the FINAL post-tune state (single snapshot
+    after the Normalizer ran). Distinct from per-iteration nn_buckets in
+    metrics.json — that animation source can be sparse (empty iterations
+    omit the field via Go omitempty) but nn-report.json is always one
+    well-formed object when the tuner ran.
+    """
+    p = Path(metrics_path).parent / "nn-report.json"
+    out = {
+        "present": False,
+        "nn_count": 0,
+        "total_entries": 0,
+        "buckets": {},
+        "nn_rewrites": 0,
+        "entropy_bits": 0.0,
+    }
+    if not p.is_file():
+        return out
+    try:
+        with open(p) as f:
+            j = json.load(f)
+        out["present"] = True
+        out["nn_count"] = int(j.get("nn_count") or 0)
+        out["total_entries"] = int(j.get("total_entries") or 0)
+        out["buckets"] = j.get("buckets") or {}
+        out["nn_rewrites"] = int(j.get("nn_rewrites") or 0)
+        diag = j.get("diagnostics") or {}
+        try:
+            out["entropy_bits"] = float(diag.get("entropy_bits") or 0.0)
+        except (TypeError, ValueError):
+            out["entropy_bits"] = 0.0
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"WARN: could not read {p}: {e}", file=sys.stderr)
+    return out
 
 
 def load_kpi_sidecar(metrics_path: str) -> dict:
@@ -279,7 +358,7 @@ def build_attack_analysis(attacks, detections):
     return det_by_attack, phase_attacks
 
 
-def draw_frame(records, up_to, title, limits, kpi_sidecar=None, width=1280, height=900):
+def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, width=1280, height=900):
     fig = plt.figure(figsize=(width / 100, height / 100), dpi=100)
     fig.patch.set_facecolor(C_BG)
 
@@ -385,25 +464,86 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, width=1280, heig
     for spine in ax_prof.spines.values():
         spine.set_color(C_BORDER)
 
-    # NN-rewrites count in upper-right corner of this panel.
-    # Only meaningful on the final frame (the Normalizer runs ONCE post-
-    # greedy, not per-iteration). On intermediate frames we render "NN ⋯"
-    # to telegraph that the value will land at end of tune.
-    nn_count = (kpi_sidecar or {}).get("nn_rewrites")
+    # NN diagnostics indicator in the AP panel's upper-right corner.
+    # We ALWAYS show the new two-line view when any NN signal exists
+    # (per-iteration nn_buckets, or nn-report.json, or kpi.json's
+    # nn_rewrites). Empty NNs render as `0 / 0%` rather than disappear —
+    # the operator still sees that the diagnostic layer is wired up.
+    #
+    # Three signal sources, merged:
+    #   (i)  metrics.json[i].nn_buckets — per-iteration animation source.
+    #        Missing iterations render as space glyphs in the sparkline.
+    #   (ii) nn-report.json — final-state snapshot (single object).
+    #        Used as fallback for the final-frame numbers when (i) is
+    #        all-empty (the common case when NNs exist but have no
+    #        ingress/egress entries during the learn window).
+    #   (iii) kpi.json sidecar nn_rewrites — last-resort badge for
+    #        historical runs that have neither (i) nor (ii).
+    nn_buckets_series = [r.get("nn_buckets") for r in records[: up_to + 1]]
+    has_per_iter = any(isinstance(b, dict) and (b.get("total_entries") or 0) > 0
+                       for b in nn_buckets_series)
+    has_final_report = bool(nn_report and nn_report.get("present"))
+    has_legacy_badge = (kpi_sidecar or {}).get("nn_rewrites") is not None
     is_final = up_to == len(records) - 1
-    if is_final and nn_count is not None:
-        nn_color = C_GREEN if nn_count > 0 else C_DIM
-        nn_label = f"NN: {nn_count}"
-    elif nn_count is not None and nn_count > 0:
-        nn_color = C_DIM
-        nn_label = "NN: ⋯"
-    else:
-        nn_color = None
-        nn_label = None
-    if nn_label is not None:
-        ax_prof.text(0.97, 0.97, nn_label, transform=ax_prof.transAxes,
-                     fontsize=8, color=nn_color, ha="right", va="top",
-                     fontfamily="monospace", fontweight="bold")
+
+    if has_per_iter or has_final_report or has_legacy_badge:
+        # Build the per-iteration series; missing iterations stay None
+        # (the sparkline helper renders them as space).
+        entries_series = []
+        share_series = []
+        for b in nn_buckets_series:
+            if not isinstance(b, dict):
+                entries_series.append(None)
+                share_series.append(None)
+                continue
+            total = b.get("total_entries") or 0
+            priv = b.get("rfc1918_private") or 0
+            entries_series.append(total)
+            share_series.append(priv / total if total > 0 else 0.0)
+
+        spark_entries = _sparkline(entries_series)
+        spark_share = _sparkline(share_series)
+
+        # Current values: prefer per-iteration up to `up_to`. On the
+        # final frame, fall back to nn-report.json when per-iteration
+        # was all zero/None (the common "empty-NN" case in CI).
+        current_total = next(
+            (v for v in reversed(entries_series) if v is not None), None
+        )
+        current_share = next(
+            (v for v in reversed(share_series) if v is not None), None
+        )
+        if (not current_total) and is_final and has_final_report:
+            current_total = nn_report.get("total_entries") or 0
+            buckets = nn_report.get("buckets") or {}
+            priv = buckets.get("rfc1918_private") or 0
+            current_share = (priv / current_total) if current_total > 0 else 0.0
+        if current_total is None:
+            current_total = 0
+        if current_share is None:
+            current_share = 0.0
+
+        # NN count comes from nn-report.json when available; the
+        # number of NNs an app has is distinct from the entries inside
+        # them, and it's a useful signal even when entries=0.
+        nn_count_label = ""
+        if has_final_report:
+            nn_count_label = f" ·{nn_report.get('nn_count') or 0}NN"
+
+        line1 = f"NN  {spark_entries} {current_total:>5}{nn_count_label}"
+        line2 = f"1918{spark_share} {int(round(current_share * 100)):>4}%"
+        color1 = C_TEXT if current_total > 0 else C_DIM
+        color2 = C_GREEN if current_share >= 0.5 and current_total > 0 else C_DIM
+        ax_prof.text(
+            0.97, 0.97, line1, transform=ax_prof.transAxes,
+            fontsize=7, color=color1, ha="right", va="top",
+            fontfamily="monospace", fontweight="bold",
+        )
+        ax_prof.text(
+            0.97, 0.88, line2, transform=ax_prof.transAxes,
+            fontsize=7, color=color2, ha="right", va="top",
+            fontfamily="monospace", fontweight="bold",
+        )
 
     # ══════════════════════════════════════════════════════════════════════
     # TOP-RIGHT: KPI (3-axis field equation: D / N / P)
@@ -639,13 +779,22 @@ def main():
     kpi_sidecar = load_kpi_sidecar(args.metrics_json)
     if kpi_sidecar.get("portability") is not None or kpi_sidecar.get("nn_rewrites") is not None:
         print(f"Using kpi.json sidecar: {kpi_sidecar}", file=sys.stderr)
+    nn_report = load_nn_report(args.metrics_json)
+    if nn_report.get("present"):
+        print(
+            f"Using nn-report.json: {nn_report['nn_count']} NNs, "
+            f"{nn_report['total_entries']} entries, "
+            f"entropy={nn_report['entropy_bits']:.3f}",
+            file=sys.stderr,
+        )
 
     limits = compute_global_limits(records)
     print(f"Rendering {len(records)} frames (Design 5: Hybrid + KPI)...", file=sys.stderr)
 
     frames = []
     for i in range(len(records)):
-        frame = draw_frame(records, i, args.title, limits, kpi_sidecar=kpi_sidecar)
+        frame = draw_frame(records, i, args.title, limits,
+                           kpi_sidecar=kpi_sidecar, nn_report=nn_report)
         frames.append(frame.convert("RGB").quantize(colors=128, method=Image.Quantize.MEDIANCUT))
 
     durations = [args.duration] * len(frames)
