@@ -43,6 +43,13 @@ spec:
         # Health-check / liveness probe support
         - path: /usr/bin/curl
           args: ["/usr/bin/curl"]
+        # psql client (used by backend to talk to chain-postgres;
+        # confirmed by PoC-agent's R0002 dump). Does NOT weaken the
+        # /bin/sh attack discriminator — the JNDI payload still goes
+        # through Runtime.exec("/bin/sh","-c",...) which fires R0001
+        # on /bin/sh, not on psql.
+        - path: /usr/bin/psql
+          args: ["/usr/bin/psql"]
       opens:
         # Application jar + JVM startup ladder
         - path: /app/app.jar
@@ -77,6 +84,42 @@ spec:
         # Log4j internal reads (the inert path on scenario C)
         - path: /app/BOOT-INF/lib
           flags: ["O_RDONLY"]
+        # JNDI configuration — JVM workers read it during startup.
+        # PoC-agent saw 8x R0002 fires on this path; legit.
+        - path: /opt/java/openjdk/conf/jndi.properties
+          flags: ["O_RDONLY"]
+        # psql auth + perl-base wrappers psql pulls in. PoC-agent
+        # confirmed all four are legitimate (psql wrapper script
+        # invokes perl, which in turn reads its base modules).
+        - path: /root/.pgpass
+          flags: ["O_RDONLY"]
+        - path: /usr/lib/x86_64-linux-gnu/perl-base/Symbol.pm
+          flags: ["O_RDONLY"]
+        - path: /usr/lib/x86_64-linux-gnu/perl-base/IPC/Open3.pm
+          flags: ["O_RDONLY"]
+        - path: /usr/lib/x86_64-linux-gnu/perl-base/constant.pm
+          flags: ["O_RDONLY"]
+        - path: /usr/share/perl5/PgCommon.pm
+          flags: ["O_RDONLY"]
+        # Coreutils locale data — head/env utility invocations.
+        # Enumerated rather than glob'd for cross-cluster portability.
+        - path: /usr/share/coreutils/locales/en-US.ftl
+          flags: ["O_RDONLY"]
+        - path: /usr/share/coreutils/locales/head/en-US.ftl
+          flags: ["O_RDONLY"]
+        - path: /usr/share/coreutils/locales/env/en-US.ftl
+          flags: ["O_RDONLY"]
+        # NOT INCLUDED (intentional — environmental noise, not workload):
+        #   - runc:[INIT] paths (/runc, /proc/.../task/.../fd, cgroup setgroups)
+        #     → these fire from the container runtime's init phase, vary by
+        #       cluster; should be addressed by R0002's path-normalizer not
+        #       by the SBOB
+        #   - /tmp/px-java-symbolization-artifacts-*/ → pixie eBPF
+        #     symbolization injecting into the JVM; cluster-specific
+        #     instrumentation
+        #   - /sys/fs/cgroup/memory.max, /sys/kernel/mm/transparent_hugepage/*
+        #     → runtime probes; SHOULD be in node-agent's stable allowlist,
+        #       not in every user-supplied SBOB
       syscalls:
         - accept
         - accept4
