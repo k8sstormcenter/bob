@@ -1,0 +1,53 @@
+# Chain manifest — declares the existing chain demo's topology + inputs
+# so scripts/local-ci-chain.sh can drive it from a manifest instead of
+# hardcoded paths. See docs/chain-pipeline-refactor.md for the schema.
+#
+# This is the WORKING REFERENCE for the schema — the existing chain
+# already runs green via scripts/local-ci-chain.sh, so the refactor's
+# parity test boils down to: same script + this manifest → same SBOBs
+# as the existing flow produces today.
+
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: ChainManifest
+metadata:
+  name: chain
+  namespace: chain
+
+deploy:
+  - manifest: chain.yaml
+
+pods:
+  - name: chain-postgres
+    profile_match: replicaset-chain-postgres
+    container: postgres
+  - name: chain-redis
+    profile_match: replicaset-chain-redis
+    container: redis
+  - name: chain-backend
+    profile_match: replicaset-chain-backend
+    container: backend
+  - name: chain-frontend
+    profile_match: replicaset-chain-frontend
+    container: frontend
+
+functional_tests: chain-functional-tests.yaml
+attack_suite:     chain-attacks.yaml
+
+# Existing chain is a single-shot attack chain — no scenario switching.
+# The s5/s6 extended stages live inside chain-attacks-extended.yaml and
+# are toggled via the local-ci-chain.sh --extended flag, not the
+# manifest. (Open question: should --extended be expressed as
+# scenarios in the manifest? Punted for now to keep the schema small.)
+
+sbob_dir: sbobs/
+
+coverage:
+  # Today's coverage on a knobs-flipped cluster is 7/7 basic + 10/10
+  # extended. On default knobs (R0011 not isTriggerAlert,
+  # networkEventsStreaming disabled), R0005 + R0011 stay BLIND →
+  # 4/7 basic. The pipeline ships the knob-dependent map so a single
+  # number isn't misleading.
+  expected_detections: 7
+  knob_dependent:
+    R0011: networkEventsStreaming
+    R0005: networkEventsStreaming
