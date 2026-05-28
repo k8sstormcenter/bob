@@ -106,10 +106,19 @@ the regression class is locked.
 constant + `TestEnvironmentalCommAllowlist_AllUnderCommLen` in
 [entlein/bob#20](https://github.com/entlein/bob/pull/20).
 
+**Operational note** (from PoC-agent's iter-4 verification): after
+`kubectl delete + apply` of the AP, node-agent needs ~30s to flush
+its per-binding cache before new `rulePolicies` fully suppress.
+Freshly-restarted JVM pods will trigger transient `C1 CompilerThre`
+fires during that window even with the truncated comm correctly
+matched. Belongs in the chain-pipeline runbook, not in the AP itself.
+
 **Deferred**:
 - `node-agent`'s rule-evaluator could log a WARN if the
   AllowedProcesses entry exceeds 15 — operator-facing "you set
   something that can't possibly match". Small upstream issue.
+- `bobctl tune` post-apply could optionally sleep 30s + re-check
+  before declaring the SBOB stable.
 
 ---
 
