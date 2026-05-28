@@ -190,6 +190,42 @@ spec:
       seccompProfile:
         spec:
           defaultAction: ""
-      rulePolicies: {}
+      rulePolicies:
+        # Suppress rule fires from PROCESSES that aren't the workload —
+        # the noise PoC-agent saw on their pixie-instrumented cluster
+        # came from these comms reading paths the workload never
+        # touches. processAllowed = "if comm matches, skip the rule".
+        # Does NOT weaken the attack discriminator: scenario A's
+        # signal is comm=sh (from Runtime.exec("/bin/sh","-c",...))
+        # which is in NONE of these allowlists, so R0001 still fires.
+        R0002:
+          processAllowed:
+            # Pixie eBPF symbolization injector — re-attaches every
+            # few minutes, reads /tmp/px-java-symbolization-artifacts/*
+            # and /sys/fs/cgroup/memory.max. Cluster-specific to
+            # pixie-instrumented setups.
+            - px_jattach
+            - Attach Listener
+            # JVM internal threads — touch JIT-related paths post-
+            # startup. Universal across Java workloads.
+            - C1 CompilerThread
+            - C2 CompilerThread
+            # Container runtime init phase — reads /runc,
+            # /proc/N/task/N/fd, cgroup setgroups. Runtime-version-
+            # specific; enumerate common forms.
+            - runc:[1:INIT]
+            - runc:[2:INIT]
+            - runc:[3:INIT]
+        R0004:
+          processAllowed:
+            # Same runc:[INIT] phase asserts its capability set
+            # before exec'ing the entrypoint. Fires R0004 because
+            # the inherited caps aren't in the AP's capabilities[].
+            # Cleaner long-term fix is to drop capabilities in the
+            # Deployment SC (PoC-agent's PR #131 follow-up); this
+            # rulePolicy is the no-deployment-change escape hatch.
+            - runc:[1:INIT]
+            - runc:[2:INIT]
+            - runc:[3:INIT]
   initContainers: []
   ephemeralContainers: []
