@@ -30,7 +30,7 @@ chain_deploy() {
   # reference paths or CRDs that don't exist will warn-and-continue
   # rather than abort.
   echo "chain-deploy: applying $(manifest_field "$manifest" '.deploy | length') deploy steps"
-  while IFS=$'\t' read -r dpath optional; do
+  while IFS=$'\t' read -r dpath optional || [[ -n "$dpath" ]]; do
     [[ -z "$dpath" ]] && continue
     # resolve relative
     [[ "$dpath" != /* ]] && dpath="$manifest_dir/$dpath"
@@ -57,7 +57,7 @@ chain_deploy() {
   # convention (matches the existing chain demo: pod name == deploy
   # name == AP name).
   echo "chain-deploy: waiting for rollouts in $namespace"
-  while IFS=$'\t' read -r pname _ _ _; do
+  while IFS=$'\t' read -r pname _ _ _ || [[ -n "$pname" ]]; do
     [[ -z "$pname" ]] && continue
     if kubectl get deploy "$pname" -n "$namespace" >/dev/null 2>&1; then
       kubectl rollout status deploy/"$pname" -n "$namespace" --timeout=180s \

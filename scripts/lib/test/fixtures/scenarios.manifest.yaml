@@ -1,0 +1,26 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: ChainManifest
+metadata:
+  name: fixture-scenarios
+  namespace: log4j-poc
+deploy:
+  - manifest: log4j-chain.yaml
+  - manifest: kubescape/rules/R1100_rulespec.yaml
+    optional: true
+pods:
+  - name: chain-backend
+    profile_match: replicaset-chain-backend
+    container: backend
+  - name: chain-observer
+    profile_match: replicaset-chain-observer
+    container: observer
+    negative_control: true
+functional_tests: log4j-functional-tests.yaml
+attack_suite: log4j-attacks.yaml
+scenarios:
+  - name: A-vuln
+    apply: []
+  - name: B-distroless
+    apply: [backend-b.yaml]
+    restart: [chain-frontend]
+sbob_dir: sbobs/

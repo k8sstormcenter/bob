@@ -56,7 +56,7 @@ chain_extract_sbobs() {
   echo "chain-extract-sbobs: extracting from $namespace to $out_dir"
 
   local errors=0
-  while IFS=$'\t' read -r pname pmatch container _; do
+  while IFS=$'\t' read -r pname pmatch container _ || [[ -n "$pname" ]]; do
     [[ -z "$pname" ]] && continue
     if ! _extract_one_pod "$namespace" "$pname" "$pmatch" "$container" "$out_dir"; then
       errors=$((errors+1))

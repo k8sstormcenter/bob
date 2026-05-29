@@ -49,6 +49,15 @@ jobs:
       - name: Install PyYAML
         run: pip install pyyaml
 
+      - name: Install yq (mikefarah) for the helper test suite
+        run: |
+          sudo curl -sSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" \
+            -o /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Run chain-pipeline helper test harness
+        run: bash scripts/lib/test/run.sh
+
       - name: Discover ChainManifests
         id: discover
         run: |

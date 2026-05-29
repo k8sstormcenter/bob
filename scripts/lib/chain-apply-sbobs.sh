@@ -72,7 +72,9 @@ chain_apply_sbobs() {
 
   # Walk pods. manifest_pods emits TSV: name<TAB>profile_match<TAB>container<TAB>negative_control
   local -a pods=()
-  while IFS=$'\t' read -r pname _ _ _; do
+  # `|| [[ -n "$pname" ]]` processes a final line lacking a trailing
+  # newline (defensive — real yq @tsv emits one, but don't depend on it).
+  while IFS=$'\t' read -r pname _ _ _ || [[ -n "$pname" ]]; do
     [[ -n "$pname" ]] && pods+=("$pname")
   done < <(manifest_pods "$manifest")
 

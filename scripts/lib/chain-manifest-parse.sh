@@ -72,9 +72,13 @@ manifest_validate() {
   local f=$1
   need_yq || return 2
   local errs=""
+  # `<path> == null` is true for both a missing key and an explicit
+  # null — exactly the "required field absent" condition. (The prior
+  # `(.. | type)` sentinel string was yq-version-specific and silently
+  # matched nothing on yq v4.53, so validation always passed.)
   for req in '.apiVersion' '.kind' '.metadata.name' '.metadata.namespace' \
              '.deploy' '.pods' '.functional_tests' '.attack_suite'; do
-    if [[ "$(yq -r "($req | type) + \"|\" + ($req | tostring)" "$f" 2>/dev/null)" == "!!null|null" ]]; then
+    if [[ "$(yq -r "$req == null" "$f" 2>/dev/null)" == "true" ]]; then
       errs="$errs\n  missing: $req"
     fi
   done
