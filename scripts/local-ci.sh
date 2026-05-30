@@ -274,6 +274,23 @@ if [[ -f results/metrics.json ]]; then
     log "WARNING: GIF rendering failed (non-fatal)"
 fi
 
+# ── network portability assertion (N4: CIDR/DNS substitution) ────────────────
+# The tuner substitutes installation-specific private egress IPs with the
+# cluster's covering CIDR (into ipAddresses[]) so the shipped NN is portable.
+# Assert: no bare private literal survives in a singular ipAddress field (they
+# must migrate to a CIDR in ipAddresses[]); surface whether any CIDR landed.
+if [[ -f results/best-nn.yaml ]]; then
+  log "=== Network portability check (best-nn.yaml) ==="
+  if grep -nE 'ipAddress: *"?(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)' results/best-nn.yaml; then
+    die "best-nn.yaml leaked a private literal in a singular ipAddress field — N4 substitution should migrate it to a CIDR in ipAddresses[]"
+  fi
+  if grep -A4 'ipAddresses:' results/best-nn.yaml | grep -qE '/[0-9]+'; then
+    log "  OK: CIDR substitution present in ipAddresses[]; no leaked private literals"
+  else
+    log "  OK: no leaked private literals (no private egress IPs were learned to substitute)"
+  fi
+fi
+
 # ── redis post-tune: direct attack verification ─────────────────────────────
 if [[ "$APP" == "redis" ]]; then
   log "=== Redis post-tune attack verification (12 attacks) ==="
