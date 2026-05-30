@@ -1,0 +1,145 @@
+##
+## ApplicationProfile for chain-postgres (log4j-chain demo).
+##
+## Standalone postgres:16 with trust auth. Backend connects via
+## pg-wire on :5432. Seeded by initdb from /docker-entrypoint-initdb.d/.
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: chain-postgres
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-postgres
+    kubescape.io/workload-namespace: log4j-poc
+spec:
+  architectures:
+    - amd64
+  containers:
+    - name: postgres
+      imageID: docker.io/library/postgres@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: docker.io/library/postgres:16
+      capabilities:
+        - CAP_CHOWN
+        - CAP_DAC_OVERRIDE
+        - CAP_DAC_READ_SEARCH
+        - CAP_FOWNER
+        - CAP_FSETID
+        - CAP_KILL
+        - CAP_SETGID
+        - CAP_SETUID
+      execs:
+        # Postgres daemon
+        - path: /usr/lib/postgresql/16/bin/postgres
+          args: ["postgres"]
+        # initdb (only runs once, on first start)
+        - path: /usr/lib/postgresql/16/bin/initdb
+          args: ["initdb"]
+        # Entrypoint shell wrapper
+        - path: /usr/local/bin/docker-entrypoint.sh
+          args: ["/usr/local/bin/docker-entrypoint.sh", "postgres"]
+        # Seed.sql is sourced via psql (parent of postgres at boot)
+        - path: /usr/bin/psql
+          args: ["/usr/bin/psql"]
+        # pg_isready for the readiness probe
+        - path: /usr/lib/postgresql/16/bin/pg_isready
+          args: ["pg_isready"]
+      opens:
+        - path: /var/lib/postgresql/data
+          flags: ["O_RDWR", "O_CREAT"]
+        - path: /etc/passwd
+          flags: ["O_RDONLY"]
+        - path: /etc/group
+          flags: ["O_RDONLY"]
+        - path: /etc/resolv.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/hosts
+          flags: ["O_RDONLY"]
+        - path: /etc/localtime
+          flags: ["O_RDONLY"]
+        - path: /etc/nsswitch.conf
+          flags: ["O_RDONLY"]
+        - path: /usr/share/postgresql
+          flags: ["O_RDONLY"]
+        - path: /docker-entrypoint-initdb.d
+          flags: ["O_RDONLY"]
+        - path: /tmp
+          flags: ["O_RDWR", "O_CREAT"]
+        - path: /var/run/postgresql
+          flags: ["O_RDWR", "O_CREAT"]
+      syscalls:
+        - accept
+        - bind
+        - brk
+        - chown
+        - clone
+        - close
+        - connect
+        - dup2
+        - epoll_create1
+        - epoll_ctl
+        - epoll_wait
+        - execve
+        - exit
+        - exit_group
+        - fchown
+        - fcntl
+        - fdatasync
+        - fork
+        - fstat
+        - fsync
+        - futex
+        - getpeername
+        - getpid
+        - getrusage
+        - getsockname
+        - getsockopt
+        - kill
+        - lseek
+        - mmap
+        - mprotect
+        - munmap
+        - newfstatat
+        - openat
+        - poll
+        - pread64
+        - pwrite64
+        - read
+        - readlink
+        - recvfrom
+        - rename
+        - rt_sigaction
+        - rt_sigprocmask
+        - rt_sigreturn
+        - select
+        - sendto
+        - setsid
+        - setsockopt
+        - shmat
+        - socket
+        - stat
+        - statfs
+        - statx
+        - umask
+        - unlink
+        - wait4
+        - write
+        - writev
+      endpoints:
+        - endpoint: ":5432/"
+          direction: inbound
+          methods: []
+          internal: true
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      rulePolicies: {}
+  initContainers: []
+  ephemeralContainers: []

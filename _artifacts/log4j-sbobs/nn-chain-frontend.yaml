@@ -1,0 +1,74 @@
+##
+## NetworkNeighborhood for chain-frontend (log4j-chain demo).
+##
+## nginx proxy: accepts external HTTP, forwards to chain-backend.
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  name: chain-frontend
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-frontend
+    kubescape.io/workload-namespace: log4j-poc
+spec:
+  matchLabels:
+    app: chain-frontend
+  containers:
+    - name: nginx
+      ingress:
+        # External traffic — type=external means "not matchable by
+        # selectors". Operators expecting only NodePort traffic can
+        # tighten this to a specific IP range post-application.
+        - identifier: ingress-external
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: TCP-8080
+              port: 8080
+              protocol: TCP
+          podSelector: null
+          namespaceSelector: null
+          type: external
+      egress:
+        - identifier: egress-kube-dns
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: UDP-53
+              port: 53
+              protocol: UDP
+            - name: TCP-53
+              port: 53
+              protocol: TCP
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+          type: internal
+        - identifier: egress-chain-backend
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: TCP-8080
+              port: 8080
+              protocol: TCP
+          podSelector:
+            matchLabels:
+              app: chain-backend
+          namespaceSelector: null
+          type: internal
+  initContainers: []
+  ephemeralContainers: []

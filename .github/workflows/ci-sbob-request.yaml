@@ -1,0 +1,115 @@
+name: CI - SBOB request (PR-driven)
+
+# Triggered when a PR adds/updates a ChainManifest under example/<app>/.
+# Stage 1 (this workflow): schema-validate the manifest, fail fast on
+# malformed input before any cluster work. Posts a PR comment with the
+# validation result.
+#
+# Stage 2 (deferred — separate workflow `ci-sbob-produce.yaml` will be
+# added in the follow-up PR): on a manually-applied `sbob-request`
+# label, spin k3s + kubescape, run the manifest through
+# `scripts/sbob-pipeline.sh`, extract the produced SBOBs, and post
+# them back as a follow-up commit on the PR branch. Requires
+# pull_request_target + a tightened permissions/secret boundary; the
+# label-gated dispatch is the auth-control point.
+
+on:
+  pull_request:
+    paths:
+      - 'example/**/chain.manifest.yaml'
+      - 'scripts/lib/chain-manifest-*.sh'
+      - 'scripts/sbob-pipeline.sh'
+      - '.github/workflows/ci-sbob-request.yaml'
+  push:
+    branches:
+      - main
+      - feat/chain-pipeline
+    paths:
+      - 'example/**/chain.manifest.yaml'
+      - 'scripts/lib/chain-manifest-*.sh'
+      - 'scripts/sbob-pipeline.sh'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate-manifests:
+    name: ChainManifest schema validation
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python (for PyYAML)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Install yq (mikefarah) for the helper test suite
+        run: |
+          sudo curl -sSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" \
+            -o /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Run chain-pipeline helper test harness
+        run: bash scripts/lib/test/run.sh
+
+      - name: Discover ChainManifests
+        id: discover
+        run: |
+          mapfile -t MFS < <(find example -name chain.manifest.yaml -type f 2>/dev/null | sort)
+          if [[ ${#MFS[@]} -eq 0 ]]; then
+            echo "No ChainManifests in tree. Skipping."
+            echo "found=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          printf '%s\n' "${MFS[@]}"
+          echo "found=${#MFS[@]}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate via scripts/sbob-pipeline.sh validate
+        if: steps.discover.outputs.found != '0'
+        run: |
+          set -e
+          fail=0
+          while read -r mf; do
+            [[ -n "$mf" ]] || continue
+            if ! bash scripts/sbob-pipeline.sh validate "$mf"; then
+              fail=$((fail+1))
+            fi
+          done < <(find example -name chain.manifest.yaml -type f | sort)
+          if [[ $fail -gt 0 ]]; then
+            echo "::error::$fail manifest(s) failed validation"
+            exit 1
+          fi
+
+      - name: Run scripts/lib/chain-manifest-test.sh
+        if: steps.discover.outputs.found != '0'
+        run: bash scripts/lib/chain-manifest-test.sh
+
+      - name: Comment validation result on PR
+        if: github.event_name == 'pull_request' && steps.discover.outputs.found != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            // Find manifests; format a small report.
+            const manifests = [];
+            const walk = (dir) => {
+              for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+                const full = `${dir}/${e.name}`;
+                if (e.isDirectory()) walk(full);
+                else if (e.name === 'chain.manifest.yaml') manifests.push(full);
+              }
+            };
+            walk('example');
+            const body = `**ChainManifest schema validation** — all green ✅\n\nValidated ${manifests.length} manifest(s):\n${manifests.map(m => `- \`${m}\``).join('\n')}\n\nThis run validated the schema only. Cluster-side SBOB production runs in \`ci-sbob-produce.yaml\` (label-gated, separate PR).`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });

@@ -1,0 +1,109 @@
+##
+## ApplicationProfile for chain-frontend (log4j-chain demo).
+##
+## nginx proxy in front of chain-backend. No execs beyond nginx
+## itself — the JNDI string just passes through the HTTP layer here.
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: chain-frontend
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-frontend
+    kubescape.io/workload-namespace: log4j-poc
+spec:
+  architectures:
+    - amd64
+  containers:
+    - name: nginx
+      imageID: docker.io/library/nginx@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: docker.io/library/nginx:stable-alpine
+      capabilities:
+        - CAP_CHOWN
+        - CAP_DAC_OVERRIDE
+        - CAP_NET_BIND_SERVICE
+        - CAP_SETGID
+        - CAP_SETUID
+      execs:
+        - path: /usr/sbin/nginx
+          args: ["nginx", "-g", "daemon off;"]
+      opens:
+        - path: /etc/nginx/nginx.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/nginx/conf.d
+          flags: ["O_RDONLY"]
+        - path: /etc/nginx/mime.types
+          flags: ["O_RDONLY"]
+        - path: /etc/resolv.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/hosts
+          flags: ["O_RDONLY"]
+        - path: /etc/nsswitch.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/localtime
+          flags: ["O_RDONLY"]
+        - path: /var/log/nginx
+          flags: ["O_WRONLY", "O_APPEND", "O_CREAT"]
+        - path: /var/cache/nginx
+          flags: ["O_RDWR", "O_CREAT"]
+        - path: /run/nginx.pid
+          flags: ["O_WRONLY", "O_CREAT"]
+      syscalls:
+        - accept4
+        - bind
+        - brk
+        - close
+        - connect
+        - epoll_create1
+        - epoll_ctl
+        - epoll_pwait
+        - epoll_wait
+        - exit_group
+        - fcntl
+        - fstat
+        - futex
+        - getsockname
+        - getsockopt
+        - listen
+        - mmap
+        - mprotect
+        - munmap
+        - newfstatat
+        - openat
+        - read
+        - recvfrom
+        - rt_sigaction
+        - rt_sigprocmask
+        - sendto
+        - setsockopt
+        - socket
+        - statx
+        - write
+        - writev
+      endpoints:
+        - endpoint: ":8080/api/products"
+          direction: inbound
+          methods: ["GET"]
+          internal: false
+        - endpoint: ":8080/api/login"
+          direction: inbound
+          methods: ["POST"]
+          internal: false
+        - endpoint: ":8080/healthz"
+          direction: inbound
+          methods: ["GET"]
+          internal: false
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      rulePolicies: {}
+  initContainers: []
+  ephemeralContainers: []
