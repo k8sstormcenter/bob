@@ -58,7 +58,18 @@ test_non_deployment_pod() {
   unset MOCK_DEPLOY_RC
 }
 
+# ── empty namespace → abort rc=1 before any kubectl ──────────────────
+test_empty_namespace_aborts() {
+  install_mocks
+  local deploy="$_TMP/deploydir/base.yaml"$'\tfalse'
+  stub_manifest "" "$PODS" "$deploy" "" ""   # empty namespace
+  chain_deploy "$FIXTURES/dummy.manifest.yaml" >/dev/null 2>&1
+  assert_rc 1 $? "empty namespace returns 1"
+  assert_log_absent "apply -f" "no apply with empty namespace"
+}
+
 test_applies_and_waits
+test_empty_namespace_aborts
 test_required_missing_aborts
 test_optional_missing_skips
 test_non_deployment_pod

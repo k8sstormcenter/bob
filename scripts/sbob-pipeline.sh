@@ -130,7 +130,8 @@ PY
     while [[ $# -gt 0 ]]; do
       case "$1" in
         --wait)      wait_flag=true ;;
-        --sbob-dir)  sbob_dir=$2; shift ;;
+        --sbob-dir)  [[ $# -ge 2 ]] || { echo "--sbob-dir requires a value" >&2; usage; }
+                     sbob_dir=$2; shift ;;
         *)           echo "unknown flag: $1" >&2; usage ;;
       esac
       shift

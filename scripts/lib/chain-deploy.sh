@@ -25,6 +25,10 @@ chain_deploy() {
 
   local namespace
   namespace=$(manifest_field "$manifest" '.metadata.namespace')
+  if [[ -z "$namespace" ]]; then
+    echo "chain-deploy: metadata.namespace empty/missing" >&2
+    return 1
+  fi
 
   # Step 1 — apply each deploy[] entry. `optional: true` entries that
   # reference paths or CRDs that don't exist will warn-and-continue
