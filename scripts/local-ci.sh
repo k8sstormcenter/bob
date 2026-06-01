@@ -274,21 +274,18 @@ if [[ -f results/metrics.json ]]; then
     log "WARNING: GIF rendering failed (non-fatal)"
 fi
 
-# ── network portability assertion (N4: CIDR/DNS substitution) ────────────────
-# The tuner substitutes installation-specific private egress IPs with the
-# cluster's covering CIDR (into ipAddresses[]) so the shipped NN is portable.
-# Assert: no bare private literal survives in a singular ipAddress field (they
-# must migrate to a CIDR in ipAddresses[]); surface whether any CIDR landed.
+# ── network portability assertion (N4: cluster-internal egress dropped) ───────
+# The tuner DROPS installation-specific cluster-internal egress IPs (no alerting
+# rule reads them — R0005 uses the DNS name and exempts .svc.cluster.local,
+# R0011 is public-only); cluster-internal egress is matched by DNS name instead.
+# Assert: NO private literal (RFC1918) survives anywhere in best-nn.yaml's IP
+# fields — singular ipAddress or an ipAddresses[] list entry.
 if [[ -f results/best-nn.yaml ]]; then
   log "=== Network portability check (best-nn.yaml) ==="
-  if grep -nE 'ipAddress: *"?(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)' results/best-nn.yaml; then
-    die "best-nn.yaml leaked a private literal in a singular ipAddress field — N4 substitution should migrate it to a CIDR in ipAddresses[]"
+  if grep -nE '(ipAddress: *"?|^[[:space:]]*-[[:space:]]+)(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)' results/best-nn.yaml; then
+    die "best-nn.yaml leaked a cluster-internal/private IP — N4 should DROP it (DNS name is the portable discriminant)"
   fi
-  if grep -A4 'ipAddresses:' results/best-nn.yaml | grep -qE '/[0-9]+'; then
-    log "  OK: CIDR substitution present in ipAddresses[]; no leaked private literals"
-  else
-    log "  OK: no leaked private literals (no private egress IPs were learned to substitute)"
-  fi
+  log "  OK: no cluster-internal/private IP literals in best-nn.yaml (all dropped; egress is DNS-discriminated)"
 fi
 
 # ── redis post-tune: direct attack verification ─────────────────────────────
