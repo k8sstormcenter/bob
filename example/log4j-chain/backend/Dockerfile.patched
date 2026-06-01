@@ -1,0 +1,18 @@
+# Scenario C — log4j 2.17.1 (patched). Same base, same code, only the lib
+# version is bumped. JNDI substring lands in the log message and is rendered
+# as a literal string. No lookup performed, no outbound LDAP.
+
+FROM maven:3.9-eclipse-temurin-11 AS build
+WORKDIR /src
+COPY pom.xml ./
+COPY src ./src
+RUN LOG4J_VERSION=2.17.1 mvn -B package -DskipTests
+
+FROM eclipse-temurin:11-jdk
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client curl dnsutils ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar ./app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]

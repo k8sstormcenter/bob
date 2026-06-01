@@ -1,0 +1,254 @@
+# Log4Shell three-scenario chain demo — single-file deployment of every
+# piece that the FunctionalTestSuite and AttackSuite expect to find.
+#
+# Topology (always the same — the SBoB-discriminator IS that ONE thing
+# differs across scenarios: the chain-backend container image):
+#
+#   USER ──▶ chain-frontend (nginx) ──▶ chain-backend (Java + log4j)
+#                                            │
+#                                            ├──▶ chain-postgres (5432)
+#                                            └──▶ attacker.attacker-ns:1389 (JNDI)
+#                                                              :8888 (class fetch)
+#
+#   chain-observer polls /api/products every 30s — never attacked, used
+#   by the diagnose framework as the negative-control workload.
+#
+# This file ships namespaces + postgres + frontend + attacker + observer +
+# scenario-A backend (vulnerable + ops-friendly). For scenario B or C,
+# apply backend-{b,c}.yaml afterwards (and `kubectl delete deploy
+# chain-backend -n log4j-poc` between switches — nginx caches the upstream
+# pod IP so a `kubectl rollout restart deploy chain-frontend` is also
+# required after each backend swap).
+#
+# Image refs assume bobctl's standard tag scheme. Override with sed or
+# kustomize. The Dockerfiles are at example/log4j-chain/{backend,attacker}/.
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: log4j-poc
+  labels:
+    kubescape.io/ignore: "false"
+    app.kubernetes.io/part-of: log4j-chain-demo
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: attacker-ns
+  labels:
+    kubescape.io/ignore: "false"
+    app.kubernetes.io/part-of: log4j-chain-demo
+
+# ────────────────────── chain-postgres ────────────────────────────────
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pg-seed
+  namespace: log4j-poc
+data:
+  seed.sql: |
+    -- Minimal product table so the backend's /api/products has something
+    -- to query. The attacker payload's psql probe just reads
+    -- current_database() || current_user — doesn't depend on this table.
+    CREATE TABLE IF NOT EXISTS products (
+        id   SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        sku  TEXT UNIQUE NOT NULL
+    );
+    INSERT INTO products (name, sku) VALUES
+        ('widget', 'WID-001'),
+        ('gadget', 'GAD-002'),
+        ('thingamajig', 'THI-003')
+    ON CONFLICT (sku) DO NOTHING;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-postgres
+  namespace: log4j-poc
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: chain-postgres } }
+  template:
+    metadata: { labels: { app: chain-postgres } }
+    spec:
+      containers:
+      - name: postgres
+        # Debian-based on purpose — keeps the libc consistent with chain-backend
+        # (eclipse-temurin:11-jdk = debian-slim). An alpine pg in the same ns
+        # makes node-agent's R0002 fire on musl-vs-glibc path differences
+        # (see BoB-agent's portability finding #2 on PR #131).
+        image: postgres:15-bookworm
+        env:
+        - { name: POSTGRES_HOST_AUTH_METHOD, value: trust }
+        - { name: POSTGRES_DB,               value: appdb }
+        ports: [{ containerPort: 5432 }]
+        volumeMounts:
+        - { name: seed, mountPath: /docker-entrypoint-initdb.d }
+      volumes:
+      - name: seed
+        configMap: { name: pg-seed }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: chain-postgres, namespace: log4j-poc }
+spec:
+  selector: { app: chain-postgres }
+  ports: [{ port: 5432, targetPort: 5432 }]
+
+# ────────────────────── chain-frontend ────────────────────────────────
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-conf
+  namespace: log4j-poc
+data:
+  default.conf: |
+    server {
+        listen 8080;
+        location / {
+            proxy_pass http://chain-backend:8080;
+            proxy_set_header User-Agent $http_user_agent;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-frontend
+  namespace: log4j-poc
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: chain-frontend } }
+  template:
+    metadata: { labels: { app: chain-frontend } }
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports: [{ containerPort: 8080 }]
+        volumeMounts:
+        - { name: conf, mountPath: /etc/nginx/conf.d }
+      volumes:
+      - name: conf
+        configMap: { name: frontend-conf }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: chain-frontend, namespace: log4j-poc }
+spec:
+  type: NodePort
+  selector: { app: chain-frontend }
+  ports: [{ port: 8080, targetPort: 8080, nodePort: 30080 }]
+
+# ────────────────────── chain-observer (negative control) ─────────────
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-observer
+  namespace: log4j-poc
+  labels: { role: observer }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: chain-observer } }
+  template:
+    metadata: { labels: { app: chain-observer, role: observer } }
+    spec:
+      containers:
+      - name: observer
+        # Debian base (matches chain-backend's eclipse-temurin glibc).
+        # The previous curlimages/curl:8.6.0 was alpine/musl, which made
+        # /bin/sleep resolve to /bin/busybox and broke the chain-observer
+        # ApplicationProfile across libc boundaries (see BoB-agent's
+        # portability finding #2 on PR #131).
+        image: debian:12-slim
+        command: [/bin/sh, -c]
+        args:
+        - |
+          apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates >/dev/null
+          while true; do
+            curl -sf http://chain-backend:8080/api/products \
+              -H 'User-Agent: chain-observer/1.0' -o /dev/null || true
+            sleep 30
+          done
+---
+apiVersion: v1
+kind: Service
+metadata: { name: chain-observer, namespace: log4j-poc }
+spec:
+  selector: { app: chain-observer }
+  ports: [{ port: 8080, targetPort: 8080 }]
+
+# ────────────────────── attacker (cross-ns LDAP + HTTP) ───────────────
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attacker
+  namespace: attacker-ns
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: attacker } }
+  template:
+    metadata: { labels: { app: attacker } }
+    spec:
+      containers:
+      - name: attacker
+        # Built from example/log4j-chain/attacker/Dockerfile (marshalsec +
+        # python3 HTTP server serving Payload.class on :8888).
+        image: ghcr.io/k8sstormcenter/log4j-chain-attacker:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - { containerPort: 1389, name: ldap }
+        - { containerPort: 8888, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: attacker
+  namespace: attacker-ns
+spec:
+  selector: { app: attacker }
+  ports:
+  - { name: ldap, port: 1389, targetPort: 1389 }
+  - { name: http, port: 8888, targetPort: 8888 }
+
+# ────────────────────── chain-backend SCENARIO A (vulnerable) ─────────
+# Switch to scenario B / C by replacing this Deployment with backend-b.yaml
+# or backend-c.yaml. The other manifests above are scenario-independent.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-backend
+  namespace: log4j-poc
+  labels: { scenario: "A" }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: chain-backend } }
+  template:
+    metadata: { labels: { app: chain-backend, scenario: "A" } }
+    spec:
+      containers:
+      - name: backend
+        # Built from example/log4j-chain/backend/Dockerfile.vulnerable
+        # (log4j 2.14.1 + temurin-11 + trustURLCodebase=true + psql/curl/getent).
+        image: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - { name: POSTGRES_HOST, value: "chain-postgres" }
+        - { name: POSTGRES_DB,   value: "appdb" }
+        - { name: POSTGRES_USER, value: "postgres" }
+        ports: [{ containerPort: 8080 }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: chain-backend, namespace: log4j-poc }
+spec:
+  selector: { app: chain-backend }
+  ports: [{ port: 8080, targetPort: 8080 }]
