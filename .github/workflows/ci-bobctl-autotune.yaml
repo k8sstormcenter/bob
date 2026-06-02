@@ -955,6 +955,38 @@ jobs:
             -v 2>&1 | tee /tmp/port-out.txt
           echo "=== PORTABILITY RESULT (${{ matrix.app }}) ==="
           grep -E '^Portability:' /tmp/port-out.txt || echo "(no portability line — see log)"
+      # The tune job rendered the GIF with Portability=-1 (P is measured here,
+      # in a separate job on the alt-CIDR cluster — it cannot exist at tune
+      # time). Fold the measured P into the kpi.json sidecar and re-render so
+      # the GIF shows P=<n> instead of n/a, then overwrite the GIF artifact.
+      - name: Fold measured P into kpi.json and re-render GIF
+        if: always() && steps.check.outputs.skip != 'true'
+        continue-on-error: true
+        run: |
+          [ -f results/portability.json ] || { echo "no portability.json — skip GIF patch"; exit 0; }
+          [ -f results/metrics.json ]     || { echo "no metrics.json — skip GIF patch"; exit 0; }
+          P=$(jq '.portability' results/portability.json)
+          echo "Folding measured Portability=$P into kpi.json"
+          if [ -f results/kpi.json ]; then
+            jq --argjson p "$P" '.kpi.Portability = $p' results/kpi.json > results/kpi.json.tmp \
+              && mv results/kpi.json.tmp results/kpi.json
+          else
+            jq -n --argjson p "$P" '{kpi:{Detectability:0,Noisiness:0,Portability:$p},nn_rewrites:0}' > results/kpi.json
+          fi
+          cat results/kpi.json
+          pip install --quiet matplotlib pillow numpy 2>/dev/null || true
+          ./scripts/render-gif.sh results/metrics.json results/tune.gif \
+            --title "${{ matrix.app }} (ubuntu-24.04)" || echo "GIF re-render failed (non-fatal)"
+      - name: Re-upload tune GIF (with measured P)
+        if: always() && steps.check.outputs.skip != 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: tune-gif-${{ matrix.app }}-ubuntu-24.04
+          path: results/tune.gif
+          overwrite: true
+          if-no-files-found: ignore
+          retention-days: 30
       - name: Upload portability result
         if: always() && steps.check.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
