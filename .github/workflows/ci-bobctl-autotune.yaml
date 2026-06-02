@@ -381,6 +381,30 @@ jobs:
         run: |
           sudo k3s ctr images pull docker.io/curlimages/curl:8.13.0
 
+      # ---------- Differential cluster B (Portability probe) ----------
+      # For postgres / postgres-vuln, stand up a SECOND k3s (via k3d) with a
+      # DIFFERENT pod + service CIDR. The tuner's portability probe applies the
+      # tuned AP+NN there and measures the FP delta, so any cluster-specific
+      # value that survived the Normalizer surfaces as a Portability deficit.
+      - name: Set up differential cluster B (alt pod/service CIDR)
+        if: matrix.app == 'postgres' || matrix.app == 'postgres-vuln'
+        run: |
+          command -v k3d >/dev/null || \
+            curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.7.4 bash
+          k3d cluster create portb \
+            --k3s-arg '--cluster-cidr=10.98.0.0/16@server:0' \
+            --k3s-arg '--service-cidr=10.99.0.0/16@server:0' \
+            --k3s-arg '--disable=traefik@server:0' \
+            --wait --timeout 240s
+          KB="$(mktemp)"; k3d kubeconfig get portb > "$KB"
+          echo "PORTABILITY_KUBECONFIG=$KB" >> "$GITHUB_ENV"
+          echo "=== cluster B CIDRs ==="
+          KUBECONFIG="$KB" kubectl get nodes -o jsonpath='{.items[*].spec.podCIDRs}{"\n"}'
+          KUBECONFIG="$KB" kubectl get servicecidrs 2>/dev/null || true
+          KUBECONFIG="$KB" make kubescape
+          KUBECONFIG="$KB" make deploy-${{ matrix.app }}
+          KUBECONFIG="$KB" kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=240s
+
       # ---------- Tune (strategy sweep) ----------
       - name: Run tune
         id: tune
@@ -390,6 +414,10 @@ jobs:
           SCHEME_FLAG=""
           if [ "${{ matrix.protocol }}" = "https" ]; then
             SCHEME_FLAG="--service-scheme https"
+          fi
+          PORT_FLAG=""
+          if [ -n "${PORTABILITY_KUBECONFIG:-}" ]; then
+            PORT_FLAG="--portability-kubeconfig ${PORTABILITY_KUBECONFIG}"
           fi
           bin/bobctl tune \
             --profile "${{ steps.profile.outputs.name }}" \
@@ -401,7 +429,7 @@ jobs:
             --alertmanager-port 9093 \
             --output-dir results \
             --debug \
-            $SCHEME_FLAG \
+            $SCHEME_FLAG $PORT_FLAG \
             -v 2>&1 | tee /tmp/tune-output.txt
 
       # ---------- Redis post-tune attacks (Redis only) ----------
