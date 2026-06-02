@@ -1,0 +1,77 @@
+##
+## NetworkNeighborhood for the Argo CD repo-server (demo target).
+##
+## Allowed egress: kube-dns, argocd-server, redis, and the LEGITIMATE
+## git source. EXCLUDED: adv/attacker — the malicious-repo host. When
+## the repo-server is driven to fetch from / phone home to the attacker
+## (TCP to adv namespace), R0011 fires because that egress is not here.
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  name: app
+  namespace: argocd
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: app
+    kubescape.io/workload-namespace: argocd
+spec:
+  matchLabels:
+    app: app
+  containers:
+    - name: repo-server
+      ingress:
+        - identifier: ingress-from-argocd-server
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: TCP-8081
+              port: 8081
+              protocol: TCP
+          podSelector:
+            matchLabels:
+              app: argocd-server
+          namespaceSelector: null
+          type: internal
+      egress:
+        - identifier: egress-kube-dns
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: UDP-53
+              port: 53
+              protocol: UDP
+            - name: TCP-53
+              port: 53
+              protocol: TCP
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+          type: internal
+        # Legitimate git source (the benign repo the functional tests
+        # sync). Public host kept literal — R0011 reads public IPs.
+        - identifier: egress-git-source
+          ipAddress: ""
+          dns: github.com.
+          dnsNames:
+            - github.com.
+          ports:
+            - name: TCP-443
+              port: 443
+              protocol: TCP
+          namespaceSelector: null
+          podSelector: null
+          type: external
+  initContainers: []
+  ephemeralContainers: []

@@ -1,0 +1,141 @@
+##
+## ApplicationProfile for the Argo CD repo-server (demo target).
+##
+## v1 STARTER — grounded in repo-server's real process surface; expected
+## to iterate with pixie-agent's observed alerts (same loop as log4j).
+##
+## Discriminator design: execs lists the LEGITIMATE manifest-rendering
+## subprocesses (helm, kustomize, git) but intentionally OMITS /bin/sh,
+## sh, bash, dash. A malicious repo that drives the repo-server to
+## shell out (config-management plugin, poisoned chart) spawns a comm
+## NOT in this list → R0001 fires. That omission IS the detection.
+##
+## Pod label required:
+##   kubescape.io/user-defined-profile: app
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: app
+  namespace: argocd
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: app
+    kubescape.io/workload-namespace: argocd
+spec:
+  architectures:
+    - amd64
+  containers:
+    - name: repo-server
+      imageID: quay.io/argoproj/argocd@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: quay.io/argoproj/argocd:v2.3.0
+      capabilities: []
+      execs:
+        # The repo-server itself
+        - path: /usr/local/bin/argocd-repo-server
+          args: ["/usr/local/bin/argocd-repo-server"]
+        # Legitimate manifest-rendering tools the repo-server invokes.
+        # These are EXPECTED; the attack's shell-out is not.
+        - path: /usr/local/bin/helm
+          args: ["/usr/local/bin/helm", "template"]
+        - path: /usr/local/bin/kustomize
+          args: ["/usr/local/bin/kustomize", "build"]
+        - path: /usr/bin/git
+          args: ["/usr/bin/git"]
+        - path: /usr/bin/gpg
+          args: ["/usr/bin/gpg"]
+        # NOT listed (the discriminator): /bin/sh, sh, bash, dash.
+      opens:
+        - path: /tmp
+          flags: ["O_RDWR", "O_CREAT"]
+        - path: /app/config
+          flags: ["O_RDONLY"]
+        - path: /helm-working-dir
+          flags: ["O_RDWR", "O_CREAT"]
+        - path: /etc/ssl/certs/ca-certificates.crt
+          flags: ["O_RDONLY"]
+        - path: /etc/resolv.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/hosts
+          flags: ["O_RDONLY"]
+        - path: /etc/nsswitch.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/passwd
+          flags: ["O_RDONLY"]
+        - path: /etc/localtime
+          flags: ["O_RDONLY"]
+        - path: /usr/local/bin
+          flags: ["O_RDONLY"]
+      syscalls:
+        - accept4
+        - bind
+        - brk
+        - clone
+        - close
+        - connect
+        - epoll_create1
+        - epoll_ctl
+        - epoll_pwait
+        - execve
+        - exit
+        - exit_group
+        - fcntl
+        - fstat
+        - futex
+        - getdents64
+        - getpeername
+        - getsockname
+        - getsockopt
+        - listen
+        - mmap
+        - mprotect
+        - munmap
+        - newfstatat
+        - openat
+        - pipe2
+        - poll
+        - read
+        - readlink
+        - recvfrom
+        - recvmsg
+        - rt_sigaction
+        - rt_sigprocmask
+        - rt_sigreturn
+        - sendto
+        - setsockopt
+        - socket
+        - stat
+        - statx
+        - wait4
+        - write
+        - writev
+      endpoints:
+        - endpoint: ":8081/"
+          direction: inbound
+          methods: []
+          internal: true
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      rulePolicies:
+        # Environmental noise suppression (carried from the log4j
+        # findings: runc init + JIT-style env comms). Truncated to the
+        # kernel TASK_COMM_LEN=16 (15 visible chars) form.
+        R0002:
+          processAllowed:
+            - runc:[1:INIT]
+            - runc:[2:INIT]
+            - runc:[3:INIT]
+        R0004:
+          processAllowed:
+            - runc:[1:INIT]
+            - runc:[2:INIT]
+            - runc:[3:INIT]
+  initContainers: []
+  ephemeralContainers: []
