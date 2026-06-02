@@ -16,9 +16,13 @@ deploy:
     optional: true
 
 pods:
-  - name: app
-    profile_match: replicaset-app
-    container: repo-server
+  # The vulnerable target is Argo CD's own repo-server Deployment — its
+  # name comes from upstream (argocd-repo-server), so the de-chain
+  # "short role name" scheme does NOT apply to it. Verified real name +
+  # container + profile prefix on a live v2.9.3 deploy.
+  - name: argocd-repo-server
+    profile_match: replicaset-argocd-repo-server
+    container: argocd-repo-server
   - name: observer
     profile_match: replicaset-observer
     container: observer

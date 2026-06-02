@@ -1,15 +1,23 @@
 ##
 ## NetworkNeighborhood for the Argo CD repo-server (demo target).
 ##
-## Allowed egress: kube-dns, argocd-server, redis, and the LEGITIMATE
-## git source. EXCLUDED: adv/attacker — the malicious-repo host. When
-## the repo-server is driven to fetch from / phone home to the attacker
-## (TCP to adv namespace), R0011 fires because that egress is not here.
+## v2 — GENERALIZED FROM REAL OBSERVATION (Argo CD v2.9.3 core on
+## k3s+kubescape). Reality checks vs v1:
+##   - ingress is on :8084 (the repo-server gRPC/health port), from the
+##     application-controller. v1 guessed :8081.
+##   - egress to the git source happens via comm `git-remote-http` on
+##     :443. The naive learn MISSED it (the clone raced past the learn
+##     window → egress=0 learned), so the legit github clone fired
+##     R0011 + R0005. It MUST be allowed here, or every render alerts.
+##
+## DISCRIMINATOR preserved: the legit git source (github) is allowed;
+## the attack's exfil egress (a DIFFERENT host, e.g. the getent DNS
+## lookup observed in the attack) is NOT here → R0011/R0005 fire on it.
 ##
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: NetworkNeighborhood
 metadata:
-  name: app
+  name: argocd-repo-server
   namespace: argocd
   annotations:
     kubescape.io/completion: complete
@@ -19,25 +27,25 @@ metadata:
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: app
+    kubescape.io/workload-name: argocd-repo-server
     kubescape.io/workload-namespace: argocd
 spec:
   matchLabels:
-    app: app
+    app.kubernetes.io/name: argocd-repo-server
   containers:
-    - name: repo-server
+    - name: argocd-repo-server
       ingress:
-        - identifier: ingress-from-argocd-server
+        - identifier: ingress-from-app-controller
           ipAddress: ""
           dns: ""
           dnsNames: null
           ports:
-            - name: TCP-8081
-              port: 8081
+            - name: TCP-8084
+              port: 8084
               protocol: TCP
           podSelector:
             matchLabels:
-              app: argocd-server
+              app.kubernetes.io/part-of: argocd
           namespaceSelector: null
           type: internal
       egress:
@@ -60,7 +68,7 @@ spec:
               k8s-app: kube-dns
           type: internal
         # Legitimate git source (the benign repo the functional tests
-        # sync). Public host kept literal — R0011 reads public IPs.
+        # sync). comm=git-remote-http on :443. Public host kept literal.
         - identifier: egress-git-source
           ipAddress: ""
           dns: github.com.

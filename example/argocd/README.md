@@ -67,6 +67,35 @@ SBOB (same iterate loop as the log4j demo). If R0011 stays silent, check
 `networkEventsStreaming` is enabled — it's a cluster knob, not an SBOB
 gap.
 
-These SBOBs are **v1 starters** — grounded in the repo-server's real
-process surface but expected to need 1–2 widening rounds against your
-actual cluster's observed paths.
+## Status: v3, tuned on a live cluster (not blind)
+
+These SBOBs were generalized against a real Argo CD v2.9.3 core deploy
+on k3s + kubescape (learned the profile, drove benign helm+kustomize
+renders, ran a representative attack, iterated on the alert `exepath`
+labels). What that found:
+
+- **Real names** (blind v1 was wrong): container/workload is
+  `argocd-repo-server` (not `repo-server`/`app`); health endpoint is
+  `:8084` (not `:8081`); profile is `replicaset-argocd-repo-server-*`.
+- **The render toolchain races the learn window.** `git` /
+  `git-remote-http` / `helm` / `kustomize` run only on Application
+  *reconcile*, after node-agent's learning window closes — so a naive
+  learn MISSES them and every legit render then fires R0001 (observed
+  24×) + R0002 (git alone 201×). They're hand-added to `execs` here;
+  after that, a render-only window is **clean**.
+- **git re-execs from two paths**: `/usr/bin/git` AND
+  `/usr/lib/git-core/git` (proved by the alert `exepath`). Both listed.
+- **Discriminator confirmed**: a malicious-render shell-out
+  (`sh`/`id`/`head`/`getent`) fires R0001, and `head /etc/shadow` fires
+  R0010 — none are in `execs`, by design.
+
+### Known residual (1 more round / upstream)
+`R0011` still fires on the **legit** github egress (`comm=git-remote-http`).
+The NN lists the source by DNS name (`github.com`), but R0011 matches
+egress by resolved IP — the DNS-name-vs-IP gap (portability D2 /
+storage networkmatch). Either pin the source IPs in the NN for your
+cluster, or rely on the `networkEventsStreaming` knob being off for the
+basic demo. Not an SBOB-shape bug.
+
+If a `git-core` helper beyond `git`/`git-remote-http[s]` FPs on R0001,
+send its `exepath` and add it — same loop.
