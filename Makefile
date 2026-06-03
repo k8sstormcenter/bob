@@ -306,9 +306,24 @@ kubescape:
 	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
 	sleep 5
+	@echo "Enabling node-agent networkStreamingEnabled (the chart gates it behind cloud-submit: rendered flag = submit AND enable, submit = non-empty .Values.server — so capabilities.networkEventsStreaming:enable alone renders FALSE on an on-prem stack with no server. See docs/portability-spec.md D7a)..."
+	@PATCH=$$(kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' | python3 -c 'import json,sys; cfg=json.load(sys.stdin); cfg["networkStreamingEnabled"]=True; print(json.dumps({"data":{"config.json":json.dumps(cfg)}}))'); \
+		kubectl -n honey patch configmap node-agent --type merge -p "$$PATCH"
 	-kubectl rollout restart -n honey ds node-agent
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	-kubectl rollout status -n honey ds node-agent --timeout=180s
+	$(MAKE) verify-streaming
+
+# Fail loud if node-agent network streaming is not actually live. Without it
+# the shipped NetworkNeighborhood is inert and R0005 (DNS) / R0011 (egress)
+# silently never fire — which reads as "clean" when it is really "blind".
+.PHONY: verify-streaming
+verify-streaming:
+	@echo "Verifying node-agent networkStreamingEnabled is live..."
+	@kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' \
+		| python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("networkStreamingEnabled") is True else 1)' \
+		&& echo "OK: networkStreamingEnabled=true (R0005/R0011 can fire)" \
+		|| { echo "ERROR: node-agent networkStreamingEnabled != true — NetworkNeighborhood is inert; R0005 (DNS) and R0011 (egress) will silently never fire. Re-run 'make kubescape' or see docs/portability-spec.md D7a."; exit 1; }
 
 .PHONY: alertmanager
 alertmanager:
