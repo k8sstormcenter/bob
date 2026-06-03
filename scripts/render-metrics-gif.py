@@ -552,7 +552,7 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, 
         bt = best_nn["by_type"]
         total = egr + ing
         line1 = f"NN  egr {egr}  ing {ing}{nn_obj}"
-        line2 = f"sel {bt['selector']}  dns {bt['dns']}  ip {bt['ip']}  prt {bt['port']}"
+        line2 = f"label {bt['selector']}  dns {bt['dns']}  ip {bt['ip']}  prt {bt['port']}"
         color1 = C_TEXT if total > 0 else C_DIM
         color2 = C_GREEN if total > 0 else C_DIM
         ax_prof.text(
