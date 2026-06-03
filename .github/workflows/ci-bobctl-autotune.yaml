@@ -627,7 +627,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          pip install --quiet matplotlib pillow numpy 2>/dev/null || true
+          pip install --quiet matplotlib pillow numpy pyyaml 2>/dev/null || true
           if [ -f results/metrics.json ]; then
             ./scripts/render-gif.sh \
               results/metrics.json \
@@ -974,7 +974,7 @@ jobs:
             jq -n --argjson p "$P" '{kpi:{Detectability:0,Noisiness:0,Portability:$p},nn_rewrites:0}' > results/kpi.json
           fi
           cat results/kpi.json
-          pip install --quiet matplotlib pillow numpy 2>/dev/null || true
+          pip install --quiet matplotlib pillow numpy pyyaml 2>/dev/null || true
           ./scripts/render-gif.sh results/metrics.json results/tune.gif \
             --title "${{ matrix.app }} (ubuntu-24.04)" || echo "GIF re-render failed (non-fatal)"
       - name: Re-upload tune GIF (with measured P)

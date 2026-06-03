@@ -48,7 +48,7 @@ render_docker() {
     -v "$METRICS_JSON:/data/metrics.json:ro" \
     -v "$OUTPUT_DIR:/output" \
     python:3.12-slim \
-    bash -c 'pip install --quiet matplotlib pillow numpy && python3 /app/render-metrics-gif.py /data/metrics.json "/output/'"$OUTPUT_NAME"'" "$@"' _ "${extra_args[@]}"
+    bash -c 'pip install --quiet matplotlib pillow numpy pyyaml && python3 /app/render-metrics-gif.py /data/metrics.json "/output/'"$OUTPUT_NAME"'" "$@"' _ "${extra_args[@]}"
 }
 
 # Prefer native Python if matplotlib+Pillow are available (faster, no Docker pull).
