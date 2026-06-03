@@ -160,12 +160,20 @@ build-postgres-vuln:
 .PHONY: deploy-postgres-vuln
 deploy-postgres-vuln: build-postgres-vuln
 	@echo "=== Deploying postgres-vuln (CVE-2019-9193 superuser misconfiguration) ==="
-	@# Load image into cluster (Kind or k3s)
+	@# Load image into cluster (Kind, k3d, or k3s). The portability job's
+	@# differential cluster B is k3d — without a k3d branch the locally-built
+	@# postgres-vuln:latest never reaches its containerd, so imagePullPolicy:
+	@# IfNotPresent falls back to pulling docker.io/postgres-vuln (nonexistent)
+	@# → ImagePullBackOff → the deployment wait times out.
 	@DOCKER_CMD="docker"; [ -S /var/run/docker.sock ] && DOCKER_CMD="env DOCKER_HOST=unix:///var/run/docker.sock docker"; \
 	if command -v kind >/dev/null 2>&1 && kind get clusters 2>/dev/null | grep -q .; then \
 		echo "Loading image into Kind..."; \
 		env DOCKER_HOST=unix:///var/run/docker.sock kind load docker-image postgres-vuln:latest --name $$(kind get clusters | head -1) 2>/dev/null \
 		  || kind load docker-image postgres-vuln:latest --name $$(kind get clusters | head -1); \
+	elif command -v k3d >/dev/null 2>&1 && k3d cluster list 2>/dev/null | tail -n +2 | grep -q .; then \
+		CLU=$$(k3d cluster list 2>/dev/null | awk 'NR>1{print $$1; exit}'); \
+		echo "Importing image into k3d cluster $$CLU..."; \
+		k3d image import postgres-vuln:latest -c $$CLU; \
 	elif command -v k3s >/dev/null 2>&1; then \
 		echo "Importing image into k3s..."; \
 		$$DOCKER_CMD save postgres-vuln:latest | sudo k3s ctr images import -; \
@@ -291,7 +299,7 @@ attack:
 kubescape-orig:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER)  -n honey --create-namespace --values kubescape/values_orig.yaml
+	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER)  -n honey --create-namespace --values kubescape/deprecated/values_orig.yaml
 	-kubectl apply  -f kubescape/default-rules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
@@ -334,7 +342,7 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values_vendor.yaml
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
 	-kubectl rollout restart -n honey ds node-agent
