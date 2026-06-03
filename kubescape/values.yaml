@@ -18,6 +18,13 @@ nodeAgent:
       ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
+  # networkEventsStreaming gates the network rules R0005 (unexpected DNS/domain)
+  # and R0011 (unexpected egress) — the only rules that read the shipped
+  # NetworkNeighborhood. `enable` is REQUIRED here: postgres/postgres-vuln/misp
+  # expect R0005 detections and miss them all if disabled. Process/file/exec/
+  # malware rules do NOT need it. It is a per-cluster knob, not part of the
+  # AP/NN policy, and adds node-agent overhead (hence default-off upstream).
+  # Installer guidance: docs/portability-spec.md § D7a.
   networkEventsStreaming: enable
 alertCRD:
   installDefault: true
