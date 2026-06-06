@@ -16,6 +16,18 @@ Bind them the usual way (delete-first, then apply; pod carries
 `kubescape.io/user-defined-{profile,network}: react`, set from the GitOps
 manifest so node-agent enforces from pod start).
 
+## Setup (topology)
+
+The app is GitOps-managed, so it needs its source in-cluster:
+
+```
+gitserver.yaml   in-cluster GitOps source (ns gitops) Argo CD syncs from
+```
+
+Apply `gitserver.yaml`, then the `argocd` demo's `Application` that points at
+it; Argo CD renders and deploys `react`. This makes the scenario
+self-contained — no external git host required.
+
 ## This is a blind test
 
 These are the **only** artifacts shared for this scenario: the `react` AP/NN
