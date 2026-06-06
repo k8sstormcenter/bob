@@ -1,0 +1,187 @@
+# Dapr "shop" — a realistic CNCF Dapr microservice mesh for the blind detection exercise.
+# frontend -> orders -> payments (+ a dormant 'admin'); each pod gets a daprd sidecar.
+# Components: Redis (state/RESP), NATS JetStream (pub-sub), kubernetes secret store.
+# Prereq: Dapr control plane installed (helm install dapr dapr/dapr -n dapr-system).
+apiVersion: v1
+kind: Namespace
+metadata: {name: shop}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: redis, namespace: shop, labels: {app: redis}}
+spec: {replicas: 1, selector: {matchLabels: {app: redis}}, template: {metadata: {labels: {app: redis}}, spec: {containers: [{name: redis, image: redis:7-alpine, resources: {limits: {cpu: "300m", memory: "128Mi"}}, ports: [{containerPort: 6379}]}]}}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: redis, namespace: shop}
+spec: {selector: {app: redis}, ports: [{port: 6379, targetPort: 6379}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: nats, namespace: shop, labels: {app: nats}}
+spec: {replicas: 1, selector: {matchLabels: {app: nats}}, template: {metadata: {labels: {app: nats}}, spec: {containers: [{name: nats, image: nats:2.10-alpine, args: ["-js"], resources: {limits: {cpu: "300m", memory: "128Mi"}}, ports: [{containerPort: 4222}]}]}}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: nats, namespace: shop}
+spec: {selector: {app: nats}, ports: [{port: 4222, targetPort: 4222}]}
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata: {name: statestore, namespace: shop}
+spec: {type: state.redis, version: v1, metadata: [{name: redisHost, value: "redis.shop.svc.cluster.local:6379"}, {name: redisPassword, value: ""}]}
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata: {name: orderpubsub, namespace: shop}
+spec: {type: pubsub.jetstream, version: v1, metadata: [{name: natsURL, value: "nats://nats.shop.svc.cluster.local:4222"}, {name: name, value: "dapr-shop"}, {name: durableName, value: "shop-durable"}, {name: streamName, value: "shopstream"}]}
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata: {name: shopsecrets, namespace: shop}
+spec: {type: secretstores.kubernetes, version: v1, metadata: [{name: defaultNamespace, value: "shop"}]}
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: payment-key, namespace: shop}
+stringData: {key: "pk_live_benign_baseline_only"}
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: db-password, namespace: shop}
+stringData: {password: "S3cr3t-postgres-pw"}
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: jwt-signing-key, namespace: shop}
+stringData: {key: "jwt-hs256-supersecret"}
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: admin-token, namespace: shop}
+stringData: {token: "admin-bearer-7f3a9c2e"}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: shop-app, namespace: shop}
+binaryData: {server.js: Y29uc3QgaHR0cCA9IHJlcXVpcmUoJ2h0dHAnKTsKY29uc3QgUk9MRSA9IHByb2Nlc3MuZW52LlJPTEUgfHwgJ2Zyb250ZW5kJzsKY29uc3QgREFQUiA9IHByb2Nlc3MuZW52LkRBUFJfSFRUUF9QT1JUIHx8ICczNTAwJzsKZnVuY3Rpb24gZGFwcihtZXRob2QsIHBhdGgsIGJvZHkpIHsKICByZXR1cm4gbmV3IFByb21pc2UocmVzID0+IHsKICAgIGNvbnN0IGQgPSBib2R5ID8gSlNPTi5zdHJpbmdpZnkoYm9keSkgOiBudWxsOwogICAgY29uc3QgciA9IGh0dHAucmVxdWVzdCh7IGhvc3Q6ICcxMjcuMC4wLjEnLCBwb3J0OiBEQVBSLCBwYXRoLCBtZXRob2QsCiAgICAgIGhlYWRlcnM6IGQgPyB7ICdjb250ZW50LXR5cGUnOiAnYXBwbGljYXRpb24vanNvbicsICdjb250ZW50LWxlbmd0aCc6IEJ1ZmZlci5ieXRlTGVuZ3RoKGQpIH0gOiB7fSB9LAogICAgICB4ID0+IHsgbGV0IGIgPSAnJzsgeC5vbignZGF0YScsIGMgPT4gYiArPSBjKTsgeC5vbignZW5kJywgKCkgPT4gcmVzKGIpKTsgfSk7CiAgICByLm9uKCdlcnJvcicsIGUgPT4gcmVzKCdFUlI6JyArIGUubWVzc2FnZSkpOyBpZiAoZCkgci53cml0ZShkKTsgci5lbmQoKTsKICB9KTsKfQpmdW5jdGlvbiBlbmQocnMsIGMsIGIpIHsgcnMuc3RhdHVzQ29kZSA9IGM7IHJzLmVuZChiKTsgfQpjb25zdCBzZXJ2ZXIgPSBodHRwLmNyZWF0ZVNlcnZlcihhc3luYyAocnEsIHJzKSA9PiB7CiAgY29uc3QgdSA9IChycS51cmwgfHwgJycpLnNwbGl0KCc/JylbMF07CiAgaWYgKHUgPT09ICcvZGFwci9zdWJzY3JpYmUnKQogICAgcmV0dXJuIGVuZChycywgMjAwLCBST0xFID09PSAncGF5bWVudHMnCiAgICAgID8gSlNPTi5zdHJpbmdpZnkoW3sgcHVic3VibmFtZTogJ29yZGVycHVic3ViJywgdG9waWM6ICdvcmRlci5jcmVhdGVkJywgcm91dGU6ICcvb24tb3JkZXInIH1dKSA6ICdbXScpOwogIGlmICh1ID09PSAnLycgfHwgdSA9PT0gJy9oZWFsdGh6JykgcmV0dXJuIGVuZChycywgMjAwLCAnb2s6JyArIFJPTEUgKyAnXG4nKTsKICBpZiAoUk9MRSA9PT0gJ2Zyb250ZW5kJykgewogICAgaWYgKHJxLm1ldGhvZCA9PT0gJ1BPU1QnICYmIHUgPT09ICcvY2hlY2tvdXQnKSB7IGNvbnN0IG8gPSBhd2FpdCBkYXByKCdQT1NUJywgJy92MS4wL2ludm9rZS9vcmRlcnMvbWV0aG9kL2NoZWNrb3V0JywgeyBpdGVtOiAnd2lkZ2V0JywgcXR5OiAxIH0pOyByZXR1cm4gZW5kKHJzLCAyMDAsICdmZS0+b3JkZXJzOicgKyBvKTsgfQogICAgaWYgKHJxLm1ldGhvZCA9PT0gJ1BPU1QnICYmIHUgPT09ICcvZXZhbCcpIHsgbGV0IGIgPSAnJzsgcnEub24oJ2RhdGEnLCBjID0+IGIgKz0gYyk7IHJxLm9uKCdlbmQnLCBhc3luYyAoKSA9PiB7IHRyeSB7IGNvbnN0IG91dCA9IGF3YWl0IG5ldyBGdW5jdGlvbigncmVxdWlyZScsICdtb2R1bGUnLCBiKShyZXF1aXJlLCBtb2R1bGUpOyByZXR1cm4gZW5kKHJzLCAyMDAsICdvazonICsgU3RyaW5nKG91dCA9PT0gdW5kZWZpbmVkID8gJycgOiBvdXQpKTsgfSBjYXRjaCAoZSkgeyByZXR1cm4gZW5kKHJzLCA1MDAsICdlcnI6JyArIGUubWVzc2FnZSk7IH0gfSk7IHJldHVybjsgfQogIH0KICBpZiAoUk9MRSA9PT0gJ29yZGVycycgJiYgcnEubWV0aG9kID09PSAnUE9TVCcgJiYgdSA9PT0gJy9jaGVja291dCcpIHsKICAgIGF3YWl0IGRhcHIoJ0dFVCcsICcvdjEuMC9zZWNyZXRzL3Nob3BzZWNyZXRzL3BheW1lbnQta2V5Jyk7ICAgICAgICAgICAgICAgICAvLyBiYXNlbGluZTogT05FIHNlY3JldAogICAgYXdhaXQgZGFwcignUE9TVCcsICcvdjEuMC9zdGF0ZS9zdGF0ZXN0b3JlJywgW3sga2V5OiAnb3JkZXI6MScsIHZhbHVlOiB7IGl0ZW06ICd3aWRnZXQnLCBwYWlkOiB0cnVlIH0gfV0pOwogICAgYXdhaXQgZGFwcignUE9TVCcsICcvdjEuMC9wdWJsaXNoL29yZGVycHVic3ViL29yZGVyLmNyZWF0ZWQnLCB7IG9yZGVyOiAnMScgfSk7CiAgICByZXR1cm4gZW5kKHJzLCAyMDAsICdvcmRlci1wcm9jZXNzZWQnKTsKICB9CiAgaWYgKFJPTEUgPT09ICdwYXltZW50cycgJiYgcnEubWV0aG9kID09PSAnUE9TVCcgJiYgdSA9PT0gJy9vbi1vcmRlcicpIHsgYXdhaXQgZGFwcignUE9TVCcsICcvdjEuMC9zdGF0ZS9zdGF0ZXN0b3JlJywgW3sga2V5OiAncGF5OjEnLCB2YWx1ZTogeyBzdGF0dXM6ICdjaGFyZ2VkJyB9IH1dKTsgcmV0dXJuIGVuZChycywgMjAwLCAnJyk7IH0KICBpZiAoUk9MRSA9PT0gJ2FkbWluJyAmJiBycS5tZXRob2QgPT09ICdQT1NUJyAmJiB1ID09PSAnL2R1bXAnKSByZXR1cm4gZW5kKHJzLCAyMDAsICdBRE1JTi1EVU1QJyk7CiAgZW5kKHJzLCA0MDQsICduZicpOwp9KTsKc2VydmVyLmxpc3RlbigzMDAwLCAoKSA9PiBjb25zb2xlLmxvZyhST0xFICsgJyA6MzAwMCBkYXByPScgKyBEQVBSKSk7Cg==}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: frontend, namespace: shop, labels: {app: frontend}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: frontend}}
+  template:
+    metadata:
+      labels: {app: frontend}
+      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "frontend", dapr.io/app-port: "3000", dapr.io/log-level: "info"}
+    spec:
+      containers:
+      - name: app
+        image: node:20-alpine
+        command: ["node","/app/server.js"]
+        env: [{name: ROLE, value: "frontend"}, {name: DAPR_HTTP_PORT, value: "3500"}]
+        resources: {limits: {cpu: "300m", memory: "192Mi"}}
+        ports: [{containerPort: 3000}]
+        volumeMounts: [{name: code, mountPath: /app}]
+      volumes: [{name: code, configMap: {name: shop-app}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: frontend, namespace: shop}
+spec: {selector: {app: frontend}, ports: [{port: 80, targetPort: 3000}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: orders, namespace: shop, labels: {app: orders}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: orders}}
+  template:
+    metadata:
+      labels: {app: orders}
+      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "orders", dapr.io/app-port: "3000", dapr.io/log-level: "info"}
+    spec:
+      containers:
+      - name: app
+        image: node:20-alpine
+        command: ["node","/app/server.js"]
+        env: [{name: ROLE, value: "orders"}, {name: DAPR_HTTP_PORT, value: "3500"}]
+        resources: {limits: {cpu: "300m", memory: "192Mi"}}
+        ports: [{containerPort: 3000}]
+        volumeMounts: [{name: code, mountPath: /app}]
+      volumes: [{name: code, configMap: {name: shop-app}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: orders, namespace: shop}
+spec: {selector: {app: orders}, ports: [{port: 80, targetPort: 3000}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: payments, namespace: shop, labels: {app: payments}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: payments}}
+  template:
+    metadata:
+      labels: {app: payments}
+      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "payments", dapr.io/app-port: "3000", dapr.io/log-level: "info"}
+    spec:
+      containers:
+      - name: app
+        image: node:20-alpine
+        command: ["node","/app/server.js"]
+        env: [{name: ROLE, value: "payments"}, {name: DAPR_HTTP_PORT, value: "3500"}]
+        resources: {limits: {cpu: "300m", memory: "192Mi"}}
+        ports: [{containerPort: 3000}]
+        volumeMounts: [{name: code, mountPath: /app}]
+      volumes: [{name: code, configMap: {name: shop-app}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: payments, namespace: shop}
+spec: {selector: {app: payments}, ports: [{port: 80, targetPort: 3000}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: admin, namespace: shop, labels: {app: admin}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: admin}}
+  template:
+    metadata:
+      labels: {app: admin}
+      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "admin", dapr.io/app-port: "3000", dapr.io/log-level: "info"}
+    spec:
+      containers:
+      - name: app
+        image: node:20-alpine
+        command: ["node","/app/server.js"]
+        env: [{name: ROLE, value: "admin"}, {name: DAPR_HTTP_PORT, value: "3500"}]
+        resources: {limits: {cpu: "300m", memory: "192Mi"}}
+        ports: [{containerPort: 3000}]
+        volumeMounts: [{name: code, mountPath: /app}]
+      volumes: [{name: code, configMap: {name: shop-app}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: admin, namespace: shop}
+spec: {selector: {app: admin}, ports: [{port: 80, targetPort: 3000}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: loadgen, namespace: shop, labels: {app: loadgen}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: loadgen}}
+  template:
+    metadata: {labels: {app: loadgen}}
+    spec:
+      containers:
+      - name: loadgen
+        image: curlimages/curl:latest
+        resources: {limits: {cpu: "100m", memory: "64Mi"}}
+        command: ["sh","-c"]
+        args: ["while true; do curl -s -m 8 -X POST http://frontend.shop.svc.cluster.local/checkout >/dev/null 2>&1; sleep 6; done"]
