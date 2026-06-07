@@ -205,7 +205,7 @@ spec:
     spec:
       containers:
         - name: chain-backend
-          image: chain-backend:latest
+          image: ghcr.io/k8sstormcenter/chain-backend:latest   # local-ci-chain.sh --build rewrites to ttl.sh
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_DSN
@@ -272,7 +272,7 @@ spec:
     spec:
       containers:
         - name: chain-frontend
-          image: chain-frontend:latest   # rewritten by local-ci-chain.sh
+          image: ghcr.io/k8sstormcenter/chain-frontend:latest   # local-ci-chain.sh --build rewrites to ttl.sh
           imagePullPolicy: IfNotPresent
           env:
             - name: BACKEND_URL

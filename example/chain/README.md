@@ -181,42 +181,44 @@ what makes most of it BLIND in practice.
 
 | Pod | Image | Role |
 |---|---|---|
-| `chain-frontend` | `ttl.sh/chain-frontend-<uuid>:24h` | ~180-LOC Go service: HTML + /api/products proxy + **/api/cache/eval RESP proxy** (legitimate atomic-counter feature, untrusted script content) |
-| `chain-backend` | `ttl.sh/chain-backend-<uuid>:24h` | ~180-LOC Go service: serves /api/products from postgres |
+| `chain-frontend` | `ghcr.io/k8sstormcenter/chain-frontend:latest` | ~180-LOC Go service: HTML + /api/products proxy + **/api/cache/eval RESP proxy** (legitimate atomic-counter feature, untrusted script content) |
+| `chain-backend` | `ghcr.io/k8sstormcenter/chain-backend:latest` | ~180-LOC Go service: serves /api/products from postgres |
 | `chain-redis` | `ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10` | Same patched-Lua image used by `example/redis-vulnerable.yaml` — CVE-2022-0543 reproduced (io reachable from EVAL) |
 | `chain-postgres` | `postgres:16` | Upstream image, no customisation |
 
-All images pull anonymously. The two custom Go services are built
-locally and pushed to ttl.sh (24-hour ephemeral, no auth).
+All images pull anonymously from GHCR (permanent tags, no rot). The two
+custom Go services are published by CI (`.github/workflows/ci-chain-images.yaml`)
+on every push to `main`; `chain.yaml` references them directly, so
+`kubectl apply -f chain.yaml` just works. ttl.sh is only used by the
+opt-in `--build` dev flow below.
 
 ## Run it
 
 Pre-req: kubescape + alertmanager already installed in the cluster.
 (run `./scripts/local-ci.sh --setup-only` on any existing app if not.)
 
-### Local dev flow (builds + pushes to ttl.sh)
+### Default flow (pulls published GHCR images — no docker required)
 
 ```bash
-./scripts/local-ci-chain.sh                  # full pipeline
+./scripts/local-ci-chain.sh                  # full pipeline (pulls GHCR images)
 ./scripts/local-ci-chain.sh --setup-only     # deploy + learn 4 sbobs
 ./scripts/local-ci-chain.sh --attack-only    # re-run chain + coverage
 ./scripts/local-ci-chain.sh --teardown       # remove the chain namespace
+CHAIN_PUBLISHED_TAG=abc1234 ./scripts/local-ci-chain.sh   # pin a SHA instead of :latest
 ```
 
-### Stable-images flow (no docker required)
+### Dev flow (build the Go sources locally + push to ttl.sh)
 
-The `.github/workflows/ci-chain-images.yaml` workflow builds + pushes
-both Go services to GHCR on every push to `main` / `feat/postgres-
-endpoint-attacks` (or tag, or manual dispatch). Once published you can
-run the demo without building anything locally:
+Use `--build` only when iterating on `example/chain/{frontend,backend}/`;
+it builds both images and pushes them to ttl.sh (24h ephemeral, no auth)
+instead of pulling GHCR:
 
 ```bash
-./scripts/local-ci-chain.sh --use-published                  # uses :latest
-CHAIN_PUBLISHED_TAG=abc1234 ./scripts/local-ci-chain.sh \
-    --use-published                                          # pin a SHA
+./scripts/local-ci-chain.sh --build          # local docker build + ttl.sh push
 ```
 
-The published images are:
+The published images (built + pushed by
+`.github/workflows/ci-chain-images.yaml` on every push to `main`) are:
 
 | Image | Tag policy |
 |---|---|
@@ -259,8 +261,9 @@ Coverage: 4 / 7 expected detections matched
 - **chain-postgres = postgres:16 upstream.** No custom image — postgres
   doesn't need to be vulnerable for this chain; postgres is the data
   source the chain exfils FROM.
-- **ttl.sh for the two custom Go images.** 24h TTL, anonymous, zero
-  registry babysitting.
+- **GHCR for the two custom Go images.** Permanent tags, published by CI
+  (`ci-chain-images.yaml`), pulled anonymously — no rot, no rebuild tax.
+  ttl.sh is the opt-in `--build` dev path for local Go-source iteration.
 
 ## TDD discipline
 
