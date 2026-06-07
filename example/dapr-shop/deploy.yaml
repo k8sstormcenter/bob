@@ -19,7 +19,41 @@ spec: {selector: {app: redis}, ports: [{port: 6379, targetPort: 6379}]}
 apiVersion: apps/v1
 kind: Deployment
 metadata: {name: nats, namespace: shop, labels: {app: nats}}
-spec: {replicas: 1, selector: {matchLabels: {app: nats}}, template: {metadata: {labels: {app: nats}}, spec: {containers: [{name: nats, image: nats:2.10-alpine, args: ["-js"], resources: {limits: {cpu: "300m", memory: "128Mi"}}, ports: [{containerPort: 4222}]}]}}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: nats}}
+  template:
+    metadata: {labels: {app: nats}}
+    spec:
+      containers:
+        - name: nats
+          image: nats:2.10-alpine
+          args: ["-js"]
+          resources: {limits: {cpu: "300m", memory: "128Mi"}}
+          ports: [{containerPort: 4222}]
+        # Stream-ensurer: the Dapr pubsub.jetstream component does NOT
+        # auto-create streams, so the `orderpubsub` (order.created)
+        # subscription cannot bind until the stream exists. This sidecar
+        # creates it once NATS is up and re-creates it on every restart
+        # (JetStream storage is pod-local), so the order.created pub/sub
+        # hop always works from a fresh deploy. Co-located with NATS so it
+        # only affects the `nats` workload profile, not the app SBOBs.
+        - name: stream-init
+          image: natsio/nats-box:latest
+          resources: {limits: {cpu: "50m", memory: "32Mi"}}
+          command: ["sh", "-c"]
+          args:
+            - |
+              S=nats://127.0.0.1:4222
+              until nats --server "$S" account info >/dev/null 2>&1; do
+                echo "waiting for nats jetstream..."; sleep 2
+              done
+              nats --server "$S" stream info shopstream >/dev/null 2>&1 || \
+                nats --server "$S" stream add shopstream \
+                  --subjects "order.created" --storage file --retention limits \
+                  --discard old --max-age 1h --replicas 1 --defaults
+              echo "shopstream ready"
+              sleep infinity
 ---
 apiVersion: v1
 kind: Service
