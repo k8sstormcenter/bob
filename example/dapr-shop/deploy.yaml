@@ -9,7 +9,7 @@ metadata: {name: shop}
 apiVersion: apps/v1
 kind: Deployment
 metadata: {name: redis, namespace: shop, labels: {app: redis}}
-spec: {replicas: 1, selector: {matchLabels: {app: redis}}, template: {metadata: {labels: {app: redis}}, spec: {containers: [{name: redis, image: redis:7-alpine, resources: {limits: {cpu: "300m", memory: "128Mi"}}, ports: [{containerPort: 6379}]}]}}}
+spec: {replicas: 1, selector: {matchLabels: {app: redis}}, template: {metadata: {labels: {app: redis}}, spec: {containers: [{name: redis, image: redis:7-alpine, resources: {requests: {cpu: "25m", memory: "32Mi"}, limits: {cpu: "300m", memory: "64Mi"}}, ports: [{containerPort: 6379}]}]}}}
 ---
 apiVersion: v1
 kind: Service
@@ -29,7 +29,7 @@ spec:
         - name: nats
           image: nats:2.10-alpine
           args: ["-js"]
-          resources: {limits: {cpu: "300m", memory: "128Mi"}}
+          resources: {requests: {cpu: "25m", memory: "32Mi"}, limits: {cpu: "300m", memory: "96Mi"}}
           ports: [{containerPort: 4222}]
         # Stream-ensurer: the Dapr pubsub.jetstream component does NOT
         # auto-create streams, so the `orderpubsub` (order.created)
@@ -109,14 +109,14 @@ spec:
   template:
     metadata:
       labels: {app: frontend}
-      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "frontend", dapr.io/app-port: "3000", dapr.io/log-level: "info"}
+      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "frontend", dapr.io/app-port: "3000", dapr.io/log-level: "info", dapr.io/sidecar-memory-request: "48Mi", dapr.io/sidecar-memory-limit: "160Mi", dapr.io/sidecar-cpu-request: "25m", dapr.io/sidecar-cpu-limit: "300m"}
     spec:
       containers:
       - name: app
         image: node:20-alpine
         command: ["node","/app/server.js"]
         env: [{name: ROLE, value: "frontend"}, {name: DAPR_HTTP_PORT, value: "3500"}]
-        resources: {limits: {cpu: "300m", memory: "192Mi"}}
+        resources: {requests: {cpu: "25m", memory: "48Mi"}, limits: {cpu: "300m", memory: "128Mi"}}
         ports: [{containerPort: 3000}]
         volumeMounts: [{name: code, mountPath: /app}]
       volumes: [{name: code, configMap: {name: shop-app}}]
@@ -135,14 +135,14 @@ spec:
   template:
     metadata:
       labels: {app: orders}
-      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "orders", dapr.io/app-port: "3000", dapr.io/log-level: "info"}
+      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "orders", dapr.io/app-port: "3000", dapr.io/log-level: "info", dapr.io/sidecar-memory-request: "48Mi", dapr.io/sidecar-memory-limit: "160Mi", dapr.io/sidecar-cpu-request: "25m", dapr.io/sidecar-cpu-limit: "300m"}
     spec:
       containers:
       - name: app
         image: node:20-alpine
         command: ["node","/app/server.js"]
         env: [{name: ROLE, value: "orders"}, {name: DAPR_HTTP_PORT, value: "3500"}]
-        resources: {limits: {cpu: "300m", memory: "192Mi"}}
+        resources: {requests: {cpu: "25m", memory: "48Mi"}, limits: {cpu: "300m", memory: "128Mi"}}
         ports: [{containerPort: 3000}]
         volumeMounts: [{name: code, mountPath: /app}]
       volumes: [{name: code, configMap: {name: shop-app}}]
@@ -161,14 +161,14 @@ spec:
   template:
     metadata:
       labels: {app: payments}
-      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "payments", dapr.io/app-port: "3000", dapr.io/log-level: "info"}
+      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "payments", dapr.io/app-port: "3000", dapr.io/log-level: "info", dapr.io/sidecar-memory-request: "48Mi", dapr.io/sidecar-memory-limit: "160Mi", dapr.io/sidecar-cpu-request: "25m", dapr.io/sidecar-cpu-limit: "300m"}
     spec:
       containers:
       - name: app
         image: node:20-alpine
         command: ["node","/app/server.js"]
         env: [{name: ROLE, value: "payments"}, {name: DAPR_HTTP_PORT, value: "3500"}]
-        resources: {limits: {cpu: "300m", memory: "192Mi"}}
+        resources: {requests: {cpu: "25m", memory: "48Mi"}, limits: {cpu: "300m", memory: "128Mi"}}
         ports: [{containerPort: 3000}]
         volumeMounts: [{name: code, mountPath: /app}]
       volumes: [{name: code, configMap: {name: shop-app}}]
@@ -187,14 +187,14 @@ spec:
   template:
     metadata:
       labels: {app: admin}
-      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "admin", dapr.io/app-port: "3000", dapr.io/log-level: "info"}
+      annotations: {dapr.io/enabled: "true", dapr.io/app-id: "admin", dapr.io/app-port: "3000", dapr.io/log-level: "info", dapr.io/sidecar-memory-request: "48Mi", dapr.io/sidecar-memory-limit: "160Mi", dapr.io/sidecar-cpu-request: "25m", dapr.io/sidecar-cpu-limit: "300m"}
     spec:
       containers:
       - name: app
         image: node:20-alpine
         command: ["node","/app/server.js"]
         env: [{name: ROLE, value: "admin"}, {name: DAPR_HTTP_PORT, value: "3500"}]
-        resources: {limits: {cpu: "300m", memory: "192Mi"}}
+        resources: {requests: {cpu: "25m", memory: "48Mi"}, limits: {cpu: "300m", memory: "128Mi"}}
         ports: [{containerPort: 3000}]
         volumeMounts: [{name: code, mountPath: /app}]
       volumes: [{name: code, configMap: {name: shop-app}}]

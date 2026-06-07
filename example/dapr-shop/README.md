@@ -12,7 +12,9 @@ attack-trigger.yaml   a SEALED in-fabric trigger (apply, don't decode)
 ```
 
 ## Run it
-1. Install the Dapr control plane: `helm install dapr dapr/dapr -n dapr-system --create-namespace`.
+1. Install the Dapr control plane (lightweight — single-replica, no HA, fine for a demo):
+   `helm install dapr dapr/dapr -n dapr-system --create-namespace --set global.ha.enabled=false`.
+   (HA runs the scheduler/placement at 3 replicas each — ~200Mi the demo doesn't need.)
 2. `kubectl apply -f deploy.yaml` then `kubectl apply -f loadgen.yaml`. `loadgen` runs several
    concurrent, jittered "shoppers" + health probes that keep the whole building-block fabric
    (service-invocation, secret, state, pub/sub) continuously busy; let node-agent **learn the
