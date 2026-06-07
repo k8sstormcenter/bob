@@ -1,35 +1,27 @@
-# Benign baseline / "functional confusion" traffic for the dapr-shop demo.
+# Benign baseline / "functional confusion" traffic for the dapr-shop demo — k6 edition.
 #
 # Lives in its OWN namespace (`shop-loadgen`) so node-agent's
-# `excludeNamespaces` rule skips the curl client pods — they must not
-# land in shop ApplicationProfiles. Same convention as
-# example/chain/loadgen.yaml. Add `shop-loadgen` to excludeNamespaces in
-# bob/kubescape/values.yaml to honour it cluster-side.
+# `excludeNamespaces` rule skips the client pods. Add `shop-loadgen` to
+# excludeNamespaces in bob/kubescape/values.yaml. Same convention as
+# example/chain/loadgen.yaml.
 #
-# WHAT THIS GENERATES — a realistic Dapr e-commerce load, modelled on the
-# building-block flows the dapr/quickstarts samples exercise (service
-# invocation, state, pub/sub, secrets). Every request is HTTP into the
-# apps' OWN endpoints, so the daprd sidecars perform the REAL fabric
-# calls on the apps' behalf:
+# Replaces the earlier curl-loop with a k6 model that behaves like a real
+# shop's clients rather than N identical fixed-rate loops:
+#   - PERSONAS: buyers (steady checkouts), browsers (mostly health/idle,
+#     occasional checkout), and bursty users (clusters of checkouts).
+#   - STOCHASTIC timing: exponential think-times, not a fixed period.
+#   - VOLUME shape: VU count ramps up/down so concurrency fluctuates
+#     (sessions effectively start and stop) instead of a constant 4.
+#   - MULTIPLE SOURCES: several replicas -> a fan of client peers.
 #
-#   POST frontend /checkout
-#     → daprd service-invocation frontend → orders   (gRPC)
-#     → orders reads the ONE payment secret           (secret store)
-#     → orders state SET order:N                       (Redis RESP)
-#     → orders publish order.created                   (NATS JetStream)
-#     → payments /on-order (pub/sub subscriber) state SET
-#   GET /healthz on frontend/orders/payments           (liveness/monitoring)
+# Every request is HTTP into the apps' OWN endpoints, so the daprd
+# sidecars perform the REAL building-block calls (service-invocation ->
+# secret -> state -> pub/sub) on the apps' behalf, keeping the whole
+# fabric continuously and *variably* busy.
 #
-# Instead of one sterile request every 6s, this runs SEVERAL concurrent
-# "shoppers" with jittered inter-arrival and periodic bursts, plus health
-# probes — the load shape a real shop produces. That keeps the whole
-# building-block fabric continuously busy and varied, so an attack hiding
-# inside Dapr's API surface has no quiet background to stand out against.
-#
-# NOTE (scope): this enriches VOLUME + TIMING + concurrency using only the
-# existing benign endpoints, so it does NOT change the app or the shipped
-# SBOBs. It exercises strictly legitimate shop operations — the busy fabric
-# is the realistic background a workload generates, nothing more.
+# Scope: this drives only the existing legitimate endpoints, so it does
+# NOT change the app or the shipped SBOBs. The busy fabric is the
+# realistic background a workload generates, nothing more.
 ---
 apiVersion: v1
 kind: Namespace
@@ -42,36 +34,67 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: shop-loadgen
+  name: shop-loadgen-k6
   namespace: shop-loadgen
   labels: {kubescape.io/ignore: "true"}
 data:
-  run.sh: |
-    set -u
-    FE="http://frontend.shop.svc.cluster.local"
-    OR="http://orders.shop.svc.cluster.local"
-    PY="http://payments.shop.svc.cluster.local"
-    co() { curl -s -m 8 -o /dev/null -X POST "$FE/checkout" || true; }
-    health() {
-      for u in "$FE/healthz" "$OR/healthz" "$PY/healthz"; do
-        curl -s -m 5 -o /dev/null "$u" || true
-      done
+  script.js: |
+    import http from 'k6/http';
+    import { sleep } from 'k6';
+
+    const FE = __ENV.FE || 'http://frontend.shop.svc.cluster.local';
+    const OR = __ENV.OR || 'http://orders.shop.svc.cluster.local';
+    const PY = __ENV.PY || 'http://payments.shop.svc.cluster.local';
+
+    export const options = {
+      scenarios: {
+        shoppers: {
+          executor: 'ramping-vus',
+          startVUs: 3,
+          stages: [
+            { duration: '3m', target: 10 },
+            { duration: '5m', target: 18 },
+            { duration: '4m', target: 6  },
+            { duration: '5m', target: 14 },
+            { duration: '3m', target: 4  },
+            { duration: '6m', target: 12 },
+          ],
+          gracefulRampDown: '15s',
+        },
+      },
+    };
+
+    function think(mean) { sleep(Math.min(45, -Math.log(1 - Math.random()) * mean)); }
+    function checkout() { http.post(FE + '/checkout', null, { headers: { 'Content-Type': 'application/json' } }); }
+    function health() {
+      const u = [FE, OR, PY][Math.floor(Math.random() * 3)];
+      http.get(u + '/healthz');
     }
-    # One shopper loop: steady checkouts with per-shopper jitter.
-    shopper() {
-      id="$1"; i=0
-      while true; do
-        co
-        i=$((i+1))
-        # jittered think-time (0.X .. ~2s), varies per shopper
-        sleep "$(( (i + id) % 3 )).$(( (i*3 + id*7) % 9 ))"
-        # occasional burst (a user clicking through fast)
-        if [ $(( (i + id) % 11 )) -eq 0 ]; then co; co; co; fi
-      done
+
+    // Persona assigned per-VU (stable for the VU's lifetime via the VU id).
+    function persona() {
+      const r = (__VU * 2654435761 >>> 0) % 100;   // deterministic per-VU, varied across VUs
+      if (r < 55) return 'buyer';      // steady checkouts
+      if (r < 85) return 'browser';    // mostly idle/health, occasional checkout
+      return 'bursty';                 // clusters of checkouts
     }
-    echo "shop-loadgen: $CONC concurrent shoppers + health probes -> $FE"
-    c=1; while [ "$c" -le "$CONC" ]; do shopper "$c" & c=$((c+1)); done
-    while true; do health; sleep 10; done
+
+    export default function () {
+      const p = persona();
+      if (p === 'buyer') {
+        checkout();
+        think(6);
+      } else if (p === 'browser') {
+        health();
+        think(8);
+        if (Math.random() < 0.25) checkout();
+        think(10);
+      } else { // bursty
+        const n = 2 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < n; i++) { checkout(); sleep(0.2 + Math.random() * 0.6); }
+        think(12);
+      }
+    }
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -80,19 +103,18 @@ metadata:
   namespace: shop-loadgen
   labels: {app: shop-loadgen, kubescape.io/ignore: "true"}
 spec:
-  replicas: 1
+  replicas: 2   # multiple client source IPs
   selector: {matchLabels: {app: shop-loadgen}}
   template:
     metadata:
       labels: {app: shop-loadgen, kubescape.io/ignore: "true"}
     spec:
       containers:
-        - name: curl
-          image: curlimages/curl:8.10.1
-          command: ["sh", "/etc/loadgen/run.sh"]
-          env: [{name: CONC, value: "4"}]   # concurrent shoppers
-          resources: {limits: {cpu: "200m", memory: "64Mi"}}
-          volumeMounts: [{name: cfg, mountPath: /etc/loadgen}]
+        - name: k6
+          image: grafana/k6:0.49.0
+          args: ["run", "--quiet", "/scripts/script.js"]
+          resources: {limits: {cpu: "300m", memory: "128Mi"}}
+          volumeMounts: [{name: script, mountPath: /scripts}]
       volumes:
-        - name: cfg
-          configMap: {name: shop-loadgen}
+        - name: script
+          configMap: {name: shop-loadgen-k6}
