@@ -109,7 +109,22 @@ data:
       }) });
     }
 
+    // OWASP-baseline crawl fingerprint — the path set + scanner User-Agent
+    // a ZAP/ASVS passive baseline emits, without the heavyweight JVM. Run
+    // by a small fraction of sessions so the baseline includes authentic
+    // scanner-shaped traffic.
+    const ZAP_UA = 'Mozilla/5.0 (compatible; OWASP ZAP) AppleWebKit/537.36';
+    const OWASP_PATHS = ['/robots.txt', '/sitemap.xml', '/.well-known/security.txt',
+                         '/favicon.ico', '/.git/config', '/admin', '/login', '/api'];
+    function owaspBaselineCrawl() {
+      for (const p of OWASP_PATHS) {
+        http.get(BASE + p, { headers: { 'User-Agent': ZAP_UA, 'Accept': '*/*' } });
+      }
+    }
+
     export default function () {
+      // ~8% of sessions are the OWASP-baseline passive crawl.
+      if (Math.random() < 0.08) { owaspBaselineCrawl(); return; }
       // Land + passive surface (the crawl a synthetic monitor / ASVS
       // baseline performs).
       group('land', () => {
