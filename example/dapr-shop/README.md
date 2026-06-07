@@ -6,14 +6,17 @@ k8s secret store** — i.e. every building-block call changes protocol.
 
 ## What's here
 ```
-deploy.yaml           the shop + Redis + NATS + Dapr Components + secrets + a benign loadgen
+deploy.yaml           the shop + Redis + NATS + Dapr Components + secrets
+loadgen.yaml          benign baseline / functional-confusion traffic (excluded ns)
 attack-trigger.yaml   a SEALED in-fabric trigger (apply, don't decode)
 ```
 
 ## Run it
 1. Install the Dapr control plane: `helm install dapr dapr/dapr -n dapr-system --create-namespace`.
-2. `kubectl apply -f deploy.yaml`. The `loadgen` drives the benign fabric continuously; let
-   node-agent **learn the per-pod baselines** from steady-state traffic until profiles complete.
+2. `kubectl apply -f deploy.yaml` then `kubectl apply -f loadgen.yaml`. `loadgen` runs several
+   concurrent, jittered "shoppers" + health probes that keep the whole building-block fabric
+   (service-invocation, secret, state, pub/sub) continuously busy; let node-agent **learn the
+   per-pod baselines** from steady-state traffic until profiles complete.
    (For the cross-node variant, pin `frontend` and `admin` to different nodes.)
 3. `kubectl apply -f attack-trigger.yaml`. Watch node-agent + your detection.
 

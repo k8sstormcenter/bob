@@ -1,0 +1,98 @@
+# Benign baseline / "functional confusion" traffic for the dapr-shop demo.
+#
+# Lives in its OWN namespace (`shop-loadgen`) so node-agent's
+# `excludeNamespaces` rule skips the curl client pods — they must not
+# land in shop ApplicationProfiles. Same convention as
+# example/chain/loadgen.yaml. Add `shop-loadgen` to excludeNamespaces in
+# bob/kubescape/values.yaml to honour it cluster-side.
+#
+# WHAT THIS GENERATES — a realistic Dapr e-commerce load, modelled on the
+# building-block flows the dapr/quickstarts samples exercise (service
+# invocation, state, pub/sub, secrets). Every request is HTTP into the
+# apps' OWN endpoints, so the daprd sidecars perform the REAL fabric
+# calls on the apps' behalf:
+#
+#   POST frontend /checkout
+#     → daprd service-invocation frontend → orders   (gRPC)
+#     → orders reads the ONE payment secret           (secret store)
+#     → orders state SET order:N                       (Redis RESP)
+#     → orders publish order.created                   (NATS JetStream)
+#     → payments /on-order (pub/sub subscriber) state SET
+#   GET /healthz on frontend/orders/payments           (liveness/monitoring)
+#
+# Instead of one sterile request every 6s, this runs SEVERAL concurrent
+# "shoppers" with jittered inter-arrival and periodic bursts, plus health
+# probes — the load shape a real shop produces. That keeps the whole
+# building-block fabric continuously busy and varied, so an attack hiding
+# inside Dapr's API surface has no quiet background to stand out against.
+#
+# NOTE (scope): this enriches VOLUME + TIMING + concurrency using only the
+# existing benign endpoints, so it does NOT change the app or the shipped
+# SBOBs. It exercises strictly legitimate shop operations — the busy fabric
+# is the realistic background a workload generates, nothing more.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+    app.kubernetes.io/part-of: dapr-shop-demo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-loadgen
+  namespace: shop-loadgen
+  labels: {kubescape.io/ignore: "true"}
+data:
+  run.sh: |
+    set -u
+    FE="http://frontend.shop.svc.cluster.local"
+    OR="http://orders.shop.svc.cluster.local"
+    PY="http://payments.shop.svc.cluster.local"
+    co() { curl -s -m 8 -o /dev/null -X POST "$FE/checkout" || true; }
+    health() {
+      for u in "$FE/healthz" "$OR/healthz" "$PY/healthz"; do
+        curl -s -m 5 -o /dev/null "$u" || true
+      done
+    }
+    # One shopper loop: steady checkouts with per-shopper jitter.
+    shopper() {
+      id="$1"; i=0
+      while true; do
+        co
+        i=$((i+1))
+        # jittered think-time (0.X .. ~2s), varies per shopper
+        sleep "$(( (i + id) % 3 )).$(( (i*3 + id*7) % 9 ))"
+        # occasional burst (a user clicking through fast)
+        if [ $(( (i + id) % 11 )) -eq 0 ]; then co; co; co; fi
+      done
+    }
+    echo "shop-loadgen: $CONC concurrent shoppers + health probes -> $FE"
+    c=1; while [ "$c" -le "$CONC" ]; do shopper "$c" & c=$((c+1)); done
+    while true; do health; sleep 10; done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-loadgen
+  namespace: shop-loadgen
+  labels: {app: shop-loadgen, kubescape.io/ignore: "true"}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: shop-loadgen}}
+  template:
+    metadata:
+      labels: {app: shop-loadgen, kubescape.io/ignore: "true"}
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl:8.10.1
+          command: ["sh", "/etc/loadgen/run.sh"]
+          env: [{name: CONC, value: "4"}]   # concurrent shoppers
+          resources: {limits: {cpu: "200m", memory: "64Mi"}}
+          volumeMounts: [{name: cfg, mountPath: /etc/loadgen}]
+      volumes:
+        - name: cfg
+          configMap: {name: shop-loadgen}

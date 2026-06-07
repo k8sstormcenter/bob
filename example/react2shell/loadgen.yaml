@@ -1,0 +1,108 @@
+# Benign baseline / "functional confusion" traffic for the react demo.
+#
+# Lives in its OWN namespace (`react-loadgen`) so node-agent's
+# `excludeNamespaces` rule skips the curl client pods entirely —
+# otherwise they would land in react-ns ApplicationProfiles and produce
+# R0001/R0002 noise that pollutes the sbobs the demo ships. Same
+# convention as example/chain/loadgen.yaml. To honour it cluster-side,
+# add `react-loadgen` to excludeNamespaces in bob/kubescape/values.yaml.
+#
+# WHAT THIS GENERATES — realistic legitimate traffic for a Next.js /
+# React Server Components front-end, modelled on the two things that
+# actually exercise such an app in a compliance/OWASP-baseline run:
+#
+#   1. An OWASP-ZAP-baseline-shaped surface sweep: GET /, /healthz,
+#      /favicon.ico, /robots.txt, common probe paths. This is the
+#      passive crawl any OWASP Top-10 / ASVS baseline scan performs and
+#      what synthetic monitoring + the Argo CD health check already hit.
+#
+#   2. Legitimate React Server Component "Flight" server-actions:
+#      POST /api/rsc with INERT action bodies (form submissions /
+#      navigations that compute and return data — no fs, no net, no
+#      spawn). This is the app's normal mutation path.
+#
+# Why it matters: the demo's attack rides the SAME POST /api/rsc route.
+# With this baseline running, the one malicious deserialization request
+# is a single drop in a continuous stream of benign /api/rsc actions —
+# identical method, path and content-type — so it cannot be flagged by
+# request shape alone. What still distinguishes it is purely runtime
+# (the file-read + egress the benign actions never perform), which is
+# exactly the signal the detection is meant to find.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: react-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+    app.kubernetes.io/part-of: react-demo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: react-loadgen
+  namespace: react-loadgen
+  labels: {kubescape.io/ignore: "true"}
+data:
+  # Rotating set of INERT React-Server-Action bodies. Each is plain JS a
+  # real RSC "Flight" payload would deserialize to: it computes and
+  # returns a value, touches nothing. (The app evaluates the body, so
+  # benign == returns data only.)
+  actions.txt: |
+    return ({status:200, cart:[{id:1,qty:2},{id:7,qty:1}]})
+    const items=[3,5,8]; return items.reduce((a,b)=>a+b,0)
+    return JSON.stringify({page:'/products', user:'guest'})
+    module.exports={rendered:true}; return 'home'
+    return ({ok:true, ts:'static', action:'add-to-cart'})
+    return [1,2,3].map(n=>n*n).join(',')
+    const f=(n)=>n<2?n:f(n-1)+f(n-2); return f(10)
+    return ({checkout:'preview', total:42.00, currency:'EUR'})
+  run.sh: |
+    set -eu
+    BASE="http://react.react.svc.cluster.local"
+    RSC='Content-Type: text/x-component'
+    # OWASP-baseline-style passive surface sweep (the crawl a ZAP/ASVS
+    # baseline + synthetic monitor performs).
+    probe() {
+      for p in / /healthz /favicon.ico /robots.txt /products /cart /api/health; do
+        curl -s -m 5 -o /dev/null "$BASE$p" || true
+      done
+    }
+    # One legitimate RSC server-action, rotating bodies by line.
+    n=1
+    action() {
+      total=$(wc -l < /etc/loadgen/actions.txt)
+      line=$(( (n % total) + 1 )); n=$((n+1))
+      body=$(sed -n "${line}p" /etc/loadgen/actions.txt)
+      curl -s -m 5 -o /dev/null -X POST -H "$RSC" --data "$body" "$BASE/api/rsc" || true
+    }
+    echo "react-loadgen: benign web + RSC-action traffic -> $BASE"
+    while true; do
+      probe
+      # a short burst of legit actions, then idle — realistic user cadence
+      for _ in 1 2 3 4 5; do action; sleep "0.$(( (n*7) % 9 ))"; done
+      sleep 4
+    done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-loadgen
+  namespace: react-loadgen
+  labels: {app: react-loadgen, kubescape.io/ignore: "true"}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: react-loadgen}}
+  template:
+    metadata:
+      labels: {app: react-loadgen, kubescape.io/ignore: "true"}
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl:8.10.1
+          command: ["sh", "/etc/loadgen/run.sh"]
+          resources: {limits: {cpu: "100m", memory: "64Mi"}}
+          volumeMounts: [{name: cfg, mountPath: /etc/loadgen}]
+      volumes:
+        - name: cfg
+          configMap: {name: react-loadgen}

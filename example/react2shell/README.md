@@ -22,11 +22,18 @@ The app is GitOps-managed, so it needs its source in-cluster:
 
 ```
 gitserver.yaml   in-cluster GitOps source (ns gitops) Argo CD syncs from
+loadgen.yaml     benign baseline / functional-confusion traffic (excluded ns)
 ```
 
 Apply `gitserver.yaml`, then the `argocd` demo's `Application` that points at
 it; Argo CD renders and deploys `react`. This makes the scenario
 self-contained — no external git host required.
+
+Then apply `loadgen.yaml` to drive a continuous benign baseline: an
+OWASP-baseline-shaped surface sweep plus legitimate React-Server-Component
+actions on `POST /api/rsc` — the same route the demo's attack uses, so the
+malicious request blends into normal traffic by shape and only the runtime
+behaviour distinguishes it.
 
 ## This is a blind test
 
