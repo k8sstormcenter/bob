@@ -127,16 +127,16 @@ go build -o ../bin/bobctl ./main.go
 cd ..
 log "Build OK: bin/bobctl"
 
-# wait_node_agent_watching — closes the profile-learning race.
+# wait_node_agent_watching — block until node-agent's ContainerWatcher is live.
 #
-# node-agent learns an ApplicationProfile only if its ContainerWatcher is
-# running BEFORE the workload's container starts. On a cold cluster node-agent
-# blocks ~40s "waiting for storage to be ready" before the watcher comes up, so
-# a workload deployed the instant the node-agent pod reports Ready (readyz) can
-# be missed entirely → no profile → learn times out. Gate the deploy on the
-# watcher actually being up, not just the pod's readiness probe.
+# Used after a node-agent (re)start to ensure it has finished its ~40s
+# "waiting for storage to be ready" boot phase and the ContainerWatcher +
+# container collection are actually up — only then does its startup enumeration
+# (the path that reliably profiles already-running workloads on this k3s) run.
+# A pod reporting Ready (readyz) is NOT sufficient; we wait for the boot marker
+# in node-agent's own log.
 wait_node_agent_watching() {
-  log "=== Gate: wait for node-agent ContainerWatcher (closes the learning race) ==="
+  log "=== Gate: wait for node-agent ContainerWatcher to be live ==="
   kubectl rollout status ds/node-agent -n "$KS_NS" --timeout=180s || true
   # storage aggregated-API must actually serve (node-agent's storage-wait clears).
   local i
@@ -149,7 +149,7 @@ wait_node_agent_watching() {
   for i in $(seq 1 90); do
     if kubectl logs -n "$KS_NS" -l app=node-agent --tail=5000 2>/dev/null \
          | grep -qE "ContainerWatcher started successfully|container collection initialized successfully"; then
-      log "node-agent ContainerWatcher is up — safe to deploy the workload"
+      log "node-agent ContainerWatcher is up"
       return 0
     fi
     sleep 2
@@ -173,10 +173,6 @@ if $SETUP_ONLY || ! $TUNE_ONLY; then
   kubectl wait --for=condition=ready pod -l app=alertmanager -n "$KS_NS" --timeout=120s
   log "All kubescape components ready"
 
-  # gate the workload deploy on node-agent actually watching containers, not just
-  # the pod's readyz — closes the learning race (see fn comment above).
-  wait_node_agent_watching
-
   if $SETUP_ONLY; then
     log "=== Setup complete (--setup-only). Deploy app and run --tune-only next. ==="
     exit 0
@@ -189,6 +185,31 @@ if ! $TUNE_ONLY; then
   make deploy-"$APP"
   log "Deploy complete. Pods in $APP_NS:"
   kubectl get pods -n "$APP_NS" || true
+
+  # ── close the learning race (the REAL fix) ──────────────────────────────────
+  # node-agent's LIVE container-start event stream is unreliable on some k3s
+  # kernels — it only profiles containers that are present at its (re)start, via
+  # startup enumeration (verified: a workload deployed AFTER node-agent is up
+  # gets no containerCallback and never produces a profile). So once the workload
+  # is Running, restart NODE-AGENT and let its startup enumeration pick it up.
+  # Restart node-agent ONLY, never the workload — restarting the workload would
+  # change the replicaset hash the ApplicationProfile is keyed to.
+  log "=== Wait for $APP workload pods Ready ==="
+  kubectl wait --for=condition=ready pod --all -n "$APP_NS" --timeout=180s || true
+  log "=== Restart node-agent so startup enumeration picks up $APP ==="
+  kubectl rollout restart ds/node-agent -n "$KS_NS"
+  kubectl rollout status  ds/node-agent -n "$KS_NS" --timeout=180s || true
+  wait_node_agent_watching
+  # confirm node-agent actually enumerated a container in the workload namespace
+  log "Confirming node-agent enumerated a $APP_NS container..."
+  for _i in $(seq 1 40); do
+    if kubectl logs -n "$KS_NS" -l app=node-agent --tail=4000 2>/dev/null \
+         | grep -qE "processing container.*\"namespace\":\"$APP_NS\""; then
+      log "node-agent enumerated a $APP_NS container — learning will produce a profile"
+      break
+    fi
+    sleep 3
+  done
 
   # ── learn: exercise app + poll for completed profile ────────────────────────
   log "=== Learn $APP ==="
