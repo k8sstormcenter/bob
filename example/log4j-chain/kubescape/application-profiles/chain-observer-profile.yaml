@@ -1,0 +1,27 @@
+# ApplicationProfile for chain-observer.
+# Allows only outbound HTTP to chain-backend:8080.
+# Any other connection or exec triggers R0011/R0001.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: chain-observer
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/managed-by: "user-supplied"
+    kubescape.io/status: "completed"
+spec:
+  containers:
+  - name: observer
+    capabilities: []
+    execs: []
+    opens: []
+    syscalls: []
+    endpoints:
+    - name: chain-backend
+      headers:
+        Host: chain-backend:8080
+      methods: ["GET"]
+      directions: ["Ingress"]
+      ports:
+      - port: 8080
+        protocol: TCP

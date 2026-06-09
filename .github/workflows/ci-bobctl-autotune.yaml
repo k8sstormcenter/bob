@@ -1,19 +1,13 @@
 name: CI - bobctl tune
 
 on:
+  # Runs on every PR (no per-branch allowlist — the legacy feat/* push list is
+  # gone) plus pushes to main. To get CI on a new branch, open a PR; you no
+  # longer add the branch here.
   push:
     branches:
       - main
-      - feat/crd
-      - feat/greedy
-      - feat/tdd
-      - feat/mariadb
-      - feat/network-endpoint-tuning
-      - feat/postgres-endpoint-attacks
-      - feat/tuning-pipeline-bench-e2e
-      - feat/pareto-kpis-e2e
-      - feat/nn-diagnostics-e2e
-    paths:
+    paths: &tune-paths
       - 'pkg'
       - 'pkg/**'
       - 'kubescape/**'
@@ -24,6 +18,8 @@ on:
       - 'scripts/**'
       - '.github/workflows/**'
       - 'Makefile'
+  pull_request:
+    paths: *tune-paths
   workflow_dispatch:
     inputs:
       run_stress:
@@ -386,6 +382,10 @@ jobs:
           sudo k3s ctr images pull docker.io/curlimages/curl:8.13.0
 
       # ---------- Tune (strategy sweep) ----------
+      # Runs alone on cluster A. Portability (differential cluster) is measured
+      # in a SEPARATE job (portability) on its own runner — a second full
+      # kubescape stack alongside A on one runner exhausts memory and knocks
+      # out A's alertmanager (observed: Phase-1 alertmanager 404).
       - name: Run tune
         id: tune
         continue-on-error: true
@@ -627,7 +627,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          pip install --quiet matplotlib pillow numpy 2>/dev/null || true
+          pip install --quiet matplotlib pillow numpy pyyaml 2>/dev/null || true
           if [ -f results/metrics.json ]; then
             ./scripts/render-gif.sh \
               results/metrics.json \
@@ -865,6 +865,134 @@ jobs:
         with:
           name: result-${{ matrix.app }}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
           path: results/
+
+  # ---------- Portability (differential cluster, SEPARATE runner) ----------
+  # Measures Portability for the postgres apps on a SECOND k3s with DIFFERENT
+  # pod/service CIDRs. Runs on its OWN runner so two kubescape stacks never
+  # share memory (the same-runner approach OOM'd cluster A's alertmanager →
+  # Phase-1 alertmanager 404). Consumes the tune leg's best-profile/best-nn.
+  portability:
+    name: "portability ${{ matrix.app }}"
+    needs: [build, tune]
+    if: always()
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: postgres
+            functional_tests: example/postgres-functional-tests.yaml
+            attack_suite: example/postgres-attacks.yaml
+            app_namespace: postgres
+          - app: postgres-vuln
+            functional_tests: example/postgres-vuln-functional-tests.yaml
+            attack_suite: example/postgres-vuln-attacks.yaml
+            app_namespace: postgres-vuln
+    steps:
+      - name: Checkout repo and private submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.ENTLEIN_PAT}}
+      - name: Download bobctl
+        uses: actions/download-artifact@v4
+        with:
+          name: bobctl
+          path: bin
+      - run: chmod +x bin/bobctl
+      - name: Download tune result
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: result-${{ matrix.app }}-ubuntu-24.04-k3s-v1.33.3
+          path: results
+      - name: Skip if the tune leg produced no profile
+        id: check
+        run: |
+          if [ ! -f results/best-profile.yaml ]; then
+            echo "no best-profile.yaml from the tune leg — skipping portability"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Differential cluster B (alt pod/service CIDR, k3d)
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          command -v k3d >/dev/null || \
+            curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.7.4 bash
+          k3d cluster create portb \
+            --k3s-arg '--cluster-cidr=10.98.0.0/16@server:0' \
+            --k3s-arg '--service-cidr=10.99.0.0/16@server:0' \
+            --k3s-arg '--disable=traefik@server:0' \
+            --wait --timeout 300s
+          k3d kubeconfig get portb > /tmp/kb-b
+          echo "KUBECONFIG=/tmp/kb-b" >> "$GITHUB_ENV"
+          echo "=== cluster B CIDRs (should be 10.98 / 10.99, NOT cluster A's) ==="
+          kubectl get nodes -o jsonpath='{.items[*].spec.podCIDRs}{"\n"}'
+          kubectl get servicecidrs 2>/dev/null || true
+      - name: Install kubescape + deploy app on B
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          make kubescape
+          make alertmanager
+          make deploy-${{ matrix.app }}
+          kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=180s
+      - name: Measure portability (FP delta on cluster B)
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          FP_A=$(jq '[to_entries[] | select(.value.phase != "raw-baseline")] | min_by(.value.score) | .value.false_positives' results/metrics.json 2>/dev/null || echo 0)
+          [ "$FP_A" = "null" ] || [ -z "$FP_A" ] && FP_A=0
+          echo "FP_A (cluster A noisiness) = $FP_A"
+          NN_FLAG=""
+          [ -f results/best-nn.yaml ] && NN_FLAG="--nn results/best-nn.yaml"
+          bin/bobctl portability-probe \
+            --profile results/best-profile.yaml $NN_FLAG \
+            --local-fp "$FP_A" \
+            -n ${{ matrix.app_namespace }} \
+            --ks-namespace honey \
+            --functional-tests ${{ matrix.functional_tests }} \
+            --attack-suite ${{ matrix.attack_suite }} \
+            --output-dir results \
+            -v 2>&1 | tee /tmp/port-out.txt
+          echo "=== PORTABILITY RESULT (${{ matrix.app }}) ==="
+          grep -E '^Portability:' /tmp/port-out.txt || echo "(no portability line — see log)"
+      # The tune job rendered the GIF with Portability=-1 (P is measured here,
+      # in a separate job on the alt-CIDR cluster — it cannot exist at tune
+      # time). Fold the measured P into the kpi.json sidecar and re-render so
+      # the GIF shows P=<n> instead of n/a, then overwrite the GIF artifact.
+      - name: Fold measured P into kpi.json and re-render GIF
+        if: always() && steps.check.outputs.skip != 'true'
+        continue-on-error: true
+        run: |
+          [ -f results/portability.json ] || { echo "no portability.json — skip GIF patch"; exit 0; }
+          [ -f results/metrics.json ]     || { echo "no metrics.json — skip GIF patch"; exit 0; }
+          P=$(jq '.portability' results/portability.json)
+          echo "Folding measured Portability=$P into kpi.json"
+          if [ -f results/kpi.json ]; then
+            jq --argjson p "$P" '.kpi.Portability = $p' results/kpi.json > results/kpi.json.tmp \
+              && mv results/kpi.json.tmp results/kpi.json
+          else
+            jq -n --argjson p "$P" '{kpi:{Detectability:0,Noisiness:0,Portability:$p},nn_rewrites:0}' > results/kpi.json
+          fi
+          cat results/kpi.json
+          pip install --quiet matplotlib pillow numpy pyyaml 2>/dev/null || true
+          ./scripts/render-gif.sh results/metrics.json results/tune.gif \
+            --title "${{ matrix.app }} (ubuntu-24.04)" || echo "GIF re-render failed (non-fatal)"
+      - name: Re-upload tune GIF (with measured P)
+        if: always() && steps.check.outputs.skip != 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: tune-gif-${{ matrix.app }}-ubuntu-24.04
+          path: results/tune.gif
+          overwrite: true
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Upload portability result
+        if: always() && steps.check.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: portability-${{ matrix.app }}
+          path: results/portability.json
 
   summarize:
     name: Summary

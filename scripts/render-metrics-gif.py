@@ -283,6 +283,70 @@ def load_nn_report(metrics_path: str) -> dict:
     return out
 
 
+def _classify_neighbor(n: dict) -> str:
+    """Classify one NetworkNeighbor by its PRIMARY discriminant.
+
+    nn-report.json only counts IP + DNS *atoms*, so the common
+    cluster-internal egress rule — identified by a pod/namespace
+    *selector* with ports but no resolved IP/DNS — counts as zero
+    there, leaving the NN insert showing "0 entries" on an NN that
+    actually carries real, portable policy. This recovers that signal
+    straight from best-nn.yaml.
+
+    Precedence dns > ip > selector > port-only mirrors how node-agent
+    discriminates a neighbor (a DNS/IP match wins; a selector-only
+    cluster-internal rule is the portable fallback).
+    """
+    dns = n.get("dnsNames") or ([] if not n.get("dns") else [n["dns"]])
+    if any(dns):
+        return "dns"
+    ips = n.get("ipAddresses") or ([] if not n.get("ipAddress") else [n["ipAddress"]])
+    if any(ips):
+        return "ip"
+    if n.get("podSelector") or n.get("namespaceSelector"):
+        return "selector"
+    if n.get("ports"):
+        return "port"
+    return "unknown"
+
+
+def load_best_nn(metrics_path: str) -> dict:
+    """Parse best-nn.yaml (the SELECTED tuned NetworkNeighborhood) and
+    count its egress/ingress neighbors by discriminant type.
+
+    This is the authoritative final NN — richer than nn-report.json,
+    which discards selector-based and port-only neighbors. Returns
+    {present, egress, ingress, by_type:{dns,ip,selector,port,unknown}}.
+    `present` is False when the file is absent or PyYAML is unavailable
+    (the renderer then falls back to nn-report.json's atom counts).
+    """
+    out = {"present": False, "egress": 0, "ingress": 0,
+           "by_type": {"dns": 0, "ip": 0, "selector": 0, "port": 0, "unknown": 0}}
+    p = Path(metrics_path).parent / "best-nn.yaml"
+    if not p.is_file():
+        return out
+    try:
+        import yaml  # optional dep; absent in minimal envs -> graceful fallback
+    except ImportError:
+        return out
+    try:
+        with open(p) as f:
+            nn = yaml.safe_load(f) or {}
+        spec = nn.get("spec") or {}
+        containers = []
+        for key in ("containers", "initContainers", "ephemeralContainers"):
+            containers.extend(spec.get(key) or [])
+        for c in containers:
+            for direction in ("egress", "ingress"):
+                for n in (c.get(direction) or []):
+                    out[direction] += 1
+                    out["by_type"][_classify_neighbor(n)] += 1
+        out["present"] = True
+    except (yaml.YAMLError, OSError, AttributeError) as e:
+        print(f"WARN: could not read {p}: {e}", file=sys.stderr)
+    return out
+
+
 def load_kpi_sidecar(metrics_path: str) -> dict:
     """Load kpi.json from the same directory as metrics.json if present.
 
@@ -358,7 +422,7 @@ def build_attack_analysis(attacks, detections):
     return det_by_attack, phase_attacks
 
 
-def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, width=1280, height=900):
+def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, best_nn=None, width=1280, height=900):
     fig = plt.figure(figsize=(width / 100, height / 100), dpi=100)
     fig.patch.set_facecolor(C_BG)
 
@@ -465,75 +529,32 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, 
         spine.set_color(C_BORDER)
 
     # NN diagnostics indicator in the AP panel's upper-right corner.
-    # We ALWAYS show the new two-line view when any NN signal exists
-    # (per-iteration nn_buckets, or nn-report.json, or kpi.json's
-    # nn_rewrites). Empty NNs render as `0 / 0%` rather than disappear —
-    # the operator still sees that the diagnostic layer is wired up.
     #
-    # Three signal sources, merged:
-    #   (i)  metrics.json[i].nn_buckets — per-iteration animation source.
-    #        Missing iterations render as space glyphs in the sparkline.
-    #   (ii) nn-report.json — final-state snapshot (single object).
-    #        Used as fallback for the final-frame numbers when (i) is
-    #        all-empty (the common case when NNs exist but have no
-    #        ingress/egress entries during the learn window).
-    #   (iii) kpi.json sidecar nn_rewrites — last-resort badge for
-    #        historical runs that have neither (i) nor (ii).
-    nn_buckets_series = [r.get("nn_buckets") for r in records[: up_to + 1]]
-    has_per_iter = any(isinstance(b, dict) and (b.get("total_entries") or 0) > 0
-                       for b in nn_buckets_series)
+    # PRIMARY source is best-nn.yaml (the SELECTED tuned NN): it counts
+    # egress/ingress neighbors by discriminant — selector / dns / ip /
+    # port. That is the real, portable policy. nn-report.json only
+    # tallies IP+DNS *atoms*, so a selector- or port-only
+    # cluster-internal egress rule (kube-dns, a service primary) counts
+    # as 0 there — which is why the old insert showed the cryptic
+    # "NN 0 / 1918 0%" on an NN that actually carries policy.
+    #
+    # Prefer best-nn.yaml; fall back to the legacy atom view only for
+    # historical runs that predate it. nn-report.json still supplies the
+    # NN-object count (distinct from neighbors inside them).
+    is_final = up_to == len(records) - 1
+    has_best_nn = bool(best_nn and best_nn.get("present"))
     has_final_report = bool(nn_report and nn_report.get("present"))
     has_legacy_badge = (kpi_sidecar or {}).get("nn_rewrites") is not None
-    is_final = up_to == len(records) - 1
+    nn_obj = f" ·{nn_report['nn_count']} obj" if has_final_report else ""
 
-    if has_per_iter or has_final_report or has_legacy_badge:
-        # Build the per-iteration series; missing iterations stay None
-        # (the sparkline helper renders them as space).
-        entries_series = []
-        share_series = []
-        for b in nn_buckets_series:
-            if not isinstance(b, dict):
-                entries_series.append(None)
-                share_series.append(None)
-                continue
-            total = b.get("total_entries") or 0
-            priv = b.get("rfc1918_private") or 0
-            entries_series.append(total)
-            share_series.append(priv / total if total > 0 else 0.0)
-
-        spark_entries = _sparkline(entries_series)
-        spark_share = _sparkline(share_series)
-
-        # Current values: prefer per-iteration up to `up_to`. On the
-        # final frame, fall back to nn-report.json when per-iteration
-        # was all zero/None (the common "empty-NN" case in CI).
-        current_total = next(
-            (v for v in reversed(entries_series) if v is not None), None
-        )
-        current_share = next(
-            (v for v in reversed(share_series) if v is not None), None
-        )
-        if (not current_total) and is_final and has_final_report:
-            current_total = nn_report.get("total_entries") or 0
-            buckets = nn_report.get("buckets") or {}
-            priv = buckets.get("rfc1918_private") or 0
-            current_share = (priv / current_total) if current_total > 0 else 0.0
-        if current_total is None:
-            current_total = 0
-        if current_share is None:
-            current_share = 0.0
-
-        # NN count comes from nn-report.json when available; the
-        # number of NNs an app has is distinct from the entries inside
-        # them, and it's a useful signal even when entries=0.
-        nn_count_label = ""
-        if has_final_report:
-            nn_count_label = f" ·{nn_report.get('nn_count') or 0}NN"
-
-        line1 = f"NN  {spark_entries} {current_total:>5}{nn_count_label}"
-        line2 = f"1918{spark_share} {int(round(current_share * 100)):>4}%"
-        color1 = C_TEXT if current_total > 0 else C_DIM
-        color2 = C_GREEN if current_share >= 0.5 and current_total > 0 else C_DIM
+    if has_best_nn:
+        egr, ing = best_nn["egress"], best_nn["ingress"]
+        bt = best_nn["by_type"]
+        total = egr + ing
+        line1 = f"NN  egr {egr}  ing {ing}{nn_obj}"
+        line2 = f"label {bt['selector']}  dns {bt['dns']}  ip {bt['ip']}  prt {bt['port']}"
+        color1 = C_TEXT if total > 0 else C_DIM
+        color2 = C_GREEN if total > 0 else C_DIM
         ax_prof.text(
             0.97, 0.97, line1, transform=ax_prof.transAxes,
             fontsize=7, color=color1, ha="right", va="top",
@@ -544,6 +565,30 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, 
             fontsize=7, color=color2, ha="right", va="top",
             fontfamily="monospace", fontweight="bold",
         )
+    else:
+        # Fallback: legacy atom-count view for runs without best-nn.yaml.
+        # Drops the confusing bare "1918" line; labels the count "atoms".
+        nn_buckets_series = [r.get("nn_buckets") for r in records[: up_to + 1]]
+        has_per_iter = any(isinstance(b, dict) and (b.get("total_entries") or 0) > 0
+                           for b in nn_buckets_series)
+        if has_per_iter or has_final_report or has_legacy_badge:
+            entries_series = []
+            for b in nn_buckets_series:
+                entries_series.append(b.get("total_entries") or 0
+                                      if isinstance(b, dict) else None)
+            spark_entries = _sparkline(entries_series)
+            current_total = next((v for v in reversed(entries_series) if v is not None), None)
+            if (not current_total) and is_final and has_final_report:
+                current_total = nn_report.get("total_entries") or 0
+            current_total = current_total or 0
+            nn_count_label = f" ·{nn_report['nn_count']}NN" if has_final_report else ""
+            line1 = f"NN  {spark_entries} {current_total:>4} atoms{nn_count_label}"
+            color1 = C_TEXT if current_total > 0 else C_DIM
+            ax_prof.text(
+                0.97, 0.97, line1, transform=ax_prof.transAxes,
+                fontsize=7, color=color1, ha="right", va="top",
+                fontfamily="monospace", fontweight="bold",
+            )
 
     # ══════════════════════════════════════════════════════════════════════
     # TOP-RIGHT: KPI (3-axis field equation: D / N / P)
@@ -787,6 +832,14 @@ def main():
             f"entropy={nn_report['entropy_bits']:.3f}",
             file=sys.stderr,
         )
+    best_nn = load_best_nn(args.metrics_json)
+    if best_nn.get("present"):
+        bt = best_nn["by_type"]
+        print(
+            f"Using best-nn.yaml: egress={best_nn['egress']} ingress={best_nn['ingress']} "
+            f"(dns={bt['dns']} ip={bt['ip']} selector={bt['selector']} port={bt['port']})",
+            file=sys.stderr,
+        )
 
     limits = compute_global_limits(records)
     print(f"Rendering {len(records)} frames (Design 5: Hybrid + KPI)...", file=sys.stderr)
@@ -794,7 +847,7 @@ def main():
     frames = []
     for i in range(len(records)):
         frame = draw_frame(records, i, args.title, limits,
-                           kpi_sidecar=kpi_sidecar, nn_report=nn_report)
+                           kpi_sidecar=kpi_sidecar, nn_report=nn_report, best_nn=best_nn)
         frames.append(frame.convert("RGB").quantize(colors=128, method=Image.Quantize.MEDIANCUT))
 
     durations = [args.duration] * len(frames)

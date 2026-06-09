@@ -1,0 +1,46 @@
+# Scenario B: vulnerable log4j 2.14.1 BUT distroless image + hardened
+# securityContext. RCE lands in JVM, /bin/sh exec fails ENOENT.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chain-backend
+  namespace: log4j-poc
+  labels: { scenario: "B" }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: chain-backend } }
+  template:
+    metadata:
+      labels: { app: chain-backend, scenario: "B" }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+      - name: backend
+        image: ghcr.io/k8sstormcenter/log4j-chain-backend-contained:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        env:
+        - { name: POSTGRES_HOST, value: "chain-postgres" }
+        - { name: POSTGRES_DB,   value: "appdb" }
+        - { name: POSTGRES_USER, value: "postgres" }
+        ports: [{ containerPort: 8080 }]
+        volumeMounts:
+        - { name: tmp, mountPath: /tmp }
+      volumes:
+      - name: tmp
+        emptyDir: { medium: "Memory" }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: chain-backend, namespace: log4j-poc }
+spec:
+  selector: { app: chain-backend }
+  ports: [{ port: 8080, targetPort: 8080 }]

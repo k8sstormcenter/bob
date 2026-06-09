@@ -1,0 +1,39 @@
+# chain-postgres pre-baked profile — allows postgres normal operation only.
+# Pivot detection from this side: if postgres receives a query from a non-
+# backend pod, or if its outbound traffic deviates from the cluster-local
+# expected pattern, R0011 fires.
+---
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: deployment-chain-postgres
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/wlid: "wlid://cluster-local/namespace-log4j-poc/deployment-chain-postgres"
+    kubescape.io/completion: "complete"
+    kubescape.io/status: "completed"
+spec:
+  architectures: [amd64]
+  containers:
+  - name: postgres
+    capabilities: []
+    execs:
+    - path: /usr/lib/postgresql/16/bin/postgres
+      args: ["postgres"]
+    opens:
+    - path: /var/lib/postgresql/data
+      flags: [O_RDWR]
+    syscalls:
+    - read
+    - write
+    - openat
+    - close
+    - mmap
+    - futex
+    - epoll_wait
+    - accept4
+    endpoints:
+    - endpoint: ":5432"
+      methods: [pg-wire]
+      direction: inbound
+    egress: []

@@ -1,0 +1,60 @@
+# Pre-baked ApplicationProfile for chain-backend.
+# Allows ONLY the legitimate runtime behaviour:
+#   - java process executing the app jar
+#   - outbound TCP to chain-postgres:5432 (legitimate DB access)
+#   - log writes to stdout
+# Anything else fires the standard R-rules at first event.
+#
+# Pre-baked = phase = "ready" out of the gate. No learning window.
+# bobctl pulled from k8sstormcenter/bob @ pinned SHA.
+---
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: deployment-chain-backend
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/wlid: "wlid://cluster-local/namespace-log4j-poc/deployment-chain-backend"
+    kubescape.io/completion: "complete"
+    kubescape.io/status: "completed"
+spec:
+  architectures: [amd64]
+  containers:
+  - name: backend
+    capabilities: []
+    execs:
+    - path: /opt/java/openjdk/bin/java
+      args: ["java", "-jar", "/app/app.jar"]
+    opens:
+    - path: /app/app.jar
+      flags: [O_RDONLY]
+    - path: /etc/localtime
+      flags: [O_RDONLY]
+    - path: /etc/resolv.conf
+      flags: [O_RDONLY]
+    syscalls:
+    - read
+    - write
+    - openat
+    - close
+    - mmap
+    - futex
+    - epoll_wait
+    - epoll_ctl
+    - accept4
+    - connect
+    endpoints:
+    - endpoint: ":8080"
+      methods: [GET, POST]
+      direction: inbound
+    egress:
+    - dns: chain-postgres.log4j-poc.svc.cluster.local.
+      ports: [{ protocol: TCP, port: 5432 }]
+    - dns: kube-dns.kube-system.svc.cluster.local.
+      ports: [{ protocol: UDP, port: 53 }]
+    # Notable omissions (which will therefore fire R-rules):
+    #   - exec of /bin/sh, psql, getent — fires R0001 on A
+    #   - outbound TCP to non-postgres targets — fires R0011 on A+B
+    #     (specifically, attacker:1389 LDAP fires R0011)
+    #   - read of /etc/shadow / /var/run/secrets/* — fires R0010
+    #   - DNS to non-cluster nameserver — fires R0005

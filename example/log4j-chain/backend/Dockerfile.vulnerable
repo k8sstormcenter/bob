@@ -1,0 +1,21 @@
+# Scenario A — vulnerable log4j 2.14.1, ops-friendly ubuntu base.
+# Has /bin/sh, psql, curl, getent — full toolbox for an attacker post-RCE.
+
+FROM maven:3.9-eclipse-temurin-11 AS build
+WORKDIR /src
+COPY pom.xml ./
+COPY src ./src
+RUN LOG4J_VERSION=2.14.1 mvn -B package -DskipTests
+
+FROM eclipse-temurin:11-jdk
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client curl dnsutils ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar ./app.jar
+EXPOSE 8080
+# JNDI/LDAP class loading: temurin-11 sets `com.sun.jndi.ldap.object.trustURLCodebase=false`
+# by default (since JDK 11.0.1) — without this flag the Log4Shell chain stops at
+# LDAP referral, never fetches the Payload.class. Enabling it makes the JVM
+# behave like the pre-mitigation environments that were vulnerable in 2021.
+ENTRYPOINT ["java","-Dcom.sun.jndi.ldap.object.trustURLCodebase=true","-jar","/app/app.jar"]

@@ -316,7 +316,101 @@ pattern, different layer (observer vs rule).
 
 ---
 
-## D7a — `networkEventsStreaming` does NOT enable streaming on-prem (chart gate)
+## D7a — `networkEventsStreaming`: installer guidance (the network knob)
+
+**The question installers ask: "do I need `networkEventsStreaming` or
+not?"** It is a per-cluster node-agent capability in the
+kubescape-operator helm values (`capabilities.networkEventsStreaming:
+enable | disable`), **independent of the AP/NN policy you ship**. It
+gates whether node-agent streams network events to the rule engine —
+i.e. whether the shipped NetworkNeighborhood is actually *evaluated*,
+not just present.
+
+**Decision:**
+
+| You want to detect… | Rules | Need `networkEventsStreaming: enable`? |
+|---|---|---|
+| Unexpected DNS / domain (exfil, C2 callback) | **R0005** | **Yes** |
+| Unexpected egress IP (lateral movement, reverse shell) | **R0011** | **Yes** (+ `R0011.isTriggerAlert: true`) |
+| Process / exec / file / syscall / malware / crypto | R0001, R0002, R0006, R0008, R0010, R1xxx | **No** — these never read the NN |
+
+**Rules of thumb:**
+
+- **The NN is inert without the knob.** Shipping a tuned
+  `NetworkNeighborhood` to a customer does nothing unless *that
+  customer's* cluster has `networkEventsStreaming: enable`. With it
+  off, R0005/R0011 are **blind** — they silently never fire, which
+  reads as "clean / no detection" when it is really "no visibility"
+  (the D7 failure mode above). This is the single most common
+  portability surprise for network detection.
+- **It is opt-in for a reason.** Streaming every network event adds
+  node-agent overhead, so the upstream default — and every
+  `kubescape/values_*.yaml` *except* the CI one — is `disable`. Only
+  enable it for clusters that actually run the network detection story.
+- **It is a cluster knob, not an SBOB/profile entry.** Do not try to
+  encode it in the AP or NN; it cannot be shipped in the policy. The
+  installer must set it in their own helm values.
+- **If your product's value prop includes DNS/egress detection, the
+  installer guidance MUST instruct customers to enable it** (and set
+  `R0011.isTriggerAlert: true` for R0011). Otherwise the network half
+  of the policy is dead on arrival.
+
+**In this repo:** `kubescape/values.yaml` (used by `make kubescape`,
+the CI tune + portability path) sets `enable` — load-bearing, because
+postgres / postgres-vuln / misp expect 12–15 R0005 detections each and
+would miss them all if flipped to `disable`. The old `disable` variants
+have been moved to `kubescape/deprecated/` (`values_orig`,
+`values_vendor`, `valuesk0s`) so they stop being mistaken for a
+starting point; `kubescape/values.yaml` is the single source of truth.
+Older example READMEs (chain, log4j, argocd) still describe `values.yaml`
+as `disable` — stale wording from before the CI flip; the knob, not
+those docs, is the source of truth.
+
+### The consumer-URL crashloop (when streaming is enabled)
+
+Enabling `networkEventsStreaming` makes node-agent ship the captured
+`NetworkStream` to an HTTP **consumer**. The setting is
+`exporters.httpExporterConfig.url`, and node-agent POSTs to
+**`<url>/v1/networkstreams`** — so the URL must point at a service that
+accepts that path. In the standard kubescape stack that is the
+**synchronizer**:
+
+```
+http://synchronizer.kubescape.svc.cluster.local:8089/apis/v1/kubescape.io
+```
+
+**Pitfalls that crashloop or silently drop the stream:**
+
+- **Empty / malformed URL → CrashLoopBackOff.** `HTTPExporterConfig.Validate()`
+  rejects an empty URL; if the HTTP exporter is the *only* exporter,
+  node-agent hits `InitExporters - no exporters were initialized`
+  (`exporters_bus.go`) and `Fatal`s on boot. Fix: give it a real URL, or
+  keep another exporter configured (an `alertManagerExporterUrls` entry is
+  enough — this is why **bob's CI does NOT crashloop**: it always has the
+  alertmanager exporter, so a missing/failed stream consumer only logs a
+  Warning).
+- **No scheme.** This URL needs the full `http://…` scheme — unlike
+  `alertManagerExporterUrls`, which takes bare `host:port` (node-agent
+  prepends the scheme there). Putting bare `host:port` here passes
+  validation but fails at request time.
+- **Wrong service / unreachable consumer → not a crash.** Sends just
+  fail with a logged Warning each interval. **Local R0005/R0011 detection
+  still works** — those rules evaluate against the captured NN on-node;
+  the consumer is only for shipping the stream to a backend. (bob's honey
+  stack deploys no synchronizer and sets no `httpExporterConfig.url`, yet
+  R0005 fires correctly — proof the consumer is optional for detection.)
+
+**Rule of thumb for installers:** if you only want on-cluster detection,
+enable the knob and you need *no* consumer URL (just keep the alertmanager
+exporter). Only set `exporters.httpExporterConfig.url` if you actually want
+the network stream forwarded to a backend — and then it must be a full
+`http(s)://host:port/base-path` reachable consumer.
+
+---
+
+## D7b — `networkEventsStreaming` does NOT enable streaming on-prem (chart gate)
+
+*(D7a above says the knob is load-bearing; this is **why setting it alone is not enough on-prem**, and how `make kubescape` makes it actually live.)*
 
 **Failure mode**: you set `capabilities.networkEventsStreaming: enable`
 in `kubescape/values.yaml`, assume the NetworkNeighborhood is now
