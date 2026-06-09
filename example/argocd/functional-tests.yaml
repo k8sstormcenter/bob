@@ -1,0 +1,60 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: argocd-benign-baseline
+  description: |
+    Benign Argo CD usage that drives the repo-server through its normal
+    manifest-rendering path. Run during learning to populate the SBOBs
+    for the demo pods:
+
+      app (repo-server) .ApplicationProfile  -> argocd-repo-server +
+                                                helm/kustomize/git renders
+      app .NetworkNeighborhood               -> kube-dns, argocd-server,
+                                                the known-good git source
+      observer .ApplicationProfile           -> curl on a sync loop
+      observer .NetworkNeighborhood          -> kube-dns, argocd-server
+
+    Traffic shape is ordinary GitOps:
+      1. register a known-good repo
+      2. create an Application pointing at a Helm chart in it
+      3. sync -> repo-server renders via `helm template`
+      4. create a second Application using a kustomize overlay
+      5. sync -> repo-server renders via `kustomize build`
+
+    The observer Deployment already runs a benign sync loop while it is
+    deployed; this suite gives bobctl an explicit, replayable handle.
+
+target:
+  service: argocd-server
+  namespace: argocd
+  port: 8080
+  protocol: https
+
+tests:
+  - name: healthz
+    request: { method: GET, path: /healthz }
+    expect: { status: 200 }
+
+  - name: render-helm-app
+    description: benign Application backed by a Helm chart; sync renders it
+    request:
+      method: POST
+      path: /api/v1/applications
+      body: |
+        {"metadata":{"name":"benign-helm"},
+         "spec":{"source":{"repoURL":"https://github.com/argoproj/argocd-example-apps",
+                           "path":"helm-guestbook","targetRevision":"HEAD"},
+                 "destination":{"server":"https://kubernetes.default.svc","namespace":"argocd"}}}
+    expect: { status: 200 }
+
+  - name: render-kustomize-app
+    description: benign Application backed by a kustomize overlay
+    request:
+      method: POST
+      path: /api/v1/applications
+      body: |
+        {"metadata":{"name":"benign-kustomize"},
+         "spec":{"source":{"repoURL":"https://github.com/argoproj/argocd-example-apps",
+                           "path":"kustomize-guestbook","targetRevision":"HEAD"},
+                 "destination":{"server":"https://kubernetes.default.svc","namespace":"argocd"}}}
+    expect: { status: 200 }

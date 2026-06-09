@@ -1,0 +1,55 @@
+# Argo CD demo — manifest-generation weakness, three-scenario
+# active-diagnosis (vulnerable / contained / patched). Labels use the
+# de-chained role-only scheme: pods are `app` / `observer` / `attacker`,
+# namespace `argocd` carries the context.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: ChainManifest
+metadata:
+  name: argocd
+  namespace: argocd
+
+deploy:
+  - manifest: argocd.yaml
+  # R1100 binding (scenario B smoking-gun) — optional until the rule
+  # ships in node-agent (portability-spec D3).
+  - manifest: ../log4j/kubescape/rules/R1100_rulespec.yaml
+    optional: true
+
+pods:
+  # The vulnerable target is Argo CD's own repo-server Deployment — its
+  # name comes from upstream (argocd-repo-server), so the de-chain
+  # "short role name" scheme does NOT apply to it. Verified real name +
+  # container + profile prefix on a live v2.9.3 deploy.
+  - name: argocd-repo-server
+    profile_match: replicaset-argocd-repo-server
+    container: argocd-repo-server
+  - name: observer
+    profile_match: replicaset-observer
+    container: observer
+    negative_control: true
+
+functional_tests: functional-tests.yaml
+attack_suite: attacks.yaml
+
+scenarios:
+  - name: A-vulnerable
+    apply: []
+    expect_signature:
+      app: [R0001, R0010, R0011]
+  - name: B-contained
+    apply: [app-b.yaml]
+    restart: [app]
+    expect_signature:
+      app: [R0011, R1100]
+  - name: C-patched
+    apply: [app-c.yaml]
+    restart: [app]
+    expect_signature:
+      app: []
+
+sbob_dir: sbobs/
+
+coverage:
+  expected_detections: 3
+  knob_dependent:
+    R0011: networkEventsStreaming

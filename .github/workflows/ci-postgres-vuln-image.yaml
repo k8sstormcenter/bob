@@ -1,0 +1,92 @@
+name: CI - postgres-vulnerable image
+
+# Builds and publishes the postgres-vuln demo image (postgres:16 +
+# plpython3u/plperlu/dblink for the PL-RCE + SSRF attack suite) to GHCR,
+# so the postgres-vuln/ demo no longer depends on a locally-built
+# `postgres-vuln:latest` (which ImagePullBackOffs on any cluster that
+# didn't build it). Mirrors ci-redis-image.yaml / ci-chain-images.yaml.
+#
+# Tags pushed:
+#   - ghcr.io/k8sstormcenter/postgres-vuln:<short-sha>
+#   - ghcr.io/k8sstormcenter/postgres-vuln:<branch>
+#   - ghcr.io/k8sstormcenter/postgres-vuln:latest    (main only)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'postgres-vuln/Dockerfile'
+      - '.github/workflows/ci-postgres-vuln-image.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build & push postgres-vuln
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          BRANCH_SAFE="${GITHUB_REF_NAME//\//-}"
+          IMG=ghcr.io/${{ github.repository_owner }}/postgres-vuln
+          TAGS="${IMG}:${SHORT_SHA},${IMG}:${BRANCH_SAFE}"
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            TAGS="${TAGS},${IMG}:latest"
+          fi
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "primary=${IMG}:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+
+      # Build locally first (load) so we can smoke-test before pushing.
+      - name: Build (load for smoke test)
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: postgres-vuln
+          file: postgres-vuln/Dockerfile
+          load: true
+          tags: postgres-vuln:smoke
+
+      - name: Smoke-test image (pg_isready + PL extension loads)
+        run: |
+          docker run -d --name pgv-smoke -e POSTGRES_PASSWORD=smoke postgres-vuln:smoke
+          for i in $(seq 1 30); do
+            if docker exec pgv-smoke pg_isready -U postgres >/dev/null 2>&1; then ok=1; break; fi
+            sleep 2
+          done
+          if [[ "${ok:-}" != "1" ]]; then
+            echo "FAIL: postgres never became ready"; docker logs pgv-smoke | tail -20; docker rm -f pgv-smoke; exit 1
+          fi
+          # The image exists to make the PL extensions available — verify they load.
+          docker exec pgv-smoke psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS plpython3u;" >/dev/null \
+            || { echo "FAIL: plpython3u missing"; docker logs pgv-smoke | tail -20; docker rm -f pgv-smoke; exit 1; }
+          docker exec pgv-smoke psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS plperlu;" >/dev/null \
+            || { echo "FAIL: plperlu missing"; docker rm -f pgv-smoke; exit 1; }
+          echo "OK: postgres-vuln ready, plpython3u + plperlu load"
+          docker rm -f pgv-smoke
+
+      - name: Push (multi-arch)
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: postgres-vuln
+          file: postgres-vuln/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}

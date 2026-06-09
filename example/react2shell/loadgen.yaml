@@ -1,0 +1,177 @@
+# Benign baseline / "functional confusion" traffic for the react demo — k6 edition.
+#
+# Lives in its OWN namespace (`react-loadgen`) so node-agent's
+# `excludeNamespaces` rule skips the client pods (they must not land in
+# react-ns ApplicationProfiles). Add `react-loadgen` to excludeNamespaces
+# in bob/kubescape/values.yaml to honour it cluster-side. Same convention
+# as example/chain/loadgen.yaml.
+#
+# This replaces the earlier curl-loop driver with a k6 load model that
+# behaves like real browser users rather than a periodic script:
+#   - STOCHASTIC timing: exponential think-times, not a fixed period.
+#   - SESSIONS / journeys: each virtual user lands, browses, adds to cart,
+#     checks out — correlated navigation, with some early abandons + 404s.
+#   - VOLUME shape: VU count ramps up and down (oscillates) instead of a
+#     flat rate, so the baseline has peaks and quiet periods.
+#   - BROWSER-like requests: rotating User-Agent / Accept headers; RSC
+#     server-actions carry a Next-Action-style header + Flight-shaped
+#     bodies of varying size (kept INERT — they compute and return only).
+#   - MULTIPLE SOURCES: the Deployment runs several replicas, so the
+#     NetworkNeighborhood learns a fan of ingress peers, not one IP.
+#
+# Why it matters: the demo's attack rides the SAME POST /api/rsc route.
+# With a realistic, varied stream of benign actions in flight, the one
+# malicious request cannot be separated by shape, timing, source or
+# payload-fingerprint — only by what it does at runtime.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: react-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+    app.kubernetes.io/part-of: react-demo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: react-loadgen-k6
+  namespace: react-loadgen
+  labels: {kubescape.io/ignore: "true"}
+data:
+  script.js: |
+    import http from 'k6/http';
+    import { sleep, group } from 'k6';
+
+    const BASE = __ENV.BASE || 'http://react.react.svc.cluster.local';
+    const RSC  = 'text/x-component';
+
+    // Oscillating VU count -> peaks and quiet periods (loops via the
+    // Deployment's restart when the stage list ends).
+    export const options = {
+      scenarios: {
+        users: {
+          executor: 'ramping-vus',
+          startVUs: 2,
+          stages: [
+            { duration: '3m',  target: 8  },
+            { duration: '5m',  target: 14 },
+            { duration: '4m',  target: 4  },
+            { duration: '5m',  target: 12 },
+            { duration: '3m',  target: 2  },
+            { duration: '6m',  target: 10 },
+            { duration: '4m',  target: 6  },
+          ],
+          gracefulRampDown: '15s',
+        },
+      },
+      // benign app returns 200 on /, 500 on a deliberately-malformed RSC
+      // body; don't fail the run on the handful of intentional 404s.
+      thresholds: {},
+      noConnectionReuse: false,
+    };
+
+    const UAS = [
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148',
+    ];
+    function ua() { return UAS[Math.floor(Math.random() * UAS.length)]; }
+    function browse(h) {
+      return Object.assign({ 'User-Agent': ua(),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9' }, h || {});
+    }
+    // exponential think-time (mean seconds), heavy-tailed like real users
+    function think(mean) { sleep(Math.min(30, -Math.log(1 - Math.random()) * mean)); }
+
+    // INERT Flight-shaped server-action bodies. Each is valid JS that
+    // returns data and touches nothing (the app evaluates the body, so
+    // benign == compute-and-return). Shaped like RSC "$@"-ref payloads
+    // and padded to a realistic, varied size.
+    function pad(n) { let a = []; for (let i = 0; i < n; i++) a.push(i * 3 % 97); return JSON.stringify(a); }
+    function addToCartBody() {
+      const sku = 'SKU-' + (1 + Math.floor(Math.random() * 200));
+      const qty = 1 + Math.floor(Math.random() * 4);
+      return 'return ["$@1",{action:"addToCart",sku:"' + sku + '",qty:' + qty +
+             ',meta:' + pad(10 + Math.floor(Math.random() * 120)) + '}]';
+    }
+    function checkoutBody() {
+      return 'return ["$@2",{action:"checkout",ship:"std",items:' +
+             (1 + Math.floor(Math.random() * 5)) + ',sid:"' + Math.random().toString(36).slice(2) + '"}]';
+    }
+    function action(body) {
+      http.post(BASE + '/api/rsc', body, { headers: browse({
+        'Content-Type': RSC,
+        'Next-Action': Math.random().toString(16).slice(2, 18),
+        'Accept': RSC,
+      }) });
+    }
+
+    // OWASP-baseline crawl fingerprint — the path set + scanner User-Agent
+    // a ZAP/ASVS passive baseline emits, without the heavyweight JVM. Run
+    // by a small fraction of sessions so the baseline includes authentic
+    // scanner-shaped traffic.
+    const ZAP_UA = 'Mozilla/5.0 (compatible; OWASP ZAP) AppleWebKit/537.36';
+    const OWASP_PATHS = ['/robots.txt', '/sitemap.xml', '/.well-known/security.txt',
+                         '/favicon.ico', '/.git/config', '/admin', '/login', '/api'];
+    function owaspBaselineCrawl() {
+      for (const p of OWASP_PATHS) {
+        http.get(BASE + p, { headers: { 'User-Agent': ZAP_UA, 'Accept': '*/*' } });
+      }
+    }
+
+    export default function () {
+      // ~8% of sessions are the OWASP-baseline passive crawl.
+      if (Math.random() < 0.08) { owaspBaselineCrawl(); return; }
+      // Land + passive surface (the crawl a synthetic monitor / ASVS
+      // baseline performs).
+      group('land', () => {
+        http.get(BASE + '/', { headers: browse() });
+        if (Math.random() < 0.4) http.get(BASE + '/favicon.ico', { headers: browse() });
+        if (Math.random() < 0.2) http.get(BASE + '/robots.txt', { headers: browse() });
+      });
+      think(2);
+      // ~15% of sessions bounce immediately (real bounce rate).
+      if (Math.random() < 0.15) return;
+
+      group('browse', () => {
+        http.get(BASE + '/products', { headers: browse() });
+        think(4);
+        if (Math.random() < 0.1) http.get(BASE + '/this-page-does-not-exist', { headers: browse() }); // natural 404
+      });
+
+      // Add 1-3 items, with think time between each.
+      const adds = 1 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < adds; i++) { action(addToCartBody()); think(3); }
+
+      group('cart', () => { http.get(BASE + '/cart', { headers: browse() }); });
+      think(5);
+
+      // ~60% who reach the cart actually check out.
+      if (Math.random() < 0.6) { action(checkoutBody()); think(2); }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-loadgen
+  namespace: react-loadgen
+  labels: {app: react-loadgen, kubescape.io/ignore: "true"}
+spec:
+  replicas: 3   # multiple client source IPs -> a fan of ingress peers
+  selector: {matchLabels: {app: react-loadgen}}
+  template:
+    metadata:
+      labels: {app: react-loadgen, kubescape.io/ignore: "true"}
+    spec:
+      containers:
+        - name: k6
+          image: grafana/k6:0.49.0
+          args: ["run", "--quiet", "/scripts/script.js"]
+          resources: {limits: {cpu: "250m", memory: "128Mi"}}
+          volumeMounts: [{name: script, mountPath: /scripts}]
+      volumes:
+        - name: script
+          configMap: {name: react-loadgen-k6}

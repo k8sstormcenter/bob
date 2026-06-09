@@ -1,0 +1,143 @@
+### R0001 referral row ###
+{
+  "RuleID": "R0001",
+  "alertName": "Unexpected process launched",
+  "message": "Unexpected process launched: mal.sh with PID 3930230",
+  "process": {
+    "pid": 3920916,
+    "cmdline": "/usr/bin/tini -- /usr/local/bin/argocd-repo-server",
+    "comm": "tini",
+    "ppid": 3920604,
+    "pcomm": "containerd-shim",
+    "uid": 999,
+    "gid": 999,
+    "startTime": "0001-01-01T00:00:00Z",
+    "cwd": "/home/argocd",
+    "path": "/usr/bin/tini",
+    "childrenMap": {
+      "argocd-repo-ser\u241f3920929": {
+        "pid": 3920929,
+        "cmdline": "/usr/local/bin/argocd-repo-server",
+        "comm": "argocd-repo-ser",
+        "ppid": 3920916,
+        "pcomm": "tini",
+        "uid": 999,
+        "gid": 999,
+        "startTime": "0001-01-01T00:00:00Z",
+        "cwd": "/home/argocd",
+        "path": "/usr/local/bin/argocd",
+        "childrenMap": {
+          "kustomize\u241f3930224": {
+            "pid": 3930224,
+            "cmdline": "/usr/local/bin/kustomize build /tmp/_argocd-repo/0a62ff38-8f05-4c89-a81c-a7ac97a86199 --enable-alpha-plugins --enable-exec",
+            "comm": "kustomize",
+            "ppid": 3920929,
+            "pcomm": "argocd-repo-ser",
+            "uid": 999,
+            "gid": 999,
+            "startTime": "0001-01-01T00:00:00Z",
+            "path": "/usr/local/bin/kustomize",
+            "childrenMap": {
+              "mal.sh\u241f3930230": {
+                "pid": 3930230,
+                "cmdline": "./mal.sh",
+                "comm": "mal.sh",
+                "ppid": 3930224,
+                "pcomm": "kustomize",
+                "uid": 999,
+                "gid": 999,
+                "startTime": "0001-01-01T00:00:00Z",
+                "path": "/usr/bin/dash"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "k8s": {
+    "containerName": "argocd-repo-server",
+    "podName": "argocd-repo-server-9dc44b96b-rtpgs",
+    "namespace": "argocd",
+    "workloadName": "argocd-repo-server",
+    "workloadKind": "Deployment"
+  }
+}
+### R0010 referral row ###
+{
+  "RuleID": "R0010",
+  "alertName": "Unexpected Sensitive File Access",
+  "message": "Unexpected sensitive file access: /etc/shadow by process head",
+  "process": {
+    "pid": 3920916,
+    "cmdline": "/usr/bin/tini -- /usr/local/bin/argocd-repo-server",
+    "comm": "tini",
+    "ppid": 3920604,
+    "pcomm": "containerd-shim",
+    "uid": 999,
+    "gid": 999,
+    "startTime": "0001-01-01T00:00:00Z",
+    "cwd": "/home/argocd",
+    "path": "/usr/bin/tini",
+    "childrenMap": {
+      "argocd-repo-ser\u241f3920929": {
+        "pid": 3920929,
+        "cmdline": "/usr/local/bin/argocd-repo-server",
+        "comm": "argocd-repo-ser",
+        "ppid": 3920916,
+        "pcomm": "tini",
+        "uid": 999,
+        "gid": 999,
+        "startTime": "0001-01-01T00:00:00Z",
+        "cwd": "/home/argocd",
+        "path": "/usr/local/bin/argocd",
+        "childrenMap": {
+          "kustomize\u241f3930224": {
+            "pid": 3930224,
+            "cmdline": "/usr/local/bin/kustomize build /tmp/_argocd-repo/0a62ff38-8f05-4c89-a81c-a7ac97a86199 --enable-alpha-plugins --enable-exec",
+            "comm": "kustomize",
+            "ppid": 3920929,
+            "pcomm": "argocd-repo-ser",
+            "uid": 999,
+            "gid": 999,
+            "startTime": "0001-01-01T00:00:00Z",
+            "path": "/usr/local/bin/kustomize",
+            "childrenMap": {
+              "mal.sh\u241f3930230": {
+                "pid": 3930230,
+                "cmdline": "./mal.sh",
+                "comm": "mal.sh",
+                "ppid": 3930224,
+                "pcomm": "kustomize",
+                "uid": 999,
+                "gid": 999,
+                "startTime": "0001-01-01T00:00:00Z",
+                "path": "/usr/bin/dash",
+                "childrenMap": {
+                  "head\u241f3930232": {
+                    "pid": 3930232,
+                    "cmdline": "/usr/bin/head -c 64 /etc/shadow",
+                    "comm": "head",
+                    "ppid": 3930230,
+                    "pcomm": "mal.sh",
+                    "uid": 999,
+                    "gid": 999,
+                    "startTime": "0001-01-01T00:00:00Z",
+                    "path": "/usr/bin/head"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "k8s": {
+    "containerName": "argocd-repo-server",
+    "podName": "argocd-repo-server-9dc44b96b-rtpgs",
+    "namespace": "argocd",
+    "workloadName": "argocd-repo-server",
+    "workloadKind": "Deployment"
+  }
+}

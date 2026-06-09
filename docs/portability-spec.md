@@ -408,6 +408,65 @@ the network stream forwarded to a backend — and then it must be a full
 
 ---
 
+## D7b — `networkEventsStreaming` does NOT enable streaming on-prem (chart gate)
+
+*(D7a above says the knob is load-bearing; this is **why setting it alone is not enough on-prem**, and how `make kubescape` makes it actually live.)*
+
+**Failure mode**: you set `capabilities.networkEventsStreaming: enable`
+in `kubescape/values.yaml`, assume the NetworkNeighborhood is now
+evaluated, and ship it. It isn't. The rendered node-agent configmap
+comes out `networkStreamingEnabled: false`, so the NN is **inert** —
+**R0005 (DNS) and R0011 (egress) silently never fire**. This reads as
+"clean / no detection" when it is really "no visibility" (the D7
+failure mode), and it bites *every* on-prem (non-cloud) install.
+
+**Root cause (the chart gate)** — `kubescape-operator`
+`templates/node-agent/configmap.yaml`:
+
+```
+"networkStreamingEnabled": {{ and $configurations.submit (eq .Values.capabilities.networkEventsStreaming "enable") }}
+```
+
+with `_common.tpl`: `$submit := not (empty .Values.server)`. So the
+rendered flag is **`submit AND enable`**, and `submit` is only true on
+the **armosec cloud-submit** path (`.Values.server` set, which also
+forces `account`+`accessKey` or the template `fail`s). Our
+`kubescape/values.yaml` sets `enable` but no `server`, so the flag
+renders **false on every chart version 1.27 → 1.40.2**.
+
+**Verified empirically (hermetic, no cluster) on chart 1.30.2:**
+
+| helm input | rendered `networkStreamingEnabled` |
+|---|---|
+| `values.yaml` (`enable`, no server) | **`false`** |
+| `+ --set nodeAgent.config.networkStreamingEnabled=true` | **`false`** (ignored — the template hardcodes the gated expression) |
+| `+ --set server=… --set account=… --set accessKey=…` | `true` (cloud-submit path) |
+
+A direct `--set` of the flag is **ignored** — option (2) below does not
+work. (Credit: makefile-agent root-caused this against the iximiuz
+playground stack; reproduced here via `helm template`.)
+
+**Countermeasure (shipped in `make kubescape`)**: because the chart
+can't express on-prem streaming without cloud-submit, the `kubescape:`
+target now **patches the rendered `node-agent` configmap**
+(`config.json` → `networkStreamingEnabled: true`) and
+`rollout restart`s the daemonset after the helm install, then runs a
+hard **`verify-streaming`** gate that fails loud if the live flag is not
+`true`. Run `make verify-streaming` standalone to check any cluster.
+
+**Implications for the rest of this spec**: any claim that the network
+half of a policy fires — postgres/misp R0005 counts, the argocd/log4j
+R0011 egress legs, the D7 `signal_availability` story — is **gated on
+this flag actually being live**, not merely on `values.yaml` saying
+`enable`. Treat "I set `networkEventsStreaming: enable`" as necessary
+but **not sufficient**; assert the rendered configmap.
+
+**Status**: ✅ fixed in `make kubescape` (configmap patch +
+`verify-streaming` gate). Upstream-chart fix (honor `--set` without
+cloud-submit) would let us drop the patch.
+
+---
+
 ## D5 — Cross-attack time-window contamination (NOT an SBOB problem)
 
 **Failure mode**: diagnose framework reads alerts/conn_stats from a

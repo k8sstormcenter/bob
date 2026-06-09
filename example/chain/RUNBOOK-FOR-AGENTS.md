@@ -206,12 +206,12 @@ attacks` with `<short-sha>` + `<branch>` (and `latest` for main).
 
 ---
 
-## Step 4-alt — Run the demo (LOCAL-BUILD PATH, requires docker)
+## Step 4-alt — Run the demo
 
-Only needed if you're iterating on the Go services or chain manifests:
+The default pulls the published GHCR images (no docker needed):
 
 ```bash
-./scripts/local-ci-chain.sh                    # full pipeline, builds + ttl.sh-pushes
+./scripts/local-ci-chain.sh                    # full pipeline (pulls GHCR images)
 ./scripts/local-ci-chain.sh --setup-only       # just deploy + apply sbobs, stop
 ./scripts/local-ci-chain.sh --attack-only      # re-run chain against existing deploy
 ./scripts/local-ci-chain.sh --extended         # also run s5 (pg-wire) + s6 (DNS exfil)
@@ -220,10 +220,17 @@ Only needed if you're iterating on the Go services or chain manifests:
 ./scripts/local-ci-chain.sh --isolate=chain-redis  # VERIFICATION: only one pod uses sbobs
 ```
 
-The local path builds chain-{frontend,backend} from
+Only when iterating on the Go services, add `--build` (requires docker):
+
+```bash
+./scripts/local-ci-chain.sh --build            # local build + ttl.sh push
+```
+
+The `--build` path builds chain-{frontend,backend} from
 `example/chain/{frontend,backend}/`, pushes to ttl.sh (anonymous,
 24-hour TTL — no GHCR auth), and substitutes those refs into the
-manifest at apply time.
+manifest at apply time. Without it, `chain.yaml`'s GHCR refs are used
+as-is (CI keeps them fresh on `main`).
 
 Known docker-credstore quirk on hosts that use pass+gpg-pinentry: the
 script scopes a temporary HOME with an empty docker config around its
@@ -303,10 +310,11 @@ automate this, but today it's manual:
 | `learning-period`, `workload-resource-version` | — | — | `/etc/redis/..<date-secs>/redis.conf` → `/etc/redis/⋯/redis.conf` |
 | Literal-IP HTTP `Host:` headers (e.g. `Host: 10.42.0.198:8080`) — kubescape uses `strings.Contains()` on Host, so a learned pod IP is cluster-specific noise that false-positives on the customer's cluster | — | — | — |
 
-`imageTag` is updated from `ttl.sh/<uuid>` to `ghcr.io/k8sstormcenter`
-(the CI's stable registry); `imageID` is reset to a zero-digest
-placeholder — node-agent recomputes it on first pod-image-pull at
-the customer's cluster.
+`imageTag` should read `ghcr.io/k8sstormcenter/...` (the CI's stable
+registry) — already the case when learning off the default GHCR images;
+only the opt-in `--build` flow leaves a `ttl.sh/<uuid>` tag that must be
+rewritten to GHCR. `imageID` is reset to a zero-digest placeholder —
+node-agent recomputes it on first pod-image-pull at the customer's cluster.
 
 ### Three flows, one set of sbobs
 

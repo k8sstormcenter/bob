@@ -1,0 +1,50 @@
+# Argo CD demo — deploy overlay (scenario A, vulnerable/default repo-server).
+# VALIDATED on k3s + kubescape (Argo CD Core v2.9.3), 2026-06-04.
+#
+# This file carries only the demo-specific deltas. The Argo CD control plane
+# itself is upstream core-install (single shared image quay.io/argoproj/argocd
+# :v2.9.3 + redis). Apply order (see README for the one-shot):
+#
+#   1. kubectl create ns argocd
+#   2. kubectl apply -n argocd -f \
+#        https://raw.githubusercontent.com/argoproj/argo-cd/v2.9.3/manifests/core-install.yaml
+#   3. kubectl apply -f example/argocd/argocd.yaml        # this file
+#   4. # bind the tuned User SBoBs (node-agent loads them at pod start):
+#      kubectl delete applicationprofile,networkneighborhood argocd-repo-server -n argocd --ignore-not-found
+#      kubectl apply -n argocd -f example/argocd/sbobs/ap-app.yaml
+#      kubectl apply -n argocd -f example/argocd/sbobs/nn-app.yaml
+#      kubectl patch deployment argocd-repo-server -n argocd --type merge -p \
+#        '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"argocd-repo-server","kubescape.io/user-defined-network":"argocd-repo-server"}}}}}'
+#      kubectl rollout restart deployment/argocd-repo-server -n argocd
+#   5. kubectl apply -f example/argocd/attack-pod.yaml     # adv attacker + probe Application
+#
+# Scenario discriminator is the repo-server IMAGE only (A here; B/C via app-b/app-c.yaml).
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: adv}
+---
+# Permissive default project so the controller will render any source.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+  namespace: argocd
+spec:
+  sourceRepos: ['*']
+  destinations: [{namespace: '*', server: '*'}]
+  clusterResourceWhitelist: [{group: '*', kind: '*'}]
+---
+# Enables the kustomize exec-generator path the attack rides on. In a real
+# deployment this is the "plugin / config-management exec" surface; here it is
+# the single knob that turns repo-server's kustomize into an arbitrary-spawn
+# vector during render. Scenario B/C close this (contained / patched image).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: argocd
+data:
+  kustomize.buildOptions: "--enable-alpha-plugins --enable-exec"

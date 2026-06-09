@@ -1,0 +1,85 @@
+##
+## NetworkNeighborhood for the Argo CD repo-server (demo target).
+##
+## v2 — GENERALIZED FROM REAL OBSERVATION (Argo CD v2.9.3 core on
+## k3s+kubescape). Reality checks vs v1:
+##   - ingress is on :8084 (the repo-server gRPC/health port), from the
+##     application-controller. v1 guessed :8081.
+##   - egress to the git source happens via comm `git-remote-http` on
+##     :443. The naive learn MISSED it (the clone raced past the learn
+##     window → egress=0 learned), so the legit github clone fired
+##     R0011 + R0005. It MUST be allowed here, or every render alerts.
+##
+## DISCRIMINATOR preserved: the legit git source (github) is allowed;
+## the attack's exfil egress (a DIFFERENT host, e.g. the getent DNS
+## lookup observed in the attack) is NOT here → R0011/R0005 fire on it.
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: argocd-repo-server
+    kubescape.io/workload-namespace: argocd
+spec:
+  matchLabels:
+    app.kubernetes.io/name: argocd-repo-server
+  containers:
+    - name: argocd-repo-server
+      ingress:
+        - identifier: ingress-from-app-controller
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: TCP-8084
+              port: 8084
+              protocol: TCP
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: argocd
+          namespaceSelector: null
+          type: internal
+      egress:
+        - identifier: egress-kube-dns
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: UDP-53
+              port: 53
+              protocol: UDP
+            - name: TCP-53
+              port: 53
+              protocol: TCP
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+          type: internal
+        # Legitimate git source (the benign repo the functional tests
+        # sync). comm=git-remote-http on :443. Public host kept literal.
+        - identifier: egress-git-source
+          ipAddress: ""
+          dns: github.com.
+          dnsNames:
+            - github.com.
+          ports:
+            - name: TCP-443
+              port: 443
+              protocol: TCP
+          namespaceSelector: null
+          podSelector: null
+          type: external
+  initContainers: []
+  ephemeralContainers: []

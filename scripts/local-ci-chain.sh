@@ -8,8 +8,9 @@
 # containers; the chain demo intentionally crosses pods).
 #
 # Usage:
-#   ./scripts/local-ci-chain.sh                       # full pipeline (build + push to ttl.sh)
-#   ./scripts/local-ci-chain.sh --use-published       # skip build, pull GHCR images
+#   ./scripts/local-ci-chain.sh                       # full pipeline (default: pull GHCR images)
+#   ./scripts/local-ci-chain.sh --build               # build locally + push to ttl.sh (dev: testing Go changes)
+#   ./scripts/local-ci-chain.sh --use-published       # explicit GHCR pull (now the default; kept for back-compat)
 #   ./scripts/local-ci-chain.sh --setup-only          # deploy + learn, stop
 #   ./scripts/local-ci-chain.sh --attack-only         # skip setup, re-run chain
 #   ./scripts/local-ci-chain.sh --extended            # also run s5 (pg-wire) + s6 (DNS exfil)
@@ -43,7 +44,10 @@ PROPAGATION_WAIT=20
 SETUP_ONLY=false
 ATTACK_ONLY=false
 TEARDOWN=false
-USE_PUBLISHED=false
+# Default to the published GHCR images (permanent tags, no ttl.sh 24h rot).
+# `--build` opts into the local docker build + ttl.sh push for dev work on
+# the Go sources.
+USE_PUBLISHED=true
 EXTENDED=false
 LEARN_SBOBS=false
 ISOLATE=""
@@ -67,6 +71,10 @@ while [[ $# -gt 0 ]]; do
     # `latest` or whatever CHAIN_PUBLISHED_TAG env var is set to —
     # CI matrix jobs pin to a short-sha for reproducibility.
     --use-published) USE_PUBLISHED=true ;;
+    # --build: opt into the local docker build + ttl.sh push (default is
+    # to pull the published GHCR images). Use when iterating on the Go
+    # sources in example/chain/{frontend,backend}/.
+    --build)         USE_PUBLISHED=false ;;
     # --extended: also run example/chain/chain-attacks-extended.yaml
     # after the basic chain. Adds two stages:
     #   s5 — full pg-wire conversation (StartupMessage + Query + parse
@@ -228,11 +236,13 @@ if ! $ATTACK_ONLY; then
       || die "push chain-frontend to ttl.sh failed"
   fi  # end USE_PUBLISHED
 
-  # Inject the image refs into the manifest. Keep the YAML clean —
-  # ttl.sh / ghcr.io paths only land in the rendered copy.
+  # Inject the image refs into the manifest. chain.yaml ships the GHCR
+  # refs by default; this rewrite only changes them when a non-default
+  # source is selected: --build (-> ttl.sh) or CHAIN_PUBLISHED_TAG (-> a
+  # pinned GHCR sha instead of :latest). Default published path = no-op.
   CHAIN_MANIFEST=$(mktemp /tmp/chain-XXX.yaml)
-  sed -e "s|image: chain-backend:latest|image: ${CHAIN_BACKEND_IMG}|" \
-      -e "s|image: chain-frontend:latest|image: ${CHAIN_FRONTEND_IMG}|" \
+  sed -e "s|image: ghcr.io/k8sstormcenter/chain-backend:latest|image: ${CHAIN_BACKEND_IMG}|" \
+      -e "s|image: ghcr.io/k8sstormcenter/chain-frontend:latest|image: ${CHAIN_FRONTEND_IMG}|" \
     example/chain/chain.yaml > "$CHAIN_MANIFEST"
 
   # For LEARN_PODS, strip the kubescape.io/user-defined-{profile,network}

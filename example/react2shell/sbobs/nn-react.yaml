@@ -1,0 +1,62 @@
+##
+## NetworkNeighborhood for the `react` app (GitOps-managed by Argo CD).
+## User-managed runtime baseline.
+##
+## Normal traffic: Argo CD health-checks the app on :3000, and the app resolves
+## DNS via kube-dns.
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  name: react
+  namespace: react
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: react
+    kubescape.io/workload-namespace: react
+spec:
+  matchLabels:
+    app: react
+  containers:
+    - name: react
+      ingress:
+        - identifier: ingress-from-argocd
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: TCP-3000
+              port: 3000
+              protocol: TCP
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+          podSelector: null
+          type: internal
+      egress:
+        - identifier: egress-kube-dns
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: UDP-53
+              port: 53
+              protocol: UDP
+            - name: TCP-53
+              port: 53
+              protocol: TCP
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+          type: internal
+  initContainers: []
+  ephemeralContainers: []
