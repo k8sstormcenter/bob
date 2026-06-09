@@ -199,6 +199,38 @@ if ! $TUNE_ONLY; then
   log "=== Restart node-agent so startup enumeration picks up $APP ==="
   kubectl rollout restart ds/node-agent -n "$KS_NS"
   kubectl rollout status  ds/node-agent -n "$KS_NS" --timeout=180s || true
+
+  # Exercise the app CONTINUOUSLY in the background, starting the moment
+  # node-agent restarts, so benign traffic overlaps node-agent's short
+  # (learningPeriod=2m) recording window no matter exactly when enumeration +
+  # recording begin. On this k3s recording opens at node-agent (re)start; the
+  # gate + enumeration-confirm latency would otherwise push a foreground learn
+  # loop to the edge of (or past) that window, so the profile would capture only
+  # container startup (e.g. apache2) and leave ping/sh/php as false positives.
+  # Stopped before the tune phase so it can't pollute the FP measurement.
+  # NB: BOBCTL_DEBUG_ADDR= disables the obs server for the background load — it is
+  # exported for the main tune (to observe the tuner live), but if bg_load's
+  # bobctl also bound that port it would block the main collapse/tune obs server
+  # with "address already in use". bg_load is pure traffic; it needs no obs.
+  bg_load() {
+    while :; do
+      BOBCTL_DEBUG_ADDR= bin/bobctl learn --functional-tests "$APP_FUNC_TESTS" -n "$APP_NS" \
+        --timeout 60s --interval 10s >/dev/null 2>&1 || true
+      sleep 2
+    done
+  }
+  stop_bg_load() {
+    [[ -n "${LOAD_PID:-}" ]] || return 0
+    kill "$LOAD_PID" 2>/dev/null || true
+    pkill -P "$LOAD_PID" 2>/dev/null || true
+    wait "$LOAD_PID" 2>/dev/null || true
+    LOAD_PID=""
+  }
+  log "=== Exercise $APP continuously during the recording window (background) ==="
+  bg_load &
+  LOAD_PID=$!
+  trap stop_bg_load EXIT
+
   wait_node_agent_watching
   # confirm node-agent actually enumerated a container in the workload namespace
   log "Confirming node-agent enumerated a $APP_NS container..."
@@ -211,24 +243,9 @@ if ! $TUNE_ONLY; then
     sleep 3
   done
 
-  # ── learn: exercise app + poll for completed profile ────────────────────────
+  # ── learn: background load (above) exercises the app; poll for the profile ──
   log "=== Learn $APP ==="
   MATCH="${APP_PROFILE_MATCH:-$APP}"
-
-  # Run functional tests to exercise the app while node-agent learns.
-  # --timeout must comfortably exceed the time it takes to run all functional
-  # tests serially. The postgres suite is ~76 tests at ~500ms each = ~40s,
-  # so 30s was too small and the tail tests systematically aborted with
-  # "client rate limiter Wait returned an error: context deadline exceeded"
-  # (the bobctl ctx, not a real throttle — the request was waiting in the
-  # rate limiter when ctx expired). 180s leaves ample headroom.
-  log "Running functional tests during learning period..."
-  for i in $(seq 1 8); do
-    bin/bobctl learn \
-      --functional-tests "$APP_FUNC_TESTS" \
-      -n "$APP_NS" --timeout 180s --interval 15s -v 2>&1 | tail -5 || true
-    sleep 5
-  done
 
   # Poll for completed, non-user-generated profile
   log "Waiting for completed profile (match: '$MATCH')..."
@@ -239,9 +256,13 @@ if ! $TUNE_ONLY; then
     ALL_COMPLETED=$(kubectl get applicationprofiles -n "$APP_NS" \
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
-    PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
-    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
-    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
+    # NB: each grep can return 1 (no match); under `set -euo pipefail` a failing
+    # command substitution would exit the script, so swallow it with `|| true`.
+    # (Latent bug surfaced once the foreground learn loop that used to delay this
+    # poll until a profile existed was removed.)
+    PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1 || true)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1 || true)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1 || true)
     if [[ -n "$PROFILE" ]]; then
       log "Profile completed: $PROFILE"
       log "All completed profiles in $APP_NS:"
@@ -252,6 +273,11 @@ if ! $TUNE_ONLY; then
     sleep 15
     ELAPSED=$((ELAPSED + 15))
   done
+  # stop the background benign load before tuning so it cannot add alerts to the
+  # tune phase's false-positive measurement.
+  stop_bg_load
+  trap - EXIT
+
   [[ -n "$PROFILE" ]] || die "No completed profile found after ${TIMEOUT}s"
 
   log "Learned profile: $PROFILE"
@@ -268,10 +294,10 @@ else
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
-    PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
-    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1)
-    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$APP" | head -1)
-    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | head -1)
+    PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1 || true)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1 || true)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$APP" | head -1 || true)
+    [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | head -1 || true)
     [[ -n "$PROFILE" ]] || die "No completed learned profile found in $APP_NS. Run without --tune-only first."
     log "Discovered profile: $PROFILE"
   fi
