@@ -127,6 +127,36 @@ go build -o ../bin/bobctl ./main.go
 cd ..
 log "Build OK: bin/bobctl"
 
+# wait_node_agent_watching — closes the profile-learning race.
+#
+# node-agent learns an ApplicationProfile only if its ContainerWatcher is
+# running BEFORE the workload's container starts. On a cold cluster node-agent
+# blocks ~40s "waiting for storage to be ready" before the watcher comes up, so
+# a workload deployed the instant the node-agent pod reports Ready (readyz) can
+# be missed entirely → no profile → learn times out. Gate the deploy on the
+# watcher actually being up, not just the pod's readiness probe.
+wait_node_agent_watching() {
+  log "=== Gate: wait for node-agent ContainerWatcher (closes the learning race) ==="
+  kubectl rollout status ds/node-agent -n "$KS_NS" --timeout=180s || true
+  # storage aggregated-API must actually serve (node-agent's storage-wait clears).
+  local i
+  for i in $(seq 1 60); do
+    kubectl get applicationprofiles -A >/dev/null 2>&1 && break
+    sleep 2
+  done
+  # the definitive "now watching containers" signal from node-agent's own log.
+  # Match either boot marker; raise --tail so anomaly chatter can't bury the line.
+  for i in $(seq 1 90); do
+    if kubectl logs -n "$KS_NS" -l app=node-agent --tail=5000 2>/dev/null \
+         | grep -qE "ContainerWatcher started successfully|container collection initialized successfully"; then
+      log "node-agent ContainerWatcher is up — safe to deploy the workload"
+      return 0
+    fi
+    sleep 2
+  done
+  log "WARNING: node-agent ContainerWatcher signal not seen within timeout — proceeding (learning may race)"
+}
+
 if $SETUP_ONLY || ! $TUNE_ONLY; then
   # ── install kubescape ──────────────────────────────────────────────────────
   log "=== Install kubescape (namespace: $KS_NS) ==="
@@ -142,6 +172,10 @@ if $SETUP_ONLY || ! $TUNE_ONLY; then
   kubectl wait --for=condition=ready pod -l app=storage      -n "$KS_NS" --timeout=180s
   kubectl wait --for=condition=ready pod -l app=alertmanager -n "$KS_NS" --timeout=120s
   log "All kubescape components ready"
+
+  # gate the workload deploy on node-agent actually watching containers, not just
+  # the pod's readyz — closes the learning race (see fn comment above).
+  wait_node_agent_watching
 
   if $SETUP_ONLY; then
     log "=== Setup complete (--setup-only). Deploy app and run --tune-only next. ==="
