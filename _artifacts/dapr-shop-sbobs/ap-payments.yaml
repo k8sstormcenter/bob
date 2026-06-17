@@ -1,0 +1,119 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-shop/kind-ReplicaSet/name-payments-846b897dcd
+    kubescape.io/resource-size: "15"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: 7430583dfe5f992fb1decb8893b2d520ed1f4862836bf520ea18c1d155486a23
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-shop/deployment-payments
+  creationTimestamp: "2026-06-17T13:21:59Z"
+  labels:
+    kubescape.io/instance-template-hash: 846b897dcd
+    kubescape.io/learning-period: 2m
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: payments
+    kubescape.io/workload-namespace: shop
+    kubescape.io/workload-resource-version: "145144"
+  name: replicaset-payments-846b897dcd
+  namespace: shop
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities: null
+    endpoints:
+    - direction: outbound
+      endpoint: :3000/on-order
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - 127.0.0.1:3000
+      internal: false
+      methods:
+      - POST
+    - direction: inbound
+      endpoint: :3500/v1.0/state/statestore
+      headers:
+        Connection:
+        - keep-alive
+        Host:
+        - 127.0.0.1:3500
+      internal: false
+      methods:
+      - POST
+    - direction: inbound
+      endpoint: :3501/v1.0/healthz
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.42.0.78:3501
+      internal: true
+      methods:
+      - GET
+    execs: null
+    identifiedCallStacks: null
+    imageID: ghcr.io/dapr/daprd@sha256:b7f7d296f01f0b4b82bf3c5f087ecf26165ce08caf3e87f94b8c72b9e11873f8
+    imageTag: ghcr.io/dapr/daprd:1.18.1
+    name: daprd
+    opens: null
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - close
+    - read
+  - capabilities: null
+    endpoints:
+    - direction: inbound
+      endpoint: :3000/on-order
+      headers:
+        Accept-Encoding:
+        - gzip
+        Host:
+        - 127.0.0.1:3000
+      internal: false
+      methods:
+      - POST
+    - direction: outbound
+      endpoint: :3500/v1.0/state/statestore
+      headers:
+        Connection:
+        - keep-alive
+        Host:
+        - 127.0.0.1:3500
+      internal: false
+      methods:
+      - POST
+    - direction: inbound
+      endpoint: :80/healthz
+      headers:
+        Host:
+        - payments.shop.svc.cluster.local
+      internal: true
+      methods:
+      - GET
+    execs: null
+    identifiedCallStacks: null
+    imageID: docker.io/library/node@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+    imageTag: docker.io/library/node:20-alpine
+    name: app
+    opens: null
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls:
+    - madvise
+    - mmap
+    - mprotect
+    - munmap
+    - writev
+status: {}

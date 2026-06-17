@@ -1,0 +1,61 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  annotations:
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-shop/kind-ReplicaSet/name-orders-8b7996588
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: b1f6cdcfa45863beb4db51c0e0490b8b4a00997ff5ffd0175f58902caae8c369
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-shop/deployment-orders
+  creationTimestamp: "2026-06-17T13:21:59Z"
+  labels:
+    kubescape.io/instance-template-hash: 8b7996588
+    kubescape.io/learning-period: 2m
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: orders
+    kubescape.io/workload-namespace: shop
+    kubescape.io/workload-resource-version: "145155"
+  name: replicaset-orders-8b7996588
+  namespace: shop
+  resourceVersion: "2"
+spec:
+  containers:
+  - egress: null
+    ingress:
+    - dns: ""
+      dnsNames: null
+      identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+      ipAddress: 10.42.0.1
+      namespaceSelector: null
+      podSelector: null
+      ports:
+      - name: TCP-3501
+        port: 3501
+        protocol: TCP
+      type: external
+    name: daprd
+  - egress: null
+    ingress:
+    - dns: ""
+      dnsNames: null
+      identifier: 6a8fb51f523dff13fb76e0f8e16a9cd3bc23326cd30359b27280072b7d86fd73
+      ipAddress: ""
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: shop-loadgen
+      podSelector:
+        matchLabels:
+          app: shop-loadgen
+          kubescape.io/ignore: "true"
+      ports:
+      - name: TCP-3000
+        port: 3000
+        protocol: TCP
+      type: internal
+    name: app
+  ephemeralContainers: null
+  initContainers: null
+  matchLabels:
+    app: orders

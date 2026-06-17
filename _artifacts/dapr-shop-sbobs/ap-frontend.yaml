@@ -1,0 +1,100 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-shop/kind-ReplicaSet/name-frontend-6b7cc94897
+    kubescape.io/resource-size: "8"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: 4bdbfbe4467460a9dd0d67845dfc4d6fc5799293b8a9b36d0fd14aa7a955d36f
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-shop/deployment-frontend
+  creationTimestamp: "2026-06-17T13:21:59Z"
+  labels:
+    kubescape.io/instance-template-hash: 6b7cc94897
+    kubescape.io/learning-period: 2m
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: frontend
+    kubescape.io/workload-namespace: shop
+    kubescape.io/workload-resource-version: "145138"
+  name: replicaset-frontend-6b7cc94897
+  namespace: shop
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  containers:
+  - capabilities: null
+    endpoints:
+    - direction: inbound
+      endpoint: :3501/v1.0/healthz
+      headers:
+        Connection:
+        - close
+        Host:
+        - 10.42.0.76:3501
+      internal: true
+      methods:
+      - GET
+    - direction: inbound
+      endpoint: :3500/v1.0/invoke/orders/method/checkout
+      headers:
+        Connection:
+        - keep-alive
+        Host:
+        - 127.0.0.1:3500
+      internal: false
+      methods:
+      - POST
+    execs: null
+    identifiedCallStacks: null
+    imageID: ghcr.io/dapr/daprd@sha256:b7f7d296f01f0b4b82bf3c5f087ecf26165ce08caf3e87f94b8c72b9e11873f8
+    imageTag: ghcr.io/dapr/daprd:1.18.1
+    name: daprd
+    opens: null
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls: null
+  - capabilities: null
+    endpoints:
+    - direction: inbound
+      endpoint: :80/healthz
+      headers:
+        Host:
+        - frontend.shop.svc.cluster.local
+      internal: true
+      methods:
+      - GET
+    - direction: inbound
+      endpoint: :80/checkout
+      headers:
+        Host:
+        - frontend.shop.svc.cluster.local
+      internal: true
+      methods:
+      - POST
+    - direction: outbound
+      endpoint: :3500/v1.0/invoke/orders/method/checkout
+      headers:
+        Connection:
+        - keep-alive
+        Host:
+        - 127.0.0.1:3500
+      internal: false
+      methods:
+      - POST
+    execs: null
+    identifiedCallStacks: null
+    imageID: docker.io/library/node@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+    imageTag: docker.io/library/node:20-alpine
+    name: app
+    opens: null
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ""
+    syscalls: null
+status: {}
