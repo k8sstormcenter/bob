@@ -1,62 +1,45 @@
-##
-## NetworkNeighborhood for chain-postgres (log4j-chain demo).
-##
-## Postgres is a pure server — accepts pg-wire from chain-backend on
-## 5432. Only egress is kube-dns for the rare DNS lookup (mostly
-## startup, pg_hba.conf parsing).
-##
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: NetworkNeighborhood
 metadata:
-  name: chain-postgres
-  namespace: log4j-poc
   annotations:
-    kubescape.io/completion: complete
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-log4j-poc/kind-ReplicaSet/name-chain-postgres-fcd9d54b7
     kubescape.io/status: completed
-    kubescape.io/managed-by: User
+    kubescape.io/sync-checksum: a1b6025023466f8505524e864b0e2b5dbe883263d7836ec24199e560835c7054
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-log4j-poc/deployment-chain-postgres
+  creationTimestamp: "2026-06-17T15:41:29Z"
   labels:
+    kubescape.io/instance-template-hash: fcd9d54b7
+    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-postgres
     kubescape.io/workload-namespace: log4j-poc
+    kubescape.io/workload-resource-version: "148936"
+  name: replicaset-chain-postgres-fcd9d54b7
+  namespace: log4j-poc
+  resourceVersion: "1"
 spec:
+  containers:
+  - egress: null
+    ingress:
+    - dns: ""
+      dnsNames: null
+      identifier: f4bff5a78dc99a9b8113f9d56e534d3a720bff7490dcf4a6dec193a0a9f79348
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-backend
+          scenario: A
+      ports:
+      - name: TCP-5432
+        port: 5432
+        protocol: TCP
+      type: internal
+    name: postgres
+  ephemeralContainers: null
+  initContainers: null
   matchLabels:
     app: chain-postgres
-  containers:
-    - name: postgres
-      ingress:
-        - identifier: ingress-from-backend
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: TCP-5432
-              port: 5432
-              protocol: TCP
-          podSelector:
-            matchLabels:
-              app: chain-backend
-          namespaceSelector: null
-          type: internal
-      egress:
-        - identifier: egress-kube-dns
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: UDP-53
-              port: 53
-              protocol: UDP
-            - name: TCP-53
-              port: 53
-              protocol: TCP
-          namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-          type: internal
-  initContainers: []
-  ephemeralContainers: []

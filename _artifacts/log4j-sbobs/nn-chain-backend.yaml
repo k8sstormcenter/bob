@@ -1,98 +1,86 @@
-##
-## NetworkNeighborhood for chain-backend (log4j-chain demo).
-##
-## Allowed egress:
-##   - kube-dns (UDP/53) — required for service resolution
-##   - chain-postgres (TCP/5432) — the only legitimate downstream
-##
-## EXCLUDED — the attack signal:
-##   - attacker.attacker-ns:1389 (LDAP, JNDI lookup)
-##   - attacker.attacker-ns:8888 (HTTP, Java class fetch)
-## R0011 fires on either when networkEventsStreaming is enabled.
-##
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: NetworkNeighborhood
 metadata:
-  name: chain-backend
-  namespace: log4j-poc
   annotations:
-    kubescape.io/completion: complete
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-log4j-poc/kind-ReplicaSet/name-chain-backend-787ff56766
     kubescape.io/status: completed
-    kubescape.io/managed-by: User
+    kubescape.io/sync-checksum: 7a6477606741437808384ee56a1647b2c7eb8c4f13ee9fbb9c707ddbefe33f26
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-log4j-poc/deployment-chain-backend
+  creationTimestamp: "2026-06-17T15:41:29Z"
   labels:
+    kubescape.io/instance-template-hash: 787ff56766
+    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-backend
     kubescape.io/workload-namespace: log4j-poc
+    kubescape.io/workload-resource-version: "148891"
+  name: replicaset-chain-backend-787ff56766
+  namespace: log4j-poc
+  resourceVersion: "1"
 spec:
+  containers:
+  - egress:
+    - dns: ""
+      dnsNames: null
+      identifier: 29ac3db8b78a2e89ec3fe4d3e3c13e8e7ad879f36c269409a3479b1e78667bb7
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-postgres
+      ports:
+      - name: TCP-5432
+        port: 5432
+        protocol: TCP
+      type: internal
+    - dns: ""
+      dnsNames: null
+      identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+      ipAddress: ""
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      ports:
+      - name: UDP-53
+        port: 53
+        protocol: UDP
+      type: internal
+    ingress:
+    - dns: ""
+      dnsNames: null
+      identifier: 2c2aabb4678792ac84a1ad6825b44b9cf647bb629c9036197629add8f3d32733
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-observer
+          role: observer
+      ports:
+      - name: TCP-8080
+        port: 8080
+        protocol: TCP
+      type: internal
+    - dns: ""
+      dnsNames: null
+      identifier: 848dd30b2832a5a08303b089c448b5a8e51d9ffeca76f0ff7b93060d50e44a36
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-frontend
+      ports:
+      - name: TCP-8080
+        port: 8080
+        protocol: TCP
+      type: internal
+    name: backend
+  ephemeralContainers: null
+  initContainers: null
   matchLabels:
     app: chain-backend
-  containers:
-    - name: backend
-      ingress:
-        # From chain-frontend's nginx upstream
-        - identifier: ingress-from-frontend
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: TCP-8080
-              port: 8080
-              protocol: TCP
-          podSelector:
-            matchLabels:
-              app: chain-frontend
-          namespaceSelector: null
-          type: internal
-        # From chain-observer's benign polling
-        - identifier: ingress-from-observer
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: TCP-8080
-              port: 8080
-              protocol: TCP
-          podSelector:
-            matchLabels:
-              app: chain-observer
-          namespaceSelector: null
-          type: internal
-      egress:
-        # kube-dns — match by selectors so the policy works on any
-        # cluster where the dns service lives in kube-system
-        - identifier: egress-kube-dns
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: UDP-53
-              port: 53
-              protocol: UDP
-            - name: TCP-53
-              port: 53
-              protocol: TCP
-          namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-          type: internal
-        # chain-postgres — service selector keeps it cluster-portable
-        - identifier: egress-chain-postgres
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: TCP-5432
-              port: 5432
-              protocol: TCP
-          podSelector:
-            matchLabels:
-              app: chain-postgres
-          namespaceSelector: null
-          type: internal
-  initContainers: []
-  ephemeralContainers: []

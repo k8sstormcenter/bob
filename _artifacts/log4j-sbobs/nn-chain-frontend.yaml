@@ -1,74 +1,60 @@
-##
-## NetworkNeighborhood for chain-frontend (log4j-chain demo).
-##
-## nginx proxy: accepts external HTTP, forwards to chain-backend.
-##
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: NetworkNeighborhood
 metadata:
-  name: chain-frontend
-  namespace: log4j-poc
   annotations:
-    kubescape.io/completion: complete
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-log4j-poc/kind-ReplicaSet/name-chain-frontend-5485479dd8
     kubescape.io/status: completed
-    kubescape.io/managed-by: User
+    kubescape.io/sync-checksum: 60721fbefef3481063335b9b4c95f6962dee95dcee4913ab50788fe615ea34ab
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-log4j-poc/deployment-chain-frontend
+  creationTimestamp: "2026-06-17T15:41:29Z"
   labels:
+    kubescape.io/instance-template-hash: 5485479dd8
+    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-frontend
     kubescape.io/workload-namespace: log4j-poc
+    kubescape.io/workload-resource-version: "148913"
+  name: replicaset-chain-frontend-5485479dd8
+  namespace: log4j-poc
+  resourceVersion: "1"
 spec:
+  containers:
+  - egress:
+    - dns: ""
+      dnsNames: null
+      identifier: 9eee1023834c90907b714890a0afaf4f00f2f1758e46c60955cc65af97aa4753
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-backend
+      ports:
+      - name: TCP-8080
+        port: 8080
+        protocol: TCP
+      type: internal
+    ingress:
+    - dns: ""
+      dnsNames: null
+      identifier: a8bf5db134dfd969fb8b3de36fb2ed2d6b14d8778cde2c2b7f528fa5b4145fe3
+      ipAddress: ""
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: log4j-loadgen
+      podSelector:
+        matchLabels:
+          app: log4j-loadgen
+          kubescape.io/ignore: "true"
+      ports:
+      - name: TCP-8080
+        port: 8080
+        protocol: TCP
+      type: internal
+    name: nginx
+  ephemeralContainers: null
+  initContainers: null
   matchLabels:
     app: chain-frontend
-  containers:
-    - name: nginx
-      ingress:
-        # External traffic — type=external means "not matchable by
-        # selectors". Operators expecting only NodePort traffic can
-        # tighten this to a specific IP range post-application.
-        - identifier: ingress-external
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: TCP-8080
-              port: 8080
-              protocol: TCP
-          podSelector: null
-          namespaceSelector: null
-          type: external
-      egress:
-        - identifier: egress-kube-dns
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: UDP-53
-              port: 53
-              protocol: UDP
-            - name: TCP-53
-              port: 53
-              protocol: TCP
-          namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-          type: internal
-        - identifier: egress-chain-backend
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: TCP-8080
-              port: 8080
-              protocol: TCP
-          podSelector:
-            matchLabels:
-              app: chain-backend
-          namespaceSelector: null
-          type: internal
-  initContainers: []
-  ephemeralContainers: []

@@ -1,61 +1,59 @@
-##
-## NetworkNeighborhood for chain-observer (log4j-chain demo).
-##
-## Polls chain-frontend's /api/products every 30s. Negative-control
-## workload — never attacked, never exfiltrates.
-##
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: NetworkNeighborhood
 metadata:
-  name: chain-observer
-  namespace: log4j-poc
   annotations:
-    kubescape.io/completion: complete
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-log4j-poc/kind-ReplicaSet/name-chain-observer-6dd4776fb
     kubescape.io/status: completed
-    kubescape.io/managed-by: User
+    kubescape.io/sync-checksum: 2b7003d8d90c27be13941d43aceba9729d6f9063b5302fb490ea7148b381be51
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-log4j-poc/deployment-chain-observer
+  creationTimestamp: "2026-06-17T15:41:29Z"
   labels:
+    kubescape.io/instance-template-hash: 6dd4776fb
+    kubescape.io/learning-period: 2m
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
     kubescape.io/workload-kind: Deployment
     kubescape.io/workload-name: chain-observer
     kubescape.io/workload-namespace: log4j-poc
+    kubescape.io/workload-resource-version: "148902"
+  name: replicaset-chain-observer-6dd4776fb
+  namespace: log4j-poc
+  resourceVersion: "1"
 spec:
+  containers:
+  - egress:
+    - dns: ""
+      dnsNames: null
+      identifier: 9eee1023834c90907b714890a0afaf4f00f2f1758e46c60955cc65af97aa4753
+      ipAddress: ""
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app: chain-backend
+      ports:
+      - name: TCP-8080
+        port: 8080
+        protocol: TCP
+      type: internal
+    - dns: ""
+      dnsNames: null
+      identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+      ipAddress: ""
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      ports:
+      - name: UDP-53
+        port: 53
+        protocol: UDP
+      type: internal
+    ingress: null
+    name: observer
+  ephemeralContainers: null
+  initContainers: null
   matchLabels:
     app: chain-observer
-  containers:
-    - name: observer
-      ingress: []
-      egress:
-        - identifier: egress-kube-dns
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: UDP-53
-              port: 53
-              protocol: UDP
-            - name: TCP-53
-              port: 53
-              protocol: TCP
-          namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-          type: internal
-        - identifier: egress-chain-frontend
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: TCP-8080
-              port: 8080
-              protocol: TCP
-          podSelector:
-            matchLabels:
-              app: chain-frontend
-          namespaceSelector: null
-          type: internal
-  initContainers: []
-  ephemeralContainers: []
