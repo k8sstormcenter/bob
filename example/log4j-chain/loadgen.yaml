@@ -1,0 +1,157 @@
+# Benign baseline / "functional confusion" traffic for the log4j-chain demo — k6 edition.
+#
+# Lives in its OWN namespace (`log4j-loadgen`) so node-agent's `excludeNamespaces`
+# rule skips the client pods. Same convention as example/dapr-shop/loadgen.yaml and
+# example/chain/loadgen.yaml.
+#
+# Replaces the single 30s chain-observer curl poll with a k6 model that behaves like
+# real clients of the fusioncore shop API:
+#   - PERSONAS: shoppers (browse→cart→checkout), browsers (search/idle, rarely buy),
+#     api-clients (login + order history).
+#   - STOCHASTIC timing: exponential think-times, not a fixed 30s period.
+#   - VOLUME shape: VU count ramps up/down so concurrency fluctuates.
+#   - REALISTIC requests: varied search terms, product ids, SKUs, logins, plus
+#     natural 404s and asset fetches — and a fan of browser User-Agents.
+#
+# Because the enriched backend reads products/users and writes orders on every call,
+# this keeps the backend→postgres edge continuously and *variably* busy — the real
+# DB traffic the JNDI exfil hop blends into. It drives only legitimate endpoints, so
+# it does NOT change the app or the shipped SBOBs.
+#
+# Traffic goes through the frontend (nginx proxies to chain-backend and preserves the
+# client User-Agent), so the benign UAs differ from the attack's ${jndi:...} UA — the
+# whole point of a realistic baseline.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: log4j-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+    app.kubernetes.io/part-of: log4j-chain-demo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: log4j-loadgen-k6
+  namespace: log4j-loadgen
+  labels: {kubescape.io/ignore: "true"}
+data:
+  script.js: |
+    import http from 'k6/http';
+    import { sleep, group } from 'k6';
+
+    const BASE = __ENV.BASE || 'http://chain-frontend.log4j-poc.svc.cluster.local:8080';
+
+    export const options = {
+      scenarios: {
+        clients: {
+          executor: 'ramping-vus',
+          startVUs: 3,
+          stages: [
+            { duration: '3m', target: 8  },
+            { duration: '5m', target: 14 },
+            { duration: '4m', target: 4  },
+            { duration: '5m', target: 12 },
+            { duration: '3m', target: 2  },
+            { duration: '6m', target: 10 },
+          ],
+          gracefulRampDown: '15s',
+        },
+      },
+    };
+
+    const UAS = [
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Gecko/20100101 Firefox/126.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Version/17.4 Safari/605.1.15',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) Mobile/15E148 Safari/604.1',
+      'fusioncore-shop-app/2.1 (+https://fusioncore.example.com)',
+      'curl/8.6.0',
+    ];
+    const SKUS = ['WID-001','WID-002','WID-003','GAD-001','GAD-002','GAD-003',
+                  'THI-001','DOO-001','SPR-001','COG-001','FLX-001','BOB-001'];
+    const TERMS = ['widget','gadget','pro','mini','mega','cog','sprocket','smart','bobble',''];
+    const CATS  = ['widgets','gadgets','tools','parts','specials'];
+    const USERS = ['alice@example.com','bob@example.com','carol@example.com',
+                   'dave@example.com','erin@example.com'];
+
+    function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+    function ua()    { return pick(UAS); }
+    function hdr()   { return { headers: { 'User-Agent': ua(), 'Accept': 'application/json' } }; }
+    function think(mean) { sleep(Math.min(30, -Math.log(1 - Math.random()) * mean)); }
+    function jhdr()  { return { headers: { 'User-Agent': ua(), 'Content-Type': 'application/json' } }; }
+
+    function browse() {
+      group('browse', () => {
+        http.get(BASE + '/api/products', hdr());
+        if (Math.random() < 0.7) http.get(BASE + '/api/products?q=' + encodeURIComponent(pick(TERMS)), hdr());
+        if (Math.random() < 0.4) http.get(BASE + '/api/products?category=' + pick(CATS), hdr());
+        if (Math.random() < 0.5) http.get(BASE + '/api/products/' + (1 + Math.floor(Math.random() * 12)), hdr());
+        if (Math.random() < 0.1) http.get(BASE + '/api/products/9999', hdr());           // natural 404
+        if (Math.random() < 0.1) http.get(BASE + '/favicon.ico', hdr());                  // natural asset miss
+      });
+    }
+    function buy() {
+      const skus = [pick(SKUS), pick(SKUS)].join(',');
+      group('cart', () => { http.post(BASE + '/api/cart', JSON.stringify({ skus }), jhdr()); });
+      group('checkout', () => {
+        http.post(BASE + '/api/checkout', JSON.stringify({ user: pick(USERS), skus }), jhdr());
+      });
+    }
+    function login() {
+      group('login', () => {
+        http.post(BASE + '/api/login', JSON.stringify({ user: pick(USERS), pass: 'hunter2' }), jhdr());
+      });
+    }
+
+    // Persona assigned per-VU (stable for the VU's lifetime).
+    function persona() {
+      const r = (__VU * 2654435761 >>> 0) % 100;
+      if (r < 50) return 'shopper';    // browse → cart → checkout
+      if (r < 85) return 'browser';    // search/idle, rarely buys
+      return 'apiclient';              // login + order history
+    }
+
+    export default function () {
+      const p = persona();
+      if (p === 'shopper') {
+        if (Math.random() < 0.3) login();
+        browse();
+        think(3);
+        if (Math.random() < 0.6) buy();
+        think(5);
+      } else if (p === 'browser') {
+        browse();
+        think(8);
+        if (Math.random() < 0.15) buy();
+        think(10);
+      } else { // apiclient
+        login();
+        http.get(BASE + '/api/orders', hdr());
+        think(7);
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log4j-loadgen
+  namespace: log4j-loadgen
+  labels: {app: log4j-loadgen, kubescape.io/ignore: "true"}
+spec:
+  replicas: 2   # multiple client source IPs
+  selector: {matchLabels: {app: log4j-loadgen}}
+  template:
+    metadata:
+      labels: {app: log4j-loadgen, kubescape.io/ignore: "true"}
+    spec:
+      containers:
+        - name: k6
+          image: grafana/k6:0.49.0
+          args: ["run", "--quiet", "/scripts/script.js"]
+          resources: {limits: {cpu: "300m", memory: "128Mi"}}
+          volumeMounts: [{name: script, mountPath: /scripts}]
+      volumes:
+        - name: script
+          configMap: {name: log4j-loadgen-k6}
