@@ -57,21 +57,35 @@ spec:
         # Reuse the Argo CD image already present on the node (bundles kubectl +
         # bash) — avoids an extra pull and a flaky external kubectl image.
         image: quay.io/argoproj/argocd:v2.9.3
+        env: [{name: PROFILE, value: "realistic"}]   # flat | bursty | diurnal | realistic
         resources: {limits: {cpu: "200m", memory: "128Mi"}}
         command: ["/bin/bash", "-c"]
         args:
           - |
             set -u
+            PROFILE="${PROFILE:-realistic}"
             APPS="benign-helm benign-kustomize benign-plain"
             ej() { echo $(( RANDOM % $1 + $2 )); }   # jitter: $1 range, $2 floor
-            echo "argocd-loadgen: driving continuous repo-server renders"
+            # Noise profile -> refresh cadence. Echoes "PER_APP_SLEEP LOOP_SLEEP".
+            # flat=fixed; bursty=clusters then quiet; diurnal=busy/quiet halves of a
+            # compressed 24-min "day"; realistic=jittered (see example/noise-profiles).
+            pace() {
+              case "$PROFILE" in
+                flat)    echo "5 15" ;;
+                bursty)  if [ $((RANDOM % 3)) -eq 0 ]; then echo "0 $(ej 40 30)"; else echo "1 1"; fi ;;
+                diurnal) if [ $(( (SECONDS/60) % 24 )) -lt 12 ]; then echo "$(ej 3 1) $(ej 10 5)"; else echo "$(ej 15 20) $(ej 40 40)"; fi ;;
+                *)       echo "$(ej 5 2) $(ej 20 10)" ;;
+              esac
+            }
+            echo "argocd-loadgen: driving continuous repo-server renders (profile=$PROFILE)"
             while true; do
+              set -- $(pace); PER="$1"; LOOP="$2"
               # hard-refresh each benign app -> repo-server re-renders. Argo
               # consumes the annotation, so re-adding it each pass re-triggers.
               for a in $APPS; do
                 kubectl -n argocd annotate application "$a" \
                   argocd.argoproj.io/refresh=hard --overwrite >/dev/null 2>&1 || true
-                sleep "$(ej 5 2)"
+                sleep "$PER"
               done
               # ~1 in 4 passes: spin up an ephemeral app (extra clone+render), reap it
               if [ "$(ej 4 0)" -eq 0 ]; then
@@ -88,6 +102,6 @@ spec:
                 sleep "$(ej 10 8)"
                 kubectl -n argocd delete application "$n" --ignore-not-found >/dev/null 2>&1 || true
               fi
-              sleep "$(ej 20 10)"
+              sleep "$LOOP"
             done
       volumes: []
