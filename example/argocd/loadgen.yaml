@@ -1,0 +1,93 @@
+# Benign continuous GitOps traffic for the Argo CD demo (Lever 1).
+#
+# Argo CD Core has no argocd-server HTTP API, so the realistic "traffic" is
+# CR-driven: this loadgen loops and hard-refreshes the benign Applications on a
+# jittered cadence (+ occasional ephemeral app create/delete), which forces the
+# repo-server to GenerateManifest (git clone + helm/kustomize/dir render) over
+# and over — the equivalent of a k6 loadgen for an HTTP app. It keeps the
+# repo-server render path continuously and *variably* busy for SBOB learning.
+#
+# Lives in its own ns (`argocd-loadgen`, kubescape-ignored). Needs RBAC to
+# annotate/create/delete Applications in the argocd namespace.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+    app.kubernetes.io/part-of: argocd-demo
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: argocd-loadgen, namespace: argocd-loadgen}
+---
+# Scoped to Applications in the argocd namespace only.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: argocd-loadgen, namespace: argocd}
+rules:
+- apiGroups: ["argoproj.io"]
+  resources: ["applications"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: argocd-loadgen, namespace: argocd}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: argocd-loadgen}
+subjects:
+- {kind: ServiceAccount, name: argocd-loadgen, namespace: argocd-loadgen}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-loadgen
+  namespace: argocd-loadgen
+  labels: {app: argocd-loadgen, kubescape.io/ignore: "true"}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: argocd-loadgen}}
+  template:
+    metadata:
+      labels: {app: argocd-loadgen, kubescape.io/ignore: "true"}
+    spec:
+      serviceAccountName: argocd-loadgen
+      containers:
+      - name: kubectl
+        # Reuse the Argo CD image already present on the node (bundles kubectl +
+        # bash) — avoids an extra pull and a flaky external kubectl image.
+        image: quay.io/argoproj/argocd:v2.9.3
+        resources: {limits: {cpu: "200m", memory: "128Mi"}}
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            set -u
+            APPS="benign-helm benign-kustomize benign-plain"
+            ej() { echo $(( RANDOM % $1 + $2 )); }   # jitter: $1 range, $2 floor
+            echo "argocd-loadgen: driving continuous repo-server renders"
+            while true; do
+              # hard-refresh each benign app -> repo-server re-renders. Argo
+              # consumes the annotation, so re-adding it each pass re-triggers.
+              for a in $APPS; do
+                kubectl -n argocd annotate application "$a" \
+                  argocd.argoproj.io/refresh=hard --overwrite >/dev/null 2>&1 || true
+                sleep "$(ej 5 2)"
+              done
+              # ~1 in 4 passes: spin up an ephemeral app (extra clone+render), reap it
+              if [ "$(ej 4 0)" -eq 0 ]; then
+                n="ephemeral-$RANDOM"
+                kubectl -n argocd apply -f - >/dev/null 2>&1 <<EOF || true
+            apiVersion: argoproj.io/v1alpha1
+            kind: Application
+            metadata: {name: $n, namespace: argocd}
+            spec:
+              project: default
+              source: {repoURL: git://gitserver.gitops.svc.cluster.local/plain.git, path: ".", targetRevision: HEAD}
+              destination: {server: https://kubernetes.default.svc, namespace: gitops-apps}
+            EOF
+                sleep "$(ej 10 8)"
+                kubectl -n argocd delete application "$n" --ignore-not-found >/dev/null 2>&1 || true
+              fi
+              sleep "$(ej 20 10)"
+            done
+      volumes: []

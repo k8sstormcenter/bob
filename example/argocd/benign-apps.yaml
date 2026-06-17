@@ -1,0 +1,47 @@
+# Benign Argo CD Applications (Lever 2 — render surface) pointing at the
+# in-cluster gitserver. Each exercises a different repo-server render mode, so
+# the baseline AP covers helm/kustomize/git binaries and the NN covers the
+# known-good in-cluster git source. Sync is manual (no syncPolicy): the
+# repo-server RENDERS on every reconcile/refresh without applying resources,
+# which is all we need to keep the render path busy for learning.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: benign-helm
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git://gitserver.gitops.svc.cluster.local/helm.git
+    path: "."
+    targetRevision: HEAD
+    helm: {valueFiles: [values.yaml]}
+  destination: {server: https://kubernetes.default.svc, namespace: gitops-apps}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: benign-kustomize
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git://gitserver.gitops.svc.cluster.local/kustomize.git
+    path: "."
+    targetRevision: HEAD
+  destination: {server: https://kubernetes.default.svc, namespace: gitops-apps}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: benign-plain
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git://gitserver.gitops.svc.cluster.local/plain.git
+    path: "."
+    targetRevision: HEAD
+    directory: {recurse: true}
+  destination: {server: https://kubernetes.default.svc, namespace: gitops-apps}

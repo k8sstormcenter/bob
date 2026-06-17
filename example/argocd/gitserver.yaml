@@ -1,0 +1,76 @@
+# Benign in-cluster git source for the Argo CD demo (Lever 2 — render surface).
+#
+# Mirrors the attacker git-daemon pattern (attack-pod.yaml) but serves THREE
+# benign repos so the repo-server's baseline render path covers all the modes it
+# really uses:
+#   helm.git       -> Chart.yaml present  -> repo-server runs `helm template`
+#   kustomize.git  -> kustomization.yaml  -> repo-server runs `kustomize build`
+#   plain.git      -> bare manifests      -> repo-server directory render
+#
+# Argo's go-git ls-remote needs the smart protocol; `git daemon` (git://) works.
+# Self-contained + deterministic (no github egress in the baseline NN); gives the
+# repo-server a known-good in-cluster git edge distinct from the attacker's.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitops
+  labels:
+    kubescape.io/ignore: "true"
+    app.kubernetes.io/part-of: argocd-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitserver
+  namespace: gitops
+  labels: {app: gitserver}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: gitserver}}
+  template:
+    metadata: {labels: {app: gitserver}}
+    spec:
+      containers:
+      - name: gitserver
+        image: alpine/git:latest
+        resources: {limits: {cpu: "300m", memory: "128Mi"}}
+        command: ["sh", "-c"]
+        args:
+          - |
+            set -e
+            apk add --no-cache git-daemon >/dev/null 2>&1 || apk add --no-cache git-daemon
+            mkdir -p /repos
+            mk() { # $1 = repo name under /work
+              cd "/work/$1"
+              git init -q && git config user.email a@b.c && git config user.name gitops
+              git add -A && git commit -qm "seed $1"
+              git clone -q --bare "/work/$1" "/repos/$1.git"
+              cd "/repos/$1.git" && git update-server-info && touch git-daemon-export-ok
+            }
+            # ---- helm repo ----
+            mkdir -p /work/helm/templates
+            printf 'apiVersion: v2\nname: guestbook\nversion: 0.1.0\n' > /work/helm/Chart.yaml
+            printf 'replicaCount: 2\nmessage: hello\n' > /work/helm/values.yaml
+            printf 'apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: helm-guestbook\ndata:\n  replicas: "{{ .Values.replicaCount }}"\n  msg: "{{ .Values.message }}"\n' > /work/helm/templates/configmap.yaml
+            mk helm
+            # ---- kustomize repo ----
+            mkdir -p /work/kustomize
+            printf 'apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: kustomize-guestbook\ndata:\n  k: v\n' > /work/kustomize/configmap.yaml
+            printf 'apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nnamePrefix: demo-\nresources:\n- configmap.yaml\n' > /work/kustomize/kustomization.yaml
+            mk kustomize
+            # ---- plain directory repo ----
+            mkdir -p /work/plain
+            printf 'apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: plain-guestbook\ndata:\n  k: v\n' > /work/plain/configmap.yaml
+            printf 'apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: plain-extra\ndata:\n  env: demo\n' > /work/plain/extra.yaml
+            mk plain
+            echo "git daemon serving helm/kustomize/plain on 9418"
+            exec git daemon --reuseaddr --export-all --base-path=/repos --verbose /repos
+        ports: [{containerPort: 9418}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: gitserver, namespace: gitops}
+spec:
+  selector: {app: gitserver}
+  ports: [{port: 9418, targetPort: 9418}]

@@ -1,85 +1,80 @@
-##
-## NetworkNeighborhood for the Argo CD repo-server (demo target).
-##
-## v2 — GENERALIZED FROM REAL OBSERVATION (Argo CD v2.9.3 core on
-## k3s+kubescape). Reality checks vs v1:
-##   - ingress is on :8084 (the repo-server gRPC/health port), from the
-##     application-controller. v1 guessed :8081.
-##   - egress to the git source happens via comm `git-remote-http` on
-##     :443. The naive learn MISSED it (the clone raced past the learn
-##     window → egress=0 learned), so the legit github clone fired
-##     R0011 + R0005. It MUST be allowed here, or every render alerts.
-##
-## DISCRIMINATOR preserved: the legit git source (github) is allowed;
-## the attack's exfil egress (a DIFFERENT host, e.g. the getent DNS
-## lookup observed in the attack) is NOT here → R0011/R0005 fire on it.
-##
+# Learned from the enriched argo chain (gitserver + benign-apps + loadgen), 2026-06-17.
+# Refresh of the hand-crafted v1; reflects real repo-server renders.
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: NetworkNeighborhood
 metadata:
   name: argocd-repo-server
   namespace: argocd
   annotations:
-    kubescape.io/completion: complete
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-argocd/kind-ReplicaSet/name-argocd-repo-server-775878bb66
     kubescape.io/status: completed
-    kubescape.io/managed-by: User
+    kubescape.io/sync-checksum: 345e356892f4a5d55fe403f605334682a4c76a3219a4c5beca37d1725d6dbb5d
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-argocd/deployment-argocd-repo-server
   labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: argocd-repo-server
-    kubescape.io/workload-namespace: argocd
+    kubescape.io/managed-by: bobctl
 spec:
+  containers:
+  - egress:
+    - dns: ''
+      dnsNames: null
+      identifier: e361490411a4c21bc957f79c12521094620231494e713259dfa15c2b07741b99
+      ipAddress: ''
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: gitops
+      podSelector:
+        matchLabels:
+          app: gitserver
+      ports:
+      - name: TCP-9418
+        port: 9418
+        protocol: TCP
+      type: internal
+    - dns: ''
+      dnsNames: null
+      identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+      ipAddress: ''
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      ports:
+      - name: UDP-53
+        port: 53
+        protocol: UDP
+      type: internal
+    ingress:
+    - dns: ''
+      dnsNames: null
+      identifier: d93b79fbec160a0515c1632b70a626152653f142c3a311111243c31b0b0d1ce7
+      ipAddress: ''
+      namespaceSelector: null
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: argocd-application-controller
+          apps.kubernetes.io/pod-index: '0'
+          statefulset.kubernetes.io/pod-name: argocd-application-controller-0
+      ports:
+      - name: TCP-8081
+        port: 8081
+        protocol: TCP
+      type: internal
+    - dns: ''
+      dnsNames: null
+      identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+      ipAddress: 10.42.0.1
+      namespaceSelector: null
+      podSelector: null
+      ports:
+      - name: TCP-8084
+        port: 8084
+        protocol: TCP
+      type: external
+    name: argocd-repo-server
+  ephemeralContainers: null
+  initContainers: null
   matchLabels:
     app.kubernetes.io/name: argocd-repo-server
-  containers:
-    - name: argocd-repo-server
-      ingress:
-        - identifier: ingress-from-app-controller
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: TCP-8084
-              port: 8084
-              protocol: TCP
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/part-of: argocd
-          namespaceSelector: null
-          type: internal
-      egress:
-        - identifier: egress-kube-dns
-          ipAddress: ""
-          dns: ""
-          dnsNames: null
-          ports:
-            - name: UDP-53
-              port: 53
-              protocol: UDP
-            - name: TCP-53
-              port: 53
-              protocol: TCP
-          namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-          type: internal
-        # Legitimate git source (the benign repo the functional tests
-        # sync). comm=git-remote-http on :443. Public host kept literal.
-        - identifier: egress-git-source
-          ipAddress: ""
-          dns: github.com.
-          dnsNames:
-            - github.com.
-          ports:
-            - name: TCP-443
-              port: 443
-              protocol: TCP
-          namespaceSelector: null
-          podSelector: null
-          type: external
-  initContainers: []
-  ephemeralContainers: []

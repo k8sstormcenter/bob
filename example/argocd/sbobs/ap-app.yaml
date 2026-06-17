@@ -1,202 +1,877 @@
-##
-## ApplicationProfile for the Argo CD repo-server (demo target).
-##
-## v2 — GENERALIZED FROM REAL OBSERVATION. Deployed Argo CD v2.9.3 core
-## on k3s+kubescape, learned the profile, drove benign helm+kustomize
-## renders, and ran a representative attack. Findings folded in below.
-## (v1 was a blind best-guess; this corrects it against reality.)
-##
-## REALITY CHECKS vs v1:
-##   - container is `argocd-repo-server` (v1 guessed `repo-server`)
-##   - health endpoint is :8084 (v1 guessed :8081)
-##   - opens include /home/argocd, /etc/gnupg, /etc/gcrypt, /dev/urandom,
-##     /usr/lib, /app/config (the bulk) — captured from the learn
-##   - startup execs: argocd-repo-server, tini, gpg, gpg-agent,
-##     gpg-wrapper.sh (learned)
-##
-## THE KEY FINDING — why a naive learn FAILS here:
-##   git / git-remote-http / helm / kustomize run only when an
-##   Application is RECONCILED, which races past node-agent's learning
-##   window. A profile learned at pod startup MISSES them, so every
-##   legit render then fires R0001 (observed: git 24x, helm 3x,
-##   kustomize 2x) + R0002 (git 201x!). They MUST be in execs (below)
-##   or the demo drowns in FPs. The learn window must include a render,
-##   or you hand-add them — which is what this profile does.
-##
-## DISCRIMINATOR (unchanged, and CONFIRMED firing): execs lists the
-## legit render toolchain but OMITS /bin/sh, sh, bash, dash. The attack
-## proved it — a malicious-render shell-out (sh/id/head/getent) fired
-## R0001 cleanly while the render tools (now listed) stay quiet.
-##
-## Pod label required: kubescape.io/user-defined-profile: argocd-repo-server
-##
+# Learned from the enriched argo chain (gitserver + benign-apps + loadgen), 2026-06-17.
+# Refresh of the hand-crafted v1; reflects real repo-server renders.
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ApplicationProfile
 metadata:
   name: argocd-repo-server
   namespace: argocd
   annotations:
-    kubescape.io/completion: complete
+    kubescape.io/completion: partial
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-argocd/kind-ReplicaSet/name-argocd-repo-server-775878bb66
+    kubescape.io/resource-size: '228'
     kubescape.io/status: completed
-    kubescape.io/managed-by: User
+    kubescape.io/sync-checksum: c8b2d4ec8c0f08a9da55c4785376777b17e2a21bf9ce9b27b5ce54da32e195ec
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-argocd/deployment-argocd-repo-server
   labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: argocd-repo-server
-    kubescape.io/workload-namespace: argocd
+    kubescape.io/managed-by: bobctl
 spec:
   architectures:
-    - amd64
+  - amd64
   containers:
-    - name: argocd-repo-server
-      imageID: quay.io/argoproj/argocd@sha256:0000000000000000000000000000000000000000000000000000000000000000
-      imageTag: quay.io/argoproj/argocd:v2.9.3
-      capabilities: []
-      execs:
-        # --- learned at startup ---
-        - path: /usr/bin/tini
-          args: ["/usr/bin/tini", "--", "/usr/local/bin/argocd-repo-server"]
-        - path: /usr/local/bin/argocd-repo-server
-          args: ["/usr/local/bin/argocd-repo-server"]
-        - path: /usr/bin/gpg
-          args: ["/usr/bin/gpg"]
-        - path: /usr/bin/gpg-agent
-          args: ["/usr/bin/gpg-agent"]
-        - path: /usr/local/bin/gpg-wrapper.sh
-          args: ["/usr/local/bin/gpg-wrapper.sh"]
-        # --- render toolchain: NOT learned (window race) but legit and
-        #     REQUIRED, else they FP on R0001. Observed comms: git,
-        #     git-remote-http, helm, kustomize. ---
-        - path: /usr/bin/git
-          args: ["/usr/bin/git"]
-        # git re-execs its subcommands from git-core — the attack-verify
-        # exepath label proved comm=git also runs from HERE, not just
-        # /usr/bin/git. Missing this was a real R0001 FP (4x on a legit
-        # clone). git-core/* may need 1 more helper (upload-pack, fetch)
-        # depending on transport; add from observed exepath if they FP.
-        - path: /usr/lib/git-core/git
-          args: ["/usr/lib/git-core/git"]
-        - path: /usr/lib/git-core/git-remote-http
-          args: ["/usr/lib/git-core/git-remote-http"]
-        - path: /usr/lib/git-core/git-remote-https
-          args: ["/usr/lib/git-core/git-remote-https"]
-        - path: /usr/local/bin/helm
-          args: ["/usr/local/bin/helm", "template"]
-        - path: /usr/local/bin/kustomize
-          args: ["/usr/local/bin/kustomize", "build"]
-        # NOT listed (the discriminator, confirmed firing R0001):
-        #   /bin/sh, sh, bash, dash, id, head, getent, cat
-      opens:
-        # learned file surface (top dirs) + render working dirs
-        - path: /app/config
-          flags: ["O_RDONLY"]
-        - path: /home/argocd
-          flags: ["O_RDWR", "O_CREAT"]
-        - path: /tmp
-          flags: ["O_RDWR", "O_CREAT"]
-        - path: /usr/lib
-          flags: ["O_RDONLY"]
-        - path: /usr/local
-          flags: ["O_RDONLY"]
-        - path: /usr/share
-          flags: ["O_RDONLY"]
-        - path: /etc/gnupg
-          flags: ["O_RDONLY"]
-        - path: /etc/gcrypt
-          flags: ["O_RDONLY"]
-        - path: /etc/ssl/certs/ca-certificates.crt
-          flags: ["O_RDONLY"]
-        - path: /etc/resolv.conf
-          flags: ["O_RDONLY"]
-        - path: /etc/hosts
-          flags: ["O_RDONLY"]
-        - path: /etc/nsswitch.conf
-          flags: ["O_RDONLY"]
-        - path: /etc/passwd
-          flags: ["O_RDONLY"]
-        - path: /etc/mime.types
-          flags: ["O_RDONLY"]
-        - path: /etc/ld.so.cache
-          flags: ["O_RDONLY"]
-        - path: /dev/urandom
-          flags: ["O_RDONLY"]
-        # helm working dir (helm template caches charts here)
-        - path: /helm-working-dir
-          flags: ["O_RDWR", "O_CREAT"]
-      syscalls:
-        - accept4
-        - bind
-        - brk
-        - clone
+  - capabilities:
+    - CAP_DAC_OVERRIDE
+    endpoints:
+    - direction: inbound
+      endpoint: :8084/healthz
+      headers:
+        Connection:
         - close
-        - connect
-        - epoll_create1
-        - epoll_ctl
-        - epoll_pwait
-        - execve
-        - exit
-        - exit_group
-        - fcntl
-        - fstat
-        - futex
-        - getdents64
-        - getpeername
-        - getsockname
-        - getsockopt
-        - listen
-        - mmap
-        - mprotect
-        - munmap
-        - newfstatat
-        - openat
-        - pipe2
-        - poll
-        - read
-        - readlink
-        - recvfrom
-        - recvmsg
-        - rt_sigaction
-        - rt_sigprocmask
-        - rt_sigreturn
-        - sendto
-        - setsockopt
-        - socket
-        - stat
-        - statx
-        - wait4
-        - write
-        - writev
-      endpoints:
-        - endpoint: ":8084/healthz"
-          direction: inbound
-          methods: ["GET"]
-          internal: true
-      seccompProfile:
-        spec:
-          defaultAction: ""
-      rulePolicies:
-        # Suppress sensitive-file (R0002) noise from the LEGIT render
-        # tools — git alone fired R0002 201x reading its normal object
-        # files. These comms are legit; suppress R0002 for them WITHOUT
-        # touching R0001 (the attack discriminator) or R0010 (the
-        # sensitive-read signal — attack's `head /etc/shadow` still fires).
-        # Comms are the kernel-truncated form (TASK_COMM_LEN=16 → 15 chars):
-        # "argocd-repo-server" → "argocd-repo-ser".
-        R0002:
-          processAllowed:
-            - git
-            - git-remote-http
-            - helm
-            - kustomize
-            - argocd-repo-ser
-            - "runc:[1:INIT]"
-            - "runc:[2:INIT]"
-            - "runc:[1:CHILD]"
-        R0004:
-          processAllowed:
-            - "runc:[1:INIT]"
-            - "runc:[2:INIT]"
-            - "runc:[1:CHILD]"
-  initContainers: []
-  ephemeralContainers: []
+        Host:
+        - 10.42.0.98:8084
+      internal: true
+      methods:
+      - GET
+    execs:
+    - args:
+      - /usr/lib/git-core/git
+      - unpack-objects
+      - -q
+      - --pack_header=2,4
+      path: /usr/lib/git-core/git
+    - args:
+      - /usr/lib/git-core/git
+      - rev-list
+      - --objects
+      - --stdin
+      - --not
+      - --all
+      - --quiet
+      - --alternate-refs
+      path: /usr/lib/git-core/git
+    - args:
+      - /usr/local/bin/kustomize
+      - build
+      - /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95
+      - --enable-alpha-plugins
+      - --enable-exec
+      path: /usr/local/bin/kustomize
+    - args:
+      - /usr/lib/git-core/git
+      - maintenance
+      - run
+      - --auto
+      - --no-quiet
+      path: /usr/lib/git-core/git
+    - args:
+      - /usr/bin/git
+      - checkout
+      - --force
+      - 52ee6ebd6d6621d77d847c9d29249dfd3c8b5859
+      path: /usr/bin/git
+    - args:
+      - /usr/bin/git
+      - rev-parse
+      - HEAD
+      path: /usr/bin/git
+    - args:
+      - /usr/bin/git
+      - checkout
+      - --force
+      - 6e38f384d8374e457613176c51f98b658eae7c33
+      path: /usr/bin/git
+    - args:
+      - /usr/bin/git
+      - fetch
+      - origin
+      - --tags
+      - --force
+      - --prune
+      path: /usr/bin/git
+    - args:
+      - /usr/bin/git
+      - clean
+      - -ffdx
+      path: /usr/bin/git
+    identifiedCallStacks: null
+    imageID: quay.io/argoproj/argocd@sha256:dfc13f4b9ddbf25a88f7018667ee45e35a49520e2716242e3f65ef75f88c25ff
+    imageTag: quay.io/argoproj/argocd:v2.9.3
+    name: argocd-repo-server
+    opens:
+    - flags:
+      - O_RDONLY
+      path: /.git/MERGE_AUTOSTASH
+    - flags:
+      - O_RDONLY
+      path: /.git/index
+    - flags:
+      - O_RDONLY
+      path: /.git/info/attributes
+    - flags:
+      - O_RDONLY
+      path: /.git/info/grafts
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_APPEND
+      path: /.git/logs/refs/remotes/origin/master
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      path: /.git/objects/00
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /.git/objects/01/tmp_obj_TXZQK1
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /.git/objects/10/tmp_obj_d8ryzJ
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /.git/objects/17
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /.git/objects/1f/tmp_obj_XHg6L1
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /.git/objects/24/tmp_obj_JOLEL1
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /.git/objects/52
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /.git/objects/52/ee6ebd6d6621d77d847c9d29249dfd3c8b5859
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /.git/objects/52/tmp_obj_dsWiCJ
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /.git/objects/6e
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /.git/objects/6e/38f384d8374e457613176c51f98b658eae7c33
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /.git/objects/6e/tmp_obj_TNudF1
+    - flags:
+      - O_EXCL
+      - O_RDWR
+      - O_CREAT
+      path: /.git/objects/84/tmp_obj_Nw9YmJ
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /.git/objects/95/tmp_obj_DFSMyJ
+    - flags:
+      - O_RDONLY
+      path: /.git/objects/info/alternates
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /.git/objects/info/commit-graph
+    - flags:
+      - O_RDONLY
+      path: /.git/objects/info/commit-graphs/commit-graph-chain
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /.git/objects/pack/multi-pack-index
+    - flags:
+      - O_RDONLY
+      path: /.git/packed-refs
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /.git/refs/bisect
+    - flags:
+      - O_DIRECTORY
+      - O_CLOEXEC
+      - O_RDONLY
+      - O_NONBLOCK
+      path: /.git/refs/rewritten
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /.git/refs/worktree
+    - flags:
+      - O_RDONLY
+      path: /.git/shallow
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      path: /.git/worktrees
+    - flags:
+      - O_RDONLY
+      - O_NOFOLLOW
+      path: /.gitattributes
+    - flags:
+      - O_RDONLY
+      path: /6_02_35.3296901980/token
+    - flags:
+      - O_RDWR
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /dev/null
+    - flags:
+      - O_RDONLY
+      path: /dev/null/.config/git/attributes
+    - flags:
+      - O_RDONLY
+      path: /etc/gitattributes
+    - flags:
+      - O_RDONLY
+      path: /etc/gitconfig
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/host.conf
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/hosts
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/ld.so.cache
+    - flags:
+      - O_RDONLY
+      path: /etc/mailname
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/nsswitch.conf
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /etc/passwd
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /etc/resolv.conf
+    - flags:
+      - O_RDONLY
+      path: /git/FETCH_HEAD
+    - flags:
+      - O_DIRECTORY
+      - O_CLOEXEC
+      - O_NOFOLLOW
+      - O_RDONLY
+      - O_NONBLOCK
+      path: /git/HEAD
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      - O_NONBLOCK
+      - O_DIRECTORY
+      path: /git/config
+    - flags:
+      - O_RDONLY
+      - O_NOFOLLOW
+      path: /git/index
+    - flags:
+      - O_RDONLY
+      path: /git/index.lock
+    - flags:
+      - O_RDONLY
+      path: /git/logs
+    - flags:
+      - O_RDONLY
+      path: /git/logs/refs
+    - flags:
+      - O_RDONLY
+      - O_NOFOLLOW
+      path: /git/logs/refs/remotes
+    - flags:
+      - O_RDONLY
+      path: /git/logs/refs/remotes/origin
+    - flags:
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /git/objects/01/d6d6d3a365352d4e97bae39492ef1058562b45
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /git/objects/24/8c34ce655c1a4c8fe3f3ace0567e4752af2167
+    - flags:
+      - O_RDONLY
+      path: /git/objects/52/ee6ebd6d6621d77d847c9d29249dfd3c8b5859
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /git/objects/6e
+    - flags:
+      - O_RDONLY
+      - O_NOFOLLOW
+      path: /git/objects/95/813fbcdc9d17e2623d02f6013a05702fd1efb2
+    - flags:
+      - O_RDONLY
+      path: /git/objects/info
+    - flags:
+      - O_DIRECTORY
+      - O_CLOEXEC
+      - O_RDONLY
+      - O_NONBLOCK
+      path: /git/objects/maintenance.lock
+    - flags:
+      - O_RDONLY
+      path: /git/objects/pack
+    - flags:
+      - O_RDONLY
+      path: /git/refs
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /git/refs/heads
+    - flags:
+      - O_RDONLY
+      path: /git/refs/remotes
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /git/refs/remotes/origin
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /git/refs/remotes/origin/master.lock
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /home/argocd/cmp-server/plugins
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /onfigmap.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /p-app-330b-2073.g
+    - flags:
+      - O_RDONLY
+      path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      - O_NONBLOCK
+      - O_DIRECTORY
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_APPEND
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/FETCH_HEAD
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_TRUNC
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/HEAD
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/HEAD.lock
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      - O_RDWR
+      - O_CREAT
+      - O_TRUNC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/config
+    - flags:
+      - O_RDONLY
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/index
+    - flags:
+      - O_CREAT
+      - O_EXCL
+      - O_CLOEXEC
+      - O_RDWR
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/index.lock
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/logs
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_APPEND
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/logs/HEAD
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/logs/refs
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/logs/refs/remotes
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/logs/refs/remotes/origin
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_APPEND
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/logs/refs/remotes/origin/master
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/10
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/10/1feecf0bc5cf96fd91bc18b5171b8052271d24
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/10/tmp_obj_5VlxzJ
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/52
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/52/ee6ebd6d6621d77d847c9d29249dfd3c8b5859
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/52/tmp_obj_nbxVxJ
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/84
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/84/1f2a20cbcd297b7b03a9d20a9ddf9e2ac4db54
+    - flags:
+      - O_CREAT
+      - O_EXCL
+      - O_RDWR
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/84/tmp_obj_zFHOmJ
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/95
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/95/813fbcdc9d17e2623d02f6013a05702fd1efb2
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/95/tmp_obj_z7TbzJ
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/info
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/maintenance.lock
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/objects/pack
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/packed-refs
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/refs
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/refs/heads
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      - O_NONBLOCK
+      - O_DIRECTORY
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/refs/remotes
+    - flags:
+      - O_DIRECTORY
+      - O_RDONLY
+      - O_CLOEXEC
+      - O_NONBLOCK
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/refs/remotes/origin
+    - flags:
+      - O_RDONLY
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/refs/remotes/origin/master
+    - flags:
+      - O_CLOEXEC
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/refs/remotes/origin/master.lock
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/.git/refs/tags
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_EXCL
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/configmap.yaml
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_EXCL
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/234e49d6-68b3-4297-a9ab-6b19d971ed95/kustomization.yaml
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_TRUNC
+      - O_APPEND
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/FETCH_HEAD
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_TRUNC
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/HEAD
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/HEAD.lock
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      - O_RDWR
+      - O_CREAT
+      - O_TRUNC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/config
+    - flags:
+      - O_RDONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/index
+    - flags:
+      - O_CLOEXEC
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/index.lock
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/logs
+    - flags:
+      - O_WRONLY
+      - O_CREAT
+      - O_APPEND
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/logs/HEAD
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/logs/refs
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/logs/refs/remotes
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/logs/refs/remotes/origin
+    - flags:
+      - O_CREAT
+      - O_APPEND
+      - O_WRONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/logs/refs/remotes/origin/master
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/01
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/01/d6d6d3a365352d4e97bae39492ef1058562b45
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/01/tmp_obj_lGTbL1
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/1f
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/1f/b4d195eea70bf81127d1514cc93e4ff15e84dd
+    - flags:
+      - O_EXCL
+      - O_RDWR
+      - O_CREAT
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/1f/tmp_obj_VczvM1
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/24
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/24/8c34ce655c1a4c8fe3f3ace0567e4752af2167
+    - flags:
+      - O_EXCL
+      - O_RDWR
+      - O_CREAT
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/24/tmp_obj_LlwwL1
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/6e
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/6e/38f384d8374e457613176c51f98b658eae7c33
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/6e/tmp_obj_11DvF1
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/info
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/maintenance.lock
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/objects/pack
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/packed-refs
+    - flags:
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/refs
+    - flags:
+      - O_DIRECTORY
+      - O_CLOEXEC
+      - O_RDONLY
+      - O_NONBLOCK
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/refs/heads
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      - O_NONBLOCK
+      - O_DIRECTORY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/refs/remotes
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      - O_NONBLOCK
+      - O_DIRECTORY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/refs/remotes/origin
+    - flags:
+      - O_RDONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/refs/remotes/origin/master
+    - flags:
+      - O_RDWR
+      - O_CREAT
+      - O_EXCL
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/refs/remotes/origin/master.lock
+    - flags:
+      - O_RDONLY
+      - O_NONBLOCK
+      - O_DIRECTORY
+      - O_CLOEXEC
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/.git/refs/tags
+    - flags:
+      - O_EXCL
+      - O_RDONLY
+      - O_CLOEXEC
+      - O_WRONLY
+      - O_CREAT
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/configmap.yaml
+    - flags:
+      - O_CLOEXEC
+      - O_WRONLY
+      - O_CREAT
+      - O_EXCL
+      - O_RDONLY
+      path: /tmp/_argocd-repo/f2e3eeaf-5ed1-4182-a8c4-5bce13fdb7bc/extra.yaml
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/x86_64-linux-gnu/libc.so.6
+    - flags:
+      - O_CLOEXEC
+      - O_RDONLY
+      path: /usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.10.4
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/lib/x86_64-linux-gnu/libz.so.1.2.11
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/local/bin/kustomize
+    - flags:
+      - O_RDONLY
+      - O_CLOEXEC
+      path: /usr/share/zoneinfo/Etc/UTC
+    - flags:
+      - O_RDONLY
+      path: /ustomization.yaml
+    rulePolicies: {}
+    seccompProfile:
+      spec:
+        defaultAction: ''
+    syscalls:
+    - accept4
+    - arch_prctl
+    - clone
+    - close
+    - connect
+    - dup
+    - dup3
+    - epoll_create1
+    - epoll_ctl
+    - execve
+    - exit_group
+    - faccessat2
+    - fchmodat
+    - fcntl
+    - flock
+    - futex
+    - getcwd
+    - getdents64
+    - getpeername
+    - getpid
+    - getrandom
+    - getrlimit
+    - getsockopt
+    - gettid
+    - getuid
+    - link
+    - lseek
+    - madvise
+    - mkdir
+    - mkdirat
+    - mmap
+    - munmap
+    - nanosleep
+    - newfstatat
+    - openat
+    - poll
+    - pread64
+    - prlimit64
+    - read
+    - readlink
+    - readlinkat
+    - recvfrom
+    - rename
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - rt_sigtimedwait
+    - sched_getaffinity
+    - sched_yield
+    - sendmmsg
+    - set_robust_list
+    - sigaltstack
+    - socket
+    - tgkill
+    - unlink
+    - unlinkat
+    - wait4
+    - waitid
