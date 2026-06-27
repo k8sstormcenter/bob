@@ -1,0 +1,84 @@
+name: CI - Log4j chain images
+
+# Builds and publishes the log4j-chain demo images to GHCR:
+#   - ghcr.io/k8sstormcenter/log4j-chain-attacker:{sha,branch,latest}
+#   - ghcr.io/k8sstormcenter/log4j-chain-backend-{vulnerable,patched,contained}:{sha,branch,latest}
+#
+# The attacker image bundles marshalsec + compiled Payload.class.
+# The three backend variants share App.java but differ by log4j version
+# and base image (see Dockerfile.{vulnerable,patched,contained}).
+
+on:
+  push:
+    branches:
+      - main
+      - feat/argocd-demo
+    paths:
+      - 'example/log4j-chain/attacker/**'
+      - 'example/log4j-chain/backend/**'
+      - '.github/workflows/ci-log4j-chain-images.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: attacker
+            context: example/log4j-chain/attacker
+            dockerfile: example/log4j-chain/attacker/Dockerfile
+            image: log4j-chain-attacker
+          - name: backend-vulnerable
+            context: example/log4j-chain/backend
+            dockerfile: example/log4j-chain/backend/Dockerfile.vulnerable
+            image: log4j-chain-backend-vulnerable
+          - name: backend-patched
+            context: example/log4j-chain/backend
+            dockerfile: example/log4j-chain/backend/Dockerfile.patched
+            image: log4j-chain-backend-patched
+          - name: backend-contained
+            context: example/log4j-chain/backend
+            dockerfile: example/log4j-chain/backend/Dockerfile.contained
+            image: log4j-chain-backend-contained
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          BRANCH_SAFE="${GITHUB_REF_NAME//\//-}"
+          IMG=ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          TAGS="${IMG}:${SHORT_SHA},${IMG}:${BRANCH_SAFE}"
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            TAGS="${TAGS},${IMG}:latest"
+          fi
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "primary=${IMG}:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+
+      - name: Build and push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
