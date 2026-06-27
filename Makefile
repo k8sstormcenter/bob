@@ -201,6 +201,27 @@ deploy-postgres-vuln: build-postgres-vuln
 	if [ $$READY -eq 0 ]; then echo "ERROR: postgres-vuln did not become ready within $${TIMEOUT}s"; exit 1; fi
 	kubectl get pods -n postgres-vuln
 
+.PHONY: deploy-log4j
+deploy-log4j:
+	@echo "=== Deploying log4j chain (Log4Shell / CVE-2021-44228, scenario A vulnerable) ==="
+	@# Single-file chain: ns log4j-poc (postgres + frontend(nginx) + backend(Java
+	@# log4j 2.14.1) + observer) and ns attacker-ns (LDAP/HTTP payload server).
+	@# Images are imagePullPolicy: IfNotPresent — uses the enriched backend image
+	@# already imported into the node if present, else the ghcr fallback.
+	@# attacker MUST be Ready before the backend serves its first JNDI lookup,
+	@# else the JVM negative-DNS-caches the unresolved attacker (issue #140) and
+	@# the exploit goes inert — so we wait on attacker-ns first.
+	kubectl apply -f example/log4j-chain/log4j-chain.yaml
+	@echo "Waiting for attacker (LDAP payload server) to be Ready first..."
+	-kubectl -n attacker-ns rollout status deploy/attacker --timeout=120s
+	@echo "Waiting for chain pods..."
+	-kubectl -n log4j-poc rollout status deploy/chain-postgres --timeout=180s
+	-kubectl -n log4j-poc rollout status deploy/chain-backend  --timeout=180s
+	-kubectl -n log4j-poc rollout status deploy/chain-frontend --timeout=120s
+	-kubectl -n log4j-poc rollout status deploy/chain-observer --timeout=120s
+	kubectl get pods -n log4j-poc
+	kubectl get pods -n attacker-ns
+
 # ── Legacy targets (kept for backward compat) ───────────────────────────────
 
 .PHONY: helm-install-no-bob

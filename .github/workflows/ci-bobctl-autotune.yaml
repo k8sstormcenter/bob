@@ -102,6 +102,7 @@ jobs:
           - postgres
           - postgres-vuln
           - mariadb
+          - log4j
         include:
           # Each app needs: functional_tests, attack_suite, app_namespace,
           # protocol, score_threshold. Optional: profile_match (for apps
@@ -200,6 +201,16 @@ jobs:
             # Server-side attacks (UDF RCE, SELECT INTO OUTFILE, log poisoning)
             # spawn processes inside the mariadb deployment, not the client.
             profile_match: mariadb
+            score_threshold: 0
+          - app: log4j
+            functional_tests: example/log4j-chain/log4j-functional-tests.yaml
+            attack_suite: example/log4j-chain/log4j-attacks.yaml
+            app_namespace: log4j-poc
+            protocol: http
+            # Log4Shell exec chain (sh→psql→getent) spawns inside chain-backend,
+            # the Java/log4j pod — that's where R0001 fires. Attack is delivered
+            # HTTP via chain-frontend (nginx) which proxies the JNDI User-Agent.
+            profile_match: replicaset-chain-backend
             score_threshold: 0
     runs-on: ${{ matrix.os }}
 

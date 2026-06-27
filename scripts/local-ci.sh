@@ -109,8 +109,23 @@ case "$APP" in
     APP_PROFILE_MATCH="replicaset-mariadb"
     APP_SCORE_THRESHOLD=0
     ;;
+  log4j)
+    APP_NS=log4j-poc
+    APP_FUNC_TESTS=example/log4j-chain/log4j-functional-tests.yaml
+    APP_ATTACKS=example/log4j-chain/log4j-attacks.yaml
+    # Attack delivery is HTTP into the nginx frontend (chain-frontend), which
+    # proxies the malicious JNDI User-Agent through to the Java backend.
+    APP_SERVICE=chain-frontend
+    APP_PORT=8080
+    APP_SCHEME=http
+    # Tune the BACKEND profile: the Log4Shell exec chain (sh→psql→getent) spawns
+    # inside chain-backend, so that's where R0001 fires. The frontend/postgres/
+    # observer pods have their own profiles we don't score against.
+    APP_PROFILE_MATCH="replicaset-chain-backend"
+    APP_SCORE_THRESHOLD=0
+    ;;
   *)
-    die "Unknown app: $APP (use webapp, redis, misp, elk, postgres, postgres-vuln, or mariadb)"
+    die "Unknown app: $APP (use webapp, redis, misp, elk, postgres, postgres-vuln, mariadb, or log4j)"
     ;;
 esac
 
