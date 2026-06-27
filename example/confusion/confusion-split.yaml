@@ -8,12 +8,14 @@
 ## so NEITHER completes a 2-anchor condition. It tests whether dx correctly RULES
 ## OUT lone/partial signals (precision) while still ruling the real experiment IN.
 ##
-##   confusion-recon    : spawns recon tools (curl/nslookup/dig/nc) + odd/C2-port
-##                        egress + high-entropy DNS  -> unexpected-spawn (R0001),
-##                        egress, exfil symptoms.  NO sensitive-file read.
-##   confusion-fileread : reads /etc/passwd + serviceaccount/token via BASH REDIRECT
-##                        (no child process) -> sensitive-file-read (R0002).
-##                        NO unexpected spawn.
+##   confusion-recon    : spawns UNKNOWN processes (whoami/id/uname/ps/env) ->
+##                        unexpected-spawn (R0001) ONLY. NO network, NO k8s-API, NO file read.
+##   confusion-fileread : reads GENERIC sensitive files (/etc/passwd,/etc/shadow) via BASH
+##                        REDIRECT -> sensitive-file-read (R0002) ONLY. NO spawn, NO token/API.
+##
+## Deliberately EXCLUDED from the confusion (unrealistic / unfairly-hardest noise): k8s-API
+## access (R0007), serviceaccount-token reads (R0006), and anything that triggers cross-node
+## pivots. Real near-misses are lone spawns or lone sensitive reads, independent of each other.
 ##
 ## Both APs baseline ONLY {bash, sleep}; recon's recon-tools are unbaselined (R0001),
 ## fileread's sensitive paths are unbaselined opens (R0002) but it spawns nothing new.
@@ -90,17 +92,17 @@ spec:
           args:
             - |
               set +e
-              rnd(){ head -c 24 /dev/urandom | base64 | tr -dc 'a-z0-9' | head -c 24; }
-              i=0
+              # Spawns UNKNOWN processes only (unbaselined binaries) -> R0001 unexpected-spawn.
+              # NO network, NO k8s-API access, NO token read — a realistic "a process ran some
+              # local tools" near-miss. We deliberately do NOT flood the apiserver or trigger
+              # cross-node pivots (unrealistic, and the unfairly-hardest case for the test).
               while true; do
-                i=$((i+1))
-                # unexpected-spawn (recon tools) + egress + high-entropy DNS. NO file reads.
-                nslookup "host${i}.confusion.test"        >/dev/null 2>&1
-                dig +short "svc${i}.confusion.test"        >/dev/null 2>&1
-                nslookup "$(rnd).exfil.confusion.test"     >/dev/null 2>&1
-                curl -m1 -s "http://192.0.2.1:4444/"       >/dev/null 2>&1
-                curl -m1 -s "http://192.0.2.3:1337/"       >/dev/null 2>&1
-                nc -w1 192.0.2.4 9001 </dev/null           >/dev/null 2>&1
+                whoami    >/dev/null 2>&1
+                id        >/dev/null 2>&1
+                uname -a  >/dev/null 2>&1
+                hostname  >/dev/null 2>&1
+                ps aux    >/dev/null 2>&1
+                env       >/dev/null 2>&1
                 sleep "${INTERVAL:-5}"
               done
           resources: { requests: { cpu: "5m", memory: "24Mi" }, limits: { cpu: "50m", memory: "64Mi" } }
@@ -165,11 +167,13 @@ spec:
           args:
             - |
               set +e
-              # sensitive-file reads via BASH REDIRECT ($(<file)) — NO child process
-              # is spawned, so this fires R0002 (sensitive-file-read) but never R0001.
+              # GENERIC sensitive-file reads via BASH REDIRECT ($(<file)) — no child process,
+              # so R0002 sensitive-file-read fires but never R0001. We deliberately do NOT read
+              # serviceaccount/token or .kube/config (k8s-API credential paths) — this is plain
+              # "a process read sensitive files", independent of the spawn variant.
               while true; do
                 x=$(</etc/passwd)
-                y=$(</var/run/secrets/kubernetes.io/serviceaccount/token)
+                y=$(</etc/shadow)
                 sleep "${INTERVAL:-5}"
               done
           resources: { requests: { cpu: "5m", memory: "24Mi" }, limits: { cpu: "50m", memory: "64Mi" } }
