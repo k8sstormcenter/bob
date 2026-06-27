@@ -1,0 +1,175 @@
+## confusion-split — REALISTIC near-miss confusion: ONE anchor per pod.
+##
+## The combined confusion-loadgen.yaml has every pod do BOTH an unexpected spawn
+## AND a sensitive-file read — which is exactly argocd-malicious-render's anchor
+## pair, so dx (correctly) rules those pods IN. That's an attack rig, not noise.
+##
+## This split fixes the realism: two variants, each tripping EXACTLY ONE symptom,
+## so NEITHER completes a 2-anchor condition. It tests whether dx correctly RULES
+## OUT lone/partial signals (precision) while still ruling the real experiment IN.
+##
+##   confusion-recon    : spawns recon tools (curl/nslookup/dig/nc) + odd/C2-port
+##                        egress + high-entropy DNS  -> unexpected-spawn (R0001),
+##                        egress, exfil symptoms.  NO sensitive-file read.
+##   confusion-fileread : reads /etc/passwd + serviceaccount/token via BASH REDIRECT
+##                        (no child process) -> sensitive-file-read (R0002).
+##                        NO unexpected spawn.
+##
+## Both APs baseline ONLY {bash, sleep}; recon's recon-tools are unbaselined (R0001),
+## fileread's sensitive paths are unbaselined opens (R0002) but it spawns nothing new.
+## Apply, then bounce so node-agent binds the User profile at pod start.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: confusion
+  labels:
+    app.kubernetes.io/part-of: confusion-loadgen
+---
+# ---------------- variant A: recon-only (unexpected-spawn) ----------------
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: confusion-recon
+  namespace: confusion
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: confusion-recon
+    kubescape.io/workload-namespace: confusion
+spec:
+  architectures: [amd64]
+  containers:
+    - name: confusion
+      imageTag: nicolaka/netshoot:latest
+      capabilities: []
+      execs:                       # ONLY bash + sleep baselined; recon tools => R0001
+        - path: /bin/bash
+          args: ["bash", "-c"]
+        - path: /bin/sleep
+        - path: /usr/bin/sleep
+      opens:                       # curl's normal reads baselined => no spurious R0002
+        - path: /etc/resolv.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/hosts
+          flags: ["O_RDONLY"]
+        - path: /etc/nsswitch.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/ssl
+          flags: ["O_RDONLY"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: confusion-recon, namespace: confusion, labels: { app: confusion-recon } }
+spec:
+  replicas: 10
+  selector: { matchLabels: { app: confusion-recon } }
+  template:
+    metadata:
+      labels:
+        app: confusion-recon
+        kubescape.io/user-defined-profile: confusion-recon
+        kubescape.io/user-defined-network: confusion-recon
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: { matchLabels: { app: confusion-recon } }
+      containers:
+        - name: confusion
+          image: nicolaka/netshoot:latest
+          imagePullPolicy: IfNotPresent
+          env: [{ name: INTERVAL, value: "5" }]
+          command: ["bash", "-c"]
+          args:
+            - |
+              set +e
+              rnd(){ head -c 24 /dev/urandom | base64 | tr -dc 'a-z0-9' | head -c 24; }
+              i=0
+              while true; do
+                i=$((i+1))
+                # unexpected-spawn (recon tools) + egress + high-entropy DNS. NO file reads.
+                nslookup "host${i}.confusion.test"        >/dev/null 2>&1
+                dig +short "svc${i}.confusion.test"        >/dev/null 2>&1
+                nslookup "$(rnd).exfil.confusion.test"     >/dev/null 2>&1
+                curl -m1 -s "http://192.0.2.1:4444/"       >/dev/null 2>&1
+                curl -m1 -s "http://192.0.2.3:1337/"       >/dev/null 2>&1
+                nc -w1 192.0.2.4 9001 </dev/null           >/dev/null 2>&1
+                sleep "${INTERVAL:-5}"
+              done
+          resources: { requests: { cpu: "5m", memory: "24Mi" }, limits: { cpu: "50m", memory: "64Mi" } }
+---
+# ---------------- variant B: fileread-only (sensitive-file-read) ----------------
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: confusion-fileread
+  namespace: confusion
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: confusion-fileread
+    kubescape.io/workload-namespace: confusion
+spec:
+  architectures: [amd64]
+  containers:
+    - name: confusion
+      imageTag: nicolaka/netshoot:latest
+      capabilities: []
+      execs:                       # ONLY bash + sleep; NOTHING else spawns => no R0001
+        - path: /bin/bash
+          args: ["bash", "-c"]
+        - path: /bin/sleep
+        - path: /usr/bin/sleep
+      opens:                       # baseline only innocuous files; sensitive paths NOT here => R0002
+        - path: /etc/resolv.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/hosts
+          flags: ["O_RDONLY"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: confusion-fileread, namespace: confusion, labels: { app: confusion-fileread } }
+spec:
+  replicas: 10
+  selector: { matchLabels: { app: confusion-fileread } }
+  template:
+    metadata:
+      labels:
+        app: confusion-fileread
+        kubescape.io/user-defined-profile: confusion-fileread
+        kubescape.io/user-defined-network: confusion-fileread
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: { matchLabels: { app: confusion-fileread } }
+      containers:
+        - name: confusion
+          image: nicolaka/netshoot:latest
+          imagePullPolicy: IfNotPresent
+          env: [{ name: INTERVAL, value: "5" }]
+          command: ["bash", "-c"]
+          args:
+            - |
+              set +e
+              # sensitive-file reads via BASH REDIRECT ($(<file)) — NO child process
+              # is spawned, so this fires R0002 (sensitive-file-read) but never R0001.
+              while true; do
+                x=$(</etc/passwd)
+                y=$(</var/run/secrets/kubernetes.io/serviceaccount/token)
+                sleep "${INTERVAL:-5}"
+              done
+          resources: { requests: { cpu: "5m", memory: "24Mi" }, limits: { cpu: "50m", memory: "64Mi" } }

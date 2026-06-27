@@ -67,3 +67,28 @@ tune live.
 All egress goes to `192.0.2.0/24` (RFC 5737 TEST-NET-1). pixie records the connect
 as `conn_stats` even when refused/timed out — which is all the egress symptom needs
 — and nothing real is ever contacted.
+
+## Split variant — realistic precision test (`confusion-split.yaml` + `run-experiment.sh`)
+
+The combined `confusion-loadgen.yaml` makes every pod do **both** `unexpected-spawn`
+**and** `sensitive-file-read` — which *is* `argocd-malicious-render`'s anchor pair, so
+dx (correctly) rules those pods IN. That's an attack rig at scale, not benign noise.
+
+`confusion-split.yaml` fixes the realism — **one anchor per pod**, so neither variant
+completes a 2-anchor condition:
+- `confusion-recon` — spawns recon tools (+odd/C2-port egress, high-entropy DNS) →
+  `unexpected-spawn` only. **No** file read.
+- `confusion-fileread` — reads `/etc/passwd`+`serviceaccount/token` via **bash redirect**
+  (`$(<file)`, no child process) → `sensitive-file-read` only. **No** spawn.
+
+Expected: dx triages each malignant, works it up, and **rules it out** (a lone symptom
+matches no full condition) → ~0 `argocd-malicious-render` false-positives, while the real
+experiment (full co-occurring chain) still rules in.
+
+Repeatable run + measurement:
+```sh
+./run-experiment.sh [log4j] [replicas-per-variant=25] [window-s=150]
+```
+Deploys+binds the split, scales it, fires ONE experiment, then prints the dx NFR delta
+(time-to-verdict, bench-query, pivot-escalation, drops) + how dx classified the confusion
+(ruled_out vs false-positive) + the experiment verdict. Uses the current kubectl context.
