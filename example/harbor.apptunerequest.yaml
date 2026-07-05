@@ -1,0 +1,26 @@
+# AppTuneRequest for CNCF Harbor — the first "generic app" onboarded through the
+# declarative bobctl contract. No hand-authored attack/functional suites: the
+# `auto` catalog synthesises a universal path-side attack surface (SA-token /
+# sensitive-file / procfs-env) + benign HTTP traffic. Consumed by
+# `bobctl onboard`; see .github/workflows/ci-harbor-onboard.yaml.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AppTuneRequest
+metadata:
+  name: harbor
+targets:
+  - workload: harbor-core
+    service: harbor-core
+    namespace: harbor
+    port: 80
+    protocol: http
+    profileMatch: harbor-core
+attackSuite: auto
+functionalTests: auto
+acceptance:
+  # harbor-core is a real multi-dependency app; tolerate a couple of benign FP
+  # causes and require the synthesised detections to fire (D=0) with >=50% of
+  # the applicable rules covered. Tighten to 0/0 once a Harbor-specific suite is
+  # hand-authored.
+  detectability: 0
+  noisiness: 2
+  minRuleCoverage: 0.5
