@@ -50,6 +50,9 @@ spec:
         # on /bin/sh, not on psql.
         - path: /usr/bin/psql
           args: ["/usr/bin/psql"]
+        # resolved real binary behind the /usr/bin/psql wrapper; ⋯⋯ = any args
+        - path: /usr/lib/postgresql/18/bin/psql
+          args: ["/usr/lib/postgresql/18/bin/psql", "⋯⋯"]
       opens:
         # Application jar + JVM startup ladder
         - path: /app/app.jar
