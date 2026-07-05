@@ -11,4 +11,8 @@ RUN LOG4J_VERSION=2.14.1 mvn -B package -DskipTests
 FROM gcr.io/distroless/java11-debian11
 COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar /app/app.jar
 EXPOSE 8080
+# Where the malicious LDAP referral server lives. Here the JNDI lookup DOES fire
+# (log4j 2.14.1) but the distroless runtime has no /bin/sh, so the loaded class
+# cannot spawn — the "contained" posture. Overridable per deployment/namespace.
+ENV LDAP_TARGET=attacker.attacker-ns.svc.cluster.local:1389
 ENTRYPOINT ["java","-jar","/app/app.jar"]
