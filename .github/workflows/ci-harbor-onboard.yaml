@@ -88,30 +88,38 @@ jobs:
       # baseline from target.profileMatch). Exercise harbor-core's HTTP API
       # through the K8s API-server proxy while node-agent learns, then poll for
       # the completed profile.
-      - name: Learn harbor-core profile
+      - name: Learn Harbor component profiles
         run: |
-          echo "Exercising harbor-core to drive profile learning..."
+          COMPONENTS="harbor-core harbor-registry harbor-portal harbor-jobservice harbor-database harbor-redis"
+          echo "Exercising harbor-core's HTTP API to drive learning (the data/other tiers"
+          echo "learn from Harbor's internal chatter: core<->db<->redis<->registry<->jobservice)."
           for i in $(seq 1 30); do
             kubectl get --raw "/api/v1/namespaces/harbor/services/harbor-core:80/proxy/api/v2.0/health" >/dev/null 2>&1 || true
             kubectl get --raw "/api/v1/namespaces/harbor/services/harbor-core:80/proxy/api/v2.0/systeminfo" >/dev/null 2>&1 || true
+            kubectl get --raw "/api/v1/namespaces/harbor/services/harbor-portal:80/proxy/" >/dev/null 2>&1 || true
             sleep 5
           done
 
-          echo "Polling for a completed harbor-core ApplicationProfile..."
-          TIMEOUT=600; ELAPSED=0; PROFILE=""
+          echo "Polling until each component has a completed ApplicationProfile (best-effort)..."
+          TIMEOUT=900; ELAPSED=0
           while [ $ELAPSED -lt $TIMEOUT ]; do
-            ALL=$(kubectl get applicationprofiles -n harbor \
+            DONE=$(kubectl get applicationprofiles -n harbor \
               -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
               2>/dev/null | grep -v "^ug-" || true)
-            PROFILE=$(echo "$ALL" | grep -i "harbor-core" | head -1)
-            if [ -n "$PROFILE" ]; then echo "Profile completed: $PROFILE"; break; fi
-            echo "  no completed harbor-core profile yet ($ELAPSED/${TIMEOUT}s)..."
-            sleep 15; ELAPSED=$((ELAPSED + 15))
+            N=0; MISSING=""
+            for c in $COMPONENTS; do
+              if echo "$DONE" | grep -qi "$c"; then N=$((N+1)); else MISSING="$MISSING $c"; fi
+            done
+            echo "  completed: $N/6  (missing:$MISSING)  [${ELAPSED}s]"
+            [ "$N" -ge 6 ] && { echo "All 6 component profiles completed."; break; }
+            sleep 20; ELAPSED=$((ELAPSED + 20))
           done
-          if [ -z "$PROFILE" ]; then
-            echo "WARNING: no completed harbor-core profile after ${TIMEOUT}s"
-            kubectl get applicationprofile -n harbor -o wide || true
-          fi
+          echo "=== completed profiles ==="
+          kubectl get applicationprofile -n harbor \
+            -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' 2>/dev/null | grep -v "^ug-" || true
+          # Onboard resolves each target independently; any component still not
+          # completed becomes a rejected target (with a reason) rather than
+          # aborting the run.
 
       # ---------- The demonstration: one declarative request in, SBoB out ----------
       - name: Onboard (bobctl onboard)

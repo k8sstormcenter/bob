@@ -1,26 +1,55 @@
-# AppTuneRequest for CNCF Harbor — the first "generic app" onboarded through the
-# declarative bobctl contract. No hand-authored attack/functional suites: the
-# `auto` catalog synthesises a universal path-side attack surface (SA-token /
-# sensitive-file / procfs-env) + benign HTTP traffic. Consumed by
-# `bobctl onboard`; see .github/workflows/ci-harbor-onboard.yaml.
+# AppTuneRequest for CNCF Harbor — onboarding the FULL set of meaningful
+# components across all three protocols, with the `auto` catalog (no
+# hand-authored suites). Each target gets its own learned profile + tune + SBoB;
+# result.json reports a per-component verdict. See
+# .github/workflows/ci-harbor-onboard.yaml.
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AppTuneRequest
 metadata:
   name: harbor
 targets:
-  - workload: harbor-core
+  - workload: harbor-core          # API server (HTTP)
     service: harbor-core
     namespace: harbor
     port: 80
     protocol: http
     profileMatch: harbor-core
+  - workload: harbor-registry      # OCI registry (HTTP)
+    service: harbor-registry
+    namespace: harbor
+    port: 5000
+    protocol: http
+    profileMatch: harbor-registry
+  - workload: harbor-portal        # UI (HTTP)
+    service: harbor-portal
+    namespace: harbor
+    port: 80
+    protocol: http
+    profileMatch: harbor-portal
+  - workload: harbor-jobservice    # async jobs (HTTP)
+    service: harbor-jobservice
+    namespace: harbor
+    port: 80
+    protocol: http
+    profileMatch: harbor-jobservice
+  - workload: harbor-database      # PostgreSQL (raw TCP)
+    service: harbor-database
+    namespace: harbor
+    port: 5432
+    protocol: tcp
+    profileMatch: harbor-database
+  - workload: harbor-redis         # Redis cache (RESP)
+    service: harbor-redis
+    namespace: harbor
+    port: 6379
+    protocol: redis
+    profileMatch: harbor-redis
 attackSuite: auto
 functionalTests: auto
 acceptance:
-  # harbor-core is a real multi-dependency app; tolerate a couple of benign FP
-  # causes and require the synthesised detections to fire (D=0) with >=50% of
-  # the applicable rules covered. Tighten to 0/0 once a Harbor-specific suite is
-  # hand-authored.
-  detectability: 0
-  noisiness: 2
-  minRuleCoverage: 0.5
+  # 7 synthesised rules per component; some probes are legitimately masked on
+  # some containers (e.g. /tmp noexec masks R0001). "Good enough" = caught most
+  # of the surface (>=60% of rules, i.e. >=5/7) with low noise, per component.
+  detectability: 2
+  noisiness: 3
+  minRuleCoverage: 0.6
