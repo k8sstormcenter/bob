@@ -44,6 +44,11 @@ targets:
     port: 6379
     protocol: redis
     profileMatch: harbor-redis
+    # Reuse the curated redis corpus verbatim (49 attacks + 89 functional
+    # tests), rebound to harbor-redis — no synthesis for a component we already
+    # have a battle-tested suite for.
+    attackSuite: example/redis-attacks.yaml
+    functionalTests: example/redis-functional-tests.yaml
 attackSuite: auto
 functionalTests: auto
 acceptance:
