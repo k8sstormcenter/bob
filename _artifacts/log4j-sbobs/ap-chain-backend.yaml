@@ -30,8 +30,8 @@ spec:
     - amd64
   containers:
     - name: backend
-      imageID: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable@sha256:0000000000000000000000000000000000000000000000000000000000000000
-      imageTag: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable:latest
+      imageID: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable@sha256:8f3cb3f9565c7898972d5141ea86681211045b9dbb54f5aafa17f8e0e7be6bb1
+      imageTag: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable:2e642e5
       capabilities: []
       execs:
         # Eclipse-Temurin base (scenarios A + C)
@@ -43,13 +43,10 @@ spec:
         # Health-check / liveness probe support
         - path: /usr/bin/curl
           args: ["/usr/bin/curl"]
-        # psql client (used by backend to talk to chain-postgres;
-        # confirmed by PoC-agent's R0002 dump). Does NOT weaken the
-        # /bin/sh attack discriminator — the JNDI payload still goes
-        # through Runtime.exec("/bin/sh","-c",...) which fires R0001
-        # on /bin/sh, not on psql.
         - path: /usr/bin/psql
           args: ["/usr/bin/psql"]
+        - path: /usr/lib/postgresql/18/bin/psql
+          args: ["/usr/lib/postgresql/18/bin/psql", "⋯⋯"]
       opens:
         # Application jar + JVM startup ladder
         - path: /app/app.jar
@@ -109,17 +106,6 @@ spec:
           flags: ["O_RDONLY"]
         - path: /usr/share/coreutils/locales/env/en-US.ftl
           flags: ["O_RDONLY"]
-        # NOT INCLUDED (intentional — environmental noise, not workload):
-        #   - runc:[INIT] paths (/runc, /proc/.../task/.../fd, cgroup setgroups)
-        #     → these fire from the container runtime's init phase, vary by
-        #       cluster; should be addressed by R0002's path-normalizer not
-        #       by the SBOB
-        #   - /tmp/px-java-symbolization-artifacts-*/ → pixie eBPF
-        #     symbolization injecting into the JVM; cluster-specific
-        #     instrumentation
-        #   - /sys/fs/cgroup/memory.max, /sys/kernel/mm/transparent_hugepage/*
-        #     → runtime probes; SHOULD be in node-agent's stable allowlist,
-        #       not in every user-supplied SBOB
       syscalls:
         - accept
         - accept4
@@ -191,45 +177,23 @@ spec:
         spec:
           defaultAction: ""
       rulePolicies:
-        # Suppress rule fires from PROCESSES that aren't the workload —
-        # the noise PoC-agent saw on their pixie-instrumented cluster
-        # came from these comms reading paths the workload never
-        # touches. processAllowed = "if comm matches, skip the rule".
-        # Does NOT weaken the attack discriminator: scenario A's
-        # signal is comm=sh (from Runtime.exec("/bin/sh","-c",...))
-        # which is in NONE of these allowlists, so R0001 still fires.
         R0002:
-          # IMPORTANT: kernel TASK_COMM_LEN=16 truncates `comm` to 15
-          # visible chars + NUL. Any name above 15 chars MUST be
-          # written in its TRUNCATED form here, or the byte-equal
-          # comparison in node-agent's rule evaluator will miss.
-          # Empirically caught by PoC-agent on PR #131:
-          # "C1 CompilerThread" (17) → kernel stores "C1 CompilerThre" (15).
           processAllowed:
-            # Pixie eBPF symbolization injector — re-attaches every
-            # few minutes, reads /tmp/px-java-symbolization-artifacts/*
-            # and /sys/fs/cgroup/memory.max. Cluster-specific to
-            # pixie-instrumented setups.
-            - px_jattach              # 10 chars
-            - Attach Listener         # 15 chars (no truncation)
+            - px_jattach             
+            - Attach Listener         
             # JVM internal threads — touch JIT-related paths post-
-            # startup. Universal across Java workloads. WRITTEN TRUNCATED.
-            - C1 CompilerThre         # was "C1 CompilerThread" (17)
-            - C2 CompilerThre         # was "C2 CompilerThread" (17)
+            # startup. Universal across Java workloads.
+            - C1 CompilerThre        
+            - C2 CompilerThre         
             # Container runtime init phase — reads /runc,
-            # /proc/N/task/N/fd, cgroup setgroups. Runtime-version-
-            # specific; enumerate common forms.
-            - runc:[1:INIT]           # 13 chars (no truncation)
+            # /proc/N/task/N/fd, cgroup setgroups.
+            - runc:[1:INIT]           
             - runc:[2:INIT]
             - runc:[3:INIT]
         R0004:
           processAllowed:
             # Same runc:[INIT] phase asserts its capability set
-            # before exec'ing the entrypoint. Fires R0004 because
-            # the inherited caps aren't in the AP's capabilities[].
-            # Cleaner long-term fix is to drop capabilities in the
-            # Deployment SC (PoC-agent's PR #131 follow-up); this
-            # rulePolicy is the no-deployment-change escape hatch.
+            # before exec'ing the entrypoint.
             - runc:[1:INIT]
             - runc:[2:INIT]
             - runc:[3:INIT]

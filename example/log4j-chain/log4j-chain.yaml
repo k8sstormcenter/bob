@@ -72,7 +72,7 @@ spec:
   replicas: 1
   selector: { matchLabels: { app: chain-postgres } }
   template:
-    metadata: { labels: { app: chain-postgres } }
+    metadata: { labels: { app: chain-postgres, kubescape.io/user-defined-profile: chain-postgres, kubescape.io/user-defined-network: chain-postgres } }
     spec:
       containers:
       - name: postgres
@@ -125,7 +125,7 @@ spec:
   replicas: 1
   selector: { matchLabels: { app: chain-frontend } }
   template:
-    metadata: { labels: { app: chain-frontend } }
+    metadata: { labels: { app: chain-frontend, kubescape.io/user-defined-profile: chain-frontend, kubescape.io/user-defined-network: chain-frontend } }
     spec:
       containers:
       - name: nginx
@@ -157,7 +157,7 @@ spec:
   replicas: 1
   selector: { matchLabels: { app: chain-observer } }
   template:
-    metadata: { labels: { app: chain-observer, role: observer } }
+    metadata: { labels: { app: chain-observer, role: observer, kubescape.io/user-defined-profile: chain-observer, kubescape.io/user-defined-network: chain-observer } }
     spec:
       containers:
       - name: observer
@@ -201,7 +201,8 @@ spec:
       - name: attacker
         # Built from example/log4j-chain/attacker/Dockerfile (marshalsec +
         # python3 HTTP server serving Payload.class on :8888).
-        image: ghcr.io/k8sstormcenter/log4j-chain-attacker:latest
+        # pinned to the verified build (main @ 2e642e5); :latest is a moving tag
+        image: ghcr.io/k8sstormcenter/log4j-chain-attacker@sha256:cf49927f32dc38a4ec314cc08455f88cce2226bd7ba3498f6882c6f1d7e24145
         imagePullPolicy: IfNotPresent
         ports:
         - { containerPort: 1389, name: ldap }
@@ -232,13 +233,14 @@ spec:
   replicas: 1
   selector: { matchLabels: { app: chain-backend } }
   template:
-    metadata: { labels: { app: chain-backend, scenario: "A" } }
+    metadata: { labels: { app: chain-backend, scenario: "A", kubescape.io/user-defined-profile: chain-backend, kubescape.io/user-defined-network: chain-backend } }
     spec:
       containers:
       - name: backend
         # Built from example/log4j-chain/backend/Dockerfile.vulnerable
         # (log4j 2.14.1 + temurin-11 + trustURLCodebase=true + psql/curl/getent).
-        image: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable:latest
+        # pinned to the verified build (main @ 2e642e5); :latest is a moving tag
+        image: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable@sha256:8f3cb3f9565c7898972d5141ea86681211045b9dbb54f5aafa17f8e0e7be6bb1
         imagePullPolicy: IfNotPresent
         env:
         - { name: POSTGRES_HOST, value: "chain-postgres" }
