@@ -1,0 +1,20 @@
+# Resolves *.exfil.attacker.example.com so the getent DNS-exfil is a resolved
+# lookup (R0005 fires on a resolved response, not on NXDOMAIN). Load it with:
+#   kubectl apply -f exfil-dns.yaml && kubectl -n kube-system rollout restart deploy/coredns
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  exfil.override: |
+    template IN A attacker.example.com {
+      match ".*\.exfil\.attacker\.example\.com\.$"
+      answer "{{ .Name }} 60 IN A 198.51.100.66"
+      fallthrough
+    }
+    template IN AAAA attacker.example.com {
+      match ".*\.exfil\.attacker\.example\.com\.$"
+      rcode NOERROR
+      fallthrough
+    }
