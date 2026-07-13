@@ -1,8 +1,8 @@
 # Software Bill of Behavior SBoB 
 
-> 🚨 Updated life-lab with signatures (alpha) and the new wildcards here https://labs.iximiuz.com/courses/nodeagent-51fe7b80/dungeon#archive
+GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
 
-![KCEU26ROEDIGBERTSCHYInstantK8sRuntimeAnomalyDetection](https://github.com/user-attachments/assets/3013d87c-198b-4aa5-90c7-affa80495ac1)
+> 🚨 This repo is of very limited use to the public right now - I m working on a bob-agent that your AI can talk to such that an SBOB can be created for any application. DM me if you are an early adopter (on CNCF slack, Linkedin, or [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) ) 
 
 
 <img width="2775" height="1998" alt="BoBLogoRegistered" src="https://github.com/user-attachments/assets/f78cb80b-e419-44bd-a13b-809ce9cfd4cd" />
