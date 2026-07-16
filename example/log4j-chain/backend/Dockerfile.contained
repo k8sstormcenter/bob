@@ -11,4 +11,8 @@ RUN LOG4J_VERSION=2.14.1 mvn -B package -DskipTests
 FROM gcr.io/distroless/java11-debian11
 COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar /app/app.jar
 EXPOSE 8080
+# LDAP endpoint for the /api/_probe trigger. Here the JNDI lookup DOES fire
+# (log4j 2.14.1) but the distroless runtime has no /bin/sh, so the loaded class
+# can't spawn — the "contained" posture. Override with LDAP_HOST/LDAP_URL.
+ENV LDAP_HOST=attacker.attacker-ns.svc.cluster.local:1389
 ENTRYPOINT ["java","-jar","/app/app.jar"]
