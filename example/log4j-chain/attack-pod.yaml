@@ -6,13 +6,13 @@
 # substitute it — none of the Make/bash/ssh shell layers between the host
 # and the attack pod's curl ever sees a $ character to eat.
 #
-# Idempotency: Makefile's IN_CLUSTER_ATTACK deletes any previous attack-<X>
-# pod before applying this. Name suffix is overridden per scenario by sed.
+# Idempotency: delete any previous attack-<X> pod before re-applying. Valid
+# lowercase name so `kubectl apply -f` works as-is (no substitution needed).
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: attack-PLACEHOLDER
+  name: attack-a
   namespace: log4j-poc
 spec:
   restartPolicy: Never
