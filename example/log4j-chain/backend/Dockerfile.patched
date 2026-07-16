@@ -15,4 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar ./app.jar
 EXPOSE 8080
+# LDAP endpoint for the /api/_probe trigger. On this patched build the string is
+# logged literally — no lookup, no egress — so the value is inert; kept so all
+# three scenario images share one env contract. Override with LDAP_HOST/LDAP_URL.
+ENV LDAP_HOST=attacker.attacker-ns.svc.cluster.local:1389
 ENTRYPOINT ["java","-jar","/app/app.jar"]
