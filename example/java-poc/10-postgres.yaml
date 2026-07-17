@@ -1,20 +1,67 @@
 apiVersion: v1
 data:
   seed.sql: |
-    CREATE TABLE users (
-        id SERIAL PRIMARY KEY,
-        email TEXT,
-        full_name TEXT,
-        created_at TIMESTAMP DEFAULT NOW()
+    -- fusioncore shop schema + seed. Loaded by postgres via /docker-entrypoint-initdb.d.
+    -- Normal backend traffic (App.java) reads products/users and writes orders on every
+    -- request, so the chain baseline has a steady backend→postgres edge. The JNDI exfil
+    -- (psql from /bin/sh) then blends into that DB traffic at the network layer, while the
+    -- process spawn (/bin/sh, psql) stays the Scenario-A R0001 tell.
+
+    CREATE TABLE IF NOT EXISTS products (
+        id          SERIAL PRIMARY KEY,
+        name        TEXT NOT NULL,
+        sku         TEXT UNIQUE NOT NULL,
+        category    TEXT NOT NULL,
+        price_cents INT  NOT NULL,
+        stock       INT  NOT NULL DEFAULT 100,
+        description TEXT
     );
-    INSERT INTO users (email, full_name) VALUES
-        ('alice@example.com', 'Alice Anderson'),
-        ('bob@example.com',   'Bob Brown'),
-        ('carol@example.com', 'Carol Carter');
+
+    INSERT INTO products (name, sku, category, price_cents, stock, description) VALUES
+        ('Widget',          'WID-001', 'widgets',  999,   250, 'A reliable everyday widget'),
+        ('Widget Pro',      'WID-002', 'widgets',  1999,  120, 'The widget, but pro'),
+        ('Mega Widget',     'WID-003', 'widgets',  3499,  40,  'Industrial-grade widget'),
+        ('Gadget',          'GAD-001', 'gadgets',  1499,  200, 'A handy gadget'),
+        ('Gadget Mini',     'GAD-002', 'gadgets',  799,   300, 'Pocket-sized gadget'),
+        ('Smart Gadget',    'GAD-003', 'gadgets',  4999,  60,  'Gadget with a chip in it'),
+        ('Thingamajig',     'THI-001', 'tools',    1299,  150, 'When you need a thingamajig'),
+        ('Doohickey',       'DOO-001', 'tools',    599,   500, 'Cheap and cheerful doohickey'),
+        ('Sprocket',        'SPR-001', 'parts',    349,   900, 'Toothed sprocket, 12T'),
+        ('Cog',             'COG-001', 'parts',    249,   900, 'Replacement cog'),
+        ('Flux Capacitor',  'FLX-001', 'specials', 99999, 3,   'Makes time travel possible'),
+        ('Bobblehead',      'BOB-001', 'specials', 1599,  75,  'Limited edition bobblehead')
+    ON CONFLICT (sku) DO NOTHING;
+
+    CREATE TABLE IF NOT EXISTS users (
+        id            SERIAL PRIMARY KEY,
+        email         TEXT UNIQUE NOT NULL,
+        full_name     TEXT,
+        password_hash TEXT,
+        created_at    TIMESTAMP DEFAULT NOW()
+    );
+
+    INSERT INTO users (email, full_name, password_hash) VALUES
+        ('alice@example.com', 'Alice Anderson', 'x'),
+        ('bob@example.com',   'Bob Brown',      'x'),
+        ('carol@example.com', 'Carol Carter',   'x'),
+        ('dave@example.com',  'Dave Davis',     'x'),
+        ('erin@example.com',  'Erin Edwards',   'x')
+    ON CONFLICT (email) DO NOTHING;
+
+    CREATE TABLE IF NOT EXISTS orders (
+        id          SERIAL PRIMARY KEY,
+        user_email  TEXT,
+        total_cents INT,
+        items       TEXT,
+        created_at  TIMESTAMP DEFAULT NOW()
+    );
+
+    GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres;
 kind: ConfigMap
 metadata:
   name: pg-seed
   namespace: java-poc
+---
 ---
 apiVersion: apps/v1
 kind: Deployment

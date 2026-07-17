@@ -33,9 +33,15 @@ spec:
               value: appdb
             - name: POSTGRES_USER
               value: postgres
+            # JNDI/_probe call-out target — pathogen-ns for the java-poc naming
+            # (the log4shell disease itself is driven by the malicious User-Agent).
+            - name: LDAP_HOST
+              value: pathogen.pathogen-ns.svc.cluster.local
             - name: JAVA_TOOL_OPTIONS
               value: -Dnetworkaddress.cache.negative.ttl=0 -Dnetworkaddress.cache.ttl=5
-          image: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable@sha256:72655e5a5523f578f99544ba7514aeb067f219d09811ea77235dba8bcb6cefb5
+          # #151 product-API backend: real backend->postgres pg-wire on /api/products
+          # (the stub 72655e returned {"products":[]} and never opened a pg connection).
+          image: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable@sha256:689e1c1b29083b43845302f59e7f1706b7a0bf1ed825395ae4421fda957afcfd
           imagePullPolicy: IfNotPresent
           name: backend
           ports:
