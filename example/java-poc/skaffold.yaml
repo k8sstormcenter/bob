@@ -1,0 +1,51 @@
+# Golden source: the java-poc test apps (log4j chain + pathogen) for the SOC e2e suite.
+#
+# This Skaffold deploys ONLY the sample workloads and their user-defined SBoBs.
+# It assumes the detection/forensics stack (kubescape + its CRDs, vector,
+# ClickHouse, dx) is already present — that is the soc repo's Skaffold. The two
+# compose: soc stack first, then these apps.
+#
+# Deploy order matters: namespaces -> SBoBs -> workloads. A user-defined
+# ApplicationProfile/NetworkNeighborhood must EXIST before the pod starts, or the
+# node-agent binds a learnt sibling profile instead (never the User one). The
+# rawYaml list below is applied in order so the SBoBs land first.
+#
+#   skaffold deploy -m java-poc-apps -p k3s
+#
+# Images are prebuilt (ghcr.io/k8sstormcenter/log4j-chain-*), so this config only
+# deploys — it never builds.
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: java-poc-apps
+manifests:
+  rawYaml:
+    # 1) namespaces
+    - 00-namespaces.yaml
+    # 2) user-defined SBoBs (must precede the pods they bind)
+    - sbobs/backend-ap.yaml
+    - sbobs/backend-nn.yaml
+    - sbobs/frontend-ap.yaml
+    - sbobs/frontend-nn.yaml
+    - sbobs/observer-ap.yaml
+    - sbobs/observer-nn.yaml
+    - sbobs/postgres-ap.yaml
+    - sbobs/postgres-nn.yaml
+    # 3) workloads
+    - 10-postgres.yaml
+    - 20-frontend.yaml
+    - 30-backend.yaml
+    - 40-observer.yaml
+    - 50-pathogen.yaml
+deploy:
+  kubectl:
+    # SBoBs are CRs whose readiness Skaffold can't infer; only wait on the apps.
+    defaultNamespace: ""
+profiles:
+  # k3s is the only supported target for now (flannel + hostPort assumptions live
+  # in the soc stack). Kept as an explicit profile so cloud targets can be added
+  # later without changing the default invocation.
+  - name: k3s
+    deploy:
+      kubectl:
+        defaultNamespace: ""

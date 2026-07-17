@@ -1,0 +1,123 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/managed-by: User
+    kubescape.io/status: completed
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: frontend
+    kubescape.io/workload-namespace: java-poc
+  name: frontend
+  namespace: java-poc
+spec:
+  architectures:
+    - amd64
+  containers:
+    - capabilities:
+        - CAP_CHOWN
+        - CAP_DAC_OVERRIDE
+        - CAP_NET_BIND_SERVICE
+        - CAP_SETGID
+        - CAP_SETUID
+      endpoints:
+        - direction: inbound
+          endpoint: :8080/api/products
+          internal: false
+          methods:
+            - GET
+        - direction: inbound
+          endpoint: :8080/api/login
+          internal: false
+          methods:
+            - POST
+        - direction: inbound
+          endpoint: :8080/healthz
+          internal: false
+          methods:
+            - GET
+      execs:
+        - args:
+            - nginx
+            - -g
+            - daemon off;
+          path: /usr/sbin/nginx
+      imageID: docker.io/library/nginx@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: docker.io/library/nginx:stable-alpine
+      name: nginx
+      opens:
+        - flags:
+            - O_RDONLY
+          path: /etc/nginx/nginx.conf
+        - flags:
+            - O_RDONLY
+          path: /etc/nginx/conf.d
+        - flags:
+            - O_RDONLY
+          path: /etc/nginx/mime.types
+        - flags:
+            - O_RDONLY
+          path: /etc/resolv.conf
+        - flags:
+            - O_RDONLY
+          path: /etc/hosts
+        - flags:
+            - O_RDONLY
+          path: /etc/nsswitch.conf
+        - flags:
+            - O_RDONLY
+          path: /etc/localtime
+        - flags:
+            - O_WRONLY
+            - O_APPEND
+            - O_CREAT
+          path: /var/log/nginx
+        - flags:
+            - O_RDWR
+            - O_CREAT
+          path: /var/cache/nginx
+        - flags:
+            - O_WRONLY
+            - O_CREAT
+          path: /run/nginx.pid
+      rulePolicies: {}
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      syscalls:
+        - accept4
+        - bind
+        - brk
+        - close
+        - connect
+        - epoll_create1
+        - epoll_ctl
+        - epoll_pwait
+        - epoll_wait
+        - exit_group
+        - fcntl
+        - fstat
+        - futex
+        - getsockname
+        - getsockopt
+        - listen
+        - mmap
+        - mprotect
+        - munmap
+        - newfstatat
+        - openat
+        - read
+        - recvfrom
+        - rt_sigaction
+        - rt_sigprocmask
+        - sendto
+        - setsockopt
+        - socket
+        - statx
+        - write
+        - writev
+  ephemeralContainers: []
+  initContainers: []

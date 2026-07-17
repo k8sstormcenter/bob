@@ -1,0 +1,55 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/managed-by: User
+    kubescape.io/status: completed
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: postgres
+    kubescape.io/workload-namespace: java-poc
+  name: postgres
+  namespace: java-poc
+spec:
+  containers:
+    - egress:
+        - dns: ""
+          dnsNames: null
+          identifier: egress-kube-dns
+          ipAddress: ""
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+          ports:
+            - name: UDP-53
+              port: 53
+              protocol: UDP
+            - name: TCP-53
+              port: 53
+              protocol: TCP
+          type: internal
+      ingress:
+        - dns: ""
+          dnsNames: null
+          identifier: ingress-from-backend
+          ipAddress: ""
+          namespaceSelector: null
+          podSelector:
+            matchLabels:
+              app: backend
+          ports:
+            - name: TCP-5432
+              port: 5432
+              protocol: TCP
+          type: internal
+      name: postgres
+  ephemeralContainers: []
+  initContainers: []
+  matchLabels:
+    app: postgres
