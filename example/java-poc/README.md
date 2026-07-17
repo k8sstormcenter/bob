@@ -15,6 +15,7 @@ This dir captures the exact working, medically-named, digest-pinned deployment.
 | `java-poc` | `frontend` | `nginx:1.27-alpine` | edge |
 | `java-poc` | `postgres` | `postgres:16` | app DB (PII the disease hemorrhages) |
 | `java-poc` | `observer` | `curlimages/curl:8.6.0` | benign traffic generator |
+| `java-poc` | `cleannoise` | `busybox:1.36` | benign noise (x3) → frontend `/api/products?q=noise`; a true-negative in the confusion matrix |
 | `pathogen-ns` | `pathogen` | `log4j-chain-attacker@sha256:c4dd5f…` | serves the LDAP Specimen (disease origin) |
 
 Plus the **user-defined SBoBs** (`sbobs/*-ap.yaml`, `*-nn.yaml`) — the
