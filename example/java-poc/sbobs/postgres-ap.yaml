@@ -1,0 +1,154 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/managed-by: User
+    kubescape.io/status: completed
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: postgres
+    kubescape.io/workload-namespace: java-poc
+  name: postgres
+  namespace: java-poc
+spec:
+  architectures:
+    - amd64
+  containers:
+    - capabilities:
+        - CAP_CHOWN
+        - CAP_DAC_OVERRIDE
+        - CAP_DAC_READ_SEARCH
+        - CAP_FOWNER
+        - CAP_FSETID
+        - CAP_KILL
+        - CAP_SETGID
+        - CAP_SETUID
+      endpoints:
+        - direction: inbound
+          endpoint: :5432/
+          internal: true
+          methods: []
+      execs:
+        - args:
+            - postgres
+          path: /usr/lib/postgresql/16/bin/postgres
+        - args:
+            - initdb
+          path: /usr/lib/postgresql/16/bin/initdb
+        - args:
+            - /usr/local/bin/docker-entrypoint.sh
+            - postgres
+          path: /usr/local/bin/docker-entrypoint.sh
+        - args:
+            - /usr/bin/psql
+          path: /usr/bin/psql
+        - args:
+            - pg_isready
+          path: /usr/lib/postgresql/16/bin/pg_isready
+      imageID: docker.io/library/postgres@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: docker.io/library/postgres:16
+      name: postgres
+      opens:
+        - flags:
+            - O_RDWR
+            - O_CREAT
+          path: /var/lib/postgresql/data
+        - flags:
+            - O_RDONLY
+          path: /etc/passwd
+        - flags:
+            - O_RDONLY
+          path: /etc/group
+        - flags:
+            - O_RDONLY
+          path: /etc/resolv.conf
+        - flags:
+            - O_RDONLY
+          path: /etc/hosts
+        - flags:
+            - O_RDONLY
+          path: /etc/localtime
+        - flags:
+            - O_RDONLY
+          path: /etc/nsswitch.conf
+        - flags:
+            - O_RDONLY
+          path: /usr/share/postgresql
+        - flags:
+            - O_RDONLY
+          path: /docker-entrypoint-initdb.d
+        - flags:
+            - O_RDWR
+            - O_CREAT
+          path: /tmp
+        - flags:
+            - O_RDWR
+            - O_CREAT
+          path: /var/run/postgresql
+      rulePolicies: {}
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      syscalls:
+        - accept
+        - bind
+        - brk
+        - chown
+        - clone
+        - close
+        - connect
+        - dup2
+        - epoll_create1
+        - epoll_ctl
+        - epoll_wait
+        - execve
+        - exit
+        - exit_group
+        - fchown
+        - fcntl
+        - fdatasync
+        - fork
+        - fstat
+        - fsync
+        - futex
+        - getpeername
+        - getpid
+        - getrusage
+        - getsockname
+        - getsockopt
+        - kill
+        - lseek
+        - mmap
+        - mprotect
+        - munmap
+        - newfstatat
+        - openat
+        - poll
+        - pread64
+        - pwrite64
+        - read
+        - readlink
+        - recvfrom
+        - rename
+        - rt_sigaction
+        - rt_sigprocmask
+        - rt_sigreturn
+        - select
+        - sendto
+        - setsid
+        - setsockopt
+        - shmat
+        - socket
+        - stat
+        - statfs
+        - statx
+        - umask
+        - unlink
+        - wait4
+        - write
+        - writev
+  ephemeralContainers: []
+  initContainers: []

@@ -1,0 +1,97 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/managed-by: User
+    kubescape.io/status: completed
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: observer
+    kubescape.io/workload-namespace: java-poc
+  name: observer
+  namespace: java-poc
+spec:
+  architectures:
+    - amd64
+  containers:
+    - capabilities: []
+      endpoints: []
+      execs:
+        - args:
+            - /usr/bin/curl
+            - -s
+            - http://frontend:8080/api/products
+          path: /usr/bin/curl
+        - args:
+            - /bin/sleep
+            - "30"
+          path: /bin/sleep
+        - args:
+            - /bin/sh
+            - -c
+          path: /bin/sh
+      imageID: docker.io/curlimages/curl@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: docker.io/curlimages/curl:8.5.0
+      name: observer
+      opens:
+        - flags:
+            - O_RDONLY
+          path: /etc/resolv.conf
+        - flags:
+            - O_RDONLY
+          path: /etc/hosts
+        - flags:
+            - O_RDONLY
+          path: /etc/nsswitch.conf
+        - flags:
+            - O_RDONLY
+          path: /etc/ssl/certs/ca-certificates.crt
+        - flags:
+            - O_RDONLY
+          path: /etc/localtime
+        - flags:
+            - O_RDONLY
+          path: /etc/passwd
+      rulePolicies: {}
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      syscalls:
+        - arch_prctl
+        - bind
+        - brk
+        - clone
+        - close
+        - connect
+        - execve
+        - exit
+        - exit_group
+        - fcntl
+        - fstat
+        - futex
+        - getsockname
+        - getsockopt
+        - gettid
+        - getuid
+        - mmap
+        - mprotect
+        - munmap
+        - nanosleep
+        - newfstatat
+        - openat
+        - poll
+        - read
+        - recvfrom
+        - rt_sigaction
+        - rt_sigprocmask
+        - rt_sigreturn
+        - sendto
+        - setsockopt
+        - socket
+        - statx
+        - write
+  ephemeralContainers: []
+  initContainers: []

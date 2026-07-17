@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathogen
+  namespace: pathogen-ns
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: pathogen
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: pathogen
+    spec:
+      containers:
+        - image: ghcr.io/k8sstormcenter/log4j-chain-attacker@sha256:c4dd5f69bce861adfd95792b267cd696b69395d043cb3e5c88776c942270f1ef
+          imagePullPolicy: IfNotPresent
+          name: pathogen
+          ports:
+            - containerPort: 1389
+              name: ldap
+              protocol: TCP
+            - containerPort: 8888
+              name: http
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pathogen
+  namespace: pathogen-ns
+spec:
+  ports:
+    - name: ldap
+      port: 1389
+      protocol: TCP
+      targetPort: 1389
+    - name: http
+      port: 8888
+      protocol: TCP
+      targetPort: 8888
+  selector:
+    app: pathogen
+  type: ClusterIP
