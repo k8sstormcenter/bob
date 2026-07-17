@@ -1,0 +1,87 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/managed-by: User
+    kubescape.io/status: completed
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: cleannoise
+    kubescape.io/workload-namespace: java-poc
+  name: cleannoise
+  namespace: java-poc
+spec:
+  architectures:
+    - amd64
+  containers:
+    - capabilities: []
+      endpoints: []
+      execs:
+        - args:
+            - /bin/sh
+            - -c
+          path: /bin/sh
+        - args:
+            - /bin/busybox
+            - wget
+          path: /bin/busybox
+        - args:
+            - /bin/wget
+          path: /bin/wget
+        - args:
+            - /bin/sleep
+            - "0.3"
+          path: /bin/sleep
+      imageID: docker.io/library/busybox@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      imageTag: docker.io/library/busybox:1.36
+      name: busybox
+      opens:
+        - flags: [O_RDONLY]
+          path: /etc/resolv.conf
+        - flags: [O_RDONLY]
+          path: /etc/hosts
+        - flags: [O_RDONLY]
+          path: /etc/nsswitch.conf
+      rulePolicies: {}
+      seccompProfile:
+        spec:
+          defaultAction: ""
+      syscalls:
+        - arch_prctl
+        - bind
+        - brk
+        - clone
+        - close
+        - connect
+        - execve
+        - exit
+        - exit_group
+        - fcntl
+        - fstat
+        - futex
+        - getsockname
+        - getsockopt
+        - gettid
+        - getuid
+        - mmap
+        - mprotect
+        - munmap
+        - nanosleep
+        - newfstatat
+        - openat
+        - poll
+        - read
+        - recvfrom
+        - rt_sigaction
+        - rt_sigprocmask
+        - rt_sigreturn
+        - sendto
+        - setsockopt
+        - socket
+        - statx
+        - write
+  ephemeralContainers: []
+  initContainers: []

@@ -31,12 +31,15 @@ manifests:
     - sbobs/observer-nn.yaml
     - sbobs/postgres-ap.yaml
     - sbobs/postgres-nn.yaml
+    - sbobs/cleannoise-ap.yaml
+    - sbobs/cleannoise-nn.yaml
     # 3) workloads
     - 10-postgres.yaml
     - 20-frontend.yaml
     - 30-backend.yaml
     - 40-observer.yaml
     - 50-pathogen.yaml
+    - 60-cleannoise.yaml
 deploy:
   kubectl:
     # SBoBs are CRs whose readiness Skaffold can't infer; only wait on the apps.

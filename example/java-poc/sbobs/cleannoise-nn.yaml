@@ -1,0 +1,39 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/managed-by: User
+    kubescape.io/resource-size: "1"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: e9969f6823aaa51aa5c970d1f00f079e08418b79453c66664e0f6bc82b696083
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: cleannoise
+    kubescape.io/workload-namespace: java-poc
+  name: cleannoise
+  namespace: java-poc
+spec:
+  containers:
+    - egress:
+        - dns: ""
+          dnsNames: null
+          identifier: 3406f049084b16f5b0234d3140fcf1d3fe5f6e8a1601d90a62456a510c1e0705
+          ipAddress: ""
+          namespaceSelector: null
+          podSelector:
+            matchLabels:
+              app: frontend
+          ports:
+            - name: TCP-80
+              port: 80
+              protocol: TCP
+          type: internal
+      ingress: null
+      name: busybox
+  ephemeralContainers: null
+  initContainers: null
+  matchLabels:
+    app: cleannoise
