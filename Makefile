@@ -4,7 +4,7 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.30.2
+KUBESCAPE_CHART_VER ?= 1.40.3
 
 OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
 HELM := $(shell which helm)
@@ -314,11 +314,22 @@ kubescape:
 	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
 	sleep 5
-	@echo "Enabling node-agent networkStreamingEnabled (the chart gates it behind cloud-submit: rendered flag = submit AND enable, submit = non-empty .Values.server — so capabilities.networkEventsStreaming:enable alone renders FALSE on an on-prem stack with no server. See docs/portability-spec.md D7a)..."
+	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
+	$(MAKE) enable-streaming
+
+# enable-streaming forces networkStreamingEnabled=true in the node-agent
+# configmap and rolls the DaemonSet. The chart gates the flag behind
+# cloud-submit (rendered = submit AND enable; submit = non-empty .Values.server)
+# so on an on-prem stack with no server it renders FALSE regardless of
+# capabilities.networkEventsStreaming. This target is idempotent and MUST be
+# re-run after EVERY helm upgrade — kubescape/alertmanager/kubescape-vendor all
+# call it — so the setting never drifts. See docs/portability-spec.md D7a.
+.PHONY: enable-streaming
+enable-streaming:
+	@echo "Forcing node-agent networkStreamingEnabled=true (chart renders FALSE without cloud-submit)..."
 	@PATCH=$$(kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' | python3 -c 'import json,sys; cfg=json.load(sys.stdin); cfg["networkStreamingEnabled"]=True; print(json.dumps({"data":{"config.json":json.dumps(cfg)}}))'); \
 		kubectl -n honey patch configmap node-agent --type merge -p "$$PATCH"
 	-kubectl rollout restart -n honey ds node-agent
-	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	-kubectl rollout status -n honey ds node-agent --timeout=180s
 	$(MAKE) verify-streaming
 
@@ -338,10 +349,9 @@ alertmanager:
 	@echo "Deploying alertmanager in honey namespace..."
 	kubectl apply -n honey -f kubescape/alertmanager.yaml
 	kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
-	@echo "Reconfiguring node-agent to export alerts to alertmanager..."
-	$(HELM) upgrade kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --values kubescape/values.yaml --set-json 'nodeAgent.config.alertManagerExporterUrls=["alertmanager.honey.svc.cluster.local:9093"]'
-	kubectl rollout restart -n honey ds node-agent
-	kubectl rollout status -n honey ds node-agent --timeout=180s
+	@echo "Reconciling node-agent config (exporter is in values.yaml; re-assert streaming)..."
+	$(HELM) upgrade kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --values kubescape/values.yaml
+	$(MAKE) enable-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
 .PHONY: fwd-autotune
@@ -360,9 +370,8 @@ kubescape-vendor:
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	sleep 5
-	-kubectl rollout restart -n honey ds node-agent
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
-	-kubectl rollout status -n honey ds node-agent --timeout=180s
+	$(MAKE) enable-streaming
 
 
 

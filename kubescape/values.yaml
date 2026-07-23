@@ -3,9 +3,15 @@
 # ghcr.io/k8sstormcenter/*:sbob-rc1 fork images are retired.
 nodeAgent:
   config:
+    # Always export alerts to the in-cluster alertmanager. Kept HERE (not set
+    # post-hoc by `make alertmanager`) so it survives every `helm upgrade` —
+    # a bare `helm upgrade` used to wipe it and silence all alerts. Harmless
+    # if alertmanager isn't deployed (exports just fail to connect).
+    alertManagerExporterUrls:
+      - alertmanager.honey.svc.cluster.local:9093
     maxLearningPeriod: 2m
-    learningPeriod: 2m 
-    updatePeriod: 10000m 
+    learningPeriod: 2m
+    updatePeriod: 10000m
     ruleCooldown:
       ruleCooldownDuration: 0h
       ruleCooldownAfterCount: 1000000000
