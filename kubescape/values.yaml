@@ -1,12 +1,7 @@
-storage:
-  image:
-    repository: ghcr.io/k8sstormcenter/storage
-    tag: "sbob-rc1-2026-05-16"
-
+# No image overrides: use the upstream node-agent/storage shipped by the pinned
+# kubescape-operator chart (KUBESCAPE_CHART_VER in the Makefile). The old
+# ghcr.io/k8sstormcenter/*:sbob-rc1 fork images are retired.
 nodeAgent:
-  image:
-    repository: ghcr.io/k8sstormcenter/node-agent
-    tag: "sbob-rc1-2026-05-16"
   config:
     maxLearningPeriod: 2m
     learningPeriod: 2m 
