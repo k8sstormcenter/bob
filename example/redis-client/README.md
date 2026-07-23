@@ -5,6 +5,8 @@ built to make the **egress/ingress contrast** concrete: a datastore's network
 normal is *"declared clients talk IN on the service port; the server talks OUT
 to nobody."* Encode that and every rule below becomes maximally separable.
 
+![redis kill-chain — kubescape rule coverage](redis-killchain.gif)
+
 ## What's here
 
 | file | role |
