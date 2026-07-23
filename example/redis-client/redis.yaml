@@ -1,0 +1,52 @@
+# Redis server — the datastore whose Bill-of-Behavior we author.
+# Namespace + labels are deliberately plain so the end-user can drop this
+# next to their own client (or swap in their own redis) with minimal edits.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redis-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: redis-demo
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        # Bind the User-authored SBoB (sbobs/) instead of a learnt profile.
+        kubescape.io/max-sniffing-time: "1m"
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args: ["redis-server", "--protected-mode", "no"]
+          ports:
+            - containerPort: 6379
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: "1", memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: redis-demo
+  labels:
+    app: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
