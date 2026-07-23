@@ -44,6 +44,28 @@ deploy:
   kubectl:
     # SBoBs are CRs whose readiness Skaffold can't infer; only wait on the apps.
     defaultNamespace: ""
+    hooks:
+      after: &sbob-bind-bounce
+        # A User SBoB must be registered by the kubescape node-agent BEFORE the pod
+        # it binds starts — else the node-agent binds a *learnt* sibling profile and
+        # the User profile is never enforced (no R0001 on deviation). rawYaml applies
+        # the SBoBs and workloads together, so the pods race ahead of SBoB
+        # registration. After deploy, once node-agent is Ready, bounce the app pods
+        # (delete — NOT rollout restart, which clobbers the managed-by:User annotation)
+        # so the fresh pods bind the now-registered User SBoBs.
+        - host:
+            command:
+              - bash
+              - -c
+              - |
+                set -e
+                kubectl -n honey rollout status ds/node-agent --timeout=180s 2>/dev/null || true
+                for w in backend frontend observer postgres cleannoise; do
+                  kubectl -n java-poc delete pod -l app="$w" --ignore-not-found --wait=false 2>/dev/null || true
+                done
+                kubectl -n pathogen-ns delete pod -l app=pathogen --ignore-not-found --wait=false 2>/dev/null || true
+                echo "bounced java-poc + pathogen pods to bind their User SBoBs"
+            os: [linux, darwin]
 profiles:
   # k3s is the only supported target for now (flannel + hostPort assumptions live
   # in the soc stack). Kept as an explicit profile so cloud targets can be added
@@ -52,3 +74,5 @@ profiles:
     deploy:
       kubectl:
         defaultNamespace: ""
+        hooks:
+          after: *sbob-bind-bounce
