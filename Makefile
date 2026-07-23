@@ -101,6 +101,32 @@ deploy-misp:
 	@echo "Waiting for misp pod..."
 	-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=misp -n misp --timeout=600s
 
+.PHONY: deploy-harbor
+deploy-harbor:
+	@echo "=== Deploying Harbor (helm, minimal for CI) ==="
+	helm repo add harbor https://helm.goharbor.io 2>/dev/null || true
+	helm repo update
+	kubectl create namespace harbor 2>/dev/null || true
+	# Minimal, ephemeral install sized for a CI runner: clusterIP + no TLS,
+	# emptyDir (no PVCs), and the heavy optional components off. Internal
+	# database + redis (chart defaults) keep it self-contained.
+	helm upgrade --install harbor harbor/harbor \
+		-n harbor \
+		--set expose.type=clusterIP \
+		--set expose.tls.enabled=false \
+		--set externalURL=http://harbor-core \
+		--set persistence.enabled=false \
+		--set trivy.enabled=false \
+		--set metrics.enabled=false \
+		--set harborAdminPassword=Harbor12345 \
+		--timeout 15m \
+		--wait=false
+	@echo "Waiting for harbor database + core..."
+	-kubectl wait --for=condition=ready pod -l component=database -n harbor --timeout=300s
+	-kubectl wait --for=condition=ready pod -l component=core -n harbor --timeout=600s
+	@echo "=== Harbor pods ==="
+	kubectl get pods -n harbor
+
 .PHONY: deploy-elk
 deploy-elk:
 	@echo "=== Deploying elk (ECK operator) ==="

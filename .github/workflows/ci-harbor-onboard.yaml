@@ -1,0 +1,190 @@
+name: CI - Harbor onboard (generic-app SBoB demo)
+
+# Demonstrates the declarative onboarding contract: deploy a GENERIC app (CNCF
+# Harbor, the first example), learn its ApplicationProfile, then run
+# `bobctl onboard` against a single AppTuneRequest to produce a signed-ready
+# SBoB + a machine-readable result.json verdict — with NO hand-authored attack
+# suites (attackSuite: auto). This is the agent-consumable path: one request in,
+# one SBoB + verdict out.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pkg_ref:
+        description: "pkg submodule ref that carries the `onboard` command (until the D PRs land on main)"
+        type: string
+        default: "feat/ws-d4-preflight"
+  pull_request:
+    paths:
+      - 'example/harbor.apptunerequest.yaml'
+      - '.github/workflows/ci-harbor-onboard.yaml'
+      - 'Makefile'
+
+jobs:
+  onboard:
+    name: Onboard Harbor
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo and private submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      # Until the agent-contract PRs (#42/#44/#45/#46) merge to entlein/bob main,
+      # pin the pkg submodule to a ref that carries `bobctl onboard`.
+      - name: Pin pkg submodule to the onboard ref
+        run: |
+          REF="${{ github.event.inputs.pkg_ref || 'feat/ws-d4-preflight' }}"
+          echo "Using pkg ref: $REF"
+          git -C pkg fetch origin "$REF" --depth 1
+          git -C pkg checkout FETCH_HEAD
+          git -C pkg log --oneline -1
+
+      - name: Clone storage dependency
+        run: git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: pkg/go.sum
+
+      - name: Build bobctl
+        working-directory: pkg
+        run: go build -o ../bin/bobctl ./main.go
+
+      - name: Set up k3s cluster
+        uses: jupyterhub/action-k3s-helm@v4
+        with:
+          k3s-version: v1.33.3+k3s1
+
+      - name: Verify cluster
+        run: |
+          kubectl version
+          kubectl get nodes
+          helm version
+
+      - name: Install kubescape
+        run: make kubescape
+
+      - name: Install alertmanager
+        run: make alertmanager
+
+      - name: Deploy Harbor
+        run: |
+          make deploy-harbor
+          echo "=== Harbor pods ==="
+          kubectl get pods -n harbor
+
+      - name: Wait for kubescape components
+        run: |
+          kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=storage -n honey --timeout=180s
+          kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
+
+      # ---------- Learn harbor-core's profile ----------
+      # onboard assumes a completed ApplicationProfile exists (it resolves the
+      # baseline from target.profileMatch). Exercise harbor-core's HTTP API
+      # through the K8s API-server proxy while node-agent learns, then poll for
+      # the completed profile.
+      - name: Learn Harbor component profiles
+        run: |
+          COMPONENTS="harbor-core harbor-registry harbor-portal harbor-jobservice harbor-database harbor-redis"
+          echo "Exercising harbor-core's HTTP API to drive learning (the data/other tiers"
+          echo "learn from Harbor's internal chatter: core<->db<->redis<->registry<->jobservice)."
+          for i in $(seq 1 30); do
+            kubectl get --raw "/api/v1/namespaces/harbor/services/harbor-core:80/proxy/api/v2.0/health" >/dev/null 2>&1 || true
+            kubectl get --raw "/api/v1/namespaces/harbor/services/harbor-core:80/proxy/api/v2.0/systeminfo" >/dev/null 2>&1 || true
+            kubectl get --raw "/api/v1/namespaces/harbor/services/harbor-portal:80/proxy/" >/dev/null 2>&1 || true
+            sleep 5
+          done
+
+          echo "Polling until each component has a completed ApplicationProfile (best-effort)..."
+          TIMEOUT=900; ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            DONE=$(kubectl get applicationprofiles -n harbor \
+              -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
+              2>/dev/null | grep -v "^ug-" || true)
+            N=0; MISSING=""
+            for c in $COMPONENTS; do
+              if echo "$DONE" | grep -qi "$c"; then N=$((N+1)); else MISSING="$MISSING $c"; fi
+            done
+            echo "  completed: $N/6  (missing:$MISSING)  [${ELAPSED}s]"
+            [ "$N" -ge 6 ] && { echo "All 6 component profiles completed."; break; }
+            sleep 20; ELAPSED=$((ELAPSED + 20))
+          done
+          echo "=== completed profiles ==="
+          kubectl get applicationprofile -n harbor \
+            -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' 2>/dev/null | grep -v "^ug-" || true
+          # Onboard resolves each target independently; any component still not
+          # completed becomes a rejected target (with a reason) rather than
+          # aborting the run.
+
+      # ---------- The demonstration: one declarative request in, SBoB out ----------
+      - name: Onboard (bobctl onboard)
+        id: onboard
+        continue-on-error: true
+        run: |
+          bin/bobctl onboard \
+            -f example/harbor.apptunerequest.yaml \
+            --ks-namespace honey \
+            --output-dir onboard-out \
+            -v 2>&1 | tee /tmp/onboard.log
+
+      - name: Publish result to step summary
+        if: always()
+        run: |
+          {
+            echo "## Harbor onboard — generic-app SBoB demo"
+            echo ""
+            if [ -f onboard-out/result.json ]; then
+              OVERALL=$(jq -r '.overall' onboard-out/result.json)
+              echo "**Verdict: \`$OVERALL\`**"
+              echo ""
+              echo '```json'
+              cat onboard-out/result.json
+              echo '```'
+              echo ""
+              echo "### Per-target SBoBs"
+              for z in onboard-out/*/tune.zip; do
+                [ -f "$z" ] && echo "- \`$z\` — $(unzip -l "$z" 2>/dev/null | tail -1 | awk '{print $2}') files"
+              done
+            else
+              echo "No result.json produced — see the onboard log artifact."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload onboard artifacts (result.json + SBoBs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harbor-onboard-result
+          path: |
+            onboard-out/
+            /tmp/onboard.log
+
+      - name: Collect diagnostics
+        if: always()
+        run: |
+          echo "--- harbor pods ---"; kubectl get pods -n harbor || true
+          echo "--- ApplicationProfiles (harbor) ---"; kubectl get applicationprofile -n harbor || true
+          echo "--- node-agent (last 60) ---"; kubectl logs -n honey -l app=node-agent --tail=60 || true
+
+      # Informational gate: the demo's deliverable is the SBoB + verdict. A
+      # non-pass overall (e.g. Harbor benign FPs) does not fail the job — it is
+      # reported. Flip to a hard gate once a Harbor-specific suite tightens the
+      # acceptance bar to 0/0.
+      - name: Report verdict
+        if: always()
+        run: |
+          if [ ! -f onboard-out/result.json ]; then
+            echo "::warning::onboard produced no result.json (profile may not have learned in time)"
+            exit 0
+          fi
+          OVERALL=$(jq -r '.overall' onboard-out/result.json)
+          echo "Harbor onboard overall: $OVERALL"
+          jq '.targets[] | {workload, kpi, ruleCoverage, accepted, reasons}' onboard-out/result.json
+          if [ "$OVERALL" != "pass" ]; then
+            echo "::warning::overall=$OVERALL (demo still produced an SBoB; see result.json)"
+          fi
