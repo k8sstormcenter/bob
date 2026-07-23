@@ -152,7 +152,7 @@ attacks:
       command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: elasticsearch
         command: cat
 
@@ -227,7 +227,7 @@ attacks:
     # assertion.
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: elasticsearch
         command: cat
 

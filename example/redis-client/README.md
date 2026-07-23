@@ -153,3 +153,59 @@ covered), io_uring (R1030), raw syscalls (R0003).
 in k3s CI): `exec-sa-token` (R0006), `exec-devshm` (R1000), `exec-drifted`
 (R1001). **Not deliverable in-container:** R2001 (port-forward) — needs a
 harness-level `kubectl port-forward` step.
+
+---
+
+## How the rules produce contrast (verified live on node-agent v0.3.158)
+
+Contrast = the gap between the tight authored baseline and what an attack does.
+For redis, **11 rules were verified firing** against the stock
+`redis-vulnerable:7.2.10` image, and each fires *because* the baseline is
+narrow:
+
+| Rule | What makes it Separable for redis | Attack that proves it |
+|---|---|---|
+| R0001 process | baseline execs are `redis-server`/`redis-cli` only | any spawned tool |
+| R0002 file anomaly | baseline opens are a fixed, small set | writes/reads off-path |
+| R0004 capabilities | baseline uses **no** added caps | mount / bpf / hardlink syscall |
+| R0005 DNS | NetworkNeighborhood egress is `null` | REPLICAOF to a resolvable domain |
+| R0006 SA-token | redis never reads its token | `cat …/serviceaccount/token` |
+| R0007 k8s-API | redis never talks to the apiserver | dropped tool → `$KUBERNETES_SERVICE_HOST:443` |
+| R0009 eBPF | redis never calls `bpf()` | `syscall(321,…)` (fires on attempt) |
+| R0011 egress | egress `null` ⇒ any outbound is anomalous | REPLICAOF / socket out |
+| R1001 drift | every executable is image-native | a copied/dropped binary runs |
+| R1002 kmod | redis never loads modules | `init_module` attempt (fires on attempt) |
+| R1012 hardlink | redis never links sensitive files | `ln /etc/shadow …` (fires on attempt) |
+
+Two properties do the heavy lifting: **`egress: null`** turns the whole network
+dimension Separable (R0005/R0011/R0007), and **`capabilities: []`** turns the
+kernel dimension Separable (R0004 — and, on an unconfined pod, R0009/R1002/R1015).
+Both are things you *author*, not learn.
+
+## Minimizing false positives
+
+The same tight baseline is what keeps FPs near zero — the risk is under-, not
+over-specifying. The rules of thumb this example bakes in:
+
+1. **Wildcard only the genuinely volatile paths, nothing else.** The one moving
+   part in redis's opens is the ConfigMap `..data` generation dir, collapsed to
+   `/etc/redis/*/redis.conf`; per-PID `/proc/⋯` and per-device `/sys/*` are
+   collapsed by storage. Everything else stays literal. Over-wildcarding execs
+   or opens is the #1 FP *and* detection-killer — never do it to silence a rule.
+2. **Prefer NONE (`[]`) over absent for caps/endpoints.** An explicit empty list
+   says "this is the whole envelope" and keeps R0004 a hard signal; an *absent*
+   field is treated as "unconstrained" and silently widens the envelope.
+3. **Author egress as the exact client set.** One ingress peer, `egress: null`.
+   Any drift (a new client, any outbound) is a true positive by construction —
+   substitute your real client's selector rather than broadening.
+4. **Regenerate per image/version.** Shared-object paths differ across
+   libc/distro; a baseline learned for one image FPs on another. Re-`learn`
+   when you change the image, don't paper over it with wildcards.
+5. **Bounce the workload pod to relearn** (not the node-agent), and drive load
+   over the network so the *server* exec baseline stays clean — a baseline
+   polluted with `kubectl exec`'d tools masks the very execs you want to catch.
+
+The honest boundary: rules needing a tool/cap/technique the stock image lacks
+(R1003 ssh, R1004 mount volume, R1006 escape, R1011 ld_preload, R1015 ptrace,
+R0040 learned-profile args, R2000/R2001 control-plane) are documented probes,
+not asserted — they light up only on a privileged+tooled redis variant.

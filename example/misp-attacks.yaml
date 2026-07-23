@@ -492,7 +492,7 @@ attacks:
       - responseContains: "eyJ"
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: misp
         command: cat
 
@@ -605,7 +605,7 @@ attacks:
     # expectations let R0006 regression slip silently.
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: misp
         command: cat
       - ruleID: R0005
@@ -1255,7 +1255,7 @@ attacks:
       - responseContains: "k8s_api_probed"
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: misp
         command: cat   # Pinning to cat scopes the assertion to THIS probe's token open
 
