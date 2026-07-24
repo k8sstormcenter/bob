@@ -1,0 +1,63 @@
+# ApplicationProfile for redis — the process/file half of its Bill-of-Behavior.
+#
+# Generalization principle for a DATABASE type (see README §"why so tight"):
+#   * execs stay EXACT — the redis binaries only. Any other exec (a shell, a
+#     fetched tool) is instantly Separable → that is the whole strength of the
+#     database type on R0001/R0040/R1000/R1001/R1004.
+#   * opens keep stable literals; wildcard ONLY the genuinely-volatile paths:
+#       - the ConfigMap `..data` mount-generation dir (changes every restart),
+#       - per-PID /proc and per-device /sys subtrees.
+#   * no syscalls block — the new node-agent does not emit one, and it was noise.
+#
+# Authored for redis:7-alpine (musl). Regenerate (bobctl learn) if you pin a
+# different image/version — the shared-object paths differ across libc/distros.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ApplicationProfile
+metadata:
+  name: redis
+  namespace: redis-demo
+  annotations:
+    kubescape.io/managed-by: User
+    kubescape.io/status: completed
+    kubescape.io/completion: complete
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: redis
+    kubescape.io/workload-namespace: redis-demo
+spec:
+  architectures: [amd64]
+  containers:
+    - name: redis
+      execs:
+        - path: /usr/local/bin/redis-server
+          args: ["redis-server", "*"]     # server flags vary; args are DATA (literal *), path is the constraint
+        - path: /usr/local/bin/redis-cli
+          args: ["redis-cli", "⋯⋯"]        # healthcheck/cli — zero-or-more args
+      opens:
+        # stable runtime — keep literal (tight = Separable)
+        - path: /lib/ld-musl-x86_64.so.1
+          flags: [O_RDONLY]
+        - path: /etc/passwd
+          flags: [O_RDONLY]
+        - path: /etc/group
+          flags: [O_RDONLY]
+        - path: /dev/urandom
+          flags: [O_RDONLY]
+        # ConfigMap-mounted config: the `..data` symlink dir is regenerated on
+        # every remount → wildcard the generation segment, keep the filename.
+        - path: /etc/redis/*/redis.conf
+          flags: [O_RDONLY]
+        # per-PID and per-device churn — one-segment (⋯) then glob (*) subtree
+        - path: /proc/⋯/stat
+          flags: [O_RDONLY]
+        - path: /proc/⋯/net/*
+          flags: [O_RDONLY]
+        - path: /sys/devices/*
+          flags: [O_RDONLY]
+      endpoints: []          # RESP/TCP, not HTTP
+      capabilities: []       # NONE (explicit): redis needs no added caps — see README §caps
+      # NB: NO syscalls block by design.
+  initContainers: null
+  ephemeralContainers: null

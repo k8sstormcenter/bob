@@ -797,3 +797,27 @@ spec:
         - integrity
         - signature
         - tamper
+    - description: >-
+        Detects exec operations on pods via the Kubernetes admission webhook
+        (PodExecOptions CONNECT).
+      enabled: true
+      expressions:
+        message: >-
+          'Exec to pod: ' + event.Name + ' in namespace ' + event.Namespace +
+          ' by ' + event.UserInfo.Username
+        ruleExpression:
+          - eventType: k8s-admission
+            expression: 'event.Kind == "PodExecOptions"'
+        uniqueId: event.Namespace + '/' + event.Name
+      id: R2000
+      isTriggerAlert: true
+      mitreTactic: TA0002
+      mitreTechnique: T1609
+      name: Exec to pod
+      profileDependency: 2
+      severity: 8
+      supportPolicy: false
+      tags:
+        - context:kubernetes
+        - admission
+        - exec

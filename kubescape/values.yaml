@@ -1,16 +1,17 @@
-storage:
-  image:
-    repository: ghcr.io/k8sstormcenter/storage
-    tag: "sbob-rc1-2026-05-16"
-
+# No image overrides: use the upstream node-agent/storage shipped by the pinned
+# kubescape-operator chart (KUBESCAPE_CHART_VER in the Makefile). The old
+# ghcr.io/k8sstormcenter/*:sbob-rc1 fork images are retired.
 nodeAgent:
-  image:
-    repository: ghcr.io/k8sstormcenter/node-agent
-    tag: "sbob-rc1-2026-05-16"
   config:
+    # Always export alerts to the in-cluster alertmanager. Kept HERE (not set
+    # post-hoc by `make alertmanager`) so it survives every `helm upgrade` —
+    # a bare `helm upgrade` used to wipe it and silence all alerts. Harmless
+    # if alertmanager isn't deployed (exports just fail to connect).
+    alertManagerExporterUrls:
+      - alertmanager.honey.svc.cluster.local:9093
     maxLearningPeriod: 2m
-    learningPeriod: 2m 
-    updatePeriod: 10000m 
+    learningPeriod: 2m
+    updatePeriod: 10000m
     ruleCooldown:
       ruleCooldownDuration: 0h
       ruleCooldownAfterCount: 1000000000
