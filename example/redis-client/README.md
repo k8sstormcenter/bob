@@ -1,9 +1,7 @@
-# redis-client — a database SBoB with exactly ONE allowed client
+# redis-client — a database SBOB with exactly ONE allowed client
 
-A minimal, substitutable Bill-of-Behavior for redis (the `database` app type),
-built to make the **egress/ingress contrast** concrete: a datastore's network
-normal is *"declared clients talk IN on the service port; the server talks OUT
-to nobody."* Encode that and every rule below becomes maximally separable.
+A minimal SBOB for redis (the `database` app type),
+built to make the **egress/ingress contrast** concrete
 
 ![redis kill-chain — kubescape rule coverage](redis-killchain.gif)
 
@@ -16,6 +14,9 @@ to nobody."* Encode that and every rule below becomes maximally separable.
 | `sbobs/nn-redis.yaml` | NetworkNeighborhood: **one** ingress peer, `egress: null` |
 | `sbobs/ap-redis.yaml` | ApplicationProfile: exact execs, wildcard only volatile paths |
 
+
+
+
 ## Deploy
 
 ```bash
@@ -24,43 +25,18 @@ kubectl apply -f example/redis-client/redis.yaml
 kubectl apply -f example/redis-client/client.yaml
 ```
 
-## Substitute your own client (the point)
 
-The redis NN whitelists **one** ingress peer by label selector. To authorize
-*your* real client instead of the demo one, edit the `>>> SUBSTITUTE <<<` block
-in `sbobs/nn-redis.yaml`:
 
-```yaml
-podSelector:
-  matchLabels:
-    app: redis-client                        # ← your client's pod label
-namespaceSelector:
-  matchLabels:
-    kubernetes.io/metadata.name: redis-demo  # ← your client's namespace
-```
 
-Then delete `client.yaml`. Two selectors, one peer — an explicit, auditable
-allow-list. More than one legitimate client? Add another `- identifier:` block
-per client; each is a named exception a reviewer can see. Anything **not** on
-this list that connects to redis is, by construction, an anomaly.
+An SBOB is a *narrow* envelope that captures system independent behavior
 
-## Why so tight (the generalization principle)
 
-A database's contrast strength comes from a *narrow* envelope:
-
-- **execs exact** — only `redis-server` / `redis-cli`. Wildcarding execs is what
-  destroys a DB's detection; a shell or fetched binary must stand out.
-- **opens: literal stable paths, wildcard only the volatile** — the ConfigMap
-  `..data` generation dir (`/etc/redis/*/redis.conf`, changes every restart) and
-  per-PID `/proc/⋯`, per-device `/sys/*`. Nothing else.
-- **egress empty** — the server dials nobody, so R0011/R0005 fire on the first
-  unexpected packet.
 
 ## What a detection MEANS — TTP mapping (database lens)
 
 When one of these kubescape rules fires against this baseline, here is what it
-tells the end-user. For the `database` type every rule is **Separable** (the
-symptom stands out) — with the one caveat in the last section.
+tells the end-user. 
+Constructing a good SBOB means modelling an attack type (ideally not limited to a particular CVE) and measuring if it is detectable should it ever occur in the wild.
 
 | Rule | ATT&CK | Fires when redis… | What it means for you |
 |---|---|---|---|
@@ -91,39 +67,10 @@ symptom stands out) — with the one caveat in the last section.
 | R2000 Exec to pod | T1609 | someone `kubectl exec`s in | interactive intrusion (or admin — verify) |
 | R2001 Port-forward to pod | T1609/T1090 | someone port-forwards in | access **tunnel** to the datastore |
 
-### The honest caveat (why the model isn't finished)
+ Run
+`bobctl contrast --profile sbobs/ap-redis.yaml --type database` 
 
-Two known gaps, both provable on this very SBoB:
-
-**(a) `reads-host-files` is over-broad.** Run
-`bobctl contrast --profile sbobs/ap-redis.yaml --type database` and it reports a
-`reads-host-files` deviation — triggered by the benign `/sys/devices/*` read
-(device topology / hugepage settings) that essentially every container performs.
-`isHostPath` currently counts `/sys` and `/proc/sys` as host-escape surface,
-which makes *every* database falsely deviate. The fix is to narrow it to genuine
-breakout paths (`/host*`, `/proc/1/*`, `/proc/sysrq-trigger`) so `/sys/devices`
-and `/proc/sys/net` tuning reads stop counting.
-
-**(b) capabilities aren't read yet.** The "all Separable" row assumes the
-envelope is truly empty. The **real** redis profile from CI carries `SYS_ADMIN`
-+ `NET_ADMIN` in its granted capabilities.
-If contrast read capabilities (it does not yet), redis would gain the
-`uses-kernel-features` property, and the kernel-family rules — **R0003, R0004,
-R0009, R1002, R1006, R1015, R1030** — flip from Separable to **Blind**: a redis
-allowed to hold `SYS_ADMIN` cannot be told apart from one abusing it. That is
-why `ap-redis.yaml` declares `capabilities: []` **explicitly (NONE)** — the
-authored baseline says "this redis needs no added caps," turning R0004 back into
-a hard signal. Match that by dropping the caps in your redis Deployment
-(`securityContext.capabilities.drop: ["ALL"]`).
-
----
-
-## Attack coverage — one realistic attack per rule
-
-Added to `example/redis-attacks.yaml` (67 attacks total). Each row is a real,
-historically-grounded redis/valkey technique; "Attack" is the entry name in the
-suite. Excluded by design: crypto-mining (R1007/R1008/R1009 — R1008 already
-covered), io_uring (R1030), raw syscalls (R0003).
+Excluded by design: crypto-mining (R1007/R1008/R1009 — R1008 already covered), io_uring (R1030), raw syscalls (R0003).
 
 | Rule | Attack (redis-attacks.yaml) | Delivery | Historic technique |
 |---|---|---|---|
@@ -149,61 +96,6 @@ covered), io_uring (R1030), raw syscalls (R0003).
 | R1011 ld_preload | `persist-ld-preload` | exec | libprocesshider `/etc/ld.so.preload` (TeamTNT) |
 | R2000 exec-to-pod | `control-plane-exec-to-pod` | exec | `kubectl exec` with stolen kubeconfig |
 
-**Asserted on `R0001` for CI stability** (specific rule is environmentally flaky
-in k3s CI): `exec-sa-token` (R0006), `exec-devshm` (R1000), `exec-drifted`
-(R1001). **Not deliverable in-container:** R2001 (port-forward) — needs a
-harness-level `kubectl port-forward` step.
-
----
-
-## How the rules produce contrast (verified live on node-agent v0.3.158)
-
-Contrast = the gap between the tight authored baseline and what an attack does.
-For redis, **11 rules were verified firing** against the stock
-`redis-vulnerable:7.2.10` image, and each fires *because* the baseline is
-narrow:
-
-| Rule | What makes it Separable for redis | Attack that proves it |
-|---|---|---|
-| R0001 process | baseline execs are `redis-server`/`redis-cli` only | any spawned tool |
-| R0002 file anomaly | baseline opens are a fixed, small set | writes/reads off-path |
-| R0004 capabilities | baseline uses **no** added caps | mount / bpf / hardlink syscall |
-| R0005 DNS | NetworkNeighborhood egress is `null` | REPLICAOF to a resolvable domain |
-| R0006 SA-token | redis never reads its token | `cat …/serviceaccount/token` |
-| R0007 k8s-API | redis never talks to the apiserver | dropped tool → `$KUBERNETES_SERVICE_HOST:443` |
-| R0009 eBPF | redis never calls `bpf()` | `syscall(321,…)` (fires on attempt) |
-| R0011 egress | egress `null` ⇒ any outbound is anomalous | REPLICAOF / socket out |
-| R1001 drift | every executable is image-native | a copied/dropped binary runs |
-| R1002 kmod | redis never loads modules | `init_module` attempt (fires on attempt) |
-| R1012 hardlink | redis never links sensitive files | `ln /etc/shadow …` (fires on attempt) |
-
-Two properties do the heavy lifting: **`egress: null`** turns the whole network
-dimension Separable (R0005/R0011/R0007), and **`capabilities: []`** turns the
-kernel dimension Separable (R0004 — and, on an unconfined pod, R0009/R1002/R1015).
-Both are things you *author*, not learn.
-
-## Minimizing false positives
-
-The same tight baseline is what keeps FPs near zero — the risk is under-, not
-over-specifying. The rules of thumb this example bakes in:
-
-1. **Wildcard only the genuinely volatile paths, nothing else.** The one moving
-   part in redis's opens is the ConfigMap `..data` generation dir, collapsed to
-   `/etc/redis/*/redis.conf`; per-PID `/proc/⋯` and per-device `/sys/*` are
-   collapsed by storage. Everything else stays literal. Over-wildcarding execs
-   or opens is the #1 FP *and* detection-killer — never do it to silence a rule.
-2. **Prefer NONE (`[]`) over absent for caps/endpoints.** An explicit empty list
-   says "this is the whole envelope" and keeps R0004 a hard signal; an *absent*
-   field is treated as "unconstrained" and silently widens the envelope.
-3. **Author egress as the exact client set.** One ingress peer, `egress: null`.
-   Any drift (a new client, any outbound) is a true positive by construction —
-   substitute your real client's selector rather than broadening.
-4. **Regenerate per image/version.** Shared-object paths differ across
-   libc/distro; a baseline learned for one image FPs on another. Re-`learn`
-   when you change the image, don't paper over it with wildcards.
-5. **Bounce the workload pod to relearn** (not the node-agent), and drive load
-   over the network so the *server* exec baseline stays clean — a baseline
-   polluted with `kubectl exec`'d tools masks the very execs you want to catch.
 
 The honest boundary: rules needing a tool/cap/technique the stock image lacks
 (R1003 ssh, R1004 mount volume, R1006 escape, R1011 ld_preload, R1015 ptrace,
