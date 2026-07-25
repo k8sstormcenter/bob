@@ -22,8 +22,8 @@ spec:
     metadata:
       labels:
         app: redis
-        # Bind the User-authored SBoB (sbobs/) instead of a learnt profile.
-        kubescape.io/max-sniffing-time: "1m"
+        kubescape.io/user-defined-profile: "redis"
+        kubescape.io/user-defined-network: "redis"
     spec:
       containers:
         - name: redis
