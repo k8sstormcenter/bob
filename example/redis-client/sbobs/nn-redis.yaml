@@ -1,0 +1,61 @@
+# NetworkNeighborhood for redis — the network half of its Bill-of-Behavior.
+#
+# THE CONTRAST CLAIM (egress/ingress dimension for a database):
+#   A datastore's normal network shape is "N clients talk IN on the service
+#   port; the server itself talks OUT to nobody." Encoding exactly that makes
+#   R0011 (unexpected egress) and R0005 (DNS) maximally Separable: the server
+#   has ZERO legitimate egress, so ANY outbound connection from redis is an
+#   anomaly (exfil, reverse shell, lateral movement), and any ingress from a
+#   pod that is NOT the declared client is likewise anomalous.
+#
+# This file ships with ONE allowed client. To adopt it, you substitute that
+# one ingress peer with your real client — see the >>> SUBSTITUTE <<< block.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  name: redis
+  namespace: redis-demo
+  annotations:
+    # User-managed: bind this authored SBoB, do not overwrite with a learnt one.
+    kubescape.io/managed-by: User
+    kubescape.io/status: completed
+    kubescape.io/completion: complete
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: redis
+    kubescape.io/workload-namespace: redis-demo
+spec:
+  matchLabels:
+    app: redis
+  containers:
+    - name: redis
+      # A database SERVER initiates no outbound connections. Empty egress =
+      # every outbound packet from redis is, by definition, unexpected (R0011).
+      egress: null
+      ingress:
+        # ─────────────────────────────────────────────────────────────────
+        # >>> SUBSTITUTE: the ONE workload allowed to reach redis:6379. <<<
+        # Replace the two selectors below with YOUR client's pod labels and
+        # namespace. Delete example/redis-client/client.yaml once you do.
+        # Add more `- identifier:` blocks only if you have more than one
+        # legitimate client — each is an explicit, auditable exception.
+        # ─────────────────────────────────────────────────────────────────
+        - identifier: allowed-client
+          type: internal
+          podSelector:
+            matchLabels:
+              app: redis-client                     # ← YOUR client's pod label
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: redis-demo  # ← YOUR client's namespace
+          ports:
+            - name: TCP-6379
+              port: 6379
+              protocol: TCP
+          # unused address forms — selectors above are the match
+          dns: ''
+          dnsNames: null
+          ipAddress: ''
+      # ephemeral/init containers have no network baseline here

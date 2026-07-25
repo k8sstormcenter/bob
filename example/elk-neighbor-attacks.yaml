@@ -19,7 +19,7 @@ attacks:
       command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: attacker
         command: cat
 
@@ -41,7 +41,7 @@ attacks:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_neighbor && /tmp/drifted_neighbor / && rm -f /tmp/drifted_neighbor"]
     expectedDetections:
       - ruleID: R1001
-        ruleName: Exec Binary Not In Base Image
+        ruleName: Drifted process executed
         containerName: attacker
 
   # T1059.004 — Exec from /dev/shm
@@ -51,7 +51,7 @@ attacks:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/mal_neighbor && chmod +x /dev/shm/mal_neighbor && /dev/shm/mal_neighbor pwned && rm -f /dev/shm/mal_neighbor"]
     expectedDetections:
       - ruleID: R1000
-        ruleName: Exec from malicious source
+        ruleName: Process executed from malicious source
         containerName: attacker
 
   # T1046 — Network Service Discovery: DNS recon
@@ -61,7 +61,7 @@ attacks:
       command: ["sh", "-c", "nslookup el-es-http.elk.svc.cluster.local 2>&1 || echo dns_done"]
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: attacker
 
   # T1613 — Container and Resource Discovery: K8s API
@@ -71,7 +71,7 @@ attacks:
       command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) && curl -sk -H \"Authorization: Bearer $TOKEN\" https://kubernetes.default.svc/api/v1/namespaces/elk/pods 2>&1 | head -10"]
     expectedDetections:
       - ruleID: R0005
-        ruleName: Unexpected domain request
+        ruleName: DNS Anomalies in container
         containerName: attacker
       - ruleID: R0001
         ruleName: Unexpected process launched

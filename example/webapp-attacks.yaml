@@ -184,7 +184,7 @@ attacks:
       - bodyContains: "eyJ"
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: mywebapp-app
         command: cat
 
@@ -535,7 +535,7 @@ attacks:
     # Reads the SA token (R0006) and execs cat + curl (R0001 for both).
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: mywebapp-app
         command: cat
       - ruleID: R0001

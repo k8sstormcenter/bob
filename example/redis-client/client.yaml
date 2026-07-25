@@ -1,0 +1,44 @@
+# The ONE allowed redis client — the reference workload the SBoB whitelists.
+#
+# This exists so the redis NetworkNeighborhood has exactly one legitimate
+# ingress peer to point at. In your own cluster you DELETE this file and
+# instead point the SBoB's ingress selector at YOUR real client (see
+# sbobs/nn-redis.yaml and README.md). The label `app: redis-client` and the
+# namespace `redis-demo` are the two things the SBoB matches on — keep them
+# in sync with whatever you substitute.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-client
+  namespace: redis-demo
+  labels:
+    app: redis-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-client
+  template:
+    metadata:
+      labels:
+        app: redis-client
+    spec:
+      containers:
+        - name: client
+          image: redis:7-alpine
+          # Steady, benign RESP traffic to redis:6379 — the "normal" the SBoB
+          # is learned/authored against. Only SET/GET/PING: a well-behaved
+          # client, nothing that would trip a rule on the server side.
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              i=0
+              while true; do
+                redis-cli -h redis -p 6379 SET "k:$i" "v:$i" >/dev/null
+                redis-cli -h redis -p 6379 GET "k:$i" >/dev/null
+                redis-cli -h redis -p 6379 PING >/dev/null
+                i=$((i+1)); sleep 2
+              done
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits: { cpu: 250m, memory: 128Mi }

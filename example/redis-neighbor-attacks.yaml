@@ -19,7 +19,7 @@ attacks:
       command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: redis-client
         command: cat
 
@@ -41,7 +41,7 @@ attacks:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_neighbor && /tmp/drifted_neighbor / && rm -f /tmp/drifted_neighbor"]
     expectedDetections:
       - ruleID: R1001
-        ruleName: Exec Binary Not In Base Image
+        ruleName: Drifted process executed
         containerName: redis-client
 
   # T1059.004 — Exec from /dev/shm
@@ -51,7 +51,7 @@ attacks:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/mal_neighbor && chmod +x /dev/shm/mal_neighbor && /dev/shm/mal_neighbor pwned && rm -f /dev/shm/mal_neighbor"]
     expectedDetections:
       - ruleID: R1000
-        ruleName: Exec from malicious source
+        ruleName: Process executed from malicious source
         containerName: redis-client
 
   # T1046 — Network Service Discovery: DNS recon
@@ -73,7 +73,7 @@ attacks:
     # R0001 fires on cat AND curl as unexpected processes for redis-client.
     expectedDetections:
       - ruleID: R0006
-        ruleName: Unexpected Service Account Token Access
+        ruleName: Unexpected service account token access
         containerName: redis-client
         command: cat
       - ruleID: R0005
