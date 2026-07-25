@@ -115,6 +115,7 @@ jobs:
             functional_tests: example/webapp-functional-tests.yaml
             attack_suite: example/webapp-attacks.yaml
             app_namespace: webapp
+            contrast_type: web-app
             protocol: http
             # score_threshold=2 reflects two known-unrecoverable R0006 SA-token
             # misses (cmdinject-sa-token, cmdinject-k8s-enum-pods), both `cat
@@ -140,12 +141,14 @@ jobs:
             functional_tests: example/redis-functional-tests.yaml
             attack_suite: example/redis-attacks.yaml
             app_namespace: redis
+            contrast_type: database
             protocol: redis
             score_threshold: 0
           - app: misp
             functional_tests: example/misp-functional-tests.yaml
             attack_suite: example/misp-attacks.yaml
             app_namespace: misp
+            contrast_type: web-app
             protocol: https
             # Without this match, "misp" also grep-matches the Helm
             # sub-chart profiles statefulset-misp-valkey-master and
@@ -158,6 +161,7 @@ jobs:
             functional_tests: example/elk-functional-tests.yaml
             attack_suite: example/elk-attacks.yaml
             app_namespace: elk
+            contrast_type: database
             protocol: http
             profile_match: el-es
             score_threshold: 0
@@ -165,6 +169,7 @@ jobs:
             functional_tests: example/postgres-functional-tests.yaml
             attack_suite: example/postgres-attacks.yaml
             app_namespace: postgres
+            contrast_type: database
             protocol: tcp
             profile_match: pg-client
             score_threshold: 0
@@ -172,6 +177,7 @@ jobs:
             functional_tests: example/postgres-vuln-functional-tests.yaml
             attack_suite: example/postgres-vuln-attacks.yaml
             app_namespace: postgres-vuln
+            contrast_type: database
             protocol: tcp
             # Match the server deployment profile, not the client pod.
             # COPY FROM PROGRAM attacks spawn processes on the server.
@@ -196,6 +202,7 @@ jobs:
             functional_tests: example/mariadb-functional-tests.yaml
             attack_suite: example/mariadb-attacks.yaml
             app_namespace: mariadb
+            contrast_type: database
             protocol: tcp
             # Server-side attacks (UDF RCE, SELECT INTO OUTFILE, log poisoning)
             # spawn processes inside the mariadb deployment, not the client.
@@ -357,7 +364,29 @@ jobs:
           echo "Discovered profile: $PROFILE"
           kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
 
-
+      # ---------- Generic contrast check (type-envelope test) ----------
+      # Migrates CI from purely per-app tune-score gating toward the generic,
+      # type-keyed contrast test (pkg/contrast): derive the app's behavioral
+      # envelope from its LEARNED profile and compare it to what its app TYPE
+      # is allowed to have. Report mode for now (never fails the job) — it
+      # surfaces each app's derived envelope + deviations so per-app --expect
+      # allowlists can be calibrated from real output before flipping to
+      # --strict. See docs/contrast-suite-plan / pkg/contrast.
+      - name: Contrast check (generic type-envelope test)
+        if: matrix.contrast_type != ''
+        continue-on-error: true
+        run: |
+          if [ ! -s profile.yaml ]; then
+            echo "no learned profile.yaml — skipping contrast check"
+            exit 0
+          fi
+          echo "### Contrast — ${{ matrix.app }} (type: ${{ matrix.contrast_type }})" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          bin/bobctl contrast \
+            --profile profile.yaml \
+            --type "${{ matrix.contrast_type }}" \
+            2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       # ---------- Clean results directory (prevent cross-job contamination) ----
       - name: Clean results directory
