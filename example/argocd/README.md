@@ -1,5 +1,7 @@
 # Argo CD demo — active-diagnosis, three scenarios
 
+TODO: NEEDS MIGRATION
+
 Reproducible testbed for the Argo CD repo-server manifest-generation
 weakness (CVE-2022-24348 class). ONE malicious-repo payload, THREE
 backend image variants — the negative-control test for a framework that
