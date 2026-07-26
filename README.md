@@ -6,7 +6,7 @@ An SBOB is a vendor-supplied profile that provides contrast between known benign
 
 It's understood to be an abstraction of linux kernel level behavior to express `intent` across systems:
 
-- **to explicitely test for false-negatives**: each attack type for a certain class (`db`, `daemon`, `proxy` etc) is marked as 'blind' or 'detectable'
+- **to explicitely test for false-negatives**: each attack type can be verified as 'blind' or 'detectable'
 - **for continuous anomaly detection at runtime**: an updated SBOB with each release allows end-users to calibrate their Detection/Reponse 
 
   
