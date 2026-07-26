@@ -2,7 +2,7 @@
 Imagine a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ships it `with each update` . Just like a Container Package-Insert (Packungsbeilage) 📦📃🩻
 
 
-An SBOB is a vendor-supplied profile that provides contrast between known benign and malicious runtime behaviors.
+An SBOB is a profile that provides contrast between intended benign and malicious runtime behaviors. It can be signed, bundled
 
 It's understood to be an abstraction of linux kernel level behavior to express `intent` across systems:
 
@@ -18,7 +18,7 @@ We foresee a massive scale benefit for the end-user, who does not have in-depth 
 
 ## Example 
 
-A minimal SBOB for redis (the `database` app type)
+SBOB contrast is produced by application type. Redis is an example of `db`
 
 ![redis kill-chain — kubescape rule coverage](example/redis-client/redis-killchain.gif)
 
@@ -39,7 +39,7 @@ This repo is currently a demo while I m working on a bob-agent that your AI can 
 
 
 ### Format/Spec
-Draft [Specification](https://billofbehavior.com/bob/docs/spec/) for the Kubescape reference implementation.
+Draft [Specification](https://billofbehavior.com/bob/docs/spec/) for the [Kubescape reference implementation](https://kubescape.io/docs/operator/bill-of-behavior/).
 
 
 ## FAQ
