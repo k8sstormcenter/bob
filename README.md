@@ -4,12 +4,11 @@ Imagine a software vendor (like a pharmaceutical company) distills all their kno
 
 GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
 
-> 🚨 This repo is currently a demo while I m working on a bob-agent that your AI can talk to such that an SBOB can be created for any application. DM me if you are an early adopter (on CNCF slack, Linkedin, or [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) ) 
+> 🚨 This repo is currently a demo while I m working on a bob-agent that your AI can talk to such that an SBOB can be created for any application. DM me if you are an early adopter (on CNCF slack, Linkedin, or [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) . You can obviously create your own SBOB by hand, too) 
 
 
-<img width="2775" height="1998" alt="BoBLogoRegistered" src="https://github.com/user-attachments/assets/f78cb80b-e419-44bd-a13b-809ce9cfd4cd" />
 
-“Software Bill of Behavior” (BoB): a vendor-supplied profile that provides contrast between known benign runtime behaviors for software versus attack types.
+“Software Bill of Behavior” (SBOB): a vendor-supplied profile that provides contrast between known benign runtime behaviors for software versus attack types.
 
 It's understood to be an abstraction of linux kernel level behavior to express `intent` across systems:
 
@@ -19,15 +18,26 @@ It's understood to be an abstraction of linux kernel level behavior to express `
   
 We foresee a massive scale benefit for the end-user, who does not have in-depth knowledge of the software by shifting authoring and maintaining custom security policies to the vendor, who knows their own software, has the test cases and can judge what part of the policies should be generalized.
 
-Imagine a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` . Just like a `Container Beipackzettel` 🌡️📦📃🩻
-<img 
+
+
 <img width="3226" height="2744" alt="BoBverticalboth_registered" src="https://github.com/user-attachments/assets/4696c374-289b-4449-9a5d-81f3682c01a2" />
 
+## Example 
 
+A minimal SBOB for redis (the `database` app type)
+
+![redis kill-chain — kubescape rule coverage](example/redis-client/redis-killchain.gif)
+
+
+```bash
+bobctl contrast --profile example/redis-client/sbobs/ap-redis.yaml --type database --expect reads-host-files --strict
+```
 
 
 
 > **Trademark:** Bill of Behavior is a registered trademark by Constanze Roedig, all rights reserved  
+> GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
+> 🚨 This repo is currently a demo while I m working on a bob-agent that your AI can talk to such that an SBOB can be created for any application. DM me if you are an early adopter (on CNCF slack, Linkedin, or [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) . You can obviously create your own SBOB by hand, too) 
 
 
 
@@ -54,14 +64,6 @@ A: This a real-time, user-friendly `addition` to the classical methods, not a co
 
 ---
 
-# Example for Redis
-
-A minimal SBoB for redis (the `database` app type),
-built to make the **egress/ingress contrast** concrete.
-
-![redis kill-chain — kubescape rule coverage](example/redis-client/redis-killchain.gif)
-
-## TLDR — run the contrast test with bobctl
 
 ```bash
 bobctl contrast --profile example/redis-client/sbobs/ap-redis.yaml --type database --expect reads-host-files --strict
@@ -78,7 +80,7 @@ kubectl logs -n honey -l app=node-agent -c node-agent | grep "user defined profi
 
 ```
 
-## What's here
+## What's in the redis-example
 
 | file | role |
 |---|---|
@@ -89,11 +91,9 @@ kubectl logs -n honey -l app=node-agent -c node-agent | grep "user defined profi
 
 An SBoB is a *narrow* envelope that captures system-independent behavior.
 
-## What a detection MEANS — TTP mapping (database lens)
+### What a detection MEANS is different for each application type, but generally mapped to TTPs
 
-When one of these kubescape rules fires against this baseline, here is what it
-tells the end-user.
-Constructing a good SBoB means modelling an attack type (ideally not limited to a particular CVE) and measuring if it is detectable should it ever occur in the wild.
+Constructing a good SBOB means modelling an attack type (ideally not limited to a particular CVE) and measuring if it is detectable should it ever occur in the wild.
 
 | Rule | ATT&CK | Fires when redis… | What it means for you |
 |---|---|---|---|
