@@ -6,7 +6,7 @@ GO ?= go
 GO_VERSION ?= 1.24
 KUBESCAPE_CHART_VER ?= 1.40.3
 
-OUTPUT_PATH := $(BUILD_DIR)/$(OS)/$(ARCH)/$(NAME)
+OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
 
 #CURRENT_CONTEXT := $(shell kubectl config current-context)
@@ -26,7 +26,7 @@ build: $(OUTPUT_PATH)
 $(OUTPUT_PATH): $(GO_FILES)
 	@echo "Building $(NAME) for $(OS)/$(ARCH)..."
 	@mkdir -p $(dir $(OUTPUT_PATH))
-	CGO_ENABLED=0 $(GO) build -trimpath -ldflags="$(GO_LDFLAGS)" -o $(OUTPUT_PATH) ./src/main.go
+	cd pkg && CGO_ENABLED=0 $(GO) build -trimpath -ldflags="$(GO_LDFLAGS)" -o ../$(OUTPUT_PATH) ./main.go
 	@echo "Build complete: $(OUTPUT_PATH)"
 
 .PHONY: clean
@@ -391,37 +391,9 @@ helm: ## Download helm if required
 HELM = $(shell which helm)
 
 
-.PHONY: template
-template:
-	go run src/main.go --input testdata/parameterstudy/oneagent/operatorbobk8somni61.yaml --config src/config.yaml --input-format kubescape --output-format kubescape --input-kernel 6.1.0 --output-kernel 5.15.0 --output myoneagent/bob-dyna-operator.yaml
-
-.PHONY: compare-bobs
-compare-bobs:
-	@echo "Comparing BoBs in $(BOB_DIR1) and $(BOB_DIR2)..."
-	@./testdata/compare.sh $(BOB_DIR1) $(BOB_DIR2)
-
-
-.PHONY: superset-bob
-superset-bob:
-	@echo "Creating superset BoB from $(INPUT_DIR) "
-	$(REPO_ROOT)/testdata/superset.sh $(INPUT_DIR)
-
-
-.PHONY: super-perl
-super-perl:
-	@echo "Creating superset BoB from $(INPUT_DIR) into $(OUTPUT_FILE)..."
-	@perl src/generalize.pl $(INPUT_DIR) $(OUTPUT_FILE)
-
-
 .PHONY: sample-app
 sample-app:
 	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor
-	@kubectl wait --for=condition=ready pod -l app=harbor -n harbor --timeout=600s
-
-.PHONY: sample-app-bob
-sample-app-bob: 	
-	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor-bob
-	./src/bashhelpers/bobapply.sh all-bobs harbor
 	@kubectl wait --for=condition=ready pod -l app=harbor -n harbor --timeout=600s
 
 .PHONY: nothing
