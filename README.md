@@ -1,14 +1,8 @@
 # Software Bill of Behavior SBOB 
-Imagine a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ship it `with each update` . Just like a `Container Beipackzettel` (package insert) 📦📃🩻
+Imagine a software vendor (like a pharmaceutical company) distills all their knowledge of their own testing into a standard file and ships it `with each update` . Just like a Container Package-Insert (Packungsbeilage) 📦📃🩻
 
 
-GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
-
-> 🚨 This repo is currently a demo while I m working on a bob-agent that your AI can talk to such that an SBOB can be created for any application. DM me if you are an early adopter (on CNCF slack, Linkedin, or [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) . You can obviously create your own SBOB by hand, too) 
-
-
-
-“Software Bill of Behavior” (SBOB): a vendor-supplied profile that provides contrast between known benign runtime behaviors for software versus attack types.
+An SBOB is a vendor-supplied profile that provides contrast between known benign and malicious runtime behaviors.
 
 It's understood to be an abstraction of linux kernel level behavior to express `intent` across systems:
 
@@ -16,11 +10,9 @@ It's understood to be an abstraction of linux kernel level behavior to express `
 - **for continuous anomaly detection at runtime**: an updated SBOB with each release allows end-users to calibrate their Detection/Reponse 
 
   
-We foresee a massive scale benefit for the end-user, who does not have in-depth knowledge of the software by shifting authoring and maintaining custom security policies to the vendor, who knows their own software, has the test cases and can judge what part of the policies should be generalized.
-
-
 
 <img width="3226" height="2744" alt="BoBverticalboth_registered" src="https://github.com/user-attachments/assets/4696c374-289b-4449-9a5d-81f3682c01a2" />
+We foresee a massive scale benefit for the end-user, who does not have in-depth knowledge of the software by shifting authoring and maintaining custom security policies to the vendor, who knows their own software, has the test cases and can judge what part of the policies should be generalized.
 
 ## Example 
 
