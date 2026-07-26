@@ -100,6 +100,36 @@ spec:
   - path: /usr/share/coreutils/locales/env/en-US.ftl
     flags:
     - O_RDONLY
+  - path: /opt/java/openjdk/*
+    flags:
+    - O_RDONLY
+  - path: /etc/ld.so.cache
+    flags:
+    - O_RDONLY
+  - path: /etc/krb5/*
+    flags:
+    - O_RDONLY
+  - path: /etc/gss/*
+    flags:
+    - O_RDONLY
+  - path: /etc/locale.alias
+    flags:
+    - O_RDONLY
+  - path: /etc/ssl/*
+    flags:
+    - O_RDONLY
+  - path: /opt/java/openjdk
+    flags:
+    - O_RDONLY
+  - path: /etc/krb5
+    flags:
+    - O_RDONLY
+  - path: /etc/gss
+    flags:
+    - O_RDONLY
+  - path: /etc/ssl
+    flags:
+    - O_RDONLY
   seccompProfile:
     spec:
       defaultAction: ''
