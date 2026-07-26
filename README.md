@@ -13,6 +13,7 @@ It's understood to be an abstraction of linux kernel level behavior to express `
 
 <img width="3226" height="2744" alt="BoBverticalboth_registered" src="https://github.com/user-attachments/assets/4696c374-289b-4449-9a5d-81f3682c01a2" />
 We foresee a massive scale benefit for the end-user, who does not have in-depth knowledge of the software by shifting authoring and maintaining custom security policies to the vendor, who knows their own software, has the test cases and can judge what part of the policies should be generalized.
+
 **Trademark:** Bill of Behavior is a registered trademark by Constanze Roedig, all rights reserved  
 
 ## Example 
