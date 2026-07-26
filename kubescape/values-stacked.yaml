@@ -1,0 +1,35 @@
+# Official released kubescape-operator chart (1.40.3) + the stacked node-agent
+# image for PRs #863 (projection-star fix) + #864 (user-defined AP/NN -> CP
+# migration). Adapted from bob/kubescape/values.yaml.
+#
+#   helm upgrade --install kubescape kubescape/kubescape-operator \
+#     --version 1.40.3 -n honey --create-namespace -f values-stacked.yaml
+#
+# storage: released chart default (v0.0.297) — fully upstream, has the
+# ContainerProfile CRD + apiserver; migration has zero storage delta, so the
+# authored CPs persist identically. Overriding only node-agent keeps this the
+# official released stack.
+nodeAgent:
+  # The stacked image: migrate/sbob = #863 + #864.
+  image:
+    repository: ghcr.io/k8sstormcenter/node-agent
+    tag: "sbob-863864"
+  config:
+    maxLearningPeriod: 2m
+    learningPeriod: 2m
+    updatePeriod: 10000m
+    ruleCooldown:
+      ruleCooldownDuration: 0h
+      ruleCooldownAfterCount: 1000000000
+      ruleCooldownOnProfileFailure: false
+      ruleCooldownMaxSize: 20000
+capabilities:
+  # Required for the enforcement rules (R0005/R0011/R0001/R0003) to fire.
+  runtimeDetection: enable
+  networkEventsStreaming: enable
+alertCRD:
+  installDefault: true
+  scopeClustered: true
+clusterName: sbob863864
+ksNamespace: honey
+excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,local-path-storage,gmp-system,gmp-public,storm,lightening,cert-manager,kube-flannel,ingress-nginx,olm,px-operator,honey,pl,clickhouse,chain-loadgen"

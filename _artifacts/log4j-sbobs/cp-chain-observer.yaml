@@ -1,0 +1,114 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: chain-observer
+  namespace: log4j-poc
+spec:
+  architectures:
+  - amd64
+  imageID: docker.io/library/debian@sha256:60eac759739651111db372c07be67863818726f754804b8707c90979bda511df
+  imageTag: docker.io/library/debian:12-slim
+  execs:
+  - path: /usr/bin/curl
+    args:
+    - /usr/bin/curl
+    - -s
+    - http://chain-frontend:8080/api/products
+  - path: /bin/sleep
+    args:
+    - /bin/sleep
+    - '30'
+  - path: /bin/sh
+    args:
+    - /bin/sh
+    - -c
+  opens:
+  - path: /etc/resolv.conf
+    flags:
+    - O_RDONLY
+  - path: /etc/hosts
+    flags:
+    - O_RDONLY
+  - path: /etc/nsswitch.conf
+    flags:
+    - O_RDONLY
+  - path: /etc/ssl/certs/ca-certificates.crt
+    flags:
+    - O_RDONLY
+  - path: /etc/localtime
+    flags:
+    - O_RDONLY
+  - path: /etc/passwd
+    flags:
+    - O_RDONLY
+  syscalls:
+  - arch_prctl
+  - bind
+  - brk
+  - clone
+  - close
+  - connect
+  - execve
+  - exit
+  - exit_group
+  - fcntl
+  - fstat
+  - futex
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - mmap
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - poll
+  - read
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sendto
+  - setsockopt
+  - socket
+  - statx
+  - write
+  seccompProfile:
+    spec:
+      defaultAction: ''
+  matchLabels:
+    app: chain-observer
+  egress:
+  - identifier: egress-kube-dns
+    ipAddress: ''
+    dns: ''
+    dnsNames: null
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    - name: TCP-53
+      port: 53
+      protocol: TCP
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    type: internal
+  - identifier: egress-chain-frontend
+    ipAddress: ''
+    dns: ''
+    dnsNames: null
+    ports:
+    - name: TCP-8080
+      port: 8080
+      protocol: TCP
+    podSelector:
+      matchLabels:
+        app: chain-frontend
+    namespaceSelector: null
+    type: internal
