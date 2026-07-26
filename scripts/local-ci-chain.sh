@@ -28,7 +28,7 @@
 #   example/chain/{frontend,backend}/         Go services with Dockerfiles
 #   example/chain/chain-attacks.yaml          AttackSuite (4 stages)
 #   example/chain/chain-functional-tests.yaml benign baseline (5 reqs)
-#   example/chain/sbobs/                      exported AP+NN per pod
+#   example/chain/sbobs/                      exported ContainerProfile per pod
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -56,12 +56,12 @@ PUBLISHED_TAG="${CHAIN_PUBLISHED_TAG:-latest}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     # CUSTOMER FLOW (default + --setup-only): apply the pre-shipped
-    # ApplicationProfile / NetworkNeighborhood YAMLs from
-    # example/chain/sbobs/ BEFORE the chain pods start. Pods carry
-    # `kubescape.io/user-defined-profile` + `user-defined-network`
-    # labels referencing those resources by name — node-agent picks
-    # them up directly and skips the learning phase entirely. This is
-    # the "vendor ships sealed sbobs, customer applies and runs" flow.
+    # ContainerProfile YAMLs (one per pod) from
+    # example/chain/sbobs/ BEFORE the chain pods start. Pods carry a
+    # `kubescape.io/user-defined-profile` label referencing that
+    # ContainerProfile by name — node-agent picks it up directly and
+    # skips the learning phase entirely. This is the "vendor ships
+    # sealed sbobs, customer applies and runs" flow.
     --setup-only)    SETUP_ONLY=true ;;
     --attack-only)   ATTACK_ONLY=true ;;
     --teardown)      TEARDOWN=true ;;
@@ -88,8 +88,8 @@ while [[ $# -gt 0 ]]; do
     --extended)      EXTENDED=true ;;
     # VENDOR FLOW: skip applying the pre-shipped sbobs, strip the
     # user-defined-profile labels from chain.yaml at deploy time so
-    # node-agent doesn't try to use the supplied AP/NN (which we
-    # don't want for a fresh learn anyway), then run benign traffic
+    # node-agent doesn't try to use the supplied ContainerProfile (which
+    # we don't want for a fresh learn anyway), then run benign traffic
     # while kubescape learns. The vendor regenerates the sbobs by
     # exporting whatever kubescape sealed and hand-cleaning it
     # (annotation strip + version-segment wildcarding) into
@@ -97,9 +97,10 @@ while [[ $# -gt 0 ]]; do
     # auto-cleanup, but today it's a one-off manual edit.
     --learn-sbobs)   LEARN_SBOBS=true ;;
     # --isolate=<pod>: VERIFICATION FLOW — apply only one pod's
-    # sbobs (user-supplied AP+NN), strip the user-defined-* labels
-    # from the OTHER three pods so they fall back to the normal learn
-    # path. Lets us prove each pod's AP+NN is individually well-formed
+    # sbob (user-supplied ContainerProfile), strip the
+    # user-defined-profile label from the OTHER three pods so they fall
+    # back to the normal learn path. Lets us prove each pod's
+    # ContainerProfile is individually well-formed
     # (node-agent picks it up, the right rules fire on the right pod)
     # without coupling the result to the other three sbobs. Run once
     # per pod to cover the matrix.
@@ -125,8 +126,8 @@ need() { command -v "$1" >/dev/null 2>&1 || die "missing tool: $1"; }
 # use sbobs (CUSTOMER FLOW). --learn-sbobs flips every pod to learning
 # (VENDOR FLOW). --isolate restricts sbob use to one pod (VERIFICATION
 # FLOW) — the remaining three learn, which lets us prove the named
-# pod's AP+NN is individually well-formed without coupling the result
-# to the other three sbobs.
+# pod's ContainerProfile is individually well-formed without coupling
+# the result to the other three sbobs.
 if $LEARN_SBOBS && [[ -n "$ISOLATE" ]]; then
   die "--learn-sbobs and --isolate are mutually exclusive"
 fi
@@ -245,34 +246,30 @@ if ! $ATTACK_ONLY; then
       -e "s|image: ghcr.io/k8sstormcenter/chain-frontend:latest|image: ${CHAIN_FRONTEND_IMG}|" \
     example/chain/chain.yaml > "$CHAIN_MANIFEST"
 
-  # For LEARN_PODS, strip the kubescape.io/user-defined-{profile,network}
-  # labels from the rendered manifest so node-agent ignores any leftover
-  # or supplied sbob for that pod and falls back to the normal learn path.
-  # The label values always equal the pod / deployment name, so we match
-  # the exact line. (Each `chain.yaml` deployment has two such lines
-  # under its `spec.template.metadata.labels` block.)
+  # For LEARN_PODS, strip the kubescape.io/user-defined-profile label from the
+  # rendered manifest so node-agent ignores any leftover or supplied sbob for
+  # that pod and falls back to the normal learn path. The label value always
+  # equals the pod / deployment name, so we match the exact line. (CP migration:
+  # there is no longer a separate user-defined-network label to strip.)
   for p in "${LEARN_PODS[@]}"; do
     sed -i \
       -e "/kubescape.io\/user-defined-profile: $p$/d" \
-      -e "/kubescape.io\/user-defined-network: $p$/d" \
       "$CHAIN_MANIFEST"
   done
 
-  # CUSTOMER FLOW: apply user-supplied sbobs (AP+NN) into $NS BEFORE
-  # the chain pods start so node-agent sees them on first pod start
-  # and skips learning. The sbobs in example/chain/sbobs/ carry
-  # `kubescape.io/managed-by: User` (required by node-agent's
-  # isUserManagedProfile / isUserManagedNN gate) and have stable
-  # workload-name = chain-<role> so the pod's user-defined-* labels
-  # match them by name.
+  # CUSTOMER FLOW: apply the user-supplied ContainerProfile (unified SBoB) into
+  # $NS BEFORE the chain pods start so node-agent sees it on first pod start and
+  # skips learning. Each cp-<role>.yaml carries `kubescape.io/managed-by: User`
+  # (required by node-agent's isUserManaged gate + storage GC) and binds by name
+  # to the pod's kubescape.io/user-defined-profile label. The CP unifies the
+  # former AP+NN pair (process view + inline ingress/egress).
   if [[ ${#SBOB_PODS[@]} -gt 0 ]]; then
     kubectl create namespace "$NS" --dry-run=client -o yaml \
       | kubectl apply -f - >/dev/null
-    log "=== Apply user-supplied sbobs to $NS (${SBOB_PODS[*]}) ==="
+    log "=== Apply user-supplied ContainerProfiles to $NS (${SBOB_PODS[*]}) ==="
     for p in "${SBOB_PODS[@]}"; do
-      kubectl apply -n "$NS" -f "$REPO_ROOT/example/chain/sbobs/ap-$p.yaml" >/dev/null
-      kubectl apply -n "$NS" -f "$REPO_ROOT/example/chain/sbobs/nn-$p.yaml" >/dev/null
-      log "  applied ap/nn for $p"
+      kubectl apply -n "$NS" -f "$REPO_ROOT/example/chain/sbobs/cp-$p.yaml" >/dev/null
+      log "  applied cp for $p"
     done
   fi
 
@@ -291,14 +288,14 @@ if ! $ATTACK_ONLY; then
   # Loadgen lives in its OWN namespace ($LOADGEN_NS) which is listed in
   # bob/kubescape/values.yaml `excludeNamespaces` — node-agent's
   # SkipNamespace path drops the curl pod entirely, so it never lands
-  # in chain-ns ApplicationProfiles and never produces R0001 / R0002
+  # in chain-ns ContainerProfiles and never produces R0001 / R0002
   # noise. (Previously, inline `kubectl run curl-tmp-…` pods ran inside
   # the chain ns, which kubescape observed → polluted sbobs.)
   # Two benign request patterns, both via frontend:
   #   1. /api/products  — frontend → backend → postgres  (HTTP, pg-wire)
   #   2. /api/cache/eval — frontend → redis EVAL (RESP, atomic counter)
-  # Both populate the relevant NetworkNeighborhood edges; without (2)
-  # the chain attack's first redis call would be a NN violation, which
+  # Both populate the relevant ContainerProfile egress edges; without (2)
+  # the chain attack's first redis call would be an egress violation, which
   # would defeat the demo's premise (the eval endpoint is a FEATURE,
   # not a backdoor — the SCRIPT being untrusted is the vuln).
   kubectl delete job chain-loadgen -n "$LOADGEN_NS" --ignore-not-found >/dev/null 2>&1
@@ -324,10 +321,10 @@ if ! $ATTACK_ONLY; then
     log "  waiting for $app profile (completed + execs>0)"
     deadline=$(( $(date +%s) + ${LEARN_WAIT%s} ))
     while [[ $(date +%s) -lt $deadline ]]; do
-      info=$(kubectl get applicationprofile -n "$NS" -o json 2>/dev/null \
+      info=$(kubectl get containerprofile -n "$NS" -o json 2>/dev/null \
         | jq -r --arg app "$app" '
           [.items[] | select(.metadata.name | startswith("replicaset-" + $app))][0]
-          | (.metadata.annotations["kubescape.io/status"] // "missing") + "|" + ((.spec.containers[0].execs // []) | length | tostring)')
+          | (.metadata.annotations["kubescape.io/status"] // "missing") + "|" + ((.spec.execs // []) | length | tostring)')
       status="${info%%|*}"
       execs="${info##*|}"
       if [[ "$status" == "completed" && "$execs" -gt 0 ]]; then
@@ -337,11 +334,9 @@ if ! $ATTACK_ONLY; then
       # If sealed empty, delete + retry. Topping up benign traffic
       # is what gives kubescape something to learn.
       if [[ "$status" == "completed" && "$execs" -eq 0 ]]; then
-        log "    $app: completed-but-empty, deleting AP+NN to force re-learn"
-        ap_name=$(kubectl get applicationprofile -n "$NS" -o json | jq -r --arg app "$app" '[.items[] | select(.metadata.name | startswith("replicaset-" + $app))][0].metadata.name')
-        nn_name=$(kubectl get networkneighborhood -n "$NS" -o json | jq -r --arg app "$app" '[.items[] | select(.metadata.name | startswith("replicaset-" + $app))][0].metadata.name')
-        [[ -n "$ap_name" && "$ap_name" != "null" ]] && kubectl delete applicationprofile -n "$NS" "$ap_name" --ignore-not-found >/dev/null 2>&1
-        [[ -n "$nn_name" && "$nn_name" != "null" ]] && kubectl delete networkneighborhood -n "$NS" "$nn_name" --ignore-not-found >/dev/null 2>&1
+        log "    $app: completed-but-empty, deleting CP to force re-learn"
+        cp_name=$(kubectl get containerprofile -n "$NS" -o json | jq -r --arg app "$app" '[.items[] | select(.metadata.name | startswith("replicaset-" + $app))][0].metadata.name')
+        [[ -n "$cp_name" && "$cp_name" != "null" ]] && kubectl delete containerprofile -n "$NS" "$cp_name" --ignore-not-found >/dev/null 2>&1
         # Force fresh learning by restarting the deployment and
         # generating a burst of benign traffic so the new pod has
         # observable activity during its learning window.

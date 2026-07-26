@@ -24,7 +24,7 @@ SBOB contrast is produced by application type. Redis is an example of `db`
 
 
 ```bash
-bobctl contrast --profile example/redis-client/sbobs/ap-redis.yaml --type database --expect reads-host-files --strict
+bobctl contrast --profile example/redis-client/sbobs/cp-redis.yaml --type database --expect reads-host-files --strict
 ```
 
 
@@ -52,7 +52,7 @@ A: This a real-time, user-friendly `addition` to the classical methods, not a co
 
 
 ```bash
-bobctl contrast --profile example/redis-client/sbobs/ap-redis.yaml --type database --expect reads-host-files --strict
+bobctl contrast --profile example/redis-client/sbobs/cp-redis.yaml --type database --expect reads-host-files --strict
 
 
 kubectl apply -f example/redis-client/sbobs/       

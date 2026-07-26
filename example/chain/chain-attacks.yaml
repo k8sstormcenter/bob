@@ -34,13 +34,13 @@ metadata:
       Stage 1: nothing should fire (legitimate-looking)
       Stage 2: R0001 (new comm), R0010 (sensitive file) fire reliably
       Stage 3: R0001 fires (new comm); the redis→postgres egress is
-               NetworkNeighborhood-novel but R0011 is BLIND-by-design
+               ContainerProfile-egress-novel but R0011 is BLIND-by-design
                (cluster-internal IP — R0011 filters those out).
       Stage 4: R0001 fires (new comm); R0011 fires on the outbound
                TCP to 1.1.1.1:80.
 
-    See example/chain/sbobs/ for the actual learned ApplicationProfiles
-    and NetworkNeighborhoods that bound which alerts can fire.
+    See example/chain/sbobs/ for the actual learned ContainerProfiles
+    that bound which alerts can fire.
 
 target:
   service: chain-frontend
@@ -100,7 +100,7 @@ attacks:
   # round-tripped. THIS is "redis as a postgres client" — the redis
   # container actively talks pg-wire to postgres.
   # bash is NOT in redis's learned profile → R0001 fires.
-  # The egress redis→postgres is NetworkNeighborhood-novel but R0011 is
+  # The egress redis→postgres is ContainerProfile-egress-novel but R0011 is
   # isTriggerAlert=false → BLIND today.
   - name: s3-pivot-redis-as-pg-client
     type: lateral
@@ -139,7 +139,7 @@ attacks:
   # phase here (s6 handles the DNS-anomaly leg via nip.io chunks).
   # (perl is preferred over wget/curl because the redis-vulnerable
   # image ships perl but not wget/curl/nc — see
-  # example/chain/sbobs/ap-chain-redis.yaml.)
+  # example/chain/sbobs/cp-chain-redis.yaml.)
   - name: s4-exfil-to-internet
     type: exfil
     http:

@@ -5,7 +5,7 @@ This doc accompanies the four `e2e-*.yaml` attack suites and the five new
 Scope:
 - four realistic, assume-breach attacker chains against the vulnerable
   Redis in the `redis` namespace
-- five new benign-load patterns that widen the learned ApplicationProfile
+- five new benign-load patterns that widen the learned ContainerProfile
   beyond the per-feature unit tests so the profile matches what production
   Redis traffic actually looks like
 

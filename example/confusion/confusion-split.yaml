@@ -17,7 +17,7 @@
 ## access (R0007), serviceaccount-token reads (R0006), and anything that triggers cross-node
 ## pivots. Real near-misses are lone spawns or lone sensitive reads, independent of each other.
 ##
-## Both APs baseline ONLY {bash, sleep}; recon's recon-tools are unbaselined (R0001),
+## Both CPs baseline ONLY {bash, sleep}; recon's recon-tools are unbaselined (R0001),
 ## fileread's sensitive paths are unbaselined opens (R0002) but it spawns nothing new.
 ## Apply, then bounce so node-agent binds the User profile at pod start.
 ---
@@ -30,7 +30,7 @@ metadata:
 ---
 # ---------------- variant A: recon-only (unexpected-spawn) ----------------
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
-kind: ApplicationProfile
+kind: ContainerProfile
 metadata:
   name: confusion-recon
   namespace: confusion
@@ -46,24 +46,23 @@ metadata:
     kubescape.io/workload-namespace: confusion
 spec:
   architectures: [amd64]
-  containers:
-    - name: confusion
-      imageTag: nicolaka/netshoot:latest
-      capabilities: []
-      execs:                       # ONLY bash + sleep baselined; recon tools => R0001
-        - path: /bin/bash
-          args: ["bash", "-c"]
-        - path: /bin/sleep
-        - path: /usr/bin/sleep
-      opens:                       # curl's normal reads baselined => no spurious R0002
-        - path: /etc/resolv.conf
-          flags: ["O_RDONLY"]
-        - path: /etc/hosts
-          flags: ["O_RDONLY"]
-        - path: /etc/nsswitch.conf
-          flags: ["O_RDONLY"]
-        - path: /etc/ssl
-          flags: ["O_RDONLY"]
+  imageTag: nicolaka/netshoot:latest
+  capabilities: []
+  # No inline ingress/egress: this variant makes NO network calls by design.
+  execs:                       # ONLY bash + sleep baselined; recon tools => R0001
+    - path: /bin/bash
+      args: ["bash", "-c"]
+    - path: /bin/sleep
+    - path: /usr/bin/sleep
+  opens:                       # curl's normal reads baselined => no spurious R0002
+    - path: /etc/resolv.conf
+      flags: ["O_RDONLY"]
+    - path: /etc/hosts
+      flags: ["O_RDONLY"]
+    - path: /etc/nsswitch.conf
+      flags: ["O_RDONLY"]
+    - path: /etc/ssl
+      flags: ["O_RDONLY"]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -76,7 +75,6 @@ spec:
       labels:
         app: confusion-recon
         kubescape.io/user-defined-profile: confusion-recon
-        kubescape.io/user-defined-network: confusion-recon
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
@@ -109,7 +107,7 @@ spec:
 ---
 # ---------------- variant B: fileread-only (sensitive-file-read) ----------------
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
-kind: ApplicationProfile
+kind: ContainerProfile
 metadata:
   name: confusion-fileread
   namespace: confusion
@@ -125,20 +123,19 @@ metadata:
     kubescape.io/workload-namespace: confusion
 spec:
   architectures: [amd64]
-  containers:
-    - name: confusion
-      imageTag: nicolaka/netshoot:latest
-      capabilities: []
-      execs:                       # ONLY bash + sleep; NOTHING else spawns => no R0001
-        - path: /bin/bash
-          args: ["bash", "-c"]
-        - path: /bin/sleep
-        - path: /usr/bin/sleep
-      opens:                       # baseline only innocuous files; sensitive paths NOT here => R0002
-        - path: /etc/resolv.conf
-          flags: ["O_RDONLY"]
-        - path: /etc/hosts
-          flags: ["O_RDONLY"]
+  imageTag: nicolaka/netshoot:latest
+  capabilities: []
+  # No inline ingress/egress: this variant makes NO network calls by design.
+  execs:                       # ONLY bash + sleep; NOTHING else spawns => no R0001
+    - path: /bin/bash
+      args: ["bash", "-c"]
+    - path: /bin/sleep
+    - path: /usr/bin/sleep
+  opens:                       # baseline only innocuous files; sensitive paths NOT here => R0002
+    - path: /etc/resolv.conf
+      flags: ["O_RDONLY"]
+    - path: /etc/hosts
+      flags: ["O_RDONLY"]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -151,7 +148,6 @@ spec:
       labels:
         app: confusion-fileread
         kubescape.io/user-defined-profile: confusion-fileread
-        kubescape.io/user-defined-network: confusion-fileread
     spec:
       topologySpreadConstraints:
         - maxSkew: 1

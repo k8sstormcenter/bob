@@ -1,0 +1,107 @@
+# ContainerProfile (unified SBoB): the process view (execs/opens/
+# syscalls/endpoints/rulePolicies) and the network view (matchLabels/
+# ingress/egress) in ONE object. Replaces the legacy AP+NN pair.
+# Bound by the pod label kubescape.io/user-defined-profile: cleannoise
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: cleannoise
+  namespace: java-poc
+  annotations:
+    kubescape.io/managed-by: User
+    kubescape.io/status: completed
+    kubescape.io/completion: complete
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: cleannoise
+    kubescape.io/workload-namespace: java-poc
+spec:
+  architectures:
+  - amd64
+  imageID: docker.io/library/busybox@sha256:0000000000000000000000000000000000000000000000000000000000000000
+  imageTag: docker.io/library/busybox:1.36
+  execs:
+  - args:
+    - /bin/sh
+    - -c
+    path: /bin/sh
+  - args:
+    - /bin/busybox
+    - wget
+    path: /bin/busybox
+  - args:
+    - /bin/wget
+    path: /bin/wget
+  - args:
+    - /bin/sleep
+    - '0.3'
+    path: /bin/sleep
+  opens:
+  - flags:
+    - O_RDONLY
+    path: /etc/resolv.conf
+  - flags:
+    - O_RDONLY
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    path: /etc/nsswitch.conf
+  syscalls:
+  - arch_prctl
+  - bind
+  - brk
+  - clone
+  - close
+  - connect
+  - execve
+  - exit
+  - exit_group
+  - fcntl
+  - fstat
+  - futex
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - mmap
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - poll
+  - read
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sendto
+  - setsockopt
+  - socket
+  - statx
+  - write
+  capabilities: []
+  endpoints: []
+  seccompProfile:
+    spec:
+      defaultAction: ''
+  rulePolicies: {}
+  matchLabels:
+    app: cleannoise
+  ingress: null
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: 3406f049084b16f5b0234d3140fcf1d3fe5f6e8a1601d90a62456a510c1e0705
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: frontend
+    ports:
+    - name: TCP-80
+      port: 80
+      protocol: TCP
+    type: internal

@@ -98,14 +98,13 @@ This is the **CUSTOMER FLOW**:
 1. Pulls `ghcr.io/k8sstormcenter/chain-frontend:latest` + `chain-backend:latest`
    anonymously (public images, no docker, no auth, no credentials).
 2. Creates the `chain` namespace and applies the four pre-shipped
-   user-supplied sbobs from `example/chain/sbobs/` (`ap-chain-*.yaml` +
-   `nn-chain-*.yaml`) — these carry `kubescape.io/managed-by: User`
-   so node-agent treats them as authoritative.
+   user-supplied sbobs from `example/chain/sbobs/` (`cp-chain-*.yaml`,
+   one unified ContainerProfile per pod) — these carry
+   `kubescape.io/managed-by: User` so node-agent treats them as authoritative.
 3. Deploys 4 components (frontend, backend, redis-vulnerable, postgres:16)
-   into the `chain` namespace. Each pod template has matching
-   `kubescape.io/user-defined-profile: chain-<role>` and
-   `kubescape.io/user-defined-network: chain-<role>` labels, so
-   node-agent picks up the supplied AP+NN by name and **skips
+   into the `chain` namespace. Each pod template carries a
+   `kubescape.io/user-defined-profile: chain-<role>` label, so
+   node-agent picks up the supplied ContainerProfile by name and **skips
    learning entirely**.
 4. Snapshots alertmanager, runs the 4-stage chain attack via `bobctl
    attack`, snapshots alertmanager again.
@@ -248,19 +247,19 @@ extending this demo (or shipping its own sbobs for another app) must
 respect every clause below or node-agent will silently ignore the
 profile and fall back to learning.
 
-### Required AP/NN annotations + labels
+### Required ContainerProfile annotations + labels
 
 ```yaml
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
-kind: ApplicationProfile        # or NetworkNeighborhood
+kind: ContainerProfile          # unified: process view + inline ingress/egress
 metadata:
-  name: chain-<role>            # MUST be stable; pod labels reference this by name
+  name: chain-<role>            # MUST be stable; pod label references this by name
   namespace: chain
   annotations:
     kubescape.io/completion: complete
     kubescape.io/status: completed
-    kubescape.io/managed-by: User   # ← gate. node-agent's isUserManagedProfile()
-                                    #   / isUserManagedNN() check this exact value.
+    kubescape.io/managed-by: User   # ← gate. node-agent's isUserManaged() check +
+                                    #   storage GC require this exact value.
   labels:
     kubescape.io/workload-api-group: apps
     kubescape.io/workload-api-version: v1
@@ -268,28 +267,26 @@ metadata:
     kubescape.io/workload-name: chain-<role>   # MUST match the Deployment name
     kubescape.io/workload-namespace: chain
 spec:
-  # ... (paths, execs, opens, endpoints, ingress/egress) ...
+  # ... execs, opens, endpoints, rulePolicies + inline matchLabels/ingress/egress ...
 ```
 
-### Required pod-side labels (in chain.yaml)
+### Required pod-side label (in chain.yaml)
 
 Each Deployment's `spec.template.metadata.labels` MUST carry:
 
 ```yaml
 kubescape.io/user-defined-profile: chain-<role>
-kubescape.io/user-defined-network:  chain-<role>
 ```
 
-The value of both is the AP/NN resource name, NOT the Deployment name
+The value is the ContainerProfile resource name, NOT the Deployment name
 (they happen to match in this demo for clarity). node-agent's
 `shared_container_data.go` matches pod ↔ profile by these two labels.
 
 ### Source references in node-agent (for anyone extending this)
 
 ```
-pkg/objectcache/applicationprofilecache/applicationprofilecache.go
+pkg/objectcache/containerprofilecache/containerprofilecache.go
                 isUserManagedProfile()                 — managed-by gate
-pkg/objectcache/networkneighborhoodcache/networkneighborhoodcache.go
                 isUserManagedNN()                      — same for NN
 pkg/objectcache/shared_container_data.go               — pod-label match
 tests/resources/known-network-neighborhood.yaml        — canonical shape
@@ -351,9 +348,9 @@ stable names (`chain-postgres`, `chain-redis`, `chain-backend`,
 `chain-frontend`) plus `kubescape.io/managed-by: User`:
 
 ```bash
-kubectl get applicationprofile -n chain -o json | \
+kubectl get containerprofiles -n chain -o json | \
   jq -r '.items[] | select(.metadata.annotations["kubescape.io/managed-by"] == "User") |
-    "\(.metadata.name)  managed-by=User  execs=\(.spec.containers[0].execs|length)"'
+    "\(.metadata.name)  managed-by=User  execs=\(.spec.execs|length)"'
 # Expect 4 lines: chain-{postgres,redis,backend,frontend} each with execs>0.
 ```
 
@@ -363,9 +360,9 @@ for the OTHER three pods, kubescape learns and the CR is named
 and (ideally) `execs > 0`:
 
 ```bash
-kubectl get applicationprofile -n chain -o json | \
+kubectl get containerprofiles -n chain -o json | \
   jq -r '.items[] | select(.metadata.name | startswith("replicaset-chain-")) |
-    "\(.metadata.name)  status=\(.metadata.annotations["kubescape.io/status"])  execs=\(.spec.containers[0].execs|length)"'
+    "\(.metadata.name)  status=\(.metadata.annotations["kubescape.io/status"])  execs=\(.spec.execs|length)"'
 # (the script's wait loop enforces completed+non-empty)
 ```
 
@@ -411,7 +408,7 @@ sudo /usr/local/bin/k3s-uninstall.sh
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `Coverage: 0 / 7 matched` or all BLIND | alertmanager hasn't received events yet | re-run `--attack-only` after 30s |
-| `Coverage: 1 / 7 matched` (only R0010 fires) | redis AP sealed empty (kubescape race in `--learn-sbobs` / `--isolate=<other>` mode) OR the user-supplied redis sbob's execs list got wider than `/usr/local/bin/redis-server` | for the learn-path race, the script's retry loop should handle it; if it didn't, `kubectl delete applicationprofile -n chain -l app=chain-redis` + `kubectl rollout restart deployment/chain-redis -n chain` + re-run `--setup-only`. For the user-supplied path, `kubectl get applicationprofile chain-redis -n chain -o yaml` and confirm `spec.containers[0].execs` lists ONLY `redis-server` |
+| `Coverage: 1 / 7 matched` (only R0010 fires) | redis AP sealed empty (kubescape race in `--learn-sbobs` / `--isolate=<other>` mode) OR the user-supplied redis sbob's execs list got wider than `/usr/local/bin/redis-server` | for the learn-path race, the script's retry loop should handle it; if it didn't, `kubectl delete containerprofile -n chain -l app=chain-redis` + `kubectl rollout restart deployment/chain-redis -n chain` + re-run `--setup-only`. For the user-supplied path, `kubectl get containerprofiles chain-redis -n chain -o yaml` and confirm `spec.containers[0].execs` lists ONLY `redis-server` |
 | Profile has `kubescape.io/managed-by: User` but node-agent still seems to learn | pod labels `kubescape.io/user-defined-{profile,network}: chain-<role>` were stripped / misspelled OR the AP/NN was applied AFTER the pod started | re-apply sbobs, then `kubectl rollout restart deployment/chain-<role> -n chain` — node-agent picks up user-supplied profiles only at pod start |
 | `sandbox_blocked` in step 5(c) | wrong redis image | verify `chain.yaml` references `ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10`, not vanilla `redis:7.2` |
 | `frontend never became ready` | rolling-update race in the script | `kubectl wait --for=condition=ready pod -l app=chain-frontend -n chain --timeout=120s` manually, then re-run `--attack-only` |

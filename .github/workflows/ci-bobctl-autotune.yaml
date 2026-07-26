@@ -336,7 +336,7 @@ jobs:
           ELAPSED=0
           PROFILE=""
           while [ $ELAPSED -lt $TIMEOUT ]; do
-            ALL=$(kubectl get applicationprofiles -n ${{ matrix.app_namespace }} \
+            ALL=$(kubectl get containerprofiles -n ${{ matrix.app_namespace }} \
               -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
               2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
             # Prefer profile matching the app/service name
@@ -356,13 +356,13 @@ jobs:
 
           if [ -z "$PROFILE" ]; then
             echo "WARNING: No profile discovered after ${TIMEOUT}s"
-            kubectl get applicationprofile -n ${{ matrix.app_namespace }} -o wide || true
+            kubectl get containerprofile -n ${{ matrix.app_namespace }} -o wide || true
             PROFILE="unknown"
           fi
 
           echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
           echo "Discovered profile: $PROFILE"
-          kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
+          kubectl get containerprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
 
       # ---------- Generic contrast check (type-envelope test) ----------
       # Migrates CI from purely per-app tune-score gating toward the generic,
@@ -512,7 +512,7 @@ jobs:
       # ---------- Cross-pod endpoint test (Redis only) ----------
       # Attacks from redis-client pod → Redis service over the network.
       # Tests endpoint detection: node-agent sees real pod-to-pod traffic.
-      # Verifies whether port=0 wildcard in ApplicationProfile allows any port.
+      # Verifies whether port=0 wildcard in ContainerProfile allows any port.
       - name: "Run Redis cross-pod endpoint test"
         if: matrix.protocol == 'redis'
         run: |
@@ -557,7 +557,7 @@ jobs:
 
           # Dump learned profile endpoints for verification
           echo "  Profile endpoints:"
-          kubectl get applicationprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{range .spec.containers[*]}{.name}={.endpoints}{" "}{end}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
+          kubectl get containerprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{.spec.endpoints}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
 
           sleep 10
 
@@ -591,7 +591,7 @@ jobs:
             || { echo "STRESS SUITE FAILED"; exit 1; }
 
       # ---------- Verification ----------
-      - name: Export best tuned ApplicationProfile
+      - name: Export best tuned ContainerProfile
         if: always()
         run: |
           mkdir -p results
@@ -601,7 +601,7 @@ jobs:
             BEST_FILE="results/${{ steps.profile.outputs.name }}-iteration${BEST_ITER}.yaml"
             if [ -n "$BEST_ITER" ] && [ -f "$BEST_FILE" ]; then
               echo "Best iteration: $BEST_ITER (from metrics.json)"
-              # Produce a clean, kubectl-applyable ApplicationProfile.
+              # Produce a clean, kubectl-applyable ContainerProfile.
               # See scripts/clean-profile.py for the full filter logic.
               if ! python3 scripts/clean-profile.py "$BEST_FILE" results/best-profile.yaml; then
                 echo "WARNING: clean-profile.py failed, falling back to grep"

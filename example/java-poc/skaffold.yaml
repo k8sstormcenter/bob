@@ -6,7 +6,7 @@
 # compose: soc stack first, then these apps.
 #
 # Deploy order matters: namespaces -> SBoBs -> workloads. A user-defined
-# ApplicationProfile/NetworkNeighborhood must EXIST before the pod starts, or the
+# ContainerProfile must EXIST before the pod starts, or the
 # node-agent binds a learnt sibling profile instead (never the User one). The
 # rawYaml list below is applied in order so the SBoBs land first.
 #
@@ -23,16 +23,11 @@ manifests:
     # 1) namespaces
     - 00-namespaces.yaml
     # 2) user-defined SBoBs (must precede the pods they bind)
-    - sbobs/backend-ap.yaml
-    - sbobs/backend-nn.yaml
-    - sbobs/frontend-ap.yaml
-    - sbobs/frontend-nn.yaml
-    - sbobs/observer-ap.yaml
-    - sbobs/observer-nn.yaml
-    - sbobs/postgres-ap.yaml
-    - sbobs/postgres-nn.yaml
-    - sbobs/cleannoise-ap.yaml
-    - sbobs/cleannoise-nn.yaml
+    - sbobs/backend-cp.yaml
+    - sbobs/frontend-cp.yaml
+    - sbobs/observer-cp.yaml
+    - sbobs/postgres-cp.yaml
+    - sbobs/cleannoise-cp.yaml
     # 3) workloads
     - 10-postgres.yaml
     - 20-frontend.yaml

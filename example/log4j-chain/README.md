@@ -81,7 +81,7 @@ example/log4j-chain/
 ├── frontend/                          nginx ConfigMap + Deployment
 ├── postgres/                          standalone postgres manifest (used by
 │                                       log4j-chain.yaml indirectly)
-└── kubescape/                         pre-baked ApplicationProfiles +
+└── kubescape/                         pre-baked ContainerProfiles +
                                        RuntimeRuleAlertBinding (R1100 etc.)
 ```
 
@@ -124,7 +124,7 @@ This directory is structured so `bobctl-tune` can consume it:
 The three sbobs produced per scenario become the discriminator catalog
 for active-diagnosis decision trees.
 
-## Detection narrative (with kubescape ApplicationProfile baseline)
+## Detection narrative (with kubescape ContainerProfile baseline)
 
 Each scenario produces a distinct kubescape rule-fire signature:
 

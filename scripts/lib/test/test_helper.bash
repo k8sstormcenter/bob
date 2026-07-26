@@ -34,9 +34,8 @@ _cleanup() { rm -rf "$_TMP"; }
 #                         query (default "User")
 #   MOCK_DEPLOY_RC        exit code for `kubectl get deploy <n>`
 #                         (default 0 = exists)
-#   MOCK_AP_LIST_JSON     file whose contents are returned for
-#                         `kubectl get applicationprofile -n <ns> -o json`
-#   MOCK_NN_LIST_JSON     same for networkneighborhood list
+#   MOCK_CP_LIST_JSON     file whose contents are returned for
+#                         `kubectl get containerprofile -n <ns> -o json`
 install_mocks() {
   export KUBECTL_LOG="$_TMP/kubectl.log"
   export SLEEP_LOG="$_TMP/sleep.log"
@@ -52,14 +51,11 @@ case " $* " in *" -f - "*) cat >/dev/null 2>&1 || true ;; esac
 
 verb=$1; kind=${2:-}
 case "$verb $kind" in
-  "get applicationprofile"|"get networkneighborhood")
-    # List form: `get <kind> -n <ns> -o json` (3rd arg starts with -).
+  "get containerprofile")
+    # List form: `get containerprofile -n <ns> -o json` (3rd arg starts with -).
     if [[ "${3:-}" == -* ]]; then
-      if [[ "$kind" == applicationprofile && -n "${MOCK_AP_LIST_JSON:-}" ]]; then
-        cat "$MOCK_AP_LIST_JSON"; exit 0
-      fi
-      if [[ "$kind" == networkneighborhood && -n "${MOCK_NN_LIST_JSON:-}" ]]; then
-        cat "$MOCK_NN_LIST_JSON"; exit 0
+      if [[ -n "${MOCK_CP_LIST_JSON:-}" ]]; then
+        cat "$MOCK_CP_LIST_JSON"; exit 0
       fi
       echo '{"items":[]}'; exit 0
     fi

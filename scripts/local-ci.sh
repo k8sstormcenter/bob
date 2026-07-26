@@ -181,7 +181,7 @@ if ! $TUNE_ONLY; then
   ELAPSED=0
   PROFILE=""
   while [ $ELAPSED -lt $TIMEOUT ]; do
-    ALL_COMPLETED=$(kubectl get applicationprofiles -n "$APP_NS" \
+    ALL_COMPLETED=$(kubectl get containerprofiles -n "$APP_NS" \
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
@@ -209,7 +209,7 @@ else
   else
     # Discover from cluster — prefer profile whose name contains the app/service name
     log "Discovering completed profiles in $APP_NS..."
-    ALL_LEARNED=$(kubectl get applicationprofiles -n "$APP_NS" \
+    ALL_LEARNED=$(kubectl get containerprofiles -n "$APP_NS" \
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
@@ -371,7 +371,7 @@ if [[ "$APP" == "redis" ]]; then
 
     # Dump the learned profile's endpoints for verification
     log "  Profile endpoints:"
-    kubectl get applicationprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{range .spec.containers[*]}{.name}={.endpoints}{" "}{end}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
+    kubectl get containerprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{.spec.endpoints}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
 
     sleep 10
   else
@@ -402,7 +402,7 @@ if tested:
   BEST_FILE="results/${PROFILE}-iteration${BEST_ITER}.yaml"
   if [[ -n "$BEST_ITER" ]] && [[ -f "$BEST_FILE" ]]; then
     log "Best iteration: $BEST_ITER"
-    # Produce a clean, kubectl-applyable ApplicationProfile.
+    # Produce a clean, kubectl-applyable ContainerProfile.
     # See scripts/clean-profile.py for the full filter logic.
     if python3 "$SCRIPT_DIR/clean-profile.py" "$BEST_FILE" results/best-profile.yaml 2>/dev/null; then
       log "Best profile: results/best-profile.yaml"

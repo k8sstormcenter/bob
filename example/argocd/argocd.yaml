@@ -9,12 +9,11 @@
 #   2. kubectl apply -n argocd -f \
 #        https://raw.githubusercontent.com/argoproj/argo-cd/v2.9.3/manifests/core-install.yaml
 #   3. kubectl apply -f example/argocd/argocd.yaml        # this file
-#   4. # bind the tuned User SBoBs (node-agent loads them at pod start):
-#      kubectl delete applicationprofile,networkneighborhood argocd-repo-server -n argocd --ignore-not-found
-#      kubectl apply -n argocd -f example/argocd/sbobs/ap-app.yaml
-#      kubectl apply -n argocd -f example/argocd/sbobs/nn-app.yaml
+#   4. # bind the tuned User SBoB (node-agent loads it at pod start):
+#      kubectl delete containerprofile argocd-repo-server -n argocd --ignore-not-found
+#      kubectl apply -n argocd -f example/argocd/sbobs/cp-app.yaml
 #      kubectl patch deployment argocd-repo-server -n argocd --type merge -p \
-#        '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"argocd-repo-server","kubescape.io/user-defined-network":"argocd-repo-server"}}}}}'
+#        '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"argocd-repo-server"}}}}}'
 #      kubectl rollout restart deployment/argocd-repo-server -n argocd
 #   5. kubectl apply -f example/argocd/attack-pod.yaml     # adv attacker + probe Application
 #

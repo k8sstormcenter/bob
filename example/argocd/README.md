@@ -26,7 +26,7 @@ app-b.yaml app-c.yaml     scenario B / C image swaps
 functional-tests.yaml     benign GitOps baseline (drives SBOB learning)
 attacks.yaml              the three-scenario attack suite (same payload)
 attack-pod.yaml           in-cluster pod that registers + syncs the probe Application
-sbobs/{ap,nn}-{app,observer}.yaml   hand-crafted v1 SBOBs (iterate from observed alerts)
+sbobs/cp-{app,observer}.yaml   hand-crafted v1 SBOBs — one ContainerProfile per workload (process + inline network)
 ```
 
 ## Apply the SBOBs (pixie-agent path)
@@ -34,12 +34,11 @@ sbobs/{ap,nn}-{app,observer}.yaml   hand-crafted v1 SBOBs (iterate from observed
 ```bash
 cd example/argocd
 
-# Delete-first to avoid the strategic-merge-patch strip, then apply.
+# Delete-first to avoid the strategic-merge-patch strip, then apply the
+# single unified ContainerProfile (process view + inline network).
 for p in app observer; do
-  kubectl delete applicationprofile  "$p" -n argocd --ignore-not-found
-  kubectl delete networkneighborhood "$p" -n argocd --ignore-not-found
-  kubectl apply -n argocd -f sbobs/ap-$p.yaml
-  kubectl apply -n argocd -f sbobs/nn-$p.yaml
+  kubectl delete containerprofile "$p" -n argocd --ignore-not-found
+  kubectl apply -n argocd -f sbobs/cp-$p.yaml
 done
 
 # Patch the deployments to reference the User profiles, then restart

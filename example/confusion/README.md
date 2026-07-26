@@ -44,9 +44,9 @@ kubectl -n confusion rollout status deploy/confusion-loadgen
 ```
 
 The namespace is **monitored** (no `kubescape.io/ignore`); the tight User
-`ApplicationProfile` baselines only the entrypoint shell, so every recon tool the
-loop spawns is an unexpected process (**R0001**), and the `NetworkNeighborhood`
-baselines only kube-dns so the odd-port egress deviates.
+`ContainerProfile` baselines only the entrypoint shell, so every recon tool the
+loop spawns is an unexpected process (**R0001**), and its inline egress baselines
+only kube-dns so the odd-port egress deviates.
 
 ## Dialing the ~99.999% ratio
 

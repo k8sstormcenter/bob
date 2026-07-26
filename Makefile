@@ -334,15 +334,16 @@ enable-streaming:
 	$(MAKE) verify-streaming
 
 # Fail loud if node-agent network streaming is not actually live. Without it
-# the shipped NetworkNeighborhood is inert and R0005 (DNS) / R0011 (egress)
-# silently never fire — which reads as "clean" when it is really "blind".
+# the profile's inline network shape (ingress/egress) is inert and R0005 (DNS) /
+# R0011 (egress) silently never fire — which reads as "clean" when it is really
+# "blind".
 .PHONY: verify-streaming
 verify-streaming:
 	@echo "Verifying node-agent networkStreamingEnabled is live..."
 	@kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' \
 		| python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("networkStreamingEnabled") is True else 1)' \
 		&& echo "OK: networkStreamingEnabled=true (R0005/R0011 can fire)" \
-		|| { echo "ERROR: node-agent networkStreamingEnabled != true — NetworkNeighborhood is inert; R0005 (DNS) and R0011 (egress) will silently never fire. Re-run 'make kubescape' or see docs/portability-spec.md D7a."; exit 1; }
+		|| { echo "ERROR: node-agent networkStreamingEnabled != true — the profile's inline network is inert; R0005 (DNS) and R0011 (egress) will silently never fire. Re-run 'make kubescape' or see docs/portability-spec.md D7a."; exit 1; }
 
 .PHONY: alertmanager
 alertmanager:

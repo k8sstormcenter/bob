@@ -22,11 +22,11 @@
 ##   Collection: sensitiveFileRead (/etc/passwd, .kube/config, serviceaccount/token) -> R0002
 ##
 ## SBoB recipe (so the near-misses actually FIRE as kubescape referrals):
-##   the ns is MONITORED (no kubescape.io/ignore). A tight User ApplicationProfile
+##   the ns is MONITORED (no kubescape.io/ignore). A tight User ContainerProfile
 ##   baselines ONLY the entrypoint shell — so every recon tool the loop spawns is an
-##   unexpected process (R0001), and the NetworkNeighborhood baselines only kube-dns
-##   so the odd-port egress deviates. AP/NN are applied User-managed + the Deployment
-##   carries the bind labels; apply this whole file, then bounce the pods so node-agent
+##   unexpected process (R0001), and its inline egress baselines only kube-dns
+##   so the odd-port egress deviates. The CP is applied User-managed + the Deployment
+##   carries the bind label; apply this whole file, then bounce the pods so node-agent
 ##   binds the User profile at pod start.
 ##
 ## SCALE for the ~99.999% ratio: bump .spec.replicas (each replica is a distinct
@@ -42,7 +42,7 @@ metadata:
     app.kubernetes.io/part-of: confusion-loadgen
 ---
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
-kind: ApplicationProfile
+kind: ContainerProfile
 metadata:
   name: confusion-loadgen
   namespace: confusion
@@ -58,44 +58,26 @@ metadata:
     kubescape.io/workload-namespace: confusion
 spec:
   architectures: [amd64]
-  containers:
-    - name: confusion
-      imageTag: nicolaka/netshoot:latest
-      capabilities: []
-      # Baseline = ONLY the entrypoint shell loop. Every recon tool the loop
-      # spawns (curl/nslookup/dig/nc/wget) is therefore an UNEXPECTED process
-      # -> R0001 -> dx referral -> malignant workup -> ruled_out.
-      execs:
-        - path: /bin/bash
-          args: ["bash", "-c"]
-      opens:
-        - path: /etc/resolv.conf
-          flags: ["O_RDONLY"]
-        - path: /etc/hosts
-          flags: ["O_RDONLY"]
-        - path: /etc/nsswitch.conf
-          flags: ["O_RDONLY"]
----
-apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
-kind: NetworkNeighborhood
-metadata:
-  name: confusion-loadgen
-  namespace: confusion
-  annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
-    kubescape.io/managed-by: User
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: confusion-loadgen
-    kubescape.io/workload-namespace: confusion
-spec:
+  imageTag: nicolaka/netshoot:latest
+  capabilities: []
+  # Baseline = ONLY the entrypoint shell loop. Every recon tool the loop
+  # spawns (curl/nslookup/dig/nc/wget) is therefore an UNEXPECTED process
+  # -> R0001 -> dx referral -> malignant workup -> ruled_out.
+  execs:
+    - path: /bin/bash
+      args: ["bash", "-c"]
+  opens:
+    - path: /etc/resolv.conf
+      flags: ["O_RDONLY"]
+    - path: /etc/hosts
+      flags: ["O_RDONLY"]
+    - path: /etc/nsswitch.conf
+      flags: ["O_RDONLY"]
+  # Network shape is inline on the ContainerProfile. Baseline egress = kube-dns
+  # only; the loop's C2/uncommon-port connects all deviate from this -> egress
+  # symptom.
   matchLabels:
     app: confusion-loadgen
-  # Baseline egress = kube-dns only. The loop's C2/uncommon-port connects all
-  # deviate from this -> egress symptom.
   egress:
     - identifier: kube-dns
       dns: kube-dns.kube-system.svc.cluster.local
@@ -124,7 +106,6 @@ spec:
         app: confusion-loadgen
         # bind to the User SBoB above so node-agent enforces from pod start.
         kubescape.io/user-defined-profile: confusion-loadgen
-        kubescape.io/user-defined-network: confusion-loadgen
     spec:
       # spread replicas so both nodes generate referrals
       topologySpreadConstraints:
