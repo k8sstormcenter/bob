@@ -9,14 +9,22 @@ spec:
   imageID: docker.io/library/postgres@sha256:54c00787dc4e66a69c51e05cb86eead99a3ff2fc04a98bdce6f5cd1130fdbb56
   imageTag: docker.io/library/postgres:15-bookworm
   capabilities:
+  - CAP_AUDIT_WRITE
   - CAP_CHOWN
   - CAP_DAC_OVERRIDE
   - CAP_DAC_READ_SEARCH
   - CAP_FOWNER
   - CAP_FSETID
   - CAP_KILL
+  - CAP_MKNOD
+  - CAP_NET_ADMIN
+  - CAP_NET_BIND_SERVICE
+  - CAP_NET_RAW
+  - CAP_SETFCAP
   - CAP_SETGID
+  - CAP_SETPCAP
   - CAP_SETUID
+  - CAP_SYS_CHROOT
   execs:
   - path: /usr/lib/postgresql/16/bin/postgres
     args:
