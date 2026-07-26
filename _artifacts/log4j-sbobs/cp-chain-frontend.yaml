@@ -55,6 +55,72 @@ spec:
     flags:
     - O_WRONLY
     - O_CREAT
+  - path: /var/lib/dpkg/*
+    flags:
+    - O_RDONLY
+  - path: /var/lib/apt/*
+    flags:
+    - O_RDONLY
+  - path: /etc/apt/*
+    flags:
+    - O_RDONLY
+  - path: /etc/dpkg/*
+    flags:
+    - O_RDONLY
+  - path: /etc/ssl/*
+    flags:
+    - O_RDONLY
+  - path: /etc/ca-certificates/*
+    flags:
+    - O_RDONLY
+  - path: /etc/ld.so.conf.d/*
+    flags:
+    - O_RDONLY
+  - path: /etc/ld.so.cache
+    flags:
+    - O_RDONLY
+  - path: /usr/local/share/ca-certificates/*
+    flags:
+    - O_RDONLY
+  - path: /etc/group
+    flags:
+    - O_RDONLY
+  - path: /etc/host.conf
+    flags:
+    - O_RDONLY
+  - path: /etc/gai.conf
+    flags:
+    - O_RDONLY
+  - path: /var/log/apt/*
+    flags:
+    - O_RDONLY
+  - path: /var/lib/dpkg
+    flags:
+    - O_RDONLY
+  - path: /var/lib/apt
+    flags:
+    - O_RDONLY
+  - path: /etc/apt
+    flags:
+    - O_RDONLY
+  - path: /etc/dpkg
+    flags:
+    - O_RDONLY
+  - path: /etc/ssl
+    flags:
+    - O_RDONLY
+  - path: /etc/ca-certificates
+    flags:
+    - O_RDONLY
+  - path: /etc/ld.so.conf.d
+    flags:
+    - O_RDONLY
+  - path: /usr/local/share/ca-certificates
+    flags:
+    - O_RDONLY
+  - path: /var/log/apt
+    flags:
+    - O_RDONLY
   seccompProfile:
     spec:
       defaultAction: ''
