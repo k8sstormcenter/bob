@@ -39,7 +39,7 @@ This repo is currently a demo while I m working on a bob-agent that your AI can 
 
 
 ### Format/Spec
-Draft [Specification]([https://billofbehavior.com/spec](https://billofbehavior.com/bob/docs/spec/)) for the Kubescape reference implementation.
+Draft [Specification](https://billofbehavior.com/bob/docs/spec/) for the Kubescape reference implementation.
 
 
 ## FAQ
