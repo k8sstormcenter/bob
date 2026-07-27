@@ -1,7 +1,16 @@
-# No image overrides: use the upstream node-agent/storage shipped by the pinned
-# kubescape-operator chart (KUBESCAPE_CHART_VER in the Makefile). The old
-# ghcr.io/k8sstormcenter/*:sbob-rc1 fork images are retired.
+# Image overrides: pin the SBoB rc4 fork of node-agent + storage (the unified
+# ContainerProfile stack — node-agent binds a single CP by the
+# kubescape.io/user-defined-profile pod label; storage serves the ContainerProfile
+# CRD). The kubescape-operator chart (KUBESCAPE_CHART_VER in the Makefile) still
+# provides operator/kubevuln/etc. at their upstream versions.
+storage:
+  image:
+    repository: ghcr.io/k8sstormcenter/storage
+    tag: sbob-rc4
 nodeAgent:
+  image:
+    repository: ghcr.io/k8sstormcenter/node-agent
+    tag: sbob-rc4
   config:
     # Always export alerts to the in-cluster alertmanager. Kept HERE (not set
     # post-hoc by `make alertmanager`) so it survives every `helm upgrade` —

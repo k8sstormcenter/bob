@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Clean an ApplicationProfile YAML for kubectl apply.
+Clean a ContainerProfile YAML for kubectl apply.
 
 Usage: clean-profile.py <input.yaml> <output.yaml>
 
@@ -29,7 +29,10 @@ KUBESCAPE_ANNOTATION_PREFIXES = (
 
 def clean(p):
     p["apiVersion"] = "spdx.softwarecomposition.kubescape.io/v1beta1"
-    p["kind"] = "ApplicationProfile"
+    # CP migration: the tuner emits ContainerProfiles (unified flat spec with
+    # inline ingress/egress). This cleaner is spec-agnostic (it only scrubs
+    # metadata), so preserve the input's kind and default to ContainerProfile.
+    p["kind"] = p.get("kind") or "ContainerProfile"
 
     m = p.setdefault("metadata", {})
     for k in VOLATILE_META:
