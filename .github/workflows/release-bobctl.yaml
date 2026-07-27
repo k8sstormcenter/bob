@@ -145,7 +145,12 @@ jobs:
 
       - name: Create release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITHUB_TOKEN cannot create releases here: the org disables write
+          # permissions for the Actions token ("Write permissions for workflows
+          # are disabled by the organization"), so `gh release create` 403s.
+          # Use the ENTLEIN_PAT user token (already used for private-submodule
+          # checkout), which is not subject to that GITHUB_TOKEN restriction.
+          GH_TOKEN: ${{ secrets.ENTLEIN_PAT }}
         run: |
           gh release create "${{ steps.tag.outputs.tag }}" \
             --repo "${{ github.repository }}" \
