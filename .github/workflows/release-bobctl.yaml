@@ -114,6 +114,11 @@ jobs:
     # them from the workflow run directly instead of cutting a release.
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    # Grant the release job the write it needs for `gh release create`.
+    # (The org sets the default token to read-only; declaring it here at the job
+    # level requests write for GITHUB_TOKEN on this job.)
+    permissions:
+      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -145,17 +150,18 @@ jobs:
 
       - name: Create release
         env:
-          # GITHUB_TOKEN cannot create releases here: the org disables write
-          # permissions for the Actions token ("Write permissions for workflows
-          # are disabled by the organization"), so `gh release create` 403s.
-          # Use the ENTLEIN_PAT user token (already used for private-submodule
-          # checkout), which is not subject to that GITHUB_TOKEN restriction.
-          GH_TOKEN: ${{ secrets.ENTLEIN_PAT }}
+          # Standard GITHUB_TOKEN for the OUTER repo (ENTLEIN_PAT is only for the
+          # private pkg submodule and can't cut releases on this repo — it 403s /
+          # asks for the 'workflow' scope). The job-level `permissions:
+          # contents: write` above is what lets GITHUB_TOKEN create the release.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # No --target: the tag already points at the release commit, so we
+          # don't touch a ref (which would otherwise demand 'workflow' scope when
+          # the tagged commit modifies .github/workflows/).
           gh release create "${{ steps.tag.outputs.tag }}" \
             --repo "${{ github.repository }}" \
             --title "${{ steps.tag.outputs.title }}" \
             --prerelease=${{ steps.tag.outputs.prerelease }} \
             --generate-notes \
-            --target "${{ github.sha }}" \
             release/bobctl-*
