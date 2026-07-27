@@ -36,28 +36,40 @@ on:
 
 jobs:
   build:
-    name: Fetch released bobctl
+    name: Build bobctl
     runs-on: ubuntu-latest
     steps:
-      # Use the RELEASED bobctl binary (the ContainerProfile-native build cut by
-      # release-bobctl.yaml on a v-tag) rather than building from source here.
-      # This exercises the exact artifact users get. `gh release download` with
-      # no tag resolves the latest non-draft release; its bobctl-linux-amd64
-      # asset is renamed to bin/bobctl so the tune job's download-artifact
-      # (name: bobctl) is unchanged.
-      - name: Download the latest released bobctl binary
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repo and private submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.ENTLEIN_PAT}}
+
+      - name: Clone storage dependency
         run: |
-          mkdir -p bin
-          gh release download \
-            --repo "${{ github.repository }}" \
-            --pattern 'bobctl-linux-amd64' \
-            --dir bin
-          mv bin/bobctl-linux-amd64 bin/bobctl
-          chmod +x bin/bobctl
-          echo "Released bobctl version:"
-          bin/bobctl version 2>/dev/null || bin/bobctl --help | head -1
+          # main now carries the v0.0.2 NetworkNeighbor refactor that
+          # bobctl's network_collapse.go depends on (the prior
+          # merge/upstream-profile-rearch branch was merged into main
+          # and deleted upstream on 2026-05-16; CI built green on
+          # that SHA but the very next push failed with "Remote branch
+          # merge/upstream-profile-rearch not found").
+          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
+
+      - name: Verify layout
+        run: |
+          ls pkg/go.mod pkg/main.go
+          ls ../storage/go.mod
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: pkg/go.sum
+
+      - name: Build bobctl
+        working-directory: pkg
+        run: |
+          go build -o ../bin/bobctl ./main.go
 
       - name: Upload bobctl binary
         uses: actions/upload-artifact@v4

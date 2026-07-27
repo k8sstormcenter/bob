@@ -348,10 +348,14 @@ verify-streaming:
 .PHONY: alertmanager
 alertmanager:
 	@echo "Deploying alertmanager in honey namespace..."
+	kubectl create namespace honey --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n honey -f kubescape/alertmanager.yaml
 	kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 	@echo "Reconciling node-agent config (exporter is in values.yaml; re-assert streaming)..."
-	$(HELM) upgrade kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --values kubescape/values.yaml
+	# upgrade --install (not bare upgrade): idempotent, and does not require the
+	# kubescape release to pre-exist — so `make alertmanager` works on a fresh
+	# cluster / standalone, same as `make kubescape`.
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
 	$(MAKE) enable-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
