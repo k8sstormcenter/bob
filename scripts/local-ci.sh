@@ -156,6 +156,17 @@ if ! $TUNE_ONLY; then
   log "Deploy complete. Pods in $APP_NS:"
   kubectl get pods -n "$APP_NS" || true
 
+  # k3s live-event reliability: node-agent's LIVE container-start eBPF events are
+  # unreliable on some k3s kernels — a container that starts BEFORE node-agent
+  # observes it never gets a runtime profile (learn then times out with an empty
+  # or partial ContainerProfile). node-agent DOES enumerate already-running
+  # containers at startup, so restart it AFTER the app is deployed+running: it
+  # re-enumerates the live containers and learns a complete profile. Idempotent
+  # and harmless where live events already work. (See project learning-race note.)
+  log "=== Restart node-agent to enumerate freshly-deployed $APP ==="
+  kubectl -n "$KS_NS" rollout restart ds/node-agent
+  kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=180s || true
+
   # ── learn: exercise app + poll for completed profile ────────────────────────
   log "=== Learn $APP ==="
   MATCH="${APP_PROFILE_MATCH:-$APP}"
