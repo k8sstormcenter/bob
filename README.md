@@ -51,13 +51,58 @@ A: This a real-time, user-friendly `addition` to the classical methods, not a co
 ---
 
 
+## Run the redis case end-to-end
+
+Every command below was run on a fresh k3s against the rc4 (ContainerProfile) stack.
+
+**Get bobctl** (x86_64, no auth — public release):
+```bash
+curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/latest/download/bobctl-linux-amd64
+chmod +x bobctl && sudo mv bobctl /usr/local/bin/
+```
+
+**1. Static contrast** — is this SBoB inside the `database` envelope? (file-based, no cluster)
 ```bash
 bobctl contrast --profile example/redis-client/sbobs/cp-redis.yaml --type database --expect reads-host-files --strict
+# → coverage: 29 Separable / 0 Ambiguous / 0 Blind
+```
 
+**2. Install the rc4 kubescape stack** (pins node-agent + storage `sbob-rc4`; serves the ContainerProfile CRD):
+```bash
+make kubescape      # helm install with kubescape/values.yaml (rc4 image pins)
+make alertmanager   # so detections are queryable
+```
 
-kubectl apply -f example/redis-client/sbobs/       
-kubectl apply -f example/redis-client/redis.yaml   
-kubectl apply -f example/redis-client/client.yaml  
+**3. Deploy redis + bind the ContainerProfile** — the pod label `kubescape.io/user-defined-profile: redis` binds `cp-redis.yaml` (the single unified SBoB):
+```bash
+kubectl apply -f example/redis-client/sbobs/       # cp-redis.yaml (managed-by: User)
+kubectl apply -f example/redis-client/redis.yaml   # redis, carries the bind label
+kubectl apply -f example/redis-client/client.yaml  # the one allowed client
+# node-agent binds it (restart it if it started before the pod):
+kubectl -n honey logs -l app=node-agent -c node-agent | grep "user defined profile"
+# → "container has a user defined profile"  profile=redis
+```
+
+**4. Contrast in action** — a non-redis exec fires R0001 against the bound CP; benign redis traffic produces zero false positives:
+```bash
+kubectl -n redis-demo exec deploy/redis -c redis -- whoami        # canary
+kubectl -n honey logs -l app=node-agent -c node-agent | grep -F '"namespace":"redis-demo"' | grep R0001
+# → R0001 /usr/bin/whoami   (the redis SBoB allows only redis-server/redis-cli)
+```
+
+**5. Run the attack suite with bobctl** — RESP + exec kill-chain against a target redis
+(`-n` selects the namespace; the suite lands its exploits on the `redis-vulnerable` image):
+```bash
+bobctl attack --attack-suite example/redis-attacks.yaml -n redis --service redis --service-port 6379 --format table
+```
+
+**Auto-tune it** — learn benign (functional suite) + run attacks + minimise with wildcards, scored:
+```bash
+bobctl tune --profile <learned-cp-name> \
+  --functional-tests example/redis-functional-tests.yaml \
+  --attack-suite example/redis-attacks.yaml \
+  --service redis --service-port 6379 --ks-namespace honey -n redis
+# → Result: PERFECT — all attacks detected, zero false positives
 ```
 
 ## What's in the redis-example
