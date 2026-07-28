@@ -90,10 +90,13 @@ kubectl -n honey logs -l app=node-agent -c node-agent | grep -F '"namespace":"re
 # → R0001 /usr/bin/whoami   (the redis SBoB allows only redis-server/redis-cli)
 ```
 
-**5. Run the attack suite with bobctl** — RESP + exec kill-chain against a target redis
-(`-n` selects the namespace; the suite lands its exploits on the `redis-vulnerable` image):
+**5. Run the attack suite with bobctl** — RESP + exec kill-chain against redis-demo.
+`redis.yaml` ships the **redis-vulnerable** image, so the Lua-escape / RediShell
+exploits actually execute; the bound SBoB then catches them (R0001 spawned
+`sh`/`perl`, R0002 payload file reads) while the benign functional suite stays at
+zero false positives:
 ```bash
-bobctl attack --attack-suite example/redis-attacks.yaml -n redis --service redis --service-port 6379 --format table
+bobctl attack --attack-suite example/redis-attacks.yaml -n redis-demo --service redis --service-port 6379 --format table
 ```
 
 **Auto-tune it** — learn benign (functional suite) + run attacks + minimise with wildcards, scored:

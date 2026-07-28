@@ -26,13 +26,33 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:7-alpine
-          args: ["redis-server", "--protected-mode", "no"]
+          # redis-vulnerable (glibc/Debian): a real CVE-carrying redis so the
+          # kill-chain attacks in example/redis-attacks.yaml actually EXECUTE
+          # (the Lua sandbox escape / RediShell primitives need this image; the
+          # stock redis:7-alpine has them patched, so attacks there never land).
+          image: ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10
+          # Attack-enabling config: protected-mode off + module command enabled
+          # so the CONFIG SET / MODULE LOAD attack variants are reachable, and a
+          # writable /data dir for the RDB-write persistence attacks.
+          args:
+            - redis-server
+            - --protected-mode
+            - "no"
+            - --enable-module-command
+            - "yes"
+            - --dir
+            - /data
           ports:
             - containerPort: 6379
+          volumeMounts:
+            - name: data
+              mountPath: /data
           resources:
             requests: { cpu: 50m, memory: 64Mi }
             limits: { cpu: "1", memory: 256Mi }
+      volumes:
+        - name: data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

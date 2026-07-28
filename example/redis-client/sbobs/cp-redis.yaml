@@ -28,7 +28,11 @@ spec:
       args: [redis-cli, "⋯⋯"]
   opens:
     # Stable runtime — keep literal (tight = anomalies are Separable).
-    - path: /lib/ld-musl-x86_64.so.1
+    # Authored for redis-vulnerable:7.2.10 (glibc/Debian): the dynamic linker +
+    # ld cache redis-server reads at startup.
+    - path: /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+      flags: [O_RDONLY]
+    - path: /etc/ld.so.cache
       flags: [O_RDONLY]
     - path: /etc/passwd
       flags: [O_RDONLY]
