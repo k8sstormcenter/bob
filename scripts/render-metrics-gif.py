@@ -311,39 +311,51 @@ def _classify_neighbor(n: dict) -> str:
 
 
 def load_best_nn(metrics_path: str) -> dict:
-    """Parse best-nn.yaml (the SELECTED tuned NetworkNeighborhood) and
-    count its egress/ingress neighbors by discriminant type.
+    """Count the tuned profile's egress/ingress neighbors by discriminant type.
 
-    This is the authoritative final NN — richer than nn-report.json,
-    which discards selector-based and port-only neighbors. Returns
-    {present, egress, ingress, by_type:{dns,ip,selector,port,unknown}}.
-    `present` is False when the file is absent or PyYAML is unavailable
-    (the renderer then falls back to nn-report.json's atom counts).
+    CP migration: the network shape is now INLINE on the ContainerProfile
+    (best-profile.yaml: spec.ingress / spec.egress — a flat spec, no containers[]
+    list). Read that first; fall back to the legacy best-nn.yaml
+    (NetworkNeighborhood with spec.containers[*].{ingress,egress}) for old runs.
+    Returns {present, egress, ingress, by_type:{dns,ip,selector,port,unknown}}.
+    `present` is False when neither file exists or PyYAML is unavailable.
     """
     out = {"present": False, "egress": 0, "ingress": 0,
            "by_type": {"dns": 0, "ip": 0, "selector": 0, "port": 0, "unknown": 0}}
-    p = Path(metrics_path).parent / "best-nn.yaml"
-    if not p.is_file():
-        return out
     try:
         import yaml  # optional dep; absent in minimal envs -> graceful fallback
     except ImportError:
         return out
-    try:
-        with open(p) as f:
-            nn = yaml.safe_load(f) or {}
-        spec = nn.get("spec") or {}
-        containers = []
-        for key in ("containers", "initContainers", "ephemeralContainers"):
-            containers.extend(spec.get(key) or [])
-        for c in containers:
-            for direction in ("egress", "ingress"):
-                for n in (c.get(direction) or []):
+
+    base = Path(metrics_path).parent
+    cp_path = base / "best-profile.yaml"
+    nn_path = base / "best-nn.yaml"
+
+    def tally(neigh_lists):
+        for neighbors in neigh_lists:
+            for direction, items in neighbors.items():
+                for n in (items or []):
                     out[direction] += 1
                     out["by_type"][_classify_neighbor(n)] += 1
         out["present"] = True
+
+    try:
+        if cp_path.is_file():
+            with open(cp_path) as f:
+                cp = yaml.safe_load(f) or {}
+            spec = cp.get("spec") or {}
+            # flat CP: ingress/egress directly on spec
+            tally([{"egress": spec.get("egress"), "ingress": spec.get("ingress")}])
+        elif nn_path.is_file():
+            with open(nn_path) as f:
+                nn = yaml.safe_load(f) or {}
+            spec = nn.get("spec") or {}
+            containers = []
+            for key in ("containers", "initContainers", "ephemeralContainers"):
+                containers.extend(spec.get(key) or [])
+            tally([{"egress": c.get("egress"), "ingress": c.get("ingress")} for c in containers])
     except (yaml.YAMLError, OSError, AttributeError) as e:
-        print(f"WARN: could not read {p}: {e}", file=sys.stderr)
+        print(f"WARN: could not read network from best-profile/best-nn: {e}", file=sys.stderr)
     return out
 
 
