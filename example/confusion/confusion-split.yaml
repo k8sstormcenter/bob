@@ -35,18 +35,11 @@ metadata:
   name: confusion-recon
   namespace: confusion
   annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
     kubescape.io/managed-by: User
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: confusion-recon
-    kubescape.io/workload-namespace: confusion
 spec:
   architectures: [amd64]
   imageTag: nicolaka/netshoot:latest
+  imageID: nicolaka/netshoot@sha256:147f2c4cb0aa7a741151bce2bfef71d9e1a04631636e24665ee2a5ed799feb47
   capabilities: []
   # No inline ingress/egress: this variant makes NO network calls by design.
   execs:                       # ONLY bash + sleep baselined; recon tools => R0001
@@ -112,18 +105,11 @@ metadata:
   name: confusion-fileread
   namespace: confusion
   annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
     kubescape.io/managed-by: User
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: confusion-fileread
-    kubescape.io/workload-namespace: confusion
 spec:
   architectures: [amd64]
   imageTag: nicolaka/netshoot:latest
+  imageID: nicolaka/netshoot@sha256:147f2c4cb0aa7a741151bce2bfef71d9e1a04631636e24665ee2a5ed799feb47
   capabilities: []
   # No inline ingress/egress: this variant makes NO network calls by design.
   execs:                       # ONLY bash + sleep; NOTHING else spawns => no R0001

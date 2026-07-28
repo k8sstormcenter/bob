@@ -1,7 +1,3 @@
-# ContainerProfile (unified SBoB): the process view (execs/opens/
-# syscalls/endpoints/rulePolicies) and the network view (matchLabels/
-# ingress/egress) in ONE object. Replaces the legacy AP+NN pair.
-# Bound by the pod label kubescape.io/user-defined-profile: observer
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
@@ -9,18 +5,10 @@ metadata:
   namespace: java-poc
   annotations:
     kubescape.io/managed-by: User
-    kubescape.io/status: completed
-    kubescape.io/completion: complete
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: observer
-    kubescape.io/workload-namespace: java-poc
 spec:
   architectures:
   - amd64
-  imageID: docker.io/curlimages/curl@sha256:0000000000000000000000000000000000000000000000000000000000000000
+  imageID: docker.io/curlimages/curl@sha256:33a4ef0dd8e9620625b14b373017d09ad8edc123588fd5aa806d4f55537739c7
   imageTag: docker.io/curlimages/curl:8.5.0
   execs:
   - args:

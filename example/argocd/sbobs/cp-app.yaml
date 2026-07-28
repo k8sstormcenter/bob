@@ -1,7 +1,3 @@
-# ContainerProfile (unified SBoB): the process view (execs/opens/
-# syscalls/endpoints/rulePolicies) and the network view (matchLabels/
-# ingress/egress) in ONE object. Replaces the legacy AP+NN pair.
-# Bound by the pod label kubescape.io/user-defined-profile: argocd-repo-server
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
@@ -9,18 +5,10 @@ metadata:
   namespace: argocd
   annotations:
     kubescape.io/managed-by: User
-    kubescape.io/status: completed
-    kubescape.io/completion: complete
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: argocd-repo-server
-    kubescape.io/workload-namespace: argocd
 spec:
   architectures:
   - amd64
-  imageID: quay.io/argoproj/argocd@sha256:0000000000000000000000000000000000000000000000000000000000000000
+  imageID: quay.io/argoproj/argocd@sha256:2019f67cda4d38bec55cdb0a595361f0ea10d8dff9e91d6b994f77c62f193f21
   imageTag: quay.io/argoproj/argocd:v2.9.3
   execs:
   - path: /usr/bin/tini

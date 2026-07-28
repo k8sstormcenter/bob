@@ -47,18 +47,11 @@ metadata:
   name: confusion-loadgen
   namespace: confusion
   annotations:
-    kubescape.io/completion: complete
-    kubescape.io/status: completed
     kubescape.io/managed-by: User
-  labels:
-    kubescape.io/workload-api-group: apps
-    kubescape.io/workload-api-version: v1
-    kubescape.io/workload-kind: Deployment
-    kubescape.io/workload-name: confusion-loadgen
-    kubescape.io/workload-namespace: confusion
 spec:
   architectures: [amd64]
   imageTag: nicolaka/netshoot:latest
+  imageID: nicolaka/netshoot@sha256:147f2c4cb0aa7a741151bce2bfef71d9e1a04631636e24665ee2a5ed799feb47
   capabilities: []
   # Baseline = ONLY the entrypoint shell loop. Every recon tool the loop
   # spawns (curl/nslookup/dig/nc/wget) is therefore an UNEXPECTED process
