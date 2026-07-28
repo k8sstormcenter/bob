@@ -24,7 +24,7 @@ We foresee a massive scale benefit for the end-user, who does not have in-depth 
 
 ```bash
 # bobctl (x86_64, pinned)
-curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.1/bobctl-linux-amd64
+curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/
 
 # static contrast (no cluster)
