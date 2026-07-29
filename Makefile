@@ -85,6 +85,30 @@ deploy-mariadb:
 # deploy-misp and deploy-elk removed: misp + elk are archived to the inner repo
 # under pkg/nonmigrated/ and are no longer part of the contrast-tuning matrix.
 
+# Argo CD — FULL upstream install (all subcomponents) + vulnerable overlay.
+# ARGOCD_VERSION pins the CVE-carrying release (see example/argocd-vulnerable.yaml).
+ARGOCD_VERSION ?= v2.9.3
+.PHONY: deploy-argocd
+deploy-argocd:
+	@echo "=== Deploying Argo CD $(ARGOCD_VERSION) (full install: all subcomponents) ==="
+	kubectl create namespace argocd 2>/dev/null || true
+	# Full install.yaml (NOT core-install): server + repo-server + app-controller
+	# + applicationset + notifications + dex + redis. Pinned + CVE-carrying.
+	kubectl apply -n argocd -f \
+		https://raw.githubusercontent.com/argoproj/argo-cd/$(ARGOCD_VERSION)/manifests/install.yaml
+	@echo "=== Vulnerable overlay (permissive AppProject + exec-render surface) ==="
+	kubectl apply -f example/argocd-vulnerable.yaml
+	@echo "=== Wait for all Argo CD subcomponents ==="
+	-kubectl rollout status -n argocd deploy/argocd-server                    --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-repo-server               --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-applicationset-controller --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-notifications-controller  --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-dex-server                --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-redis                     --timeout=300s
+	-kubectl rollout status -n argocd statefulset/argocd-application-controller --timeout=300s
+	@echo "=== Argo CD subcomponents ==="
+	kubectl get pods -n argocd
+
 .PHONY: deploy-postgres
 deploy-postgres:
 	@echo "=== Deploying postgres (CloudNativePG) ==="

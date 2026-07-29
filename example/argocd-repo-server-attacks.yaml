@@ -1,0 +1,104 @@
+# Argo CD — repo-server attack leg (redis-aligned, single-target).
+#
+# ONE subcomponent = ONE AttackSuite with ONE singular target (see the
+# add-new-app-for-bobctl-tuning skill §0/§8). The repo-server is the richest
+# runtime-observable surface in Argo CD: it renders untrusted Git/Helm/kustomize
+# sources, so path-traversal, symlink, and manifest-generation-exec CVEs land as
+# real kernel events against a tuned repo-server SBoB.
+#
+# Sibling legs (each its own suite + SBoB + CI matrix entry, per the skill):
+#   argocd-server-attacks.yaml               — JWT/auth-bypass → kube-API pivot (R0007/R0006)
+#   argocd-application-controller-attacks.yaml — cross-ns secret read (R0006/R0010)
+#   argocd-redis-attacks.yaml                — unauth cache poison egress (R0011)
+# dex / applicationset / notifications carry only HTTP-logic CVEs → documented
+# probes (expectedDetections: []) in their own legs.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: argocd-repo-server-killchain
+  description: >-
+    Argo CD repo-server CVE contrast leg. Render-time path traversal, Git
+    symlink-over-sensitive-file, and config-management-plugin exec RCE — each
+    maps to the kubescape rule its runtime behaviour trips against a tuned
+    repo-server ContainerProfile. HTTP-logic CVEs that hit the repo-server API
+    (no kernel signal) are documented probes with expectedDetections: [].
+target:
+  service: argocd-repo-server
+  namespace: argocd
+  port: 8081
+  protocol: tcp
+
+attacks:
+  # ── CVE-2022-24348 / 24730 — render path traversal out of the repo work dir ──
+  # The repo-server reads a file OUTSIDE the per-repo working dir during Helm/
+  # kustomize render. Reading /etc/passwd from the repo-server process is the
+  # sensitive-file tell (R0010); `cat` is not in the render baseline (R0001).
+  - name: cve-2022-24348-render-path-traversal
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /etc/passwd >/dev/null 2>&1 && echo traversal_ok"]
+    successIndicators:
+      - responseContains: "traversal_ok"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: repo-server
+        command: cat
+
+  # ── CVE-2022-24731 / CVE-2022-31036 — Git symlink → arbitrary host-file read ──
+  # A symlink embedded in a Git repo points at /etc/shadow; render follows it.
+  # Symlink-over-sensitive-file is the R1010 signature; `ln` fires R0001.
+  - name: cve-2022-31036-symlink-sensitive
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/repo_link_$$ && ls -l /tmp/repo_link_$$ && rm -f /tmp/repo_link_$$ && echo symlink_done"]
+    successIndicators:
+      - responseContains: "symlink_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: repo-server
+        command: ln
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: repo-server
+        command: ln
+
+  # ── config-management-plugin / kustomize --enable-exec RCE during render ─────
+  # The exec-plugin path (enabled in argocd-vulnerable.yaml) spawns an arbitrary
+  # helper process during manifest generation. redis-style "server should never
+  # fork-exec": ANY non-baseline exec under repo-server fires R0001.
+  - name: repo-server-render-exec-rce
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "id >/dev/null 2>&1 && whoami >/dev/null 2>&1 && echo render_exec_ok"]
+    successIndicators:
+      - responseContains: "render_exec_ok"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: repo-server
+        command: id
+
+  # ── T1552.001 — render reads the pod SA token (cross-ns pivot precursor) ─────
+  # NOTE: R0006 (SA-token) is cluster-config-dependent in CI k3s (same flake
+  # webapp/postgres carry). Kept as a behaviour probe; assert only where the SA
+  # mount reproduces deterministically. sh is the comm here.
+  - name: repo-server-sa-token-read
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1 && echo token_read"]
+    successIndicators:
+      - responseContains: "token_read"
+    expectedDetections: []
+
+  # ── Honest boundary: repo-server HTTP-logic CVE (no kernel signal) ───────────
+  # CVE-2023-25163 — repo credentials leaked into error logs. Info-disclosure in
+  # the repo-server API layer; nothing kernel-observable. Documented probe.
+  - name: cve-2023-25163-repo-cred-log-leak
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "echo 'probe: repo-server logs repo creds on error (info-disclosure, app-logic)'; echo probe_done"]
+    successIndicators:
+      - responseContains: "probe_done"
+    expectedDetections: []

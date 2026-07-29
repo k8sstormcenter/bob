@@ -1,0 +1,127 @@
+# Argo CD argocd-server — functional tests (REAL API read-path over HTTPS).
+#
+# These are Argo CD's OWN API endpoints (sourced from the running server's
+# swagger.json — the authoritative surface, 67 documented paths). They mirror
+# the exact read-path traffic the Argo UI dashboard and the argocd CLI generate
+# on every session:
+#   - `argocd login`            -> POST /api/v1/session      (done in the CI/local
+#                                                              substitution step)
+#   - UI dashboard / CLI banner -> GET  /api/version, /api/v1/settings
+#   - `argocd app list`         -> GET  /api/v1/applications
+#   - `argocd proj list`        -> GET  /api/v1/projects
+#   - `argocd cluster list`     -> GET  /api/v1/clusters
+#   - `argocd repo list`        -> GET  /api/v1/repositories
+#   - `argocd account get-user-info` -> GET /api/v1/session/userinfo, /api/v1/account
+#   - `argocd cert list`        -> GET  /api/v1/certificates
+#   - `argocd gpg list`         -> GET  /api/v1/gpgkeys
+#   - `argocd appset list`      -> GET  /api/v1/applicationsets
+#
+# This is the "normal" traffic node-agent learns; it must NOT alert. Every exec
+# in argocd-server-attacks.yaml is anomalous by contrast against this baseline.
+#
+# AUTH: authenticated endpoints carry `Authorization: Bearer __ARGOCD_TOKEN__`.
+# The token placeholder is substituted at run time by the CI/local-ci step that
+# logs in as admin (POST /api/v1/session) — never commit a live token.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: argocd-server-functional-tests
+  description: >-
+    Argo CD real API read-path over HTTPS — the UI dashboard + `argocd` CLI
+    traffic (version, settings, applications, projects, clusters, repositories,
+    userinfo, certs, gpg, appsets). Benign; must not alert.
+target:
+  service: argocd-server
+  namespace: argocd
+  port: 443
+  scheme: https
+tests:
+  # ── Unauthenticated preload (UI + CLI hit these before/without a token) ──────
+  - name: healthz
+    http: { method: GET, path: /healthz, expectedStatus: 200 }
+  - name: api-version
+    http: { method: GET, path: /api/version, expectedStatus: 200 }
+  - name: api-settings
+    http: { method: GET, path: /api/v1/settings, expectedStatus: 200 }
+  - name: ui-index
+    http: { method: GET, path: /, expectedStatus: 200 }
+  - name: swagger-json
+    http: { method: GET, path: /swagger.json, expectedStatus: 200 }
+
+  # ── Authenticated read-path (what `argocd <res> list` + the UI dashboard do) ─
+  - name: session-userinfo
+    http:
+      method: GET
+      path: /api/v1/session/userinfo
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: account
+    http:
+      method: GET
+      path: /api/v1/account
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: applications-list
+    http:
+      method: GET
+      path: /api/v1/applications
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: projects-list
+    http:
+      method: GET
+      path: /api/v1/projects
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: clusters-list
+    http:
+      method: GET
+      path: /api/v1/clusters
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: repositories-list
+    http:
+      method: GET
+      path: /api/v1/repositories
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: certificates-list
+    http:
+      method: GET
+      path: /api/v1/certificates
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: gpgkeys-list
+    http:
+      method: GET
+      path: /api/v1/gpgkeys
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: applicationsets-list
+    http:
+      method: GET
+      path: /api/v1/applicationsets
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: settings-plugins
+    http:
+      method: GET
+      path: /api/v1/settings/plugins
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+
+  # ── Sustained benign polling (the UI refreshes the app list every few sec) ───
+  - name: applications-list-poll-2
+    http:
+      method: GET
+      path: /api/v1/applications
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: applications-list-poll-3
+    http:
+      method: GET
+      path: /api/v1/applications
+      headers: { Authorization: "Bearer __ARGOCD_TOKEN__" }
+      expectedStatus: 200
+  - name: version-poll-2
+    http: { method: GET, path: /api/version, expectedStatus: 200 }
