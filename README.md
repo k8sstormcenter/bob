@@ -16,35 +16,56 @@ We foresee a massive scale benefit for the end-user, who does not have in-depth 
 
 **Trademark:** Bill of Behavior is a registered trademark by Constanze Roedig, all rights reserved  
 
+
+## Example 
+
+SBOB contrast is produced by application type. Redis is an example of `db`
+
 ![redis kill-chain — kubescape rule coverage](example/redis-client/redis-killchain.gif)
 
-[Specification](https://billofbehavior.com/bob/docs/spec/) · [Kubescape reference implementation](https://kubescape.io/docs/operator/bill-of-behavior/)
+
+```bash
+bobctl contrast --profile example/redis-client/sbobs/ap-redis.yaml --type database --expect reads-host-files --strict
+```
+
+
+
+🚨GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
+
+### Auto-Tuning (preview)
+This repo demos how such an SBOB can be created for any application. DM me if you are an early adopter (on CNCF slack, Linkedin, or [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) .) 
+
+![redis kill-chain — kubescape rule coverage](example/redis-client/redis-killchain.gif)
+
+
+
+### Format/Spec
+[Specification](https://billofbehavior.com/bob/docs/spec/) for the [Kubescape reference implementation](https://kubescape.io/docs/operator/bill-of-behavior/).
+
+
+
+
+
 
 ## TLDR — run bobctl (redis)
 
 ```bash
-# bobctl (x86_64, pinned)
 curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/
 
-# static contrast (no cluster)
-bobctl contrast --profile example/redis-client/sbobs/cp-redis.yaml --type database --expect reads-host-files --strict
 
-# cluster: rc4 kubescape stack
 make kubescape
 make alertmanager
 
-# deploy redis + bind the SBoB
+
 kubectl apply -f example/redis-client/sbobs/
 kubectl apply -f example/redis-client/redis.yaml
 kubectl apply -f example/redis-client/client.yaml
 
-# run the attack kill-chain
+
 bobctl attack --attack-suite example/redis-attacks.yaml -n redis-demo --service redis --service-port 6379 --format table
 
-# auto-tune
-bobctl tune --profile <learned-cp-name> --functional-tests example/redis-functional-tests.yaml \
-  --attack-suite example/redis-attacks.yaml --service redis --service-port 6379 --ks-namespace honey -n redis
+kubectl logs -n honey -l app=node-agent -c node-agent
 ```
 
 
