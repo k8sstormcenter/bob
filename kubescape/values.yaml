@@ -1,3 +1,39 @@
+global:
+  # THIS host runs k3s with `--data-dir /mnt/dev-data/k3s` (see
+  # /etc/systemd/system/k3s.service), so the runc that actually starts pods is
+  # /mnt/dev-data/k3s/data/current/bin/runc. Verify with:
+  #   ps -eo args | grep containerd-shim | grep k3s
+  #
+  # node-agent discovers *newly started* containers through Inspektor Gadget's
+  # WithContainerFanotifyEbpf() hook, which fanotify-marks the runc binary by
+  # inode. IG's built-in list only knows /usr/bin/runc and the stock k3s path
+  # /var/lib/rancher/k3s/data/current/bin/runc. Both of those exist here as
+  # leftovers, with DIFFERENT inodes from the live one, so the hook happily marks
+  # binaries that k3s never executes and no container-start event ever fires.
+  #
+  # The failure is silent and looks like success: 18 tracers start, no errors,
+  # and node-agent still profiles whatever was already running when IT started,
+  # because that path goes through the CRI socket and works fine. Everything
+  # created afterwards is invisible and gets no ContainerProfile — for EVERY
+  # workload, not just one. Proven on 2026-07-29: a docker-run container (started
+  # by the marked /usr/bin/runc) produced live callbacks, while argocd and redis
+  # pods produced none.
+  #
+  # This is what `rollout restart ds/node-agent` used to hide: the restart re-ran
+  # the startup enumeration, so the app "appeared". With the correct path the live
+  # hook works and node-agent never needs restarting. If k3s is ever reinstalled
+  # with a different --data-dir, this value must change with it.
+  #
+  # NOTE: give the BARE host path, with no /host prefix — same style as IG's own
+  # built-in list. runtimefinder.Notify() only calls SecureJoin (which resolves
+  # symlinks chrooted to HOST_ROOT) when the path does NOT already start with
+  # /host. `.../data/current` is an ABSOLUTE symlink into /mnt/dev-data/k3s/data/
+  # <hash>, so a "/host/..."-prefixed value skips SecureJoin, falls through to a
+  # plain os.Stat that resolves the symlink against the CONTAINER root, and
+  # CrashLoops with "no such file or directory". The chart README's
+  # "/host/..."-style example only works for paths that are not symlinks.
+  overrideRuntimePath: "/mnt/dev-data/k3s/data/current/bin/runc"
+
 # Image overrides: pin the SBoB rc4 fork of node-agent + storage (the unified
 # ContainerProfile stack — node-agent binds a single CP by the
 # kubescape.io/user-defined-profile pod label; storage serves the ContainerProfile
@@ -36,6 +72,30 @@ capabilities:
   # AP/NN policy, and adds node-agent overhead (hence default-off upstream).
   # Installer guidance: docs/portability-spec.md § D7a.
   networkEventsStreaming: enable
+# /mnt/dev-data is its own partition (nvme0n1p3). node-agent's `host` volume is
+# hostPath "/" mounted at /host, but a hostPath bind is NOT recursive — submounts
+# are not carried in, so inside the container /host/mnt/dev-data exists but is
+# EMPTY. The runc that global.overrideRuntimePath points at lives on that
+# partition, so it must be mounted explicitly or node-agent CrashLoops with
+#   "container-hook: notifying /host/mnt/dev-data/...: no such file or directory".
+#
+# These TOP-LEVEL keys are the chart's additive hook: they render alongside
+# nodeAgent.volumes. Do NOT put this under nodeAgent.volumes instead — that key
+# holds the chart's complete node-agent volume list and setting it here replaces
+# the whole thing, dropping /profiles and CrashLooping node-agent with
+#   "failed to initialize queue: the given queue directory is not valid (/profiles)".
+# Read-only: the hook only stats and marks the binary. The mount also lands on the
+# other kubescape components, which is harmless and the price of staying additive.
+volumes:
+  - name: k3s-data
+    hostPath:
+      path: /mnt/dev-data
+      type: Directory
+volumeMounts:
+  - name: k3s-data
+    mountPath: /host/mnt/dev-data
+    readOnly: true
+
 alertCRD:
   installDefault: true
   scopeClustered: true

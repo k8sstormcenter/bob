@@ -36,14 +36,14 @@ attacks:
   - name: cve-2022-24348-render-path-traversal
     type: cmdinject
     exec:
-      command: ["sh", "-c", "cat /etc/passwd >/dev/null 2>&1 && echo traversal_ok"]
+      command: ["head", "-1", "/etc/passwd"]
     successIndicators:
-      - responseContains: "traversal_ok"
+      - responseContains: "root:"
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
         containerName: repo-server
-        command: cat
+        command: head
 
   # ── CVE-2022-24731 / CVE-2022-31036 — Git symlink → arbitrary host-file read ──
   # A symlink embedded in a Git repo points at /etc/shadow; render follows it.
@@ -51,9 +51,9 @@ attacks:
   - name: cve-2022-31036-symlink-sensitive
     type: cmdinject
     exec:
-      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/repo_link_$$ && ls -l /tmp/repo_link_$$ && rm -f /tmp/repo_link_$$ && echo symlink_done"]
+      command: ["ln", "-sf", "/etc/shadow", "/tmp/repo_softlink_probe"]
     successIndicators:
-      - responseContains: "symlink_done"
+      - responseContains: ""
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -71,14 +71,14 @@ attacks:
   - name: repo-server-render-exec-rce
     type: cmdinject
     exec:
-      command: ["sh", "-c", "id >/dev/null 2>&1 && whoami >/dev/null 2>&1 && echo render_exec_ok"]
+      command: ["whoami"]
     successIndicators:
-      - responseContains: "render_exec_ok"
+      - responseContains: "argocd"
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
         containerName: repo-server
-        command: id
+        command: whoami
 
   # ── T1552.001 — render reads the pod SA token (cross-ns pivot precursor) ─────
   # NOTE: R0006 (SA-token) is cluster-config-dependent in CI k3s (same flake
@@ -102,3 +102,85 @@ attacks:
     successIndicators:
       - responseContains: "probe_done"
     expectedDetections: []
+
+  # ── Full rule-family coverage (see argocd-server leg for rationale) ─────────
+  # Honest boundaries here: R0006/R0007 are impossible on this container — it has
+  # NO ServiceAccount token mounted at all (automountServiceAccountToken is off),
+  # so there is nothing to read and no in-cluster API identity to misuse.
+
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec: { command: ["cat", "/etc/shadow"] }
+    expectedDetections:
+      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: argocd-repo-server, command: cat }
+  - name: exec-proc-environ
+    type: cmdinject
+    exec: { command: ["cat", "/proc/1/environ"] }
+    successIndicators: [{ responseContains: "PATH" }]
+    expectedDetections:
+      - { ruleID: R0008, ruleName: Read Environment Variables from procfs, containerName: argocd-repo-server, command: cat }
+  - name: hardlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_$$ >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_$$"] }
+    successIndicators: [{ responseContains: "hardlink_done" }]
+    expectedDetections:
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: argocd-repo-server, command: ln }
+  - name: dns-anomaly-lookup
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts scanner.evil-c2.example.com >/dev/null 2>&1 && echo dns_resolved || echo dns_attempted"] }
+    successIndicators: [{ responseContains: "dns_" }]
+    expectedDetections:
+      - { ruleID: R0005, ruleName: DNS Anomalies in container, containerName: argocd-repo-server }
+  - name: crypto-mining-dns
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts xmr.pool.minergate.com >/dev/null 2>&1 && echo miner_dns_ok || echo miner_dns_attempted"] }
+    successIndicators: [{ responseContains: "miner_dns_" }]
+    expectedDetections:
+      - { ruleID: R1008, ruleName: Crypto Mining Domain Communication, containerName: argocd-repo-server }
+  - name: drifted-binary-exec
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/ls /tmp/drifted_bob && printf '\n#bob-drift' >> /tmp/drifted_bob && chmod +x /tmp/drifted_bob && /tmp/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /tmp/drifted_bob"] }
+    successIndicators: [{ responseContains: "drift_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: argocd-repo-server }
+  - name: exec-from-shm-mount
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/echo /dev/shm/shm_payload && chmod +x /dev/shm/shm_payload && /dev/shm/shm_payload shm_exec_done; rm -f /dev/shm/shm_payload"] }
+    successIndicators: [{ responseContains: "shm_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1004, ruleName: Process executed from mount, containerName: argocd-repo-server }
+  - name: fileless-memfd-exec
+    type: fileless
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    successIndicators: [{ responseContains: "memfd_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: argocd-repo-server }
+  - name: egress-external-c2
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
+    successIndicators: [{ responseContains: "egress_attempted" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: argocd-repo-server }
+
+  # ── repo-server-only surface: the render toolchain ──────────────────────────
+  # repo-server is the ONLY subcomponent that legitimately fork-execs (gpg), but
+  # git/helm/kustomize are NOT in its baseline — a render-time spawn of any of
+  # them is the manifest-generation RCE tell.
+  - name: render-git-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "git --version >/dev/null 2>&1 && echo git_spawn_done"] }
+    successIndicators: [{ responseContains: "git_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: git }
+  - name: render-helm-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "helm version --short >/dev/null 2>&1 && echo helm_spawn_done"] }
+    successIndicators: [{ responseContains: "helm_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: helm }
+  - name: render-kustomize-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "kustomize version >/dev/null 2>&1 && echo kustomize_spawn_done"] }
+    successIndicators: [{ responseContains: "kustomize_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: kustomize }

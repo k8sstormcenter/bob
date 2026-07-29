@@ -136,16 +136,16 @@ if ! $TUNE_ONLY; then
   log "Deploy complete. Pods in $APP_NS:"
   kubectl get pods -n "$APP_NS" || true
 
-  # k3s live-event reliability: node-agent's LIVE container-start eBPF events are
-  # unreliable on some k3s kernels — a container that starts BEFORE node-agent
-  # observes it never gets a runtime profile (learn then times out with an empty
-  # or partial ContainerProfile). node-agent DOES enumerate already-running
-  # containers at startup, so restart it AFTER the app is deployed+running: it
-  # re-enumerates the live containers and learns a complete profile. Idempotent
-  # and harmless where live events already work. (See project learning-race note.)
-  log "=== Restart node-agent to enumerate freshly-deployed $APP ==="
-  kubectl -n "$KS_NS" rollout restart ds/node-agent
-  kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=180s || true
+  # node-agent is NEVER restarted. It is installed and waited on ABOVE, before
+  # the app is deployed, so every app container starts while node-agent is
+  # already watching and is picked up by live eBPF container-start events. A
+  # restart here would be both redundant and destructive: it discards the
+  # learning window and re-binds user-supplied profiles.
+  # If a ContainerProfile ever comes up empty, the fix is to redeploy the APP
+  # (kubectl rollout restart deploy/<app>), never to bounce node-agent.
+  log "=== Confirm node-agent is watching before learning $APP ==="
+  kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=180s
+  kubectl wait --for=condition=ready pod -l app=node-agent -n "$KS_NS" --timeout=180s
 
   # ── learn: exercise app + poll for completed profile ────────────────────────
   log "=== Learn $APP ==="

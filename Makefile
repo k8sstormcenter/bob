@@ -261,37 +261,42 @@ kubescape-orig:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER)  -n honey --create-namespace --values kubescape/deprecated/values_orig.yaml
 	-kubectl apply  -f kubescape/default-rules.yaml
-	sleep 5
-	-kubectl rollout restart -n honey ds node-agent
 
+
+# NOTE: node-agent is NEVER restarted by any target here. It must come up once,
+# on its own, with the right config already in place — hence the post-renderer
+# below instead of a patch-then-bounce. Do not reintroduce `rollout restart ds
+# node-agent`. Also do NOT pass --set nodeAgent.privileged=true: the chart
+# default is false and privileged node-agent has crashed this host.
+KS_POST_RENDERER := ./kubescape/force-network-streaming.sh
 
 .PHONY: kubescape
-kubescape: 
+kubescape:
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
+	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml --post-renderer $(KS_POST_RENDERER)
 	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
 	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
-	sleep 5
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
-	$(MAKE) enable-streaming
-
-# enable-streaming forces networkStreamingEnabled=true in the node-agent
-# configmap and rolls the DaemonSet. The chart gates the flag behind
-# cloud-submit (rendered = submit AND enable; submit = non-empty .Values.server)
-# so on an on-prem stack with no server it renders FALSE regardless of
-# capabilities.networkEventsStreaming. This target is idempotent and MUST be
-# re-run after EVERY helm upgrade — kubescape/alertmanager/kubescape-vendor all
-# call it — so the setting never drifts. See docs/portability-spec.md D7a.
-.PHONY: enable-streaming
-enable-streaming:
-	@echo "Forcing node-agent networkStreamingEnabled=true (chart renders FALSE without cloud-submit)..."
-	@PATCH=$$(kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' | python3 -c 'import json,sys; cfg=json.load(sys.stdin); cfg["networkStreamingEnabled"]=True; print(json.dumps({"data":{"config.json":json.dumps(cfg)}}))'); \
-		kubectl -n honey patch configmap node-agent --type merge -p "$$PATCH"
-	-kubectl rollout restart -n honey ds node-agent
-	-kubectl rollout status -n honey ds node-agent --timeout=180s
+	$(MAKE) wait-node-agent
 	$(MAKE) verify-streaming
+
+# Wait for node-agent to become Ready by itself. This is a WAIT, never a
+# restart: node-agent binds user-supplied profiles and starts its learning
+# window at pod start, so bouncing it throws that away.
+.PHONY: wait-node-agent
+wait-node-agent:
+	@echo "Waiting for node-agent DaemonSet to become ready (no restart)..."
+	kubectl rollout status -n honey ds node-agent --timeout=300s
+	@echo "=== node-agent pods ==="
+	kubectl get pods -n honey -l app.kubernetes.io/component=node-agent -o wide
+
+# enable-streaming is retained as a compatibility alias. The flag is now forced
+# at render time by $(KS_POST_RENDERER), so there is nothing to patch and
+# nothing to restart — this only verifies the result.
+.PHONY: enable-streaming
+enable-streaming: verify-streaming
 
 # Fail loud if node-agent network streaming is not actually live. Without it
 # the profile's inline network shape (ingress/egress) is inert and R0005 (DNS) /
@@ -315,8 +320,9 @@ alertmanager:
 	# upgrade --install (not bare upgrade): idempotent, and does not require the
 	# kubescape release to pre-exist — so `make alertmanager` works on a fresh
 	# cluster / standalone, same as `make kubescape`.
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
-	$(MAKE) enable-streaming
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml --post-renderer $(KS_POST_RENDERER)
+	$(MAKE) wait-node-agent
+	$(MAKE) verify-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
 .PHONY: fwd-autotune
@@ -332,11 +338,11 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml --post-renderer $(KS_POST_RENDERER)
 	-kubectl apply  -f kubescape/runtimerules.yaml
-	sleep 5
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
-	$(MAKE) enable-streaming
+	$(MAKE) wait-node-agent
+	$(MAKE) verify-streaming
 
 
 

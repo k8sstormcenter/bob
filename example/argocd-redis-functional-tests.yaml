@@ -1,0 +1,25 @@
+# argocd-redis — functional tests (cache read-path).
+#
+# argocd-redis is the shared cache for argocd-server and the controllers. Its
+# benign traffic is plain unauthenticated redis commands, which is exactly what
+# the other subcomponents issue against it.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: argocd-redis-functional-tests
+  description: >-
+    Benign redis read-path against the Argo CD cache. Must not alert.
+target:
+  service: argocd-redis
+  namespace: argocd
+  port: 6379
+  scheme: redis
+tests:
+  - name: ping
+    redis: { command: ["PING"] }
+  - name: info-server
+    redis: { command: ["INFO", "server"] }
+  - name: dbsize
+    redis: { command: ["DBSIZE"] }
+  - name: client-list
+    redis: { command: ["CLIENT", "LIST"] }

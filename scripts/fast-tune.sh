@@ -56,11 +56,81 @@ case "$APP" in
     FUNCTESTS=example/postgres-vuln-functional-tests.yaml
     PROFILE_MATCH=replicaset-pg-vuln
     ;;
+  argocd-server)
+    NS=argocd
+    SUITE=example/argocd-server-attacks.yaml
+    FUNCTESTS=example/argocd-server-functional-tests.yaml
+    PROFILE_MATCH=argocd-server-.*-argocd-server
+    SERVICE_SCHEME=https
+    NEEDS_ARGOCD_TOKEN=true
+    ;;
+  argocd-repo-server)
+    NS=argocd
+    SUITE=example/argocd-repo-server-attacks.yaml
+    FUNCTESTS=example/argocd-repo-server-functional-tests.yaml
+    PROFILE_MATCH=argocd-repo-server-.*-argocd-repo-server
+    ;;
+  argocd-application-controller)
+    NS=argocd
+    SUITE=example/argocd-application-controller-attacks.yaml
+    FUNCTESTS=example/argocd-application-controller-functional-tests.yaml
+    PROFILE_MATCH=argocd-application-controller-.*-argocd-application-controller
+    ;;
+  argocd-applicationset-controller)
+    NS=argocd
+    SUITE=example/argocd-applicationset-controller-attacks.yaml
+    FUNCTESTS=example/argocd-applicationset-controller-functional-tests.yaml
+    PROFILE_MATCH=argocd-applicationset-controller-.*-argocd-applicationset-controller
+    ;;
+  argocd-notifications-controller)
+    NS=argocd
+    SUITE=example/argocd-notifications-controller-attacks.yaml
+    FUNCTESTS=example/argocd-notifications-controller-functional-tests.yaml
+    PROFILE_MATCH=argocd-notifications-controller-.*-argocd-notifications-controller
+    ;;
+  argocd-dex-server)
+    NS=argocd
+    SUITE=example/argocd-dex-server-attacks.yaml
+    FUNCTESTS=example/argocd-dex-server-functional-tests.yaml
+    PROFILE_MATCH=argocd-dex-server-.*-dex
+    ;;
+  argocd-redis)
+    NS=argocd
+    SUITE=example/argocd-redis-attacks.yaml
+    FUNCTESTS=example/argocd-redis-functional-tests.yaml
+    PROFILE_MATCH=argocd-redis-.*-redis
+    ;;
   *)
     echo "Unknown app: $APP. Supported: webapp redis postgres postgres-vuln mariadb" >&2
+    echo "  argocd legs: argocd-server argocd-repo-server argocd-application-controller" >&2
+    echo "               argocd-applicationset-controller argocd-notifications-controller" >&2
+    echo "               argocd-dex-server argocd-redis" >&2
     exit 2
     ;;
 esac
+
+# Argo CD authenticated functional tests carry __ARGOCD_TOKEN__, substituted from
+# the environment by LoadFunctionalTests. Mint a session token from the
+# admin secret so the read-path suite exercises the real API instead of 401ing.
+if [[ "${NEEDS_ARGOCD_TOKEN:-false}" == "true" && -z "${ARGOCD_TOKEN:-}" ]]; then
+  ARGOCD_PW="$(kubectl -n argocd get secret argocd-initial-admin-secret \
+    -o jsonpath='{.data.password}' 2>/dev/null | base64 -d || true)"
+  if [[ -n "$ARGOCD_PW" ]]; then
+    # POST /api/v1/session through the K8s API service proxy — no port-forward,
+    # and no `argocd account generate-token` (that needs the apiKey capability,
+    # which the admin account does not have by default).
+    _sess="$(mktemp)"
+    printf '{"username":"admin","password":"%s"}' "$ARGOCD_PW" > "$_sess"
+    ARGOCD_TOKEN="$(kubectl create --raw \
+      "/api/v1/namespaces/argocd/services/https:argocd-server:443/proxy/api/v1/session" \
+      -f "$_sess" 2>/dev/null | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')"
+    rm -f "$_sess"
+    export ARGOCD_TOKEN
+  fi
+  if [[ -z "${ARGOCD_TOKEN:-}" ]]; then
+    echo "WARN: could not mint ARGOCD_TOKEN; authenticated functional tests will fail to load." >&2
+  fi
+fi
 
 log() { echo "[$(date +%H:%M:%S)] $*"; }
 
@@ -123,7 +193,8 @@ set +e
 bin/bobctl tune \
   --profile "$PROFILE_NAME" \
   --namespace "$NS" \
-  --kubescape-namespace honey \
+  --ks-namespace honey \
+  ${SERVICE_SCHEME:+--service-scheme "$SERVICE_SCHEME"} \
   --attack-suite "$SUITE" \
   ${FUNCTESTS:+--functional-tests "$FUNCTESTS"} \
   --output-dir results \

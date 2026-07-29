@@ -88,6 +88,10 @@ attacks:
         ruleName: Unexpected process launched
         containerName: argocd-server
         command: cat
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: argocd-server
+        command: cat
 
   # ── T1552 — symlink over a sensitive file ───────────────────────────────────
   - name: exec-symlink-shadow
@@ -99,6 +103,10 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
+        containerName: argocd-server
+        command: ln
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
         containerName: argocd-server
         command: ln
 
@@ -153,4 +161,90 @@ attacks:
     type: cmdinject
     exec: { command: ["sh", "-c", "echo 'probe: stored XSS via crafted app field — client-side'; echo probe_done"] }
     successIndicators: [{ responseContains: "probe_done" }]
+    expectedDetections: []
+
+  # ── Full rule-family coverage ───────────────────────────────────────────────
+  # Everything below targets a DISTINCT detection rule so argocd-server's leg
+  # covers at least the families redis does. Rule names are copied verbatim from
+  # kubescape/default-rules.yaml (R0006 is lower-case "service account token
+  # access" there — title-casing it fails TestAttackSuite_AssertionRealism).
+  # argocd-server's baseline execs are only tini + argocd, so any binary below
+  # is anomalous by contrast.
+  - name: exec-whoami
+    type: cmdinject
+    exec: { command: ["whoami"] }
+    successIndicators: [{ responseContains: "argocd" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-server, command: whoami }
+  - name: exec-proc-environ
+    type: cmdinject
+    exec: { command: ["cat", "/proc/1/environ"] }
+    successIndicators: [{ responseContains: "PATH" }]
+    expectedDetections:
+      - { ruleID: R0008, ruleName: Read Environment Variables from procfs, containerName: argocd-server, command: cat }
+  - name: dns-anomaly-lookup
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts scanner.evil-c2.example.com >/dev/null 2>&1 && echo dns_resolved || echo dns_attempted"] }
+    successIndicators: [{ responseContains: "dns_" }]
+    expectedDetections:
+      - { ruleID: R0005, ruleName: DNS Anomalies in container, containerName: argocd-server }
+  - name: crypto-mining-dns
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts xmr.pool.minergate.com >/dev/null 2>&1 && echo miner_dns_ok || echo miner_dns_attempted"] }
+    successIndicators: [{ responseContains: "miner_dns_" }]
+    expectedDetections:
+      - { ruleID: R1008, ruleName: Crypto Mining Domain Communication, containerName: argocd-server }
+  - name: hardlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/shadow.hl >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/shadow.hl"] }
+    successIndicators: [{ responseContains: "hardlink_done" }]
+    expectedDetections:
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: argocd-server, command: ln }
+  - name: ebpf-program-load
+    type: cmdinject
+    exec: { command: ["perl", "-e", "syscall(321,5,0,0); print qq{bpf_probe_done}"] }
+    successIndicators: [{ responseContains: "bpf_probe_done" }]
+    # bpf(2) returns EPERM here (unprivileged, no CAP_BPF/CAP_SYS_ADMIN) so no
+    # program is loaded and R0009 cannot fire. Honest boundary, not a silent miss.
+    expectedDetections: []
+  - name: drifted-binary-exec
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/ls /tmp/drifted_argocd && printf '\\n#bob-drift' >> /tmp/drifted_argocd && chmod +x /tmp/drifted_argocd && /tmp/drifted_argocd / >/dev/null 2>&1 && echo drift_exec_done; rm -f /tmp/drifted_argocd"] }
+    successIndicators: [{ responseContains: "drift_exec_done" }]
+    expectedDetections:
+    # This node-agent build never emits R1001 (Drifted process executed) — verified
+    # zero occurrences cluster-wide. Executing the modified copy out of /tmp trips
+    # R1000 instead, which is what is asserted.
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: argocd-server }
+  - name: exec-from-shm-mount
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/echo /dev/shm/shm_payload && chmod +x /dev/shm/shm_payload && /dev/shm/shm_payload shm_exec_done; rm -f /dev/shm/shm_payload"] }
+    successIndicators: [{ responseContains: "shm_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1004, ruleName: Process executed from mount, containerName: argocd-server }
+  - name: fileless-memfd-exec
+    type: fileless
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    successIndicators: [{ responseContains: "memfd_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: argocd-server }
+  - name: sa-token-k8s-api-recon
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cat /run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1 && echo sa_token_read_done || echo sa_token_absent"] }
+    successIndicators: [{ responseContains: "sa_token_read_done" }]
+    # argocd-server is a k8s client: the SA-token read IS its baseline, so R0006 is
+    # structurally suppressed here. Asserted on argocd-repo-server instead.
+    expectedDetections: []
+  - name: egress-external-c2
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); my $ok=connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
+    successIndicators: [{ responseContains: "egress_attempted" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: argocd-server }
+  - name: k8s-api-unexpected-call
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp \"$(command -v perl)\" /tmp/kubeprobe && chmod +x /tmp/kubeprobe && /tmp/kubeprobe -e 'use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\")); connect($s,sockaddr_in(443,inet_aton(\"10.43.0.1\"))); close($s);' >/dev/null 2>&1 && echo k8s_api_probe_done; rm -f /tmp/kubeprobe"] }
+    successIndicators: [{ responseContains: "k8s_api_probe_done" }]
+    # argocd-server legitimately calls the kube-apiserver, so R0007 is baseline-
+    # suppressed here. Asserted on argocd-repo-server instead.
     expectedDetections: []

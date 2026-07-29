@@ -1,0 +1,94 @@
+# argocd-application-controller — attack leg (one container = one suite, per the
+# add-new-app-for-bobctl-tuning skill §8).
+#
+# Baseline for this container is tini + the argocd binary and nothing else, so
+# every binary below is anomalous by contrast. Rule names are verbatim from
+# kubescape/default-rules.yaml.
+#
+# Honest boundaries for this container (documented probes, expectedDetections: []):
+#   R0006/R0007 — this controller reads its SA token and calls the kube-apiserver
+#                 as NORMAL operation, so both are baseline-suppressed here. They
+#                 are asserted on the argocd-redis leg, where the token is mounted
+#                 but never read.
+#   R0009       — bpf(2) returns EPERM (unprivileged, no CAP_BPF); nothing loads.
+#   R1001       — this node-agent build emits zero R1001 cluster-wide; the drifted
+#                 exec trips R1000 instead, which is what is asserted.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: argocd-application-controller-killchain
+  description: >-
+    Post-exploitation contrast leg for argocd-application-controller. Full rule-family
+    sweep: process, file, DNS, egress, link, mount and fileless primitives.
+target:
+  service: argocd-metrics
+  namespace: argocd
+  port: 8082
+  protocol: tcp
+
+attacks:
+  - name: exec-etc-passwd
+    type: cmdinject
+    exec: { command: ["cat", "/etc/passwd"] }
+    successIndicators: [{ responseContains: "root:" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-application-controller, command: cat }
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec: { command: ["cat", "/etc/shadow"] }
+    expectedDetections:
+      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: argocd-application-controller, command: cat }
+  - name: exec-proc-environ
+    type: cmdinject
+    exec: { command: ["cat", "/proc/1/environ"] }
+    successIndicators: [{ responseContains: "PATH" }]
+    expectedDetections:
+      - { ruleID: R0008, ruleName: Read Environment Variables from procfs, containerName: argocd-application-controller, command: cat }
+  - name: symlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln -sf /etc/shadow /tmp/sl_$$ && ls -l /tmp/sl_$$ >/dev/null && echo symlink_done; rm -f /tmp/sl_$$"] }
+    successIndicators: [{ responseContains: "symlink_done" }]
+    expectedDetections:
+      - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: argocd-application-controller, command: ln }
+  - name: hardlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_$$ >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_$$"] }
+    successIndicators: [{ responseContains: "hardlink_done" }]
+    expectedDetections:
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: argocd-application-controller, command: ln }
+  - name: dns-anomaly-lookup
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts scanner.evil-c2.example.com >/dev/null 2>&1 && echo dns_resolved || echo dns_attempted"] }
+    successIndicators: [{ responseContains: "dns_" }]
+    expectedDetections:
+      - { ruleID: R0005, ruleName: DNS Anomalies in container, containerName: argocd-application-controller }
+  - name: crypto-mining-dns
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts xmr.pool.minergate.com >/dev/null 2>&1 && echo miner_dns_ok || echo miner_dns_attempted"] }
+    successIndicators: [{ responseContains: "miner_dns_" }]
+    expectedDetections:
+      - { ruleID: R1008, ruleName: Crypto Mining Domain Communication, containerName: argocd-application-controller }
+  - name: drifted-binary-exec
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/ls /tmp/drifted_bob && printf '\n#bob-drift' >> /tmp/drifted_bob && chmod +x /tmp/drifted_bob && /tmp/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /tmp/drifted_bob"] }
+    successIndicators: [{ responseContains: "drift_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: argocd-application-controller }
+  - name: exec-from-shm-mount
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/echo /dev/shm/shm_payload && chmod +x /dev/shm/shm_payload && /dev/shm/shm_payload shm_exec_done; rm -f /dev/shm/shm_payload"] }
+    successIndicators: [{ responseContains: "shm_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1004, ruleName: Process executed from mount, containerName: argocd-application-controller }
+  - name: fileless-memfd-exec
+    type: fileless
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    successIndicators: [{ responseContains: "memfd_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: argocd-application-controller }
+  - name: egress-external-c2
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
+    successIndicators: [{ responseContains: "egress_attempted" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: argocd-application-controller }
