@@ -32,10 +32,10 @@ bobctl contrast --profile example/redis-client/sbobs/ap-redis.yaml --type databa
 
 🚨GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
 
-### Auto-Tuning (preview)
-This repo demos how such an SBOB can be created for any application. DM me if you are an early adopter (on CNCF slack, Linkedin, or [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) .) 
+### Stay informed when more applications get SBOBs or Contribute
+Follow us on [Linkedin](https://www.linkedin.com/in/croedig/), or talk to us on [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) 
 
-![redis kill-chain — kubescape rule coverage](example/redis-client/redis-killchain.gif)
+
 
 
 
