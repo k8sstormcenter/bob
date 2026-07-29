@@ -43,9 +43,9 @@ spec:
     - path: /etc/passwd
       flags: [O_RDONLY]
     # per-PID proc churn (Go runtime reads its own status/maps)
-    - path: /proc/⋯/*
+    - path: /proc/*
       flags: [O_RDONLY]
-    - path: /sys/⋯/*
+    - path: /sys/*
       flags: [O_RDONLY]
     # argocd-server is a Kubernetes API client: it reads its projected SA token
     # in normal operation. The token lives under an atomic-swap timestamp dir
