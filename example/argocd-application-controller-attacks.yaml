@@ -74,9 +74,9 @@ attacks:
     successIndicators: [{ responseContains: "drift_exec_done" }]
     expectedDetections:
       - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: argocd-application-controller }
-  - name: exec-from-shm-mount
+  - name: exec-from-volume-mount
     type: cmdinject
-    exec: { command: ["sh", "-c", "cp /bin/echo /dev/shm/shm_payload && chmod +x /dev/shm/shm_payload && /dev/shm/shm_payload shm_exec_done; rm -f /dev/shm/shm_payload"] }
+    exec: { command: ["sh", "-c", "cp /bin/echo /home/argocd/mnt_payload && chmod +x /home/argocd/mnt_payload && /home/argocd/mnt_payload shm_exec_done; rm -f /home/argocd/mnt_payload"] }
     successIndicators: [{ responseContains: "shm_exec_done" }]
     expectedDetections:
       - { ruleID: R1004, ruleName: Process executed from mount, containerName: argocd-application-controller }

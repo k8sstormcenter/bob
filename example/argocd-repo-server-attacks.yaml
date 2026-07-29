@@ -42,7 +42,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
-        containerName: repo-server
+        containerName: argocd-repo-server
         command: head
 
   # ── CVE-2022-24731 / CVE-2022-31036 — Git symlink → arbitrary host-file read ──
@@ -57,11 +57,11 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
-        containerName: repo-server
+        containerName: argocd-repo-server
         command: ln
       - ruleID: R1010
         ruleName: Soft link created over sensitive file
-        containerName: repo-server
+        containerName: argocd-repo-server
         command: ln
 
   # ── config-management-plugin / kustomize --enable-exec RCE during render ─────
@@ -77,7 +77,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
-        containerName: repo-server
+        containerName: argocd-repo-server
         command: whoami
 
   # ── T1552.001 — render reads the pod SA token (cross-ns pivot precursor) ─────

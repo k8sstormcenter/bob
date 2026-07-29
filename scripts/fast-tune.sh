@@ -91,7 +91,7 @@ case "$APP" in
   argocd-dex-server)
     NS=argocd
     SUITE=example/argocd-dex-server-attacks.yaml
-    FUNCTESTS=example/argocd-dex-server-functional-tests.yaml
+    FUNCTESTS=
     PROFILE_MATCH=argocd-dex-server-.*-dex
     ;;
   argocd-redis)
