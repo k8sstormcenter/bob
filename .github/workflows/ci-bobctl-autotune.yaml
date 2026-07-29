@@ -116,6 +116,7 @@ jobs:
             attack_suite: example/webapp-attacks.yaml
             app_namespace: webapp
             contrast_type: web-app
+            contrast_expect: execs-procs,reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: http
             # score_threshold=2 reflects two known-unrecoverable R0006 SA-token
             # misses (cmdinject-sa-token, cmdinject-k8s-enum-pods), both `cat
@@ -142,6 +143,7 @@ jobs:
             attack_suite: example/redis-attacks.yaml
             app_namespace: redis
             contrast_type: database
+            contrast_expect: reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: redis
             score_threshold: 0
           - app: misp
@@ -149,6 +151,7 @@ jobs:
             attack_suite: example/misp-attacks.yaml
             app_namespace: misp
             contrast_type: web-app
+            contrast_expect: execs-procs,reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: https
             # Without this match, "misp" also grep-matches the Helm
             # sub-chart profiles statefulset-misp-valkey-master and
@@ -162,6 +165,7 @@ jobs:
             attack_suite: example/elk-attacks.yaml
             app_namespace: elk
             contrast_type: database
+            contrast_expect: reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: http
             profile_match: el-es
             score_threshold: 0
@@ -170,6 +174,7 @@ jobs:
             attack_suite: example/postgres-attacks.yaml
             app_namespace: postgres
             contrast_type: database
+            contrast_expect: reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: tcp
             profile_match: pg-client
             score_threshold: 0
@@ -178,6 +183,7 @@ jobs:
             attack_suite: example/postgres-vuln-attacks.yaml
             app_namespace: postgres-vuln
             contrast_type: database
+            contrast_expect: reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: tcp
             # Match the server deployment profile, not the client pod.
             # COPY FROM PROGRAM attacks spawn processes on the server.
@@ -203,6 +209,7 @@ jobs:
             attack_suite: example/mariadb-attacks.yaml
             app_namespace: mariadb
             contrast_type: database
+            contrast_expect: reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: tcp
             # Server-side attacks (UDF RCE, SELECT INTO OUTFILE, log poisoning)
             # spawn processes inside the mariadb deployment, not the client.
@@ -336,7 +343,7 @@ jobs:
           ELAPSED=0
           PROFILE=""
           while [ $ELAPSED -lt $TIMEOUT ]; do
-            ALL=$(kubectl get applicationprofiles -n ${{ matrix.app_namespace }} \
+            ALL=$(kubectl get containerprofiles -n ${{ matrix.app_namespace }} \
               -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
               2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
             # Prefer profile matching the app/service name
@@ -356,37 +363,13 @@ jobs:
 
           if [ -z "$PROFILE" ]; then
             echo "WARNING: No profile discovered after ${TIMEOUT}s"
-            kubectl get applicationprofile -n ${{ matrix.app_namespace }} -o wide || true
+            kubectl get containerprofile -n ${{ matrix.app_namespace }} -o wide || true
             PROFILE="unknown"
           fi
 
           echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
           echo "Discovered profile: $PROFILE"
-          kubectl get applicationprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
-
-      # ---------- Generic contrast check (type-envelope test) ----------
-      # Migrates CI from purely per-app tune-score gating toward the generic,
-      # type-keyed contrast test (pkg/contrast): derive the app's behavioral
-      # envelope from its LEARNED profile and compare it to what its app TYPE
-      # is allowed to have. Report mode for now (never fails the job) — it
-      # surfaces each app's derived envelope + deviations so per-app --expect
-      # allowlists can be calibrated from real output before flipping to
-      # --strict. See docs/contrast-suite-plan / pkg/contrast.
-      - name: Contrast check (generic type-envelope test)
-        if: matrix.contrast_type != ''
-        continue-on-error: true
-        run: |
-          if [ ! -s profile.yaml ]; then
-            echo "no learned profile.yaml — skipping contrast check"
-            exit 0
-          fi
-          echo "### Contrast — ${{ matrix.app }} (type: ${{ matrix.contrast_type }})" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          bin/bobctl contrast \
-            --profile profile.yaml \
-            --type "${{ matrix.contrast_type }}" \
-            2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          kubectl get containerprofile "$PROFILE" -n ${{ matrix.app_namespace }} -o yaml > profile.yaml 2>/dev/null || true
 
       # ---------- Clean results directory (prevent cross-job contamination) ----
       - name: Clean results directory
@@ -512,7 +495,7 @@ jobs:
       # ---------- Cross-pod endpoint test (Redis only) ----------
       # Attacks from redis-client pod → Redis service over the network.
       # Tests endpoint detection: node-agent sees real pod-to-pod traffic.
-      # Verifies whether port=0 wildcard in ApplicationProfile allows any port.
+      # Verifies whether port=0 wildcard in ContainerProfile allows any port.
       - name: "Run Redis cross-pod endpoint test"
         if: matrix.protocol == 'redis'
         run: |
@@ -557,7 +540,7 @@ jobs:
 
           # Dump learned profile endpoints for verification
           echo "  Profile endpoints:"
-          kubectl get applicationprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{range .spec.containers[*]}{.name}={.endpoints}{" "}{end}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
+          kubectl get containerprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{.spec.endpoints}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
 
           sleep 10
 
@@ -591,7 +574,7 @@ jobs:
             || { echo "STRESS SUITE FAILED"; exit 1; }
 
       # ---------- Verification ----------
-      - name: Export best tuned ApplicationProfile
+      - name: Export best tuned ContainerProfile
         if: always()
         run: |
           mkdir -p results
@@ -601,7 +584,7 @@ jobs:
             BEST_FILE="results/${{ steps.profile.outputs.name }}-iteration${BEST_ITER}.yaml"
             if [ -n "$BEST_ITER" ] && [ -f "$BEST_FILE" ]; then
               echo "Best iteration: $BEST_ITER (from metrics.json)"
-              # Produce a clean, kubectl-applyable ApplicationProfile.
+              # Produce a clean, kubectl-applyable ContainerProfile.
               # See scripts/clean-profile.py for the full filter logic.
               if ! python3 scripts/clean-profile.py "$BEST_FILE" results/best-profile.yaml; then
                 echo "WARNING: clean-profile.py failed, falling back to grep"
@@ -623,6 +606,32 @@ jobs:
           fi
           echo "Iteration profiles:"
           ls -la results/*-iteration*.yaml 2>/dev/null || echo "  (none)"
+
+      # ---------- Contrast gate (default, on the TUNED SBoB) ----------
+      # The contrast test is now a DEFAULT GATE (not report-only): it derives the
+      # tuned ContainerProfile's behavioural envelope and asserts it stays within
+      # its app TYPE's allowed envelope under --strict. Accepted per-app
+      # deviations are declared in the matrix `contrast_expect` allowlist. A new,
+      # UNexpected deviation fails the job — that is the point (the SBoB got
+      # broader/riskier than its type). Runs on results/best-profile.yaml, the
+      # exact SBoB shipped to example/. Apps without a contrast_type are skipped.
+      - name: Contrast gate (type-envelope, strict)
+        if: matrix.contrast_type != ''
+        run: |
+          if [ ! -s results/best-profile.yaml ]; then
+            echo "FAIL: no tuned results/best-profile.yaml to contrast-test"
+            exit 1
+          fi
+          echo "### Contrast — ${{ matrix.app }} (type: ${{ matrix.contrast_type }})" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          EXPECT=""
+          [ -n "${{ matrix.contrast_expect }}" ] && EXPECT="--expect ${{ matrix.contrast_expect }}"
+          bin/bobctl contrast \
+            --profile results/best-profile.yaml \
+            --type "${{ matrix.contrast_type }}" \
+            $EXPECT --strict \
+            2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Display collapse analysis
         if: always()

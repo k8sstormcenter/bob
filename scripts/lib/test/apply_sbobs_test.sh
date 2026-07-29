@@ -14,13 +14,13 @@ test_happy_path() {
   chain_apply_sbobs "$FIXTURES/dummy.manifest.yaml" "$FIXTURES/sbobs" >/dev/null 2>&1
   assert_rc 0 $? "happy path returns 0"
 
-  assert_log_contains "delete applicationprofile chain-backend -n log4j-poc --ignore-not-found" "deletes backend AP first"
-  assert_log_contains "apply -n log4j-poc -f $FIXTURES/sbobs/ap-chain-backend.yaml" "applies backend AP"
+  assert_log_contains "delete containerprofile chain-backend -n log4j-poc --ignore-not-found" "deletes backend CP first"
+  assert_log_contains "apply -n log4j-poc -f $FIXTURES/sbobs/cp-chain-backend.yaml" "applies backend CP"
   # The D4 guarantee: every delete happens before any apply.
-  assert_log_order "delete applicationprofile chain-backend" "apply -n log4j-poc -f $FIXTURES/sbobs/ap-chain-backend.yaml" "delete precedes apply (D4)"
-  assert_log_order "delete networkneighborhood chain-frontend" "apply -n log4j-poc -f $FIXTURES/sbobs/nn-chain-frontend.yaml" "NN delete precedes NN apply"
+  assert_log_order "delete containerprofile chain-backend" "apply -n log4j-poc -f $FIXTURES/sbobs/cp-chain-backend.yaml" "delete precedes apply (D4)"
+  assert_log_order "delete containerprofile chain-frontend" "apply -n log4j-poc -f $FIXTURES/sbobs/cp-chain-frontend.yaml" "frontend CP delete precedes apply (D4)"
   # managed-by verification queried for each pod.
-  assert_log_contains "get applicationprofile chain-backend -n log4j-poc" "verifies managed-by on backend"
+  assert_log_contains "get containerprofile chain-backend -n log4j-poc" "verifies managed-by on backend"
 }
 
 # ── managed-by != User aborts (webhook/strip detection) ───────────────
@@ -42,7 +42,7 @@ test_missing_file_aborts_clean() {
   chain_apply_sbobs "$FIXTURES/dummy.manifest.yaml" "$FIXTURES/sbobs" >/dev/null 2>&1
   assert_rc 1 $? "missing file returns 1"
   # Critical: nothing was deleted/applied — fail fast, no partial state.
-  assert_log_absent "delete applicationprofile" "no delete on missing-file abort"
+  assert_log_absent "delete containerprofile" "no delete on missing-file abort"
   assert_log_absent "apply -n log4j-poc -f" "no apply on missing-file abort"
 }
 

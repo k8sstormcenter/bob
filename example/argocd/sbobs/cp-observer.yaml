@@ -1,0 +1,94 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: observer
+  namespace: argocd
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  architectures:
+  - amd64
+  imageID: docker.io/curlimages/curl@sha256:6be0eb01bbdc8963a3dfe6e3f33b52c2c8ddefec347c328913f5104e28465b6f
+  imageTag: docker.io/curlimages/curl:8.6.0
+  execs:
+  - path: /usr/bin/curl
+    args:
+    - /usr/bin/curl
+  - path: /bin/sleep
+    args:
+    - /bin/sleep
+  opens:
+  - path: /etc/ssl/certs/ca-certificates.crt
+    flags:
+    - O_RDONLY
+  - path: /etc/resolv.conf
+    flags:
+    - O_RDONLY
+  - path: /etc/hosts
+    flags:
+    - O_RDONLY
+  - path: /etc/nsswitch.conf
+    flags:
+    - O_RDONLY
+  syscalls:
+  - bind
+  - brk
+  - close
+  - connect
+  - execve
+  - exit_group
+  - fcntl
+  - fstat
+  - futex
+  - getsockname
+  - mmap
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - read
+  - recvfrom
+  - rt_sigaction
+  - sendto
+  - setsockopt
+  - socket
+  - write
+  capabilities: []
+  endpoints: []
+  seccompProfile:
+    spec:
+      defaultAction: ''
+  rulePolicies: {}
+  matchLabels:
+    app: observer
+  ingress: []
+  egress:
+  - identifier: egress-kube-dns
+    ipAddress: ''
+    dns: ''
+    dnsNames: null
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    type: internal
+  - identifier: egress-argocd-server
+    ipAddress: ''
+    dns: ''
+    dnsNames: null
+    ports:
+    - name: TCP-8080
+      port: 8080
+      protocol: TCP
+    podSelector:
+      matchLabels:
+        app: argocd-server
+    namespaceSelector: null
+    type: internal

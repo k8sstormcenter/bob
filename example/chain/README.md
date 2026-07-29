@@ -162,16 +162,15 @@ base32 chunks.
 
 ## sbobs (learned by kubescape, exported under `sbobs/`)
 
+Each pod ships ONE unified `sbobs/cp-<role>.yaml` ContainerProfile — the process
+view (execs/opens/…) and the inline network shape (ingress/egress) in one object.
+
 | File | Highlights |
 |---|---|
-| `sbobs/ap-chain-frontend.yaml` | execs: `/chain-frontend` only (distroless Go binary) |
-| `sbobs/nn-chain-frontend.yaml` | egress: kube-dns:53, chain-backend:8080, **chain-redis:6379** (EVAL traffic IS learned because /api/cache/eval is a legitimate feature) |
-| `sbobs/ap-chain-backend.yaml` | execs: `/chain-backend` only |
-| `sbobs/nn-chain-backend.yaml` | egress: kube-dns:53, chain-postgres:5432 (NO redis — backend doesn't talk to redis in this app) |
-| `sbobs/ap-chain-redis.yaml` | execs: `/usr/local/bin/redis-server` only — every spawned binary (cat, bash, perl) is novel ⇒ R0001 fires reliably |
-| `sbobs/nn-chain-redis.yaml` | egress: **empty** — every outbound is novel ⇒ R0011 *would* fire if `networkEventsStreaming` were enabled |
-| `sbobs/ap-chain-postgres.yaml` | execs: 17 unique paths (postgres, psql, bash, sh, cat, find, …) |
-| `sbobs/nn-chain-postgres.yaml` | egress: empty |
+| `sbobs/cp-chain-frontend.yaml` | execs: `/chain-frontend` only (distroless Go binary). egress: kube-dns:53, chain-backend:8080, **chain-redis:6379** (EVAL traffic IS learned because /api/cache/eval is a legitimate feature) |
+| `sbobs/cp-chain-backend.yaml` | execs: `/chain-backend` only. egress: kube-dns:53, chain-postgres:5432 (NO redis — backend doesn't talk to redis in this app) |
+| `sbobs/cp-chain-redis.yaml` | execs: `/usr/local/bin/redis-server` only — every spawned binary (cat, bash, perl) is novel ⇒ R0001 fires reliably. egress: **empty** — every outbound is novel ⇒ R0011 *would* fire if `networkEventsStreaming` were enabled |
+| `sbobs/cp-chain-postgres.yaml` | execs: 17 unique paths (postgres, psql, bash, sh, cat, find, …). egress: empty |
 
 The narrow chain-redis sbob (one exec, zero egress) is what makes the
 attack DETECTABLE in principle. The cluster's two-knob suppression is

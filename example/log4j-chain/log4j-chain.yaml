@@ -72,7 +72,6 @@ spec:
   replicas: 1
   selector: { matchLabels: { app: chain-postgres } }
   template:
-    metadata: { labels: { app: chain-postgres, kubescape.io/user-defined-profile: chain-postgres, kubescape.io/user-defined-network: chain-postgres } }
     spec:
       containers:
       - name: postgres
@@ -125,7 +124,6 @@ spec:
   replicas: 1
   selector: { matchLabels: { app: chain-frontend } }
   template:
-    metadata: { labels: { app: chain-frontend, kubescape.io/user-defined-profile: chain-frontend, kubescape.io/user-defined-network: chain-frontend } }
     spec:
       containers:
       - name: nginx
@@ -157,7 +155,6 @@ spec:
   replicas: 1
   selector: { matchLabels: { app: chain-observer } }
   template:
-    metadata: { labels: { app: chain-observer, role: observer, kubescape.io/user-defined-profile: chain-observer, kubescape.io/user-defined-network: chain-observer } }
     spec:
       containers:
       - name: observer
@@ -233,7 +230,6 @@ spec:
   replicas: 1
   selector: { matchLabels: { app: chain-backend } }
   template:
-    metadata: { labels: { app: chain-backend, scenario: "A", kubescape.io/user-defined-profile: chain-backend, kubescape.io/user-defined-network: chain-backend } }
     spec:
       containers:
       - name: backend

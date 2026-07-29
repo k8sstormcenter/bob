@@ -68,7 +68,7 @@ for d in chain-postgres chain-frontend chain-backend chain-observer; do
 done
 kubectl -n attacker-ns rollout status deploy/attacker --timeout=60s
 
-# (Optional) install the kubescape ApplicationProfiles + R1100 binding
+# (Optional) install the kubescape ContainerProfiles + R1100 binding
 # so the per-scenario rule signatures fire on schedule.
 kubectl apply -f kubescape/application-profiles/
 kubectl apply -f kubescape/rules/R1100_rulespec.yaml
@@ -81,7 +81,7 @@ When BoB-agent (or `bobctl tune`) ships an updated AP/NN, **always**
 new one:
 
 ```bash
-kubectl -n log4j-poc delete applicationprofile chain-backend
+kubectl -n log4j-poc delete containerprofile chain-backend
 kubectl -n log4j-poc apply -f <new-ap-chain-backend.yaml>
 # wait ~30 s for node-agent to flush its per-binding cache
 sleep 30
@@ -121,8 +121,7 @@ bobctl test apply log4j-functional-tests.yaml
 Confirm the four sbobs converged:
 
 ```bash
-kubectl -n log4j-poc get applicationprofiles
-kubectl -n log4j-poc get networkneighborhoods
+kubectl -n log4j-poc get containerprofiles
 ```
 
 (If you're not using bobctl, you can equivalently run a few of these by hand:)
@@ -154,11 +153,11 @@ kubectl -n log4j-poc logs deploy/chain-backend --tail=20
 kubectl -n attacker-ns logs deploy/attacker --tail=10
 ```
 
-Expected for scenario A (with kubescape ApplicationProfile learned in step 4):
+Expected for scenario A (with kubescape ContainerProfile learned in step 4):
 
 ```bash
 # kubescape rule fires on chain-backend
-kubectl -n log4j-poc get applicationprofiles -o yaml | grep -E 'R0001|R0010|R0011|R1100' | head
+kubectl -n log4j-poc get containerprofiles -o yaml | grep -E 'R0001|R0010|R0011|R1100' | head
 # or via your kubescape_logs sink
 ```
 
@@ -213,7 +212,7 @@ Expected for scenario C: **no kubescape rule fires** on chain-backend.
 The JNDI literal is present in the HTTP request (verifiable via Pixie's
 `http_events` table or `kubectl logs deploy/chain-backend`) but log4j
 2.17.1 does not perform JNDI substitution at all — so no LDAP egress,
-no class fetch, no exec. The chain-backend's ApplicationProfile remains
+no class fetch, no exec. The chain-backend's ContainerProfile remains
 unchanged from the benign baseline.
 
 ---
@@ -230,8 +229,8 @@ bobctl tune --suite log4j-attacks.yaml --baseline log4j-functional-tests.yaml \
 The three produced sbobs (chain-backend.A.bob, chain-backend.B.bob,
 chain-backend.C.bob) should differ in:
 
-- A vs B: `R0001` vs `R1100` in the ApplicationProfile fires
-- A,B vs C: presence of cross-namespace egress in the NetworkNeighborhood
+- A vs B: `R0001` vs `R1100` in the ContainerProfile fires
+- A,B vs C: presence of cross-namespace egress in the ContainerProfile
 
 ---
 
@@ -253,7 +252,7 @@ kubectl delete ns log4j-poc attacker-ns --ignore-not-found
   child processes (the `/bin/sh` spawned by `Runtime.exec` for the A
   payload finishes in tens of ms). For A-vs-B differentiation at the
   exec layer you NEED kubescape's R0001 / R1100 on a learned
-  ApplicationProfile baseline. Pixie's `dns_events` and `conn_stats`
+  ContainerProfile baseline. Pixie's `dns_events` and `conn_stats`
   ARE sufficient to see the LDAP and DNS-exfil layers though.
 - **nginx caches the upstream backend's pod IP at startup.** After each
   backend swap (steps 6, 7) the frontend MUST be restarted or it'll

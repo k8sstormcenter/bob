@@ -50,7 +50,6 @@ spec:
         # present, the pod still runs and kubescape relearns from
         # scratch — labels are harmless absent the referenced AP/NN.
         kubescape.io/user-defined-profile: chain-postgres
-        kubescape.io/user-defined-network: chain-postgres
     spec:
       containers:
         - name: pg-vuln
@@ -138,7 +137,6 @@ spec:
       labels:
         app: chain-redis
         kubescape.io/user-defined-profile: chain-redis
-        kubescape.io/user-defined-network: chain-redis
     spec:
       containers:
         - name: redis
@@ -201,7 +199,6 @@ spec:
       labels:
         app: chain-backend
         kubescape.io/user-defined-profile: chain-backend
-        kubescape.io/user-defined-network: chain-backend
     spec:
       containers:
         - name: chain-backend
@@ -268,7 +265,6 @@ spec:
       labels:
         app: chain-frontend
         kubescape.io/user-defined-profile: chain-frontend
-        kubescape.io/user-defined-network: chain-frontend
     spec:
       containers:
         - name: chain-frontend

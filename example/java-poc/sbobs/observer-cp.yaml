@@ -1,0 +1,120 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: observer
+  namespace: java-poc
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  architectures:
+  - amd64
+  imageID: docker.io/curlimages/curl@sha256:33a4ef0dd8e9620625b14b373017d09ad8edc123588fd5aa806d4f55537739c7
+  imageTag: docker.io/curlimages/curl:8.5.0
+  execs:
+  - args:
+    - /usr/bin/curl
+    - -s
+    - http://frontend:8080/api/products
+    path: /usr/bin/curl
+  - args:
+    - /bin/sleep
+    - '30'
+    path: /bin/sleep
+  - args:
+    - /bin/sh
+    - -c
+    path: /bin/sh
+  opens:
+  - flags:
+    - O_RDONLY
+    path: /etc/resolv.conf
+  - flags:
+    - O_RDONLY
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_RDONLY
+    path: /etc/ssl/certs/ca-certificates.crt
+  - flags:
+    - O_RDONLY
+    path: /etc/localtime
+  - flags:
+    - O_RDONLY
+    path: /etc/passwd
+  syscalls:
+  - arch_prctl
+  - bind
+  - brk
+  - clone
+  - close
+  - connect
+  - execve
+  - exit
+  - exit_group
+  - fcntl
+  - fstat
+  - futex
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - mmap
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - poll
+  - read
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sendto
+  - setsockopt
+  - socket
+  - statx
+  - write
+  capabilities: []
+  endpoints: []
+  seccompProfile:
+    spec:
+      defaultAction: ''
+  rulePolicies: {}
+  matchLabels:
+    app: observer
+  ingress: []
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: egress-kube-dns
+    ipAddress: ''
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    - name: TCP-53
+      port: 53
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: egress-frontend
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: frontend
+    ports:
+    - name: TCP-8080
+      port: 8080
+      protocol: TCP
+    type: internal

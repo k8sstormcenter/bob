@@ -156,6 +156,17 @@ if ! $TUNE_ONLY; then
   log "Deploy complete. Pods in $APP_NS:"
   kubectl get pods -n "$APP_NS" || true
 
+  # k3s live-event reliability: node-agent's LIVE container-start eBPF events are
+  # unreliable on some k3s kernels — a container that starts BEFORE node-agent
+  # observes it never gets a runtime profile (learn then times out with an empty
+  # or partial ContainerProfile). node-agent DOES enumerate already-running
+  # containers at startup, so restart it AFTER the app is deployed+running: it
+  # re-enumerates the live containers and learns a complete profile. Idempotent
+  # and harmless where live events already work. (See project learning-race note.)
+  log "=== Restart node-agent to enumerate freshly-deployed $APP ==="
+  kubectl -n "$KS_NS" rollout restart ds/node-agent
+  kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=180s || true
+
   # ── learn: exercise app + poll for completed profile ────────────────────────
   log "=== Learn $APP ==="
   MATCH="${APP_PROFILE_MATCH:-$APP}"
@@ -181,7 +192,7 @@ if ! $TUNE_ONLY; then
   ELAPSED=0
   PROFILE=""
   while [ $ELAPSED -lt $TIMEOUT ]; do
-    ALL_COMPLETED=$(kubectl get applicationprofiles -n "$APP_NS" \
+    ALL_COMPLETED=$(kubectl get containerprofiles -n "$APP_NS" \
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
@@ -209,7 +220,7 @@ else
   else
     # Discover from cluster — prefer profile whose name contains the app/service name
     log "Discovering completed profiles in $APP_NS..."
-    ALL_LEARNED=$(kubectl get applicationprofiles -n "$APP_NS" \
+    ALL_LEARNED=$(kubectl get containerprofiles -n "$APP_NS" \
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
@@ -278,14 +289,18 @@ fi
 # The tuner DROPS installation-specific cluster-internal egress IPs (no alerting
 # rule reads them — R0005 uses the DNS name and exempts .svc.cluster.local,
 # R0011 is public-only); cluster-internal egress is matched by DNS name instead.
-# Assert: NO private literal (RFC1918) survives anywhere in best-nn.yaml's IP
-# fields — singular ipAddress or an ipAddresses[] list entry.
-if [[ -f results/best-nn.yaml ]]; then
-  log "=== Network portability check (best-nn.yaml) ==="
-  if grep -nE '(ipAddress: *"?|^[[:space:]]*-[[:space:]]+)(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)' results/best-nn.yaml; then
-    die "best-nn.yaml leaked a cluster-internal/private IP — N4 should DROP it (DNS name is the portable discriminant)"
+# Assert: NO private literal (RFC1918) survives anywhere in the shipped profile's
+# IP fields — singular ipAddress or an ipAddresses[] list entry.
+#
+# CP migration: the network shape (ingress/egress) is now INLINE on the
+# ContainerProfile, so the assertion runs against best-profile.yaml's egress
+# instead of the retired best-nn.yaml.
+if [[ -f results/best-profile.yaml ]]; then
+  log "=== Network portability check (best-profile.yaml egress) ==="
+  if grep -nE '(ipAddress: *"?|^[[:space:]]*-[[:space:]]+)(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)' results/best-profile.yaml; then
+    die "best-profile.yaml leaked a cluster-internal/private IP — N4 should DROP it (DNS name is the portable discriminant)"
   fi
-  log "  OK: no cluster-internal/private IP literals in best-nn.yaml (all dropped; egress is DNS-discriminated)"
+  log "  OK: no cluster-internal/private IP literals in best-profile.yaml (all dropped; egress is DNS-discriminated)"
 fi
 
 # ── redis post-tune: direct attack verification ─────────────────────────────
@@ -371,7 +386,7 @@ if [[ "$APP" == "redis" ]]; then
 
     # Dump the learned profile's endpoints for verification
     log "  Profile endpoints:"
-    kubectl get applicationprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{range .spec.containers[*]}{.name}={.endpoints}{" "}{end}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
+    kubectl get containerprofile -n redis -o jsonpath='{range .items[*]}{.metadata.name}{": "}{.spec.endpoints}{"\n"}{end}' 2>/dev/null || echo "  (no profiles found)"
 
     sleep 10
   else
@@ -402,7 +417,7 @@ if tested:
   BEST_FILE="results/${PROFILE}-iteration${BEST_ITER}.yaml"
   if [[ -n "$BEST_ITER" ]] && [[ -f "$BEST_FILE" ]]; then
     log "Best iteration: $BEST_ITER"
-    # Produce a clean, kubectl-applyable ApplicationProfile.
+    # Produce a clean, kubectl-applyable ContainerProfile.
     # See scripts/clean-profile.py for the full filter logic.
     if python3 "$SCRIPT_DIR/clean-profile.py" "$BEST_FILE" results/best-profile.yaml 2>/dev/null; then
       log "Best profile: results/best-profile.yaml"

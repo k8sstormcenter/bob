@@ -8,13 +8,14 @@ operation.
 ## What's here
 
 ```
-sbobs/ap-react.yaml   ApplicationProfile — the workload's runtime baseline (User-managed)
-sbobs/nn-react.yaml   NetworkNeighborhood — the workload's network baseline (User-managed)
+sbobs/cp-react.yaml   ContainerProfile — the workload's unified runtime + network baseline (User-managed)
 ```
 
-Bind them the usual way (delete-first, then apply; pod carries
-`kubescape.io/user-defined-{profile,network}: react`, set from the GitOps
-manifest so node-agent enforces from pod start).
+Bind it the usual way (delete-first, then apply; pod carries
+`kubescape.io/user-defined-profile: react`, set from the GitOps manifest so
+node-agent enforces from pod start). The single ContainerProfile carries both
+the process view and the inline network shape (ingress/egress) that used to live
+in a separate NetworkNeighborhood.
 
 ## Setup (topology)
 

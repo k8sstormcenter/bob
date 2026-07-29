@@ -46,8 +46,8 @@ attacks:
     # a stable score=1 miss. The attack still runs as a behaviour probe
     # (data exfiltration via schema dump), but there's no profile-side
     # detection signal for a legitimate admin operation. Verified via:
-    #   kubectl get applicationprofile pod-pg-client -o jsonpath=
-    #   '{.spec.containers[0].execs[*].path}' | grep pg_dump
+    #   kubectl get containerprofiles pod-pg-client -o jsonpath=
+    #   '{.spec.execs[*].path}' | grep pg_dump
     expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -268,7 +268,7 @@ attacks:
   # Phase 13: NETWORK ENDPOINT DETECTION (TA0011 C2 / TA0010 Exfil)
   #
   # 10 attacks that issue OUTGOING TCP/UDP connections to destinations NOT
-  # in pg-client's learned NetworkNeighborhood. The functional-tests learn
+  # in pg-client's learned ContainerProfile egress. The functional-tests learn
   # window only exercises pg-rw (PostgreSQL server) + the CoreDNS resolver
   # side-effect, so any direct connection to a public IP or non-cluster
   # domain will produce an `event.dstAddr` outside pg-client's egress set

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# chain-extract-sbobs.sh — read learned AP+NN from cluster for each pod
-# in a ChainManifest and write them to `<sbob_dir>/{ap,nn}-<pod>.yaml`,
-# normalized to the User-managed shape so the next consumer can apply
-# them as-is.
+# chain-extract-sbobs.sh — read the learned ContainerProfile from the
+# cluster for each pod in a ChainManifest and write it to
+# `<sbob_dir>/cp-<pod>.yaml`, normalized to the User-managed shape so
+# the next consumer can apply it as-is.
 #
 # Vendor flow: agent A learns sbobs on cluster A, exports via this
 # helper, ships to operator B who runs chain-apply-sbobs.sh.
@@ -16,10 +16,10 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$SCRIPT_DIR/chain-manifest-parse.sh"
 
 # chain_extract_sbobs <manifest.yaml> [out-dir]
-#   For each pod in the manifest, find its learned ApplicationProfile
-#   and NetworkNeighborhood (by `profile_match` prefix) on the cluster,
-#   normalize the metadata to the User-managed shape, and write to
-#   <out-dir>/{ap,nn}-<pod-name>.yaml.
+#   For each pod in the manifest, find its learned ContainerProfile
+#   (by `profile_match` prefix) on the cluster, normalize the metadata
+#   to the User-managed shape, and write to
+#   <out-dir>/cp-<pod-name>.yaml.
 #
 #   out-dir: defaults to the manifest's `sbob_dir` field, else
 #   "<manifest-dir>/sbobs/".
@@ -77,37 +77,24 @@ _extract_one_pod() {
   local container=$4
   local out_dir=$5
 
-  # Locate the on-cluster AP by name-prefix match. node-agent's
-  # naming is `replicaset-<deploy>-<hash>` so the manifest's
-  # `profile_match` is the prefix `replicaset-<deploy>`.
-  local ap_name
-  ap_name=$(kubectl get applicationprofile -n "$ns" -o json 2>/dev/null \
+  # Locate the on-cluster ContainerProfile by name-prefix match.
+  # node-agent's naming is `replicaset-<deploy>-<hash>` so the manifest's
+  # `profile_match` is the prefix `replicaset-<deploy>`. The unified
+  # ContainerProfile carries the process view AND the inline network
+  # ingress/egress, so a single lookup replaces the former AP+NN pair.
+  local cp_name
+  cp_name=$(kubectl get containerprofile -n "$ns" -o json 2>/dev/null \
     | jq -r --arg p "$pmatch" '[.items[] | select(.metadata.name | startswith($p))][0].metadata.name // ""')
-  if [[ -z "$ap_name" ]]; then
-    echo "  $pname: no AP found matching prefix $pmatch" >&2
+  if [[ -z "$cp_name" ]]; then
+    echo "  $pname: no ContainerProfile found matching prefix $pmatch" >&2
     return 1
   fi
-  local nn_name
-  nn_name=$(kubectl get networkneighborhood -n "$ns" -o json 2>/dev/null \
-    | jq -r --arg p "$pmatch" '[.items[] | select(.metadata.name | startswith($p))][0].metadata.name // ""')
-  # NN is best-effort — workloads with no observed network traffic
-  # may not have one yet. Skip with a warning rather than failing.
-  if [[ -z "$nn_name" ]]; then
-    echo "  $pname: no NN found matching prefix $pmatch (skipping NN)" >&2
-  fi
 
-  # Pull AP and rewrite metadata.
-  kubectl get applicationprofile "$ap_name" -n "$ns" -o yaml \
+  # Pull the ContainerProfile and rewrite metadata.
+  kubectl get containerprofile "$cp_name" -n "$ns" -o yaml \
     | _normalize_metadata "$pname" "$ns" \
-    > "$out_dir/ap-$pname.yaml"
-  echo "  $pname: ap-$pname.yaml ← $ap_name"
-
-  if [[ -n "$nn_name" ]]; then
-    kubectl get networkneighborhood "$nn_name" -n "$ns" -o yaml \
-      | _normalize_metadata "$pname" "$ns" \
-      > "$out_dir/nn-$pname.yaml"
-    echo "  $pname: nn-$pname.yaml ← $nn_name"
-  fi
+    > "$out_dir/cp-$pname.yaml"
+  echo "  $pname: cp-$pname.yaml ← $cp_name"
 }
 
 _normalize_metadata() {

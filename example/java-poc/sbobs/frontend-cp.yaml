@@ -1,0 +1,157 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: frontend
+  namespace: java-poc
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  architectures:
+  - amd64
+  imageID: docker.io/library/nginx@sha256:8a4f4b94275ff59d809477799cbbaf1a7ab65ed1871403d05e31fd66bdb8db82
+  imageTag: docker.io/library/nginx:stable-alpine
+  execs:
+  - args:
+    - nginx
+    - -g
+    - daemon off;
+    path: /usr/sbin/nginx
+  opens:
+  - flags:
+    - O_RDONLY
+    path: /etc/nginx/nginx.conf
+  - flags:
+    - O_RDONLY
+    path: /etc/nginx/conf.d
+  - flags:
+    - O_RDONLY
+    path: /etc/nginx/mime.types
+  - flags:
+    - O_RDONLY
+    path: /etc/resolv.conf
+  - flags:
+    - O_RDONLY
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_RDONLY
+    path: /etc/localtime
+  - flags:
+    - O_WRONLY
+    - O_APPEND
+    - O_CREAT
+    path: /var/log/nginx
+  - flags:
+    - O_RDWR
+    - O_CREAT
+    path: /var/cache/nginx
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    path: /run/nginx.pid
+  syscalls:
+  - accept4
+  - bind
+  - brk
+  - close
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - epoll_wait
+  - exit_group
+  - fcntl
+  - fstat
+  - futex
+  - getsockname
+  - getsockopt
+  - listen
+  - mmap
+  - mprotect
+  - munmap
+  - newfstatat
+  - openat
+  - read
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - sendto
+  - setsockopt
+  - socket
+  - statx
+  - write
+  - writev
+  capabilities:
+  - CAP_CHOWN
+  - CAP_DAC_OVERRIDE
+  - CAP_NET_BIND_SERVICE
+  - CAP_SETGID
+  - CAP_SETUID
+  endpoints:
+  - direction: inbound
+    endpoint: :8080/api/products
+    internal: false
+    methods:
+    - GET
+  - direction: inbound
+    endpoint: :8080/api/login
+    internal: false
+    methods:
+    - POST
+  - direction: inbound
+    endpoint: :8080/healthz
+    internal: false
+    methods:
+    - GET
+  seccompProfile:
+    spec:
+      defaultAction: ''
+  rulePolicies: {}
+  matchLabels:
+    app: frontend
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: ingress-external
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-8080
+      port: 8080
+      protocol: TCP
+    type: external
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: egress-kube-dns
+    ipAddress: ''
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    - name: TCP-53
+      port: 53
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: egress-backend
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: backend
+    ports:
+    - name: TCP-8080
+      port: 8080
+      protocol: TCP
+    type: internal

@@ -88,11 +88,11 @@ fi
 # matches `pod-pg-client`, `replicaset-misp` matches `replicaset-misp-app`, etc.)
 # but exclude bobctl-managed iteration profiles (ug- prefix) so we don't
 # discover yesterday's tune output as the "learned" profile.
-PROFILE_NAME="$(kubectl get applicationprofiles.spdx.softwarecomposition.kubescape.io -n "$NS" -o name 2>/dev/null \
+PROFILE_NAME="$(kubectl get containerprofiles.spdx.softwarecomposition.kubescape.io -n "$NS" -o name 2>/dev/null \
   | awk -v match_re="$PROFILE_MATCH" '$0 ~ match_re && $0 !~ /\/ug-/ { sub(/^[^\/]*\//, ""); print; exit }')"
 if [[ -z "$PROFILE_NAME" ]]; then
   echo "FAIL: no learned profile matching '$PROFILE_MATCH' in $NS. Run learning first." >&2
-  kubectl get applicationprofiles.spdx.softwarecomposition.kubescape.io -n "$NS" -o name >&2
+  kubectl get containerprofiles.spdx.softwarecomposition.kubescape.io -n "$NS" -o name >&2
   exit 2
 fi
 log "  Cluster:  reachable"
@@ -116,11 +116,11 @@ log "  bobctl:   bin/bobctl ($(stat -c%s bin/bobctl 2>/dev/null || stat -f%z bin
 # get the `ug-` prefix from applyProfile (see tuner.go), so name-based
 # matching is safe.
 log "=== Cleanup prior iterations (ug-* only) ==="
-ITER_PROFILES="$(kubectl get applicationprofiles.spdx.softwarecomposition.kubescape.io \
+ITER_PROFILES="$(kubectl get containerprofiles.spdx.softwarecomposition.kubescape.io \
   -n "$NS" -o name 2>/dev/null \
   | awk '/\/ug-/ { sub(/^[^\/]*\//, ""); print }')"
 if [[ -n "$ITER_PROFILES" ]]; then
-  echo "$ITER_PROFILES" | xargs -r kubectl delete applicationprofiles.spdx.softwarecomposition.kubescape.io \
+  echo "$ITER_PROFILES" | xargs -r kubectl delete containerprofiles.spdx.softwarecomposition.kubescape.io \
     -n "$NS" --ignore-not-found 2>&1 | tail -5
 fi
 

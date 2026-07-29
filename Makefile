@@ -334,23 +334,28 @@ enable-streaming:
 	$(MAKE) verify-streaming
 
 # Fail loud if node-agent network streaming is not actually live. Without it
-# the shipped NetworkNeighborhood is inert and R0005 (DNS) / R0011 (egress)
-# silently never fire — which reads as "clean" when it is really "blind".
+# the profile's inline network shape (ingress/egress) is inert and R0005 (DNS) /
+# R0011 (egress) silently never fire — which reads as "clean" when it is really
+# "blind".
 .PHONY: verify-streaming
 verify-streaming:
 	@echo "Verifying node-agent networkStreamingEnabled is live..."
 	@kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' \
 		| python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("networkStreamingEnabled") is True else 1)' \
 		&& echo "OK: networkStreamingEnabled=true (R0005/R0011 can fire)" \
-		|| { echo "ERROR: node-agent networkStreamingEnabled != true — NetworkNeighborhood is inert; R0005 (DNS) and R0011 (egress) will silently never fire. Re-run 'make kubescape' or see docs/portability-spec.md D7a."; exit 1; }
+		|| { echo "ERROR: node-agent networkStreamingEnabled != true — the profile's inline network is inert; R0005 (DNS) and R0011 (egress) will silently never fire. Re-run 'make kubescape' or see docs/portability-spec.md D7a."; exit 1; }
 
 .PHONY: alertmanager
 alertmanager:
 	@echo "Deploying alertmanager in honey namespace..."
+	kubectl create namespace honey --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n honey -f kubescape/alertmanager.yaml
 	kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 	@echo "Reconciling node-agent config (exporter is in values.yaml; re-assert streaming)..."
-	$(HELM) upgrade kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --values kubescape/values.yaml
+	# upgrade --install (not bare upgrade): idempotent, and does not require the
+	# kubescape release to pre-exist — so `make alertmanager` works on a fresh
+	# cluster / standalone, same as `make kubescape`.
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
 	$(MAKE) enable-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
