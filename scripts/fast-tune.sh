@@ -56,20 +56,8 @@ case "$APP" in
     FUNCTESTS=example/postgres-vuln-functional-tests.yaml
     PROFILE_MATCH=replicaset-pg-vuln
     ;;
-  elk)
-    NS=elk
-    SUITE=example/elk-attacks.yaml
-    FUNCTESTS=example/elk-functional-tests.yaml
-    PROFILE_MATCH=el-es
-    ;;
-  misp)
-    NS=honey
-    SUITE=example/misp-attacks.yaml
-    FUNCTESTS=example/misp-functional-tests.yaml
-    PROFILE_MATCH=replicaset-misp
-    ;;
   *)
-    echo "Unknown app: $APP. Supported: webapp redis postgres postgres-vuln elk misp" >&2
+    echo "Unknown app: $APP. Supported: webapp redis postgres postgres-vuln mariadb" >&2
     exit 2
     ;;
 esac
@@ -85,7 +73,7 @@ fi
 # `head -1` causes SIGPIPE upstream which trips `set -o pipefail`. Use awk's
 # `exit` instead — it consumes all input but stops processing after first match.
 # Match PROFILE_MATCH as a substring anywhere in the line (so `pg-client`
-# matches `pod-pg-client`, `replicaset-misp` matches `replicaset-misp-app`, etc.)
+# matches `pod-pg-client`, `replicaset-mariadb` matches `replicaset-mariadb-app`, etc.)
 # but exclude bobctl-managed iteration profiles (ug- prefix) so we don't
 # discover yesterday's tune output as the "learned" profile.
 PROFILE_NAME="$(kubectl get containerprofiles.spdx.softwarecomposition.kubescape.io -n "$NS" -o name 2>/dev/null \
