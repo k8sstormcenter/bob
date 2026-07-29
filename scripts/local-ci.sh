@@ -53,26 +53,6 @@ case "$APP" in
     APP_PORT=6379
     APP_SCORE_THRESHOLD=0
     ;;
-  misp)
-    APP_NS=misp
-    APP_FUNC_TESTS=example/misp-functional-tests.yaml
-    APP_ATTACKS=example/misp-attacks.yaml
-    APP_SERVICE=misp
-    APP_PORT=443
-    APP_SCHEME=https
-    # Exclude sub-chart StatefulSets (valkey, mariadb) from profile discovery.
-    APP_PROFILE_MATCH="replicaset-misp"
-    APP_SCORE_THRESHOLD=0
-    ;;
-  elk)
-    APP_NS=elk
-    APP_FUNC_TESTS=example/elk-functional-tests.yaml
-    APP_ATTACKS=example/elk-attacks.yaml
-    APP_SERVICE=el-es-http
-    APP_PORT=9200
-    APP_PROFILE_MATCH="el-es"
-    APP_SCORE_THRESHOLD=0
-    ;;
   postgres)
     APP_NS=postgres
     APP_FUNC_TESTS=example/postgres-functional-tests.yaml
@@ -110,7 +90,7 @@ case "$APP" in
     APP_SCORE_THRESHOLD=0
     ;;
   *)
-    die "Unknown app: $APP (use webapp, redis, misp, elk, postgres, postgres-vuln, or mariadb)"
+    die "Unknown app: $APP (use webapp, redis, postgres, postgres-vuln, or mariadb)"
     ;;
 esac
 
