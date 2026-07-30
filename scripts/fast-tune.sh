@@ -56,6 +56,18 @@ case "$APP" in
     FUNCTESTS=example/postgres-vuln-functional-tests.yaml
     PROFILE_MATCH=replicaset-pg-vuln
     ;;
+  mariadb)
+    NS=mariadb
+    SUITE=example/mariadb-attacks.yaml
+    FUNCTESTS=example/mariadb-functional-tests.yaml
+    # Pin the CLIENT profile. Every expectedDetection in the suite is
+    # containerName: client, because exec attacks all land on the pod behind
+    # target.service (mariadb-client) — there is no per-attack target override.
+    # A bare "replicaset-mariadb" substring-matches the server profile AND
+    # replicaset-mariadb-client-<hash>, so which one got tuned depended on API
+    # listing order.
+    PROFILE_MATCH=replicaset-mariadb-client
+    ;;
   argocd-server)
     NS=argocd
     SUITE=example/argocd-server-attacks.yaml

@@ -434,3 +434,66 @@ attacks:
   # ═══════════════════════════════════════════════════════════════════════════
 
   # (no probes here — see note above)
+
+  # ── Full rule-family sweep (scripts/emit-rule-sweep.py) ─────────────────────
+  # Primitives probed on the live container: staging dir, real mount, interpreter.
+  # Anything that misses on the dogfood run must be demoted to a probe WITH a reason.
+  - name: sa-token-read
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1 && echo sa_token_read_done || echo sa_token_absent"] }
+    successIndicators: [{ responseContains: "sa_token_read_done" }]
+    # pg-client has no readable ServiceAccount token on the CI cluster: the tune
+    # there fetched 1748 alerts and ZERO carried this rule, while the same
+    # assertion passes for redis and postgres-vuln. The read simply does not
+    # happen, so the rule cannot fire. Honest boundary — do not re-assert without
+    # first confirming the token is mounted AND readable in BOTH environments.
+    expectedDetections: []
+  - name: k8s-api-unexpected-call
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(443,inet_aton('10.43.0.1'))); close($s); print qq{k8s_api_probe_done}"] }
+    successIndicators: [{ responseContains: "k8s_api_probe_done" }]
+    expectedDetections:
+      - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: pg-client }
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec: { command: ["cat", "/etc/shadow"] }
+    expectedDetections:
+      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: pg-client, command: cat }
+  - name: egress-external-c2
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
+    successIndicators: [{ responseContains: "egress_attempted" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: pg-client }
+  - name: drifted-binary-exec
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/ls /dev/shm/drifted_bob && printf '\\n#bob-drift' >> /dev/shm/drifted_bob && chmod +x /dev/shm/drifted_bob && /dev/shm/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /dev/shm/drifted_bob"] }
+    successIndicators: [{ responseContains: "drift_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: pg-client }
+  - name: exec-from-volume-mount
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/echo /var/lib/postgresql/data/mnt_payload && chmod +x /var/lib/postgresql/data/mnt_payload && /var/lib/postgresql/data/mnt_payload mount_exec_done; rm -f /var/lib/postgresql/data/mnt_payload"] }
+    successIndicators: [{ responseContains: "mount_exec_done" }]
+    # Verified unreachable on this container: /var/lib/postgresql/data is not
+    # writable from the client, and a successful exec staged on /dev/shm fires
+    # R0001 + R1000, never R1004, on this node-agent build. Honest boundary.
+    expectedDetections: []
+  - name: fileless-memfd-exec
+    type: fileless
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    successIndicators: [{ responseContains: "memfd_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: pg-client }
+  - name: symlink-shadow
+    type: cmdinject
+    exec: { command: ["ln", "-sf", "/etc/shadow", "/dev/shm/softlink_probe"] }
+    successIndicators: [{ responseContains: "" }]
+    expectedDetections:
+      - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: pg-client, command: ln }
+  - name: hardlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln /etc/shadow /dev/shm/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /dev/shm/hl_probe"] }
+    successIndicators: [{ responseContains: "hardlink_done" }]
+    expectedDetections:
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: pg-client, command: ln }
