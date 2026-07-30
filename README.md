@@ -29,8 +29,8 @@ bobctl contrast --profile example/redis-client/sbobs/ap-redis.yaml --type databa
 ```
 
 A multi-container product is one contrast leg per container. Argo CD has seven,
-so each frame below is a component rather than a tune iteration — its tuned
-profile size, its kill-chain coverage, and its score:
+and the card below is the union of what all seven suites assert, verified against
+all seven tunes:
 
 ![Argo CD kill-chain — all 7 containers](example/argocd/argocd-killchain.gif)
 
@@ -38,6 +38,16 @@ profile size, its kill-chain coverage, and its score:
 ./scripts/fast-tune.sh argocd-repo-server        # any of the seven legs
 bobctl contrast --profile results/best-profile.yaml --type web-app \
   --expect reads-host-files,reads-secrets --strict
+```
+
+Every SBoB gets one of these cards. They are generated from
+`kubescape/rule-coverage.yaml`, which forces each rule in the cluster ruleset into
+exactly one state per app — so a rule that *cannot* fire is never confused with one
+nobody covered, and the red tiles are the honest backlog:
+
+```bash
+make rule-coverage-gifs              # every app
+make rule-coverage-gifs APP=argocd   # just one
 ```
 
 

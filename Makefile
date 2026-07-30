@@ -292,6 +292,18 @@ KS_RUNC_STOCK := $(shell echo "$(KS_RUNC)" | grep -qE '^$$|^/usr/bin/runc$$|^/va
 KS_RUNC_MNT := $(shell [ "$(KS_RUNC_STOCK)" = no ] && findmnt -no TARGET --target "$(KS_RUNC)" 2>/dev/null)
 KS_RUNC_FLAGS := $(if $(filter no,$(KS_RUNC_STOCK)),--set global.overrideRuntimePath=$(KS_RUNC)$(if $(filter-out /,$(KS_RUNC_MNT)), --set volumes[0].name=ks-runc-fs --set volumes[0].hostPath.path=$(KS_RUNC_MNT) --set volumes[0].hostPath.type=Directory --set volumeMounts[0].name=ks-runc-fs --set volumeMounts[0].mountPath=/host$(KS_RUNC_MNT) --set volumeMounts[0].readOnly=true))
 
+# One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
+# Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
+# so a rule that cannot fire on an app is never confused with one nobody covered.
+#   make rule-coverage-gifs              # all apps
+#   make rule-coverage-gifs APP=argocd   # one app
+.PHONY: rule-coverage-gifs
+rule-coverage-gifs:
+	python3 scripts/render-rule-coverage-gif.py \
+	  --config kubescape/rule-coverage.yaml \
+	  --ruleset kubescape/default-rules.yaml \
+	  $(if $(APP),$(foreach a,$(APP),--app $(a)),)
+
 .PHONY: show-runc
 show-runc:
 	@echo "detected runc:   $(KS_RUNC)"
