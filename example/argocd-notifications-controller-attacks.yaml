@@ -70,7 +70,7 @@ attacks:
       - { ruleID: R1008, ruleName: Crypto Mining Domain Communication, containerName: argocd-notifications-controller }
   - name: drifted-binary-exec
     type: cmdinject
-    exec: { command: ["sh", "-c", "cp /bin/ls /tmp/drifted_bob && printf '\n#bob-drift' >> /tmp/drifted_bob && chmod +x /tmp/drifted_bob && /tmp/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /tmp/drifted_bob"] }
+    exec: { command: ["sh", "-c", "cp /bin/ls /dev/shm/drifted_bob && printf '\n#bob-drift' >> /dev/shm/drifted_bob && chmod +x /dev/shm/drifted_bob && /dev/shm/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /dev/shm/drifted_bob"] }
     successIndicators: [{ responseContains: "drift_exec_done" }]
     expectedDetections:
       - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: argocd-notifications-controller }

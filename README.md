@@ -28,6 +28,18 @@ SBOB contrast is produced by application type. Redis is an example of `db`
 bobctl contrast --profile example/redis-client/sbobs/ap-redis.yaml --type database --expect reads-host-files --strict
 ```
 
+A multi-container product is one contrast leg per container. Argo CD has seven,
+so each frame below is a component rather than a tune iteration — its tuned
+profile size, its kill-chain coverage, and its score:
+
+![Argo CD kill-chain — all 7 containers](example/argocd/argocd-killchain.gif)
+
+```bash
+./scripts/fast-tune.sh argocd-repo-server        # any of the seven legs
+bobctl contrast --profile results/best-profile.yaml --type web-app \
+  --expect reads-host-files,reads-secrets --strict
+```
+
 
 
 🚨GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
