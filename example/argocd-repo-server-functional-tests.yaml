@@ -1,0 +1,21 @@
+# argocd-repo-server — functional tests (Prometheus read-path).
+#
+# repo-server speaks gRPC on 8081 to argocd-server and the controllers; there is
+# no HTTP API to exercise benignly. Its metrics endpoint on 8084 is the reachable
+# benign surface, and it is what Prometheus scrapes in normal operation.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: argocd-repo-server-functional-tests
+  description: >-
+    Prometheus metrics scrape of argocd-repo-server — benign, must not alert.
+target:
+  service: argocd-repo-server
+  namespace: argocd
+  port: 8084
+  scheme: http
+tests:
+  - name: metrics-scrape
+    http: { method: GET, path: /metrics, expectedStatus: 200, repeat: 5 }
+  - name: metrics-scrape-again
+    http: { method: GET, path: /metrics, expectedStatus: 200, repeat: 5 }

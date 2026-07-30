@@ -1,0 +1,55 @@
+# Argo CD — FULL-stack vulnerable deploy overlay for the all-subcomponent
+# contrast test. The Argo CD control plane itself is the upstream FULL install
+# (all subcomponents: argocd-server, argocd-repo-server,
+# argocd-application-controller, argocd-applicationset-controller,
+# argocd-notifications-controller, argocd-dex-server, argocd-redis), applied by
+# `make deploy-argocd` from the pinned CVE-carrying release. This file carries
+# only the demo-specific deltas that WIDEN the attack surface so historical Argo
+# CD CVEs actually execute in-cluster.
+#
+# Pinned version: v2.9.3 (quay.io/argoproj/argocd:v2.9.3). Chosen because it
+# still carries the 2024-disclosed control-plane CVEs (CVE-2024-21652/21661/
+# 21662, fixed in 2.9.15) AND the repo-server manifest-generation exec surface.
+# Older CVEs already patched in this line become documented behaviour probes in
+# example/argocd-attacks.yaml (expectedDetections: []).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: adv   # adversary namespace — the "compromised neighbour" pod lives here
+---
+# Permissive default AppProject so the application-controller / repo-server will
+# render ANY source repo — the precondition for the manifest-generation and
+# SSRF-render CVE chains.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+  namespace: argocd
+spec:
+  sourceRepos: ['*']
+  destinations:
+    - {namespace: '*', server: '*'}
+  clusterResourceWhitelist:
+    - {group: '*', kind: '*'}
+---
+# Enables the kustomize exec-generator / plugin path the repo-server RCE render
+# chain rides on (CVE-class: config-management exec during manifest generation).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: argocd
+data:
+  # arbitrary-spawn vector during render (the repo-server render weakness)
+  kustomize.buildOptions: "--enable-alpha-plugins --enable-exec"
+  # allow any repo — SSRF/path-traversal render chains need this
+  resource.customizations: ""
+  # exec plugin surface (CMP) — the plugin-exec CVE class
+  configManagementPlugins: |
+    - name: exec-plugin
+      generate:
+        command: ["sh", "-c"]
+        args: ["echo '{}'"]

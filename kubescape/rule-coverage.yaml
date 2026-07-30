@@ -1,0 +1,88 @@
+# Rule-coverage GIF definitions — one entry per contrast SBoB.
+#
+# Consumed by scripts/render-rule-coverage-gif.py (see `make rule-coverage-gifs`).
+# Every rule in kubescape/default-rules.yaml lands in exactly one state per app,
+# so a rule that CANNOT fire here is never confused with one nobody covered:
+#
+#   verified  asserted by an attack and observed firing (from tuner metrics, or
+#             listed under `observed:` when it fires without being asserted)
+#   probe     exercised but not assertable on this app — say WHY in the comment
+#   excluded  deliberately out of scope for this app
+#   gap       everything left over. Red on the card. Not a failure state to hide,
+#             it is the backlog.
+#
+# `probe` and `excluded` cannot be derived from the suite YAML — a probe attack
+# carries `expectedDetections: []` and names no rule — so they are declared here
+# and should mirror the reason comments in the suite itself.
+#
+# `metrics_glob` is optional and repo-relative. When it matches tuner output, only
+# rules the tune actually SAW firing count as verified; an asserted-but-unseen
+# rule drops to gap. Without it, an asserted rule is verified on the suite's word.
+
+defaults:
+  agent: sbob-rc4
+  # R0003 (syscall anomalies) is noise at this granularity. R1007/R1009 need a real
+  # miner binary and its ports. R1030 (io_uring) needs a kernel op we never issue.
+  # R1016 (signed-profile tampering) and R1031 (kubelet TLS exec) are control-plane
+  # concerns, not workload behaviour.
+  exclude: [R0003, R1007, R1009, R1030, R1016, R1031]
+  # R0002 fires on every container (runc init plus attack side effects) and no suite
+  # asserts it, so it is verified-but-unasserted everywhere.
+  observed: [R0002]
+
+apps:
+  - name: redis
+    title: redis
+    agent: node-agent v0.3.158
+    out: example/redis-client/redis-killchain.gif
+    suites: [example/redis-attacks.yaml]
+    note: live-verified on the new chart's node-agent v0.3.158
+    # Attempted by the suite but not assertable on this image: the capability and
+    # mount probes are kernel-flaky, module load and container escape depend on the
+    # host kernel, and ptrace needs CAP_SYS_PTRACE to land.
+    probe: [R0004, R0040, R1002, R1003, R1004, R1006, R1011, R1015]
+    exclude: [R0003, R1007, R1009, R1030]
+
+  - name: webapp
+    title: webapp
+    out: example/rule-coverage/webapp-killchain.gif
+    suites: [example/webapp-attacks.yaml]
+    note: PHP/Apache kitchen-sink image — coreutils are already in baseline
+
+  - name: postgres
+    title: postgres
+    out: example/rule-coverage/postgres-killchain.gif
+    suites: [example/postgres-attacks.yaml]
+    note: CloudNativePG cluster, client-side contrast leg
+
+  - name: postgres-vuln
+    title: postgres-vuln
+    out: example/rule-coverage/postgres-vuln-killchain.gif
+    suites: [example/postgres-vuln-attacks.yaml]
+    note: CVE-2019-9193 COPY TO/FROM PROGRAM superuser misconfiguration
+
+  - name: mariadb
+    title: mariadb
+    out: example/rule-coverage/mariadb-killchain.gif
+    suites: [example/mariadb-attacks.yaml]
+    note: intentionally insecure mariadb, cross-pod auth enabled
+
+  # Argo CD is one leg per container, so the card covers the whole product: the
+  # union of what the seven suites assert, verified against all seven tunes.
+  - name: argocd
+    title: Argo CD (7 containers)
+    out: example/argocd/argocd-killchain.gif
+    suites:
+      - example/argocd-server-attacks.yaml
+      - example/argocd-repo-server-attacks.yaml
+      - example/argocd-application-controller-attacks.yaml
+      - example/argocd-applicationset-controller-attacks.yaml
+      - example/argocd-notifications-controller-attacks.yaml
+      - example/argocd-dex-server-attacks.yaml
+      - example/argocd-redis-attacks.yaml
+    metrics_glob: results/legs/argocd-*.json
+    note: live-verified by bobctl tune across all 7 subcomponent legs
+    # R0009: bpf(2) returns EPERM in an unprivileged container, so no program ever
+    # loads. R1001: this node-agent build emits zero R1001 cluster-wide — the
+    # drifted exec trips R1000 instead, which IS asserted.
+    probe: [R0009, R1001]

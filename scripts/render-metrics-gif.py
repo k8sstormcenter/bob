@@ -856,11 +856,25 @@ def main():
     limits = compute_global_limits(records)
     print(f"Rendering {len(records)} frames (Design 5: Hybrid + KPI)...", file=sys.stderr)
 
+    # savefig(bbox_inches="tight") trims each frame to its own content, so a frame
+    # whose kill-chain detail panel carries different labels (or one fewer phase
+    # row) comes out a different pixel size. A GIF has ONE canvas for the whole
+    # animation, so mismatched frames jitter and the widest frame's edges bleed
+    # over the narrower ones. Pad every frame onto a common canvas first.
+    raw = [draw_frame(records, i, args.title, limits,
+                      kpi_sidecar=kpi_sidecar, nn_report=nn_report, best_nn=best_nn)
+           for i in range(len(records))]
+    cw = max(f.width for f in raw)
+    ch = max(f.height for f in raw)
+    bg = raw[0].getpixel((0, 0))
+
     frames = []
-    for i in range(len(records)):
-        frame = draw_frame(records, i, args.title, limits,
-                           kpi_sidecar=kpi_sidecar, nn_report=nn_report, best_nn=best_nn)
-        frames.append(frame.convert("RGB").quantize(colors=128, method=Image.Quantize.MEDIANCUT))
+    for f in raw:
+        if f.size != (cw, ch):
+            canvas = Image.new("RGBA", (cw, ch), bg)
+            canvas.paste(f, (0, 0))
+            f = canvas
+        frames.append(f.convert("RGB").quantize(colors=128, method=Image.Quantize.MEDIANCUT))
 
     durations = [args.duration] * len(frames)
     durations[-1] = args.last_duration

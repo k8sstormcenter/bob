@@ -1,0 +1,186 @@
+# Argo CD — repo-server attack leg (redis-aligned, single-target).
+#
+# ONE subcomponent = ONE AttackSuite with ONE singular target (see the
+# add-new-app-for-bobctl-tuning skill §0/§8). The repo-server is the richest
+# runtime-observable surface in Argo CD: it renders untrusted Git/Helm/kustomize
+# sources, so path-traversal, symlink, and manifest-generation-exec CVEs land as
+# real kernel events against a tuned repo-server SBoB.
+#
+# Sibling legs (each its own suite + SBoB + CI matrix entry, per the skill):
+#   argocd-server-attacks.yaml               — JWT/auth-bypass → kube-API pivot (R0007/R0006)
+#   argocd-application-controller-attacks.yaml — cross-ns secret read (R0006/R0010)
+#   argocd-redis-attacks.yaml                — unauth cache poison egress (R0011)
+# dex / applicationset / notifications carry only HTTP-logic CVEs → documented
+# probes (expectedDetections: []) in their own legs.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: argocd-repo-server-killchain
+  description: >-
+    Argo CD repo-server CVE contrast leg. Render-time path traversal, Git
+    symlink-over-sensitive-file, and config-management-plugin exec RCE — each
+    maps to the kubescape rule its runtime behaviour trips against a tuned
+    repo-server ContainerProfile. HTTP-logic CVEs that hit the repo-server API
+    (no kernel signal) are documented probes with expectedDetections: [].
+target:
+  service: argocd-repo-server
+  namespace: argocd
+  port: 8081
+  protocol: tcp
+
+attacks:
+  # ── CVE-2022-24348 / 24730 — render path traversal out of the repo work dir ──
+  # The repo-server reads a file OUTSIDE the per-repo working dir during Helm/
+  # kustomize render. Reading /etc/passwd from the repo-server process is the
+  # sensitive-file tell (R0010); `cat` is not in the render baseline (R0001).
+  - name: cve-2022-24348-render-path-traversal
+    type: cmdinject
+    exec:
+      command: ["head", "-1", "/etc/passwd"]
+    successIndicators:
+      - responseContains: "root:"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: argocd-repo-server
+        command: head
+
+  # ── CVE-2022-24731 / CVE-2022-31036 — Git symlink → arbitrary host-file read ──
+  # A symlink embedded in a Git repo points at /etc/shadow; render follows it.
+  # Symlink-over-sensitive-file is the R1010 signature; `ln` fires R0001.
+  - name: cve-2022-31036-symlink-sensitive
+    type: cmdinject
+    exec:
+      command: ["ln", "-sf", "/etc/shadow", "/tmp/repo_softlink_probe"]
+    successIndicators:
+      - responseContains: ""
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: argocd-repo-server
+        command: ln
+      - ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: argocd-repo-server
+        command: ln
+
+  # ── config-management-plugin / kustomize --enable-exec RCE during render ─────
+  # The exec-plugin path (enabled in argocd-vulnerable.yaml) spawns an arbitrary
+  # helper process during manifest generation. redis-style "server should never
+  # fork-exec": ANY non-baseline exec under repo-server fires R0001.
+  - name: repo-server-render-exec-rce
+    type: cmdinject
+    exec:
+      command: ["whoami"]
+    successIndicators:
+      - responseContains: "argocd"
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: argocd-repo-server
+        command: whoami
+
+  # ── T1552.001 — render reads the pod SA token (cross-ns pivot precursor) ─────
+  # NOTE: R0006 (SA-token) is cluster-config-dependent in CI k3s (same flake
+  # webapp/postgres carry). Kept as a behaviour probe; assert only where the SA
+  # mount reproduces deterministically. sh is the comm here.
+  - name: repo-server-sa-token-read
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1 && echo token_read"]
+    successIndicators:
+      - responseContains: "token_read"
+    expectedDetections: []
+
+  # ── Honest boundary: repo-server HTTP-logic CVE (no kernel signal) ───────────
+  # CVE-2023-25163 — repo credentials leaked into error logs. Info-disclosure in
+  # the repo-server API layer; nothing kernel-observable. Documented probe.
+  - name: cve-2023-25163-repo-cred-log-leak
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "echo 'probe: repo-server logs repo creds on error (info-disclosure, app-logic)'; echo probe_done"]
+    successIndicators:
+      - responseContains: "probe_done"
+    expectedDetections: []
+
+  # ── Full rule-family coverage (see argocd-server leg for rationale) ─────────
+  # Honest boundaries here: R0006/R0007 are impossible on this container — it has
+  # NO ServiceAccount token mounted at all (automountServiceAccountToken is off),
+  # so there is nothing to read and no in-cluster API identity to misuse.
+
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec: { command: ["cat", "/etc/shadow"] }
+    expectedDetections:
+      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: argocd-repo-server, command: cat }
+  - name: exec-proc-environ
+    type: cmdinject
+    exec: { command: ["cat", "/proc/1/environ"] }
+    successIndicators: [{ responseContains: "PATH" }]
+    expectedDetections:
+      - { ruleID: R0008, ruleName: Read Environment Variables from procfs, containerName: argocd-repo-server, command: cat }
+  - name: hardlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_$$ >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_$$"] }
+    successIndicators: [{ responseContains: "hardlink_done" }]
+    expectedDetections:
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: argocd-repo-server, command: ln }
+  - name: dns-anomaly-lookup
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts scanner.evil-c2.example.com >/dev/null 2>&1 && echo dns_resolved || echo dns_attempted"] }
+    successIndicators: [{ responseContains: "dns_" }]
+    expectedDetections:
+      - { ruleID: R0005, ruleName: DNS Anomalies in container, containerName: argocd-repo-server }
+  - name: crypto-mining-dns
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts xmr.pool.minergate.com >/dev/null 2>&1 && echo miner_dns_ok || echo miner_dns_attempted"] }
+    successIndicators: [{ responseContains: "miner_dns_" }]
+    expectedDetections:
+      - { ruleID: R1008, ruleName: Crypto Mining Domain Communication, containerName: argocd-repo-server }
+  - name: drifted-binary-exec
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/ls /tmp/drifted_bob && printf '\n#bob-drift' >> /tmp/drifted_bob && chmod +x /tmp/drifted_bob && /tmp/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /tmp/drifted_bob"] }
+    successIndicators: [{ responseContains: "drift_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: argocd-repo-server }
+  - name: exec-from-shm-mount
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/echo /dev/shm/shm_payload && chmod +x /dev/shm/shm_payload && /dev/shm/shm_payload shm_exec_done; rm -f /dev/shm/shm_payload"] }
+    successIndicators: [{ responseContains: "shm_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1004, ruleName: Process executed from mount, containerName: argocd-repo-server }
+  - name: fileless-memfd-exec
+    type: fileless
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    successIndicators: [{ responseContains: "memfd_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: argocd-repo-server }
+  - name: egress-external-c2
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
+    successIndicators: [{ responseContains: "egress_attempted" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: argocd-repo-server }
+
+  # ── repo-server-only surface: the render toolchain ──────────────────────────
+  # repo-server is the ONLY subcomponent that legitimately fork-execs (gpg), but
+  # git/helm/kustomize are NOT in its baseline — a render-time spawn of any of
+  # them is the manifest-generation RCE tell.
+  - name: render-git-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "git --version >/dev/null 2>&1 && echo git_spawn_done"] }
+    successIndicators: [{ responseContains: "git_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: git }
+  - name: render-helm-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "helm version --short >/dev/null 2>&1 && echo helm_spawn_done"] }
+    successIndicators: [{ responseContains: "helm_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: helm }
+  - name: render-kustomize-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "kustomize version >/dev/null 2>&1 && echo kustomize_spawn_done"] }
+    successIndicators: [{ responseContains: "kustomize_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: kustomize }

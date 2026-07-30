@@ -1,0 +1,22 @@
+# argocd-application-controller — functional tests (Prometheus read-path).
+#
+# argocd-application-controller exposes no user-facing API; its only reachable benign
+# surface is the metrics endpoint Prometheus scrapes. That IS the normal traffic
+# for this workload, so it is what the baseline must not alert on.
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: argocd-application-controller-functional-tests
+  description: >-
+    Prometheus metrics scrape of argocd-application-controller — the only benign
+    network surface this controller exposes. Must not alert.
+target:
+  service: argocd-metrics
+  namespace: argocd
+  port: 8082
+  scheme: http
+tests:
+  - name: metrics-scrape
+    http: { method: GET, path: /metrics, expectedStatus: 200, repeat: 5 }
+  - name: metrics-scrape-again
+    http: { method: GET, path: /metrics, expectedStatus: 200, repeat: 5 }
