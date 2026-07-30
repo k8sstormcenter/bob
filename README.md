@@ -2,7 +2,7 @@
 Imagine a software vendor distills all their knowledge of their own testing into a standard file and ships it `with each update` . Just like a Container Package-Insert (Packungsbeilage) 📦📃🩻
 
 
-An SBOB is a profile that provides contrast between intended benign and malicious runtime behaviors. It can be signed, bundled
+An SBOB is a profile that provides contrast between intended benign and malicious runtime behaviors. 
 
 It's understood to be an abstraction of linux kernel level behavior to express `intent` across systems:
 
