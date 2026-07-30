@@ -86,8 +86,11 @@ def load_ruleset(path):
 
 
 def asserted_rules(suite_paths):
-    """Rule ids the suites claim, plus each suite's name and probe-attack count."""
+    """Rule ids the suites claim, the suite names, the probe-attack count, and the
+    ATTACK that first asserts each rule — the reference card names the attack per
+    frame, not just the rule."""
     rules, labels, probes = set(), [], 0
+    by_rule = {}
     for p in suite_paths:
         doc = yaml.safe_load(Path(p).read_text())
         labels.append(doc.get("metadata", {}).get("name") or Path(p).stem)
@@ -96,9 +99,12 @@ def asserted_rules(suite_paths):
             if not det:
                 probes += 1
             for d in det:
-                if d.get("ruleID"):
-                    rules.add(d["ruleID"])
-    return rules, labels, probes
+                rid = d.get("ruleID")
+                if not rid:
+                    continue
+                rules.add(rid)
+                by_rule.setdefault(rid, (a.get("name", "?"), a.get("type", "")))
+    return rules, labels, probes, by_rule
 
 
 def verified_rules(metrics_paths):
@@ -134,7 +140,7 @@ def classify(ruleset, asserted, verified, probe, exclude, have_metrics, observed
     return order, state
 
 
-def draw(order, state, lit, title, agent, suite_labels, note, probes, exclude, size):
+def draw(order, state, lit, title, agent, suite_labels, note, probes, exclude, size, lit_seq):
     n_verified = sum(1 for r in order if state[r] == "verified")
     n_probe = sum(1 for r in order if state[r] == "probe")
     w, h = size
@@ -187,15 +193,25 @@ def draw(order, state, lit, title, agent, suite_labels, note, probes, exclude, s
     ax.add_patch(FancyBboxPatch((fx, fy), fw, fh,
                                 boxstyle="round,pad=0.004,rounding_size=0.010",
                                 linewidth=1, edgecolor="#232b3d", facecolor=C_CARD))
-    label = suite_labels[0] if len(suite_labels) == 1 else f"{len(suite_labels)} suites"
-    ax.text(fx + 0.022, fy + fh - 0.055, label, color=C_TITLE, fontsize=11.5,
+    # Frame 0 shows the suite; every later frame names the attack that lit the
+    # rule and which rule it fired — that per-attack provenance is the whole
+    # reason the card is more useful than a static grid.
+    if lit > 0 and lit <= len(lit_seq):
+        rid, atk_name, atk_type = lit_seq[lit - 1]
+        headline, sub = atk_name, (f"type: {atk_type}" if atk_type else "")
+        fires = f"fires: {rid}"
+    else:
+        headline = suite_labels[0] if len(suite_labels) == 1 else f"{len(suite_labels)} suites"
+        sub = note
+        excl_txt = f" · {len(exclude)} excluded" if exclude else ""
+        fires = (f"{n_verified} rules fire · {n_probe} kernel/gated probes"
+                 f"{excl_txt} · {probes} probe attacks")
+    ax.text(fx + 0.022, fy + fh - 0.055, headline, color=C_TITLE, fontsize=11.5,
             fontweight="bold", va="center", family="monospace")
-    if note:
-        ax.text(fx + 0.022, fy + fh - 0.108, note, color=C_TILE_DARK_TX, fontsize=9,
+    if sub:
+        ax.text(fx + 0.022, fy + fh - 0.108, sub, color=C_TILE_DARK_TX, fontsize=9,
                 va="center", family="monospace")
-    excl_txt = f" · {len(exclude)} excluded" if exclude else ""
-    ax.text(fx + 0.022, fy + 0.042,
-            f"{n_verified} rules fire · {n_probe} kernel/gated probes{excl_txt} · {probes} probe attacks",
+    ax.text(fx + 0.022, fy + 0.042, fires,
             color=C_VERIFIED, fontsize=9.5, fontweight="bold", va="center", family="monospace")
 
     for k, (lbl, col) in enumerate([("verified", C_VERIFIED), ("probe", C_PROBE_TX),
@@ -223,14 +239,17 @@ def render_one(ruleset, out, suites, metrics, title, agent, note, probe, exclude
                observed, size, duration, last_duration):
     """Render one app's card. Returns (verified, probe, excluded, gaps)."""
     metrics = [m for m in metrics if Path(m).is_file()]
-    asserted, labels, probe_attacks = asserted_rules(suites)
+    asserted, labels, probe_attacks, by_rule = asserted_rules(suites)
     verified = verified_rules(metrics)
     order, state = classify(ruleset, asserted, verified, probe, exclude,
                             bool(metrics), observed=observed)
 
-    n_verified = sum(1 for r in order if state[r] == "verified")
+    # Tiles light in grid order; each step names the attack that asserts that rule.
+    lit_seq = [(r, *by_rule.get(r, ("(fires without being asserted)", "")))
+               for r in order if state[r] == "verified"]
+    n_verified = len(lit_seq)
     frames = [draw(order, state, lit, title, agent, labels, note, probe_attacks,
-                   exclude, size) for lit in range(n_verified + 1)]
+                   exclude, size, lit_seq) for lit in range(n_verified + 1)]
 
     cw = max(f.width for f in frames)
     ch = max(f.height for f in frames)
@@ -318,18 +337,20 @@ def main():
         print(f"no rules parsed from {args.ruleset}", file=sys.stderr)
         return 1
     metrics = [m for m in args.metrics if Path(m).is_file()]
-    asserted, labels, probe_attacks = asserted_rules(args.suite)
+    asserted, labels, probe_attacks, by_rule = asserted_rules(args.suite)
     verified = verified_rules(metrics)
     order, state = classify(ruleset, asserted, verified,
                             csv_set(args.probe), csv_set(args.exclude), bool(metrics),
                             observed=csv_set(args.observed))
 
-    n_verified = sum(1 for r in order if state[r] == "verified")
+    lit_seq = [(r, *by_rule.get(r, ("(fires without being asserted)", "")))
+               for r in order if state[r] == "verified"]
+    n_verified = len(lit_seq)
     frames = []
     for lit in range(n_verified + 1):
         frames.append(draw(order, state, lit, args.title, args.agent, labels,
                            args.note, probe_attacks, csv_set(args.exclude),
-                           (args.width, args.height)))
+                           (args.width, args.height), lit_seq))
 
     cw = max(f.width for f in frames)
     ch = max(f.height for f in frames)

@@ -83,10 +83,13 @@ case "$APP" in
     APP_SERVICE=mariadb-client
     APP_PORT=3306
     APP_SCHEME=tcp
-    # Match the server deployment profile: server-side attacks (UDF RCE,
-    # SELECT INTO OUTFILE, log poisoning) spawn processes inside the
-    # mariadb pod. The client pod has its own profile.
-    APP_PROFILE_MATCH="replicaset-mariadb"
+    # Pin the CLIENT profile. Every expectedDetection in the suite is
+    # containerName: client, because exec attacks all land on the pod behind
+    # target.service (mariadb-client) — there is no per-attack target override.
+    # A bare "replicaset-mariadb" substring-matches the server profile AND
+    # replicaset-mariadb-client-<hash>, so which one got tuned depended on API
+    # listing order.
+    APP_PROFILE_MATCH="replicaset-mariadb-client"
     APP_SCORE_THRESHOLD=0
     ;;
   *)

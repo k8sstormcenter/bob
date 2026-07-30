@@ -47,25 +47,34 @@ apps:
     title: webapp
     out: example/rule-coverage/webapp-killchain.gif
     suites: [example/webapp-attacks.yaml]
-    note: PHP/Apache kitchen-sink image — coreutils are already in baseline
+    metrics_glob: results/legs/webapp.json
+    note: bash/dash are in the learned baseline, so `sh -c` is never anomalous
 
   - name: postgres
     title: postgres
     out: example/rule-coverage/postgres-killchain.gif
     suites: [example/postgres-attacks.yaml]
+    metrics_glob: results/legs/postgres.json
     note: CloudNativePG cluster, client-side contrast leg
+    # A successful exec staged on the only writable mount fires R0001+R1000 here,
+    # never R1004.
+    probe: [R1004]
 
   - name: postgres-vuln
     title: postgres-vuln
     out: example/rule-coverage/postgres-vuln-killchain.gif
     suites: [example/postgres-vuln-attacks.yaml]
+    metrics_glob: results/legs/postgres-vuln.json
     note: CVE-2019-9193 COPY TO/FROM PROGRAM superuser misconfiguration
+    probe: [R1004]
 
   - name: mariadb
     title: mariadb
     out: example/rule-coverage/mariadb-killchain.gif
     suites: [example/mariadb-attacks.yaml]
+    metrics_glob: results/legs/mariadb.json
     note: intentionally insecure mariadb, cross-pod auth enabled
+    probe: [R1004]
 
   # Argo CD is one leg per container, so the card covers the whole product: the
   # union of what the seven suites assert, verified against all seven tunes.
