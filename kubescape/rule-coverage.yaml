@@ -56,9 +56,10 @@ apps:
     suites: [example/postgres-attacks.yaml]
     metrics_glob: results/legs/postgres.json
     note: CloudNativePG cluster, client-side contrast leg
-    # A successful exec staged on the only writable mount fires R0001+R1000 here,
-    # never R1004.
-    probe: [R1004]
+    # R1004: a successful exec staged on the only writable mount fires R0001+R1000
+    # here, never R1004. R0006: pg-client has no readable SA token on CI (zero
+    # such alerts in a 1748-alert run), so the read never happens.
+    probe: [R1004, R0006]
 
   - name: postgres-vuln
     title: postgres-vuln
