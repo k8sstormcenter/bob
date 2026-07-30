@@ -23,7 +23,7 @@ We foresee a massive scale benefit for the end-user, who does not have in-depth 
 
 
 
-### Stay informed when more applications get SBOBs or Contribute
+### Stay informed when more applications get SBOBs
 Follow us on [Linkedin](https://www.linkedin.com/in/croedig/), or talk to us on [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) 
 
 Next up release: Argo CD with all of its seven components:
@@ -42,7 +42,8 @@ Next up release: Argo CD with all of its seven components:
 
 
 
-## TLDR — run bobctl (redis)
+## TLDR — run bobctl
+Here for the vulnerable redis example:
 
 ```bash
 curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64
