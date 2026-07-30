@@ -1,18 +1,3 @@
-# ContainerProfile SBoB for argocd-server — the API front-end.
-#
-# WHY THIS IS HAND-AUTHORED (not purely learned): argocd-server is a Go control-
-# plane process that NEVER fork-execs during normal operation. A learned profile
-# therefore captures execs=[] — and an empty exec allowlist means node-agent has
-# nothing to contrast against, so R0001 never fires on an attacker's `cat`/`perl`/
-# `ln`. Declaring the ONE legitimate exec chain (tini → argocd-server → argocd)
-# turns every other exec into an anomaly. This is the core reason internal
-# control-plane components need a User-authored baseline, not just learning.
-#
-# Binding: the argocd-server pod carries
-#   kubescape.io/user-defined-profile: argocd-server
-# node-agent enforces the CP named "argocd-server" REGARDLESS of the replicaset
-# hash — which also sidesteps the RS-keying churn that breaks a learned profile
-# when the deployment re-rolls.
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
