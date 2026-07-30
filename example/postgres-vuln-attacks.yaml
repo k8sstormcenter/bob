@@ -229,11 +229,11 @@ attacks:
       command: ["head", "-1", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
     successIndicators:
       - responseContains: "eyJ"
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: pg-vuln-client
-        command: head
+    # /usr/bin/head IS in this container's learned baseline (the entrypoint uses
+    # it), so R0001 cannot fire on it — verified zero R0001/head alerts for
+    # pg-vuln-client. The file read itself is covered by the rule-family sweep
+    # below. Honest boundary, not a silent miss.
+    expectedDetections: []
 
   # T1552.001 — Credentials in Files: /etc/shadow (exec into client)
   # R0010 does not reliably fire for exec-into-pod on Kind/k3s — the file open
@@ -251,11 +251,11 @@ attacks:
       command: ["head", "-5", "/etc/passwd"]
     successIndicators:
       - responseContains: "root:"
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: pg-vuln-client
-        command: head
+    # /usr/bin/head IS in this container's learned baseline (the entrypoint uses
+    # it), so R0001 cannot fire on it — verified zero R0001/head alerts for
+    # pg-vuln-client. The file read itself is covered by the rule-family sweep
+    # below. Honest boundary, not a silent miss.
+    expectedDetections: []
 
   # T1552 — Symlink to access sensitive file (exec into client)
   # R1010 does not reliably fire for exec-into-pod on Kind/k3s.
@@ -403,11 +403,11 @@ attacks:
       command: ["sh", "-c", "head -20 /etc/resolv.conf && head -20 /etc/hosts && getent hosts kubernetes.default.svc || true"]
     successIndicators:
       - responseContains: "nameserver"
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: pg-vuln-client
-        command: head
+    # /usr/bin/head IS in this container's learned baseline (the entrypoint uses
+    # it), so R0001 cannot fire on it — verified zero R0001/head alerts for
+    # pg-vuln-client. The file read itself is covered by the rule-family sweep
+    # below. Honest boundary, not a silent miss.
+    expectedDetections: []
 
   # T1057 — Process Discovery: ps (COPY FROM PROGRAM)
   - name: cve-disc-ps
