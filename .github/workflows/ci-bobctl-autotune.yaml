@@ -12,7 +12,7 @@ on:
       - 'pkg/**'
       - 'kubescape/**'
       - 'example/**'
-      - 'postgres/**'
+      - 'example/postgres/**'
       - 'example/postgres-vuln/**'
       - 'scripts/**'
       - '.github/workflows/**'
@@ -284,10 +284,29 @@ jobs:
             ALL=$(kubectl get containerprofiles -n ${{ matrix.app_namespace }} \
               -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
               2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
-            # Prefer profile matching the app/service name
-            PROFILE=$(echo "$ALL" | grep -i "$MATCH" | grep -v "client" | head -1)
-            [ -z "$PROFILE" ] && PROFILE=$(echo "$ALL" | grep -i "$MATCH" | head -1)
-            [ -z "$PROFILE" ] && PROFILE=$(echo "$ALL" | head -1)
+            # ONLY a profile matching the app/service name ends the wait.
+            #
+            # There used to be a bare `head -1` fallback here, and it made the
+            # postgres leg a race it usually lost: pg-1-bootstrap-controller is
+            # a short-lived init container, so its profile completes within
+            # seconds while pg-client is still being exercised. The fallback
+            # accepted it on the FIRST poll, broke the loop, and tuned the
+            # bootstrap container — every attack then landed on pg-client, none
+            # of it matched the tuned profile, and the leg failed with all 21
+            # detections missed and 0 false positives. The fallback now lives
+            # after the timeout (below), where it is a diagnostic rather than a
+            # way to finish early with the wrong container.
+            #
+            # The "client" exclusion is skipped when MATCH itself names a client
+            # (postgres matches pg-client), where it would filter out precisely
+            # the profile being looked for.
+            case "$MATCH" in
+              *client*)
+                PROFILE=$(echo "$ALL" | grep -i "$MATCH" | head -1) ;;
+              *)
+                PROFILE=$(echo "$ALL" | grep -i "$MATCH" | grep -v "client" | head -1)
+                [ -z "$PROFILE" ] && PROFILE=$(echo "$ALL" | grep -i "$MATCH" | head -1) ;;
+            esac
             if [ -n "$PROFILE" ]; then
               echo "Profile completed: $PROFILE"
               echo "All completed profiles:"
@@ -300,9 +319,17 @@ jobs:
           done
 
           if [ -z "$PROFILE" ]; then
-            echo "WARNING: No profile discovered after ${TIMEOUT}s"
+            echo "WARNING: no profile matching '$MATCH' completed after ${TIMEOUT}s"
             kubectl get containerprofile -n ${{ matrix.app_namespace }} -o wide || true
-            PROFILE="unknown"
+            # Fall back to any completed profile so the remaining steps still
+            # produce diagnostics, but say loudly that the tune is now measuring
+            # a container nobody asked for — a green result here means nothing.
+            PROFILE=$(echo "$ALL" | head -1)
+            if [ -n "$PROFILE" ]; then
+              echo "WARNING: falling back to unmatched profile '$PROFILE' — results are NOT authoritative"
+            else
+              PROFILE="unknown"
+            fi
           fi
 
           echo "name=$PROFILE" >> "$GITHUB_OUTPUT"
