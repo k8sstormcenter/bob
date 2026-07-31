@@ -166,3 +166,21 @@ attacks:
   # repo-server is the ONLY subcomponent that legitimately fork-execs (gpg), but
   # git/helm/kustomize are NOT in its baseline — a render-time spawn of any of
   # them is the manifest-generation RCE tell.
+  - name: render-git-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "git --version >/dev/null 2>&1 && echo git_spawn_done"] }
+    successIndicators: [{ responseContains: "git_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: git }
+  - name: render-helm-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "helm version --short >/dev/null 2>&1 && echo helm_spawn_done"] }
+    successIndicators: [{ responseContains: "helm_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: helm }
+  - name: render-kustomize-spawn
+    type: cmdinject
+    exec: { command: ["sh", "-c", "kustomize version >/dev/null 2>&1 && echo kustomize_spawn_done"] }
+    successIndicators: [{ responseContains: "kustomize_spawn_done" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: argocd-repo-server, command: kustomize }
