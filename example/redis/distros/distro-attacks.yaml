@@ -108,3 +108,49 @@ attacks:
     successIndicators: [{ responseContains: "hardlink_done" }]
     expectedDetections:
       - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: redis, command: ln }
+
+  # ══ UNION additions: CVE classes the suite above does not yet cover ═════════
+  # (Lua RCE, container escape, auth/ACL, DoS, memory-corruption crash.)
+  # ACL/DEBUG attacks require the distro to run with debug enabled
+  # (--enable-debug-command yes); Lua RCE only spawns on a vulnerable Lua build.
+
+  # Class 1 — Lua sandbox escape / RCE (CVE-2022-0543 family). Patched build:
+  # sandbox holds, nothing spawns (correctly no detection).
+  - name: lua-sandbox-escape-popen
+    type: custom
+    redis: { command: ["EVAL", "local h=io.popen('id');local r=h:read('*a');h:close();return r", "0"] }
+    successIndicators: [{ responseContains: "uid=" }]
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis }
+
+  # Class 1 — container escape
+  - name: container-escape-unshare
+    type: cmdinject
+    exec: { command: ["sh", "-c", "unshare -Urm true 2>/dev/null && echo escape_ok || echo escape_blocked"] }
+    successIndicators: [{ responseContains: "escape_" }]
+    expectedDetections:
+      - { ruleID: R1006, ruleName: Process tries to escape container, containerName: redis }
+
+  # Class 4 — auth/ACL backdoor. Command-level; SBoB sees only the consequence.
+  - name: acl-backdoor-setuser
+    type: custom
+    redis: { command: ["ACL", "SETUSER", "bobbackdoor", "on", ">p", "~*", "+@all"] }
+    successIndicators: [{ responseContains: "OK" }]
+    expectedDetections: []
+
+  # Class 3 — DoS by blocking the server. No exec/file/net signature.
+  - name: dos-debug-sleep
+    type: custom
+    redis: { command: ["DEBUG", "SLEEP", "2"] }
+    successIndicators: [{ responseContains: "OK" }]
+    expectedDetections: []
+
+  # Class 2/3 — memory-corruption / DoS crash. DEBUG SEGFAULT -> SIGSEGV -> a
+  # coredump is written via core_pattern and the pod restarts. The signature
+  # exists in the kernel but NO current rule reads it (kernel-written coredump,
+  # no abnormal-termination rule) -> documents the coverage gap. Terminal; run last.
+  - name: crash-debug-segfault
+    type: custom
+    redis: { command: ["DEBUG", "SEGFAULT"] }
+    successIndicators: []
+    expectedDetections: []
