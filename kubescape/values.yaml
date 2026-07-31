@@ -18,8 +18,8 @@ nodeAgent:
     # if alertmanager isn't deployed (exports just fail to connect).
     alertManagerExporterUrls:
       - alertmanager.honey.svc.cluster.local:9093
-    maxLearningPeriod: 2m
-    learningPeriod: 2m
+    maxLearningPeriod: 15m
+    learningPeriod: 15m
     updatePeriod: 10000m
     ruleCooldown:
       ruleCooldownDuration: 0h
