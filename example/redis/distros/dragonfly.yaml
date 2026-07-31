@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dragonfly
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: dragonfly
+data:
+  redis.conf: |
+    bind 0.0.0.0
+    protected-mode no
+    port 6379
+    dir /data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: dragonfly
+  labels:
+    app.kubernetes.io/name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/version: "1.39.0"
+        bob.k8sstormcenter.io/distro: dragonfly
+    spec:
+      containers:
+        - name: redis
+          image: ghcr.io/dragonflydb/dragonfly:v1.39.0
+          command: ["dragonfly", "--bind", "0.0.0.0", "--port", "6379", "--requirepass=", "--dbfilename", "dump"]
+          ports:
+            - containerPort: 6379
+              name: redis
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              add: ["SYS_PTRACE"]
+              drop: ["NET_RAW"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: host-etc
+              mountPath: /host-etc
+              readOnly: true
+            - name: host-tmp
+              mountPath: /host-tmp
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: host-etc
+          hostPath:
+            path: /etc
+            type: Directory
+        - name: host-tmp
+          hostPath:
+            path: /tmp
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: dragonfly
+spec:
+  selector:
+    app.kubernetes.io/name: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-client
+  namespace: dragonfly
+  labels:
+    app.kubernetes.io/name: redis-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-client
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis-client
+    spec:
+      containers:
+        - name: client
+          image: redis:8.10.0-alpine
+          command: ["sleep", "infinity"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-client
+  namespace: dragonfly
+spec:
+  selector:
+    app.kubernetes.io/name: redis-client
+  ports:
+    - name: client
+      port: 6379
+      targetPort: 6379
