@@ -23,12 +23,49 @@ narration hides the parts that were actually chosen.
 """
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
 import yaml
 
 WILDCARD_SEGMENTS = {"*", "**", "⋯", "⋯⋯"}
+
+# Kubernetes projected volumes (ServiceAccount tokens, ConfigMaps, Secrets) write
+# each generation into a "..<timestamp>" directory and atomically re-point ..data
+# at it. The timestamp changes on every rotation, so a literal path learned at
+# training time stops matching and the workload's OWN token read starts firing
+# R0002. Collapsing exactly that one segment to the single-segment wildcard keeps
+# the rest of the path literal, so a read of some other secret is still anomalous.
+ATOMIC_SWAP_DIR = re.compile(r"^\.\.\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}\.\d+$")
+
+
+def normalise_rotating(path: str) -> str:
+    segs = path.split("/")
+    return "/".join("⋯" if ATOMIC_SWAP_DIR.match(s) else s for s in segs)
+
+
+# The container-runtime init phase touches files and capabilities that no
+# workload profile can predict, and it fires on every pod (re)start.
+RUNC_INIT = ["runc:[1:INIT]", "runc:[1:CHILD]", "runc:[2:INIT]", "runc:[3:INIT]"]
+
+
+def workload_comms(execs):
+    """Kernel comm values for this container's own processes.
+
+    comm comes from argv[0]'s basename and the kernel truncates it to 15 chars,
+    so /usr/local/bin/argocd-application-controller is seen as
+    "argocd-applicat" — the exec PATH basename ("argocd") would never match.
+    """
+    out = []
+    for e in execs:
+        argv = e.get("args") or []
+        if not argv:
+            continue
+        c = str(argv[0]).split("/")[-1][:15]
+        if c and c not in out:
+            out.append(c)
+    return out
 
 
 def is_over_broad(path: str) -> bool:
@@ -49,6 +86,8 @@ def main():
     spec = json.loads(Path(args.src).read_text())["spec"]
 
     opens = spec.get("opens") or []
+    for o in opens:
+        o["path"] = normalise_rotating(o.get("path", ""))
     dropped = [o["path"] for o in opens if is_over_broad(o.get("path", ""))]
     kept = [o for o in opens if not is_over_broad(o.get("path", ""))]
 
@@ -60,6 +99,17 @@ def main():
         if key not in seen:
             seen.add(key)
             execs.append(e)
+
+    # R0006 is not satisfied by listing the token in `opens` — it is a separate
+    # rule that has to name the process allowed to read a ServiceAccount token.
+    # Without this a k8s-client workload trips R0006 on its OWN token every time.
+    rule_policies = dict(spec.get("rulePolicies") or {})
+    rule_policies.setdefault("R0002", {"processAllowed": list(RUNC_INIT)})
+    rule_policies.setdefault("R0004", {"processAllowed": list(RUNC_INIT)})
+    reads_token = any("serviceaccount" in (o.get("path") or "") for o in kept)
+    comms = workload_comms(execs)
+    if reads_token and comms:
+        rule_policies.setdefault("R0006", {"processAllowed": comms})
 
     out = {
         "apiVersion": "spdx.softwarecomposition.kubescape.io/v1beta1",
@@ -75,7 +125,7 @@ def main():
             "opens": kept,
             "capabilities": spec.get("capabilities") or [],
             "endpoints": spec.get("endpoints") or [],
-            "rulePolicies": spec.get("rulePolicies") or {},
+            "rulePolicies": rule_policies,
         },
     }
     if args.keep_syscalls and spec.get("syscalls"):
