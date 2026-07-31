@@ -14,7 +14,8 @@ It's understood to be an abstraction of linux kernel level behavior to express `
  🚨GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
 
 <img width="3226" height="2744" alt="BoBverticalboth_registered" src="https://github.com/user-attachments/assets/4696c374-289b-4449-9a5d-81f3682c01a2" />
-We foresee a massive scale benefit for the end-user, who does not have in-depth knowledge of the software by shifting authoring and maintaining custom security policies to the vendor, who knows their own software, has the test cases and can judge what part of the policies should be generalized.
+
+`scale is hard in security` and thats the main reason why a solid runtime expectation `needs` to be distributed from the entity that has the knowledge of the implementation details AND the test cases AND the tooling AND the requirements.
 
 
 **Trademark:** Bill of Behavior is a registered trademark by Constanze Roedig, all rights reserved  
@@ -24,7 +25,7 @@ We foresee a massive scale benefit for the end-user, who does not have in-depth 
 
 
 ### Stay informed when more applications get SBOBs
-Follow us on [Linkedin](https://www.linkedin.com/in/croedig/), or talk to us on [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) 
+Subscribe to the newsletter [https://billofbehavior.com/bob](https://fusioncore.kit.com/86141f7462)), follow us on [Linkedin](https://www.linkedin.com/in/croedig/), or talk to us on [K8sstormcenter slack](https://join.slack.com/t/k8sstorm/signup) 
 
 Next up release: Argo CD with all of its seven components:
 
@@ -64,5 +65,9 @@ bobctl attack --attack-suite example/redis-attacks.yaml -n redis-demo --service 
 kubectl logs -n honey -l app=node-agent -c node-agent
 ```
 
+## FAQ: why does this repo not have any stars
+Because it was turned into a private repo for a few hours ... well gotta `adversarially test the AI` dont we. 
 
+### Why is there no Security.md? And no OpenSSF scorecard?
+In the first week of August, we are testing the whole setup. Then you ll see it.
 
