@@ -1,7 +1,7 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: argocd-server
+  name: argocd-notifications-controller
   namespace: argocd
   annotations:
     kubescape.io/managed-by: User
@@ -12,10 +12,10 @@ spec:
   - args:
     - /usr/bin/tini
     - --
-    - /usr/local/bin/argocd-server
+    - /usr/local/bin/argocd-notifications
     path: /usr/bin/tini
   - args:
-    - /usr/local/bin/argocd-server
+    - /usr/local/bin/argocd-notifications
     path: /usr/local/bin/argocd
   opens:
   - flags:
@@ -31,8 +31,8 @@ spec:
     - O_CLOEXEC
     path: /etc/hosts
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
+    - O_CLOEXEC
     path: /etc/httpd/conf/mime.types
   - flags:
     - O_RDONLY
@@ -61,24 +61,36 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
+    path: /proc/⋯
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/limits
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
     path: /proc/⋯/net/core/somaxconn
   - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/stat
+  - flags:
+    - O_RDONLY
     - O_DIRECTORY
     - O_CLOEXEC
-    - O_RDONLY
     path: /proc/⋯/task/1/fd
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_36.2342605333/ca.crt
+    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_38.189003712/ca.crt
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_36.2342605333/namespace
+    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_38.189003712/namespace
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_36.2342605333/token
+    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_38.189003712/token
   - flags:
     - O_RDONLY
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
@@ -105,10 +117,20 @@ spec:
   - CAP_DAC_OVERRIDE
   - CAP_DAC_READ_SEARCH
   - CAP_NET_ADMIN
-  endpoints: []
+  endpoints:
+  - direction: inbound
+    endpoint: :6443/metrics
+    headers:
+      Accept-Encoding:
+      - gzip
+      Host:
+      - 127.0.0.1:6443
+    internal: true
+    methods:
+    - GET
   rulePolicies: {}
   matchLabels:
-    app.kubernetes.io/name: argocd-server
+    app.kubernetes.io/name: argocd-notifications-controller
   ingress:
   - dns: ''
     dnsNames: null
@@ -117,8 +139,8 @@ spec:
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-8080
-      port: 8080
+    - name: TCP-9001
+      port: 9001
       protocol: TCP
     type: external
   egress:
@@ -140,15 +162,15 @@ spec:
     type: internal
   - dns: ''
     dnsNames: null
-    identifier: 760ff312ee1dc2fb28f74beb6f89fd37143fc11476e33af1541f9426b37945a2
+    identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
     ipAddress: ''
     namespaceSelector: null
     podSelector:
       matchLabels:
-        app.kubernetes.io/name: argocd-redis
+        app.kubernetes.io/name: argocd-repo-server
     ports:
-    - name: TCP-6379
-      port: 6379
+    - name: TCP-8081
+      port: 8081
       protocol: TCP
     type: internal
   - dns: ''
@@ -165,17 +187,4 @@ spec:
     - name: UDP-53
       port: 53
       protocol: UDP
-    type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
-    ipAddress: ''
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
-        app.kubernetes.io/name: argocd-repo-server
-    ports:
-    - name: TCP-8081
-      port: 8081
-      protocol: TCP
     type: internal
