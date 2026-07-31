@@ -39,6 +39,10 @@ def load(distro_dir):
     entries = json.loads(mf.read_text())
     live = [e for e in entries if e.get("phase") != "raw-baseline"] or entries
     best = min(live, key=lambda e: (e.get("score", 0), e.get("total_entries", 0)))
+    # Behaviour is read from the RAW baseline, not the tuned profile: how far the
+    # minimiser collapsed a profile depends on whether that distro converged, so
+    # tuned-vs-tuned would report a tuning artifact as a distro difference.
+    raw = next((e for e in entries if e.get("phase") == "raw-baseline"), best)
 
     fired, missed = set(), set()
     for d in best.get("detections") or []:
@@ -47,10 +51,10 @@ def load(distro_dir):
         "fired": fired,
         "missed": missed,
         "score": best.get("score"),
-        "opens": best.get("opens"),
-        "execs": best.get("execs"),
-        "syscalls": best.get("syscalls"),
-        "entries": best.get("total_entries"),
+        "opens": raw.get("opens"),
+        "execs": raw.get("execs"),
+        "syscalls": raw.get("syscalls"),
+        "entries": raw.get("total_entries"),
         "attacks": {a["name"]: a.get("success") for a in (best.get("attacks") or [])},
     }
 
@@ -80,7 +84,7 @@ def main():
     verdicts = {}
 
     print(f"baseline: {args.baseline}\n")
-    print(f"{'distro':<14}{'score':>6}{'execs':>7}{'opens':>7}{'entries':>9}   rules fired")
+    print(f"{'distro':<14}{'score':>6}{'execs':>7}{'opens':>7}{'entries':>9}   rules fired   (execs/opens/entries = RAW baseline)")
     print("-" * 78)
     for name, d in data.items():
         print(f"{name:<14}{d['score']:>6}{d['execs']:>7}{d['opens']:>7}{d['entries']:>9}   "

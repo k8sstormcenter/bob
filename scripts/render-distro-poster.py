@@ -54,7 +54,7 @@ def main():
     ap.add_argument("--distro", action="append", required=True)
     ap.add_argument("--suite", action="append", required=True,
                     help="attack suite(s) every distro was tested with")
-    ap.add_argument("--title", default="redis-protocol distros — identical suite, identical pod spec")
+    ap.add_argument("--title", default="redis-protocol distros: identical suite, identical pod spec")
     ap.add_argument("--probe", default="")
     ap.add_argument("--exclude", default="")
     ap.add_argument("--observed", default="")
@@ -89,7 +89,7 @@ def main():
         sheet = Image.new("RGB", (A4_W, A4_H), card.C_BG)
         d = ImageDraw.Draw(sheet)
         d.text((28, 30), args.title, fill=card.C_TITLE)
-        d.text((28, 58), f"frame {f}/{n_frames - 1} — panels light in lockstep; "
+        d.text((28, 58), f"frame {f}/{n_frames - 1}   panels light in lockstep; "
                          "a short column means fewer rules covered", fill=card.C_SUB)
         for i, p in enumerate(panels):
             lit = min(f, len(p["lit_seq"]))
