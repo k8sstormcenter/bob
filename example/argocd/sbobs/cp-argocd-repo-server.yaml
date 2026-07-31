@@ -1322,7 +1322,19 @@ spec:
     internal: true
     methods:
     - GET
-  rulePolicies: {}
+  rulePolicies:
+    R0002:
+      processAllowed:
+      - runc:[1:INIT]
+      - runc:[1:CHILD]
+      - runc:[2:INIT]
+      - runc:[3:INIT]
+    R0004:
+      processAllowed:
+      - runc:[1:INIT]
+      - runc:[1:CHILD]
+      - runc:[2:INIT]
+      - runc:[3:INIT]
   matchLabels:
     app.kubernetes.io/name: argocd-repo-server
   ingress:

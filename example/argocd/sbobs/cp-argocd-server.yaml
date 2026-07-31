@@ -70,15 +70,15 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_36.2342605333/ca.crt
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_36.2342605333/namespace
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_07_31_15_42_36.2342605333/token
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
   - flags:
     - O_RDONLY
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
@@ -106,7 +106,23 @@ spec:
   - CAP_DAC_READ_SEARCH
   - CAP_NET_ADMIN
   endpoints: []
-  rulePolicies: {}
+  rulePolicies:
+    R0002:
+      processAllowed:
+      - runc:[1:INIT]
+      - runc:[1:CHILD]
+      - runc:[2:INIT]
+      - runc:[3:INIT]
+    R0004:
+      processAllowed:
+      - runc:[1:INIT]
+      - runc:[1:CHILD]
+      - runc:[2:INIT]
+      - runc:[3:INIT]
+    R0006:
+      processAllowed:
+      - tini
+      - argocd-server
   matchLabels:
     app.kubernetes.io/name: argocd-server
   ingress:
