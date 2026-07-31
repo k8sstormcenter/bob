@@ -39,8 +39,25 @@ import os, sys
 MNT = os.environ.get("KS_RUNC_MNT", "").strip()
 VOL = "ks-runc-fs"
 
-stream = sys.stdin.read().replace(
-    "\"networkStreamingEnabled\": false", "\"networkStreamingEnabled\": true")
+raw = sys.stdin.read()
+OFF = "\"networkStreamingEnabled\": false"
+ON = "\"networkStreamingEnabled\": true"
+stream = raw.replace(OFF, ON)
+
+# A silent no-op here is the exact bug this script exists to prevent: the flag
+# renders false, the profile network shape stays inert, and R0005/R0011 never
+# fire while everything looks healthy. So a replace that matched nothing has to
+# be distinguished from one that had nothing to do.
+#
+#   OFF present            -> rewritten, normal case
+#   OFF absent, ON present -> already enabled (a cloud-submit stack), fine
+#   neither present        -> the chart renamed or dropped the field; the
+#                             rewrite is now a no-op and detection would go
+#                             quietly dead. Fail instead.
+if raw.count(OFF) == 0 and raw.count(ON) == 0:
+    sys.exit("post-render: no networkStreamingEnabled field in the rendered "
+             "manifest - the chart changed and this rewrite is now a no-op; "
+             "fix it before installing or R0005/R0011 will silently never fire")
 
 # The default path — rewrite 1 only — is a plain string replace and must stay
 # dependency-free: CI and every contributor go through here, and a missing
