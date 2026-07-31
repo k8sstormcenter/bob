@@ -70,7 +70,7 @@ deploy-webapp:
 .PHONY: deploy-redis
 deploy-redis:
 	@echo "=== Deploying redis (manifest) ==="
-	kubectl apply -f example/redis-vulnerable.yaml
+	kubectl apply -f example/redis/redis-vulnerable.yaml
 	kubectl wait --for=condition=available --timeout=120s deployment/redis -n redis
 
 .PHONY: deploy-mariadb
@@ -116,11 +116,11 @@ deploy-postgres:
 	helm upgrade --install cnpg cnpg/cloudnative-pg \
 		-n cnpg-system --create-namespace --wait --timeout 5m
 	@# pg-client Service is declared headless (clusterIP: None) in
-	@# postgres/cluster.yaml. Pre-existing clusterIP-typed Services from
+	@# example/postgres/cluster.yaml. Pre-existing clusterIP-typed Services from
 	@# earlier deploys cannot be mutated in-place (K8s spec.clusterIP is
 	@# immutable once set), so delete it before apply.
 	-kubectl delete svc pg-client -n postgres --ignore-not-found
-	kubectl apply -f postgres/cluster.yaml
+	kubectl apply -f example/postgres/cluster.yaml
 	@echo "Waiting for CNPG cluster to be ready..."
 	@TIMEOUT=300; ELAPSED=0; \
 	while [ $$ELAPSED -lt $$TIMEOUT ]; do \
@@ -137,7 +137,7 @@ deploy-postgres:
 build-postgres-vuln:
 	@echo "=== Building postgres-vuln image ==="
 	@DOCKER_HOST=$${DOCKER_HOST:-unix:///var/run/docker.sock}; export DOCKER_HOST; \
-	docker build -t postgres-vuln:latest postgres-vuln/
+	docker build -t postgres-vuln:latest example/postgres-vuln/
 
 .PHONY: deploy-postgres-vuln
 deploy-postgres-vuln: build-postgres-vuln
@@ -160,7 +160,7 @@ deploy-postgres-vuln: build-postgres-vuln
 		echo "Importing image into k3s..."; \
 		$$DOCKER_CMD save postgres-vuln:latest | sudo k3s ctr images import -; \
 	fi
-	kubectl apply -f postgres-vuln/cluster.yaml
+	kubectl apply -f example/postgres-vuln/cluster.yaml
 	@# pg-vuln Deployment uses imagePullPolicy: IfNotPresent and pg-vuln-client
 	@# is a raw Pod with restartPolicy: Never. Without an explicit rollout +
 	@# pod recreation, repeated runs silently use the previously-loaded image
@@ -169,7 +169,7 @@ deploy-postgres-vuln: build-postgres-vuln
 	-kubectl rollout restart deployment/pg-vuln -n postgres-vuln 2>/dev/null
 	@echo "Recreating pg-vuln-client (raw Pod won't pick up new image otherwise)..."
 	-kubectl delete pod pg-vuln-client -n postgres-vuln --ignore-not-found --grace-period=0 --force 2>/dev/null
-	kubectl apply -f postgres-vuln/cluster.yaml
+	kubectl apply -f example/postgres-vuln/cluster.yaml
 	@echo "Waiting for pg-vuln deployment..."
 	kubectl wait --for=condition=available deployment/pg-vuln -n postgres-vuln --timeout=180s
 	@echo "Waiting for pg-vuln-client pod..."

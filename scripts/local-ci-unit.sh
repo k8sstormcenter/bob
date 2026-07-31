@@ -108,17 +108,17 @@ run_test "redis attacks YAML" validate_suite example/redis-attacks.yaml
 log "=== Attack file consistency ==="
 
 # Verify individual redis attack files exist for all 12 attacks
-REDIS_ATTACKS=$(ls example/redis-tests/attack-*.yaml 2>/dev/null | wc -l)
+REDIS_ATTACKS=$(ls example/redis/redis-tests/attack-*.yaml 2>/dev/null | wc -l)
 if [[ "$REDIS_ATTACKS" -eq 12 ]]; then
   pass "All 12 individual redis attack files present"
 else
   log "FAIL: Expected 12 redis attack files, found $REDIS_ATTACKS"
-  ls example/redis-tests/attack-*.yaml 2>/dev/null
+  ls example/redis/redis-tests/attack-*.yaml 2>/dev/null
   FAILURES=$((FAILURES + 1))
 fi
 
 # Verify attack file names match content (no more curl/hardlink mismatches)
-for f in example/redis-tests/attack-*.yaml; do
+for f in example/redis/redis-tests/attack-*.yaml; do
   [[ -f "$f" ]] || continue
   name=$(grep "^  name:" "$f" 2>/dev/null | head -1 | sed 's/.*name: *//' | tr -d '"')
   base=$(basename "$f" .yaml | sed 's/attack-[0-9]*-//')
