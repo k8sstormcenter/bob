@@ -59,7 +59,7 @@ jobs:
       - name: Build (load for smoke test)
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
-          context: postgres-vuln
+          context: example/postgres-vuln
           file: example/postgres-vuln/Dockerfile
           load: true
           tags: postgres-vuln:smoke
@@ -85,7 +85,7 @@ jobs:
       - name: Push (multi-arch)
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
-          context: postgres-vuln
+          context: example/postgres-vuln
           file: example/postgres-vuln/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
