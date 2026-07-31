@@ -288,7 +288,14 @@ KS_POST_RENDERER := ./kubescape/force-network-streaming.sh
 # symlinks chrooted to HOST_ROOT when the value does not already start with /host,
 # and `data/current` is an absolute symlink.
 KS_RUNC := $(shell ps -eo args 2>/dev/null | grep -oE '[^ ]*/bin/containerd-shim-runc-v2' | head -1 | sed 's|/containerd-shim-runc-v2|/runc|')
-KS_RUNC_STOCK := $(shell echo "$(KS_RUNC)" | grep -qE '^$$|^/usr/bin/runc$$|^/var/lib/rancher/k3s/' && echo yes || echo no)
+# Treat anything that is not an ABSOLUTE, EXISTING path as "stock" and override
+# nothing. Without this, a machine with no containerd shim (a multi-node client
+# or dev box) could pass a malformed value straight through to helm, e.g.
+#   --set global.overrideRuntimePath=]*/bin/runc
+# which silently misconfigures node-agent's runc fanotify marking. Reported in #172.
+# NOTE: no parentheses in this shell snippet — Make ends $(shell ...) at the
+# first unbalanced ')', so a `case` statement silently truncates the command.
+KS_RUNC_STOCK := $(shell printf '%s' "$(KS_RUNC)" | grep -q '^/' && [ -x "$(KS_RUNC)" ] && echo no || echo yes)
 KS_RUNC_MNT := $(shell [ "$(KS_RUNC_STOCK)" = no ] && findmnt -no TARGET --target "$(KS_RUNC)" 2>/dev/null)
 KS_RUNC_FLAGS := $(if $(filter no,$(KS_RUNC_STOCK)),--set global.overrideRuntimePath=$(KS_RUNC)$(if $(filter-out /,$(KS_RUNC_MNT)), --set volumes[0].name=ks-runc-fs --set volumes[0].hostPath.path=$(KS_RUNC_MNT) --set volumes[0].hostPath.type=Directory --set volumeMounts[0].name=ks-runc-fs --set volumeMounts[0].mountPath=/host$(KS_RUNC_MNT) --set volumeMounts[0].readOnly=true))
 
