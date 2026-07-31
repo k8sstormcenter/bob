@@ -268,7 +268,7 @@ kubescape-orig:
 # below instead of a patch-then-bounce. Do not reintroduce `rollout restart ds
 # node-agent`. Also do NOT pass --set nodeAgent.privileged=true: the chart
 # default is false and privileged node-agent has crashed this host.
-KS_POST_RENDERER := ./kubescape/force-network-streaming.sh
+KS_POST_RENDERER := ./kubescape/post-render.sh
 
 # node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
 # (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths
@@ -287,17 +287,47 @@ KS_POST_RENDERER := ./kubescape/force-network-streaming.sh
 # The path is passed BARE (no /host prefix): runtimefinder.Notify only resolves
 # symlinks chrooted to HOST_ROOT when the value does not already start with /host,
 # and `data/current` is an absolute symlink.
-KS_RUNC := $(shell ps -eo args 2>/dev/null | grep -oE '[^ ]*/bin/containerd-shim-runc-v2' | head -1 | sed 's|/containerd-shim-runc-v2|/runc|')
-# Treat anything that is not an ABSOLUTE, EXISTING path as "stock" and override
-# nothing. Without this, a machine with no containerd shim (a multi-node client
-# or dev box) could pass a malformed value straight through to helm, e.g.
-#   --set global.overrideRuntimePath=]*/bin/runc
-# which silently misconfigures node-agent's runc fanotify marking. Reported in #172.
-# NOTE: no parentheses in this shell snippet — Make ends $(shell ...) at the
-# first unbalanced ')', so a `case` statement silently truncates the command.
-KS_RUNC_STOCK := $(shell printf '%s' "$(KS_RUNC)" | grep -q '^/' && [ -x "$(KS_RUNC)" ] && echo no || echo yes)
-KS_RUNC_MNT := $(shell [ "$(KS_RUNC_STOCK)" = no ] && findmnt -no TARGET --target "$(KS_RUNC)" 2>/dev/null)
-KS_RUNC_FLAGS := $(if $(filter no,$(KS_RUNC_STOCK)),--set global.overrideRuntimePath=$(KS_RUNC)$(if $(filter-out /,$(KS_RUNC_MNT)), --set volumes[0].name=ks-runc-fs --set volumes[0].hostPath.path=$(KS_RUNC_MNT) --set volumes[0].hostPath.type=Directory --set volumeMounts[0].name=ks-runc-fs --set volumeMounts[0].mountPath=/host$(KS_RUNC_MNT) --set volumeMounts[0].readOnly=true))
+# node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
+# (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths —
+# /usr/bin/runc and /var/lib/rancher/k3s/data/current/bin/runc — so a cluster
+# whose runc lives anywhere else is silently blind: node-agent still enumerates
+# whatever was running when IT started and looks healthy, while every container
+# created afterwards gets no ContainerProfile.
+#
+# This is OPT-IN and must stay that way. It was briefly auto-detected from local
+# `ps`, which is wrong on its face: this flag configures node-agent, which runs
+# on the CLUSTER NODES, while `ps` reads the machine you happen to type `make`
+# on. Those are the same host only on a single-node local cluster. On a
+# multi-node or remote cluster the detection reads an unrelated process table —
+# and on a client machine with no shim at all it produced a malformed value that
+# went straight to helm (see #172). Auto-detection also ran three subshells on
+# EVERY make target, including ones with nothing to do with helm.
+#
+# Find the value on a NODE, not here:
+#   ps -eo args | grep -oE '[^ ]*/bin/containerd-shim-runc-v2'
+# then pass the runc beside it, plus the filesystem holding it if that is a
+# separate mount (node-agent's `host` volume is a NON-recursive bind of "/", so
+# it does not carry one):
+#   make kubescape KS_RUNC=/mnt/dev-data/k3s/data/current/bin/runc KS_RUNC_MNT=/mnt/dev-data
+KS_RUNC ?=
+KS_RUNC_MNT ?=
+
+# Refuse anything that is not an absolute path rather than passing it to helm.
+# The $(shell) lives INSIDE the guard so the default path (KS_RUNC unset, which
+# is CI and every contributor who is not on a bespoke runtime layout) spawns no
+# subshell at all.
+ifneq ($(KS_RUNC),)
+KS_RUNC_OK := $(shell printf '%s' "$(KS_RUNC)" | grep -q '^/' && echo yes || echo no)
+ifneq ($(KS_RUNC_OK),yes)
+$(error KS_RUNC must be an absolute path on the cluster NODE, got "$(KS_RUNC)")
+endif
+endif
+
+# Only the env var goes through helm; the filesystem mount that KS_RUNC_MNT
+# implies is applied by $(KS_POST_RENDERER), which reads it from the
+# environment — hence the export.
+export KS_RUNC_MNT
+KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC))
 
 # One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
 # Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
@@ -313,10 +343,9 @@ rule-coverage-gifs:
 
 .PHONY: show-runc
 show-runc:
-	@echo "detected runc:   $(KS_RUNC)"
-	@echo "stock layout:    $(KS_RUNC_STOCK)"
-	@echo "holding mount:   $(KS_RUNC_MNT)"
-	@echo "extra helm flags:$(KS_RUNC_FLAGS)"
+	@echo "KS_RUNC:          $(if $(KS_RUNC),$(KS_RUNC),(unset - using IG's stock paths))"
+	@echo "KS_RUNC_MNT:      $(if $(KS_RUNC_MNT),$(KS_RUNC_MNT),(unset - no extra hostPath mount))"
+	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS),$(KS_RUNC_FLAGS),(none))"
 
 .PHONY: kubescape
 kubescape:
