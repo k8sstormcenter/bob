@@ -9,7 +9,7 @@ It's understood to be an abstraction of linux kernel level behavior to express `
 - **to explicitly test for false-negatives**: each attack type can be verified as 'blind' or 'detectable'
 - **for continuous anomaly detection at runtime**: allows end-users to calibrate their Detection/Reponse 
 
- ![redis kill-chain — kubescape rule coverage](example/redis-client/redis-killchain.gif) 
+ ![redis kill-chain — kubescape rule coverage](example/redis/redis-killchain.gif) 
 
  🚨GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
 
@@ -55,9 +55,9 @@ make kubescape
 make alertmanager
 
 
-kubectl apply -f example/redis-client/sbobs/
-kubectl apply -f example/redis-client/redis.yaml
-kubectl apply -f example/redis-client/client.yaml
+kubectl apply -f example/redis/sbobs/
+kubectl apply -f example/redis/redis.yaml
+kubectl apply -f example/redis/client.yaml
 
 
 bobctl attack --attack-suite example/redis-attacks.yaml -n redis-demo --service redis --service-port 6379 --format table
