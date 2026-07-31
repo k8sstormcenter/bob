@@ -63,8 +63,13 @@ def main():
     ap = argparse.ArgumentParser(description="Compare tuned redis-protocol distros")
     ap.add_argument("results_dir")
     ap.add_argument("--baseline", default="redis-oss")
-    ap.add_argument("--json", action="store_true", help="emit machine-readable output")
+    ap.add_argument("--json", action="store_true",
+                    help="emit only JSON on stdout; the readable report goes to stderr")
     args = ap.parse_args()
+
+    # With --json, stdout must be valid JSON on its own so it can be piped
+    # straight into jq. The readable report still gets written, just to stderr.
+    out = sys.stderr if args.json else sys.stdout
 
     root = Path(args.results_dir)
     data = {}
@@ -83,14 +88,14 @@ def main():
     base = data[args.baseline]
     verdicts = {}
 
-    print(f"baseline: {args.baseline}\n")
-    print(f"{'distro':<14}{'score':>6}{'execs':>7}{'opens':>7}{'entries':>9}   rules fired   (execs/opens/entries = RAW baseline)")
-    print("-" * 78)
+    print(f"baseline: {args.baseline}\n", file=out)
+    print(f"{'distro':<14}{'score':>6}{'execs':>7}{'opens':>7}{'entries':>9}   rules fired   (execs/opens/entries = RAW baseline)", file=out)
+    print("-" * 78, file=out)
     for name, d in data.items():
         print(f"{name:<14}{d['score']:>6}{d['execs']:>7}{d['opens']:>7}{d['entries']:>9}   "
-              f"{len(d['fired'])}: {' '.join(sorted(d['fired']))}")
+              f"{len(d['fired'])}: {' '.join(sorted(d['fired']))}", file=out)
 
-    print()
+    print(file=out)
     for name, d in data.items():
         if name == args.baseline:
             continue
@@ -117,23 +122,23 @@ def main():
             "attack_outcome_delta": atk,
         }
 
-        print(f"{name} vs {args.baseline}")
-        print(f"  CONTRAST : {'EQUIVALENT — same rules fire' if contrast_same else 'DIFFERS'}")
+        print(f"{name} vs {args.baseline}", file=out)
+        print(f"  CONTRAST : {'EQUIVALENT — same rules fire' if contrast_same else 'DIFFERS'}", file=out)
         if only_here:
-            print(f"      only in {name}: {' '.join(only_here)}")
+            print(f"      only in {name}: {' '.join(only_here)}", file=out)
         if only_base:
-            print(f"      only in {args.baseline}: {' '.join(only_base)}")
-        print(f"  BEHAVIOUR: {', '.join(beh) if beh else 'identical profile shape'}")
+            print(f"      only in {args.baseline}: {' '.join(only_base)}", file=out)
+        print(f"  BEHAVIOUR: {', '.join(beh) if beh else 'identical profile shape'}", file=out)
         if atk:
             print(f"  attacks differing in outcome ({len(atk)}): {' '.join(sorted(atk)[:6])}"
-                  + (" …" if len(atk) > 6 else ""))
-        print()
+                  + (" …" if len(atk) > 6 else ""), file=out)
+        print(file=out)
 
     equiv = [n for n, v in verdicts.items() if v["contrast_equivalent"]]
     diff = [n for n, v in verdicts.items() if not v["contrast_equivalent"]]
-    print("summary")
-    print(f"  contrast-equivalent to {args.baseline}: {', '.join(equiv) or 'none'}")
-    print(f"  contrast-differs      : {', '.join(diff) or 'none'}")
+    print("summary", file=out)
+    print(f"  contrast-equivalent to {args.baseline}: {', '.join(equiv) or 'none'}", file=out)
+    print(f"  contrast-differs      : {', '.join(diff) or 'none'}", file=out)
 
     if args.json:
         print(json.dumps({"baseline": args.baseline, "verdicts": verdicts}, indent=1))
