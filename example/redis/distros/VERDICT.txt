@@ -1,0 +1,30 @@
+baseline: redis-oss
+
+distro         score  execs  opens  entries   rules fired   (execs/opens/entries = RAW baseline)
+------------------------------------------------------------------------------
+dragonfly          1      1     49      104   12: R0001 R0005 R0006 R0007 R0008 R0010 R0011 R1004 R1005 R1008 R1010 R1012
+keydb              1      1     64       69   12: R0001 R0005 R0006 R0007 R0008 R0010 R0011 R1004 R1005 R1008 R1010 R1012
+redis-oss          0      1     20       21   13: R0001 R0005 R0006 R0007 R0008 R0010 R0011 R1000 R1004 R1005 R1008 R1010 R1012
+valkey             1      1     21       36   12: R0001 R0005 R0006 R0007 R0008 R0010 R0011 R1004 R1005 R1008 R1010 R1012
+
+dragonfly vs redis-oss
+  CONTRAST : DIFFERS
+      only in redis-oss: R1000
+  BEHAVIOUR: opens 20->49, syscalls 0->27
+  attacks differing in outcome (2): exec-proc-environ recon-info-server
+
+keydb vs redis-oss
+  CONTRAST : DIFFERS
+      only in redis-oss: R1000
+  BEHAVIOUR: opens 20->64, syscalls 0->4
+  attacks differing in outcome (1): recon-info-server
+
+valkey vs redis-oss
+  CONTRAST : DIFFERS
+      only in redis-oss: R1000
+  BEHAVIOUR: opens 20->21, syscalls 0->14
+  attacks differing in outcome (1): recon-info-server
+
+summary
+  contrast-equivalent to redis-oss: none
+  contrast-differs      : dragonfly, keydb, valkey
