@@ -12,6 +12,14 @@ storage:
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
+    # sbob-rc5s-fpo = migrate/sbob HEAD (eab532e4) + the pkg/utils/path.go change
+    # from k8sstormcenter/node-agent#59. NormalizePath now re-roots headless
+    # /proc/<pid>/<file> opens through an explicit allowlist instead of only
+    # task|fd, so "/17/setgroups" resolves to "/proc/17/setgroups".
+    #
+    # MUST be paired with storage:sbob-rc5s — it is built against the migrated
+    # storage. Do NOT build from the original fix/fullpathopens branch: it was 32
+    # commits behind migrate/sbob and fails the AP/NN mock compile.
     tag: sbob-rc5s-fpo
   config:
     # Always export alerts to the in-cluster alertmanager. Kept HERE (not set
