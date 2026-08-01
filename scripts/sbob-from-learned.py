@@ -69,9 +69,37 @@ def workload_comms(execs):
 
 
 def is_over_broad(path: str) -> bool:
-    """True when every segment is a wildcard, so the path anchors on nothing."""
+    """True when the path cannot survive a round-trip through the storage API.
+
+    Two distinct cases, and the second is not obvious:
+
+    1. EVERY segment is a wildcard (`/*`). Anchored on nothing, matches
+       /etc/shadow, blinds R0002/R0006/R0008/R0010.
+
+    2. The FIRST segment is a wildcard (`/*/Chart.yaml`). This looks anchored —
+       it has a literal segment — but it is fatal. storage's dynamic-path
+       analyzer keys its trie on the root, and processSegment short-circuits on
+       a wildcard child at the node it is walking:
+
+           if wildcardChild, exists := node.Children[WildcardIdentifier]; exists {
+               return wildcardChild
+           }
+
+       so a `*` in root position captures EVERY subsequent path, and
+       processSegments then breaks out ("wildcard absorbs the rest"), emitting
+       just `/*`. One such entry therefore annihilates the whole opens list on
+       save — verified against the real analyzer: three paths, one of them
+       `/*/Chart.yaml`, come back as a single `/*`, regardless of ordering.
+
+       This is exactly how the argocd repo-server SBoB lost its opens. It
+       shipped 255 entries, 74 with a leading wildcard and ZERO all-wildcard, so
+       the old all-segments test found nothing to drop. Applied to a cluster, it
+       stored 1 open: `/*`.
+    """
     segs = [s for s in path.strip("/").split("/") if s != ""]
-    return bool(segs) and all(s in WILDCARD_SEGMENTS for s in segs)
+    if not segs:
+        return False
+    return segs[0] in WILDCARD_SEGMENTS or all(s in WILDCARD_SEGMENTS for s in segs)
 
 
 def main():

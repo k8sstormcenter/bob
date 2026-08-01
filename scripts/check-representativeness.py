@@ -48,10 +48,18 @@ WILDCARD_SEGS = {"*", "**", "⋯", "⋯⋯"}
 
 
 def is_over_broad_open(path):
-    segs = [s for s in path.strip("/").split("/")]
-    if not segs or segs == [""]:
+    """Unanchored in either sense that matters.
+
+    All-wildcard (`/*`) masks /etc/shadow. A LEADING wildcard (`/*/Chart.yaml`)
+    looks anchored because it has a literal segment, but it is worse: storage's
+    analyzer short-circuits on a wildcard child at the node it is walking, so a
+    `*` in root position captures every subsequent path and the stored profile
+    becomes a single `/*`. One such entry annihilates the whole opens list.
+    """
+    segs = [s for s in path.strip("/").split("/") if s != ""]
+    if not segs:
         return False
-    return all(s in WILDCARD_SEGS for s in segs)
+    return segs[0] in WILDCARD_SEGS or all(s in WILDCARD_SEGS for s in segs)
 
 
 def profile_facts(spec):
@@ -101,11 +109,24 @@ def check(name, rules, facts):
     # Reporting "only 1 opens" there sends you to re-learn when the learn window
     # was fine and the collapsing is what broke.
     if facts["over_broad"]:
-        fails.append(f"over-broad open(s) {', '.join(facts['over_broad'])} — "
-                     "unanchored, so this masks /etc/shadow and makes R0010 "
-                     "Blind. node-agent's dynamic-path collapsing degenerates "
-                     "under heavy path churn (git checkouts); the profile needs "
-                     "anchoring before it can ship")
+        ob = facts["over_broad"]
+        shown = ", ".join(ob[:4]) + (f" (+{len(ob) - 4} more)" if len(ob) > 4 else "")
+        leading = [p for p in ob if p.strip("/") and
+                   p.strip("/").split("/")[0] in WILDCARD_SEGS
+                   and not all(s in WILDCARD_SEGS for s in p.strip("/").split("/"))]
+        if leading:
+            fails.append(
+                f"{len(ob)} over-broad open(s): {shown}. "
+                f"{len(leading)} have a LEADING wildcard, which looks anchored but "
+                "is fatal: storage's analyzer short-circuits on a wildcard child "
+                "at the root, so ONE such entry absorbs every other path and the "
+                "profile is stored as a single /*. Anchor them on their real "
+                "prefix (repo-server writes under /tmp, /helm-working-dir and "
+                "/app/config) or drop them")
+        else:
+            fails.append(
+                f"{len(ob)} over-broad open(s): {shown} — anchored on nothing, so "
+                "this masks /etc/shadow and makes R0010 Blind")
     else:
         floor = rules.get("opens_min")
         if floor is not None and facts["opens"] < floor:
@@ -212,9 +233,9 @@ def main():
               "\nfunction. Re-learn with the app actually working — for Argo CD,"
               "\nexample/argocd/drive-gitops-workload.sh drives real GitOps.")
     if saw_over_broad:
-        print("\nOVER-BROAD: the learn window was fine; node-agent collapsed the"
-              "\npaths into an unanchored wildcard. Re-learning reproduces it."
-              "\nAnchor the opens instead — scripts/sbob-from-learned.py.")
+        print("\nOVER-BROAD: the learn window was fine; the paths lost their anchor."
+              "\nRe-learning reproduces it. Anchor or drop them instead —"
+              "\nscripts/sbob-from-learned.py now rejects both forms.")
     return 1 if failed else 0
 
 
