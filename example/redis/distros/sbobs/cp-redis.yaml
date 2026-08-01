@@ -2,609 +2,143 @@ apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
   name: redis
-  namespace: redis
+  namespace: redis-oss
+  annotations:
+    kubescape.io/managed-by: User
 spec:
   architectures:
   - amd64
   capabilities:
-  - CAP_CHOWN
-  - CAP_DAC_OVERRIDE
-  - CAP_DAC_READ_SEARCH
   - CAP_NET_ADMIN
-  - CAP_SETGID
-  - CAP_SETPCAP
-  - CAP_SETUID
-  - CAP_SYS_ADMIN
   egress: null
   endpoints: null
   execs:
   - args:
-    - /bin/bash
-    - -ec
-    - /health/ping_readiness_local.sh 1
-    path: /usr/bin/bash
-  - args:
-    - /health/ping_readiness_local.sh
-    - '1'
-    path: /usr/bin/bash
-  - args:
-    - /health/ping_liveness_local.sh
-    - '5'
-    path: /usr/bin/bash
-  - args:
-    - /opt/bitnami/redis/bin/redis-server
-    - --port
-    - '6379'
-    - --protected-mode
-    - 'no'
-    - --include
-    - /opt/bitnami/redis/etc/redis.conf
-    - --include
-    - /opt/bitnami/redis/etc/master.conf
-    path: /opt/bitnami/redis/bin/redis-server
-  - args:
-    - /bin/bash
-    - -ec
-    - /health/ping_liveness_local.sh 5
-    path: /usr/bin/bash
-  - args:
-    - /usr/bin/cp
-    - /opt/bitnami/redis/mounted-etc/master.conf
-    - /opt/bitnami/redis/etc/master.conf
-    path: /usr/bin/cp
-  - args:
-    - /usr/bin/cp
-    - /opt/bitnami/redis/mounted-etc/redis.conf
-    - /opt/bitnami/redis/etc/redis.conf
-    path: /usr/bin/cp
-  - args:
-    - /usr/bin/timeout
-    - -s
-    - '15'
-    - '5'
-    - redis-cli
-    - -h
-    - localhost
-    - -p
-    - '6379'
-    - ping
-    path: /usr/bin/timeout
-  - args:
-    - /bin/bash
-    - -ec
-    - /opt/bitnami/scripts/start-scripts/start-master.sh
-    path: /usr/bin/bash
-  - args:
-    - /opt/bitnami/scripts/start-scripts/start-master.sh
-    path: /usr/bin/bash
-  - args:
-    - /usr/bin/timeout
-    - -s
-    - '15'
-    - '1'
-    - redis-cli
-    - -p
-    - '6379'
-    - ping
-    path: /usr/bin/timeout
-  - args:
-    - /opt/bitnami/redis/bin/redis-cli
-    - -p
-    - '6379'
-    - ping
-    path: /opt/bitnami/redis/bin/redis-cli
-  - args:
-    - /opt/bitnami/redis/bin/redis-cli
-    - -h
-    - localhost
-    - -p
-    - '6379'
-    - ping
-    path: /opt/bitnami/redis/bin/redis-cli
-  - args:
-    - /usr/bin/head
-    - -n1
-    path: /usr/bin/head
-  - args:
-    - /usr/bin/awk
-    - '{print $1;}'
-    path: /usr/bin/gawk
+    - /usr/local/bin/redis-server
+    - /etc/redis/redis.conf
+    path: /usr/local/bin/redis-server
   identifiedCallStacks: null
-  imageID: registry-1.docker.io/bitnami/redis@sha256:08863c2c3f4e051fb6139b38fa223e9c13be5033326a59bead182860d899bf98
-  imageTag: registry-1.docker.io/bitnami/redis:latest
   ingress: null
   matchLabels:
-    app.kubernetes.io/component: master
-    app.kubernetes.io/instance: redis
     app.kubernetes.io/name: redis
   opens:
   - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_NONBLOCK
     - O_RDONLY
-    - O_RDWR
+    path: /data
+  - flags:
     - O_TRUNC
     - O_WRONLY
-    path: /*
-  - flags:
-    - O_WRONLY
     - O_CREAT
-    - O_APPEND
-    path: /*/appendonly.aof.1.incr.aof
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/cgroup
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/cgroup/cpu.max
-  - flags:
-    - O_RDONLY
-    path: /*/crypto/fips_enabled
-  - flags:
-    - O_RDONLY
-    path: /*/fipsmodule.cnf
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/glibc-hwcaps/x86-64-v2/libncursesw.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/glibc-hwcaps/x86-64-v3/libncursesw.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/kernel/cap_last_cap
-  - flags:
-    - O_RDONLY
-    path: /*/mm/transparent_hugepage/enabled
-  - flags:
-    - O_RDONLY
-    path: /*/mm/transparent_hugepage/hpage_pmd_size
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/mountinfo
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/mounts
-  - flags:
-    - O_RDONLY
-    path: /*/net/core/somaxconn
-  - flags:
-    - O_RDONLY
-    path: /*/ping_liveness_local.sh
-  - flags:
-    - O_RDONLY
-    path: /*/ping_readiness_local.sh
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_WRONLY
-    - O_CREAT
-    - O_EXCL
-    path: /*/redis/etc/master.conf
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/redis/lib/glibc-hwcaps/x86-64-v2/libm.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/redis/lib/glibc-hwcaps/x86-64-v3/libm.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/redis/lib/libc.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/redis/lib/libcrypt.so.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/redis/lib/libcrypto.so.3
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /*/redis/lib/libgcc_s.so.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/redis/lib/libm.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/redis/lib/libssl.so.3
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /*/redis/lib/libstdc++.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/redis/lib/libz.so.1
-  - flags:
-    - O_RDONLY
-    path: /*/redis/mounted-etc/..2026_08_01_12_15_42.1106608257/master.conf
-  - flags:
-    - O_RDONLY
-    path: /*/redis/mounted-etc/..2026_08_01_12_15_42.1106608257/redis.conf
-  - flags:
-    - O_RDONLY
-    path: /*/scripts/start-scripts/..2026_08_01_12_15_42.1203281774/start-master.sh
-  - flags:
-    - O_RDONLY
-    path: /*/smaps
-  - flags:
-    - O_RDONLY
-    path: /*/stat
-  - flags:
-    - O_RDONLY
-    path: /*/system/clocksource/clocksource0/current_clocksource
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /*/system/cpu/online
-  - flags:
-    - O_DIRECTORY
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /*/task/1/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/100/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/109/fd
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    - O_DIRECTORY
-    path: /*/task/121/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/129/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/141/fd
-  - flags:
-    - O_DIRECTORY
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /*/task/149/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/162/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/17/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/171/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/184/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/192/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/203/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/211/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/224/fd
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    - O_DIRECTORY
-    path: /*/task/232/fd
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    - O_DIRECTORY
-    path: /*/task/244/fd
-  - flags:
-    - O_DIRECTORY
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /*/task/252/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/26/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/264/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/272/fd
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    - O_DIRECTORY
-    path: /*/task/285/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/293/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/305/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/312/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/324/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/331/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/344/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/352/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/365/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/373/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/385/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/39/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/393/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/406/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/414/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/426/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/48/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/60/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/67/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/80/fd
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: /*/task/88/fd
+    path: /data/temp-12.rdb
   - flags:
     - O_WRONLY
     - O_CREAT
     - O_TRUNC
-    path: /*/temp-appendonly.aof.incr
+    path: /data/temp-13.rdb
   - flags:
     - O_WRONLY
     - O_CREAT
     - O_TRUNC
-    path: /*/temp-appendonly.aof.manifest
+    path: /data/temp-14.rdb
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    path: /data/temp-15.rdb
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    path: /data/temp-16.rdb
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    path: /data/temp-17.rdb
+  - flags:
+    - O_CREAT
+    - O_TRUNC
+    - O_WRONLY
+    path: /data/temp-18.rdb
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    path: /data/temp-19.rdb
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /*/vm/overcommit_memory
+    path: /dev/urandom
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/hosts
+    path: /dump.rdb
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /etc/ld.so.cache
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/nsswitch.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/passwd
+    path: /etc/redis/..2026_08_01_18_17_23.3471981173/redis.conf
   - flags:
     - O_RDONLY
-    path: /etc/ssl/distro.cnf
+    path: /proc/⋯/net/core/somaxconn
   - flags:
     - O_RDONLY
-    path: /etc/ssl/openssl.cnf
+    path: /proc/⋯/smaps
   - flags:
     - O_RDONLY
-    path: /etc/ssl/provider_base.cnf
+    path: /proc/⋯/stat
   - flags:
-    - O_RDONLY
-    path: /etc/ssl/provider_default.cnf
-  - flags:
-    - O_RDONLY
-    path: /etc/ssl/provider_fips.cnf
-  - flags:
-    - O_RDONLY
-    path: /etc/ssl/user.cnf
-  - flags:
-    - O_WRONLY
-    - O_CREAT
-    - O_EXCL
     - O_RDONLY
     - O_DIRECTORY
-    path: /opt/bitnami/redis/etc/redis.conf
+    - O_CLOEXEC
+    path: /proc/⋯/task/⋯/fd
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /opt/bitnami/redis/lib/redis/modules/redisearch.so
+    path: /proc/⋯/vm/overcommit_memory
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /opt/bitnami/redis/lib/redis/modules/rejson.so
+    path: /sys/devices/system/clocksource/clocksource0/current_clocksource
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libattr.so.1.1.2501
+    path: /sys/kernel/mm/transparent_hugepage/enabled
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libc.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libcrypt.so.1.1.0
+    path: /usr/lib/ssl/openssl.cnf
   - flags:
     - O_CLOEXEC
     - O_RDONLY
-    path: /usr/lib/libcrypto.so.3
+    path: /usr/lib/x86_64-linux-gnu/libc.so.6
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/libgcc_s.so.1
+    path: /usr/lib/x86_64-linux-gnu/libcap.so.2.75
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/libgmp.so.10.5.0
+    path: /usr/lib/x86_64-linux-gnu/libcrypto.so.3
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/libhistory.so.8.3
+    path: /usr/lib/x86_64-linux-gnu/libm.so.6
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/libm.so.6
+    path: /usr/lib/x86_64-linux-gnu/libssl.so.3
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/libmpfr.so.6.2.2
+    path: /usr/lib/x86_64-linux-gnu/libsystemd.so.0.40.0
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libz.so.1.3.1
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/libncursesw.so.6.6
+    path: /usr/lib/x86_64-linux-gnu/libzstd.so.1.5.7
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/libpcre2-8.so.0.11.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libreadline.so.8.3
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libselinux.so.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libssl.so.3
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libstdc++.so.6.0.30
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libtinfo.so.6.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libz.so.1.3.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/ossl-modules/fips.so
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/ossl-modules/jitterentropy.so
-  - flags:
-    - O_CLOEXEC
-    - O_NONBLOCK
-    - O_RDONLY
-    path: "/\u22EF"
+    path: /usr/share/zoneinfo/Etc/UTC
   rulePolicies: {}
-  seccompProfile:
-    spec:
-      defaultAction: ''

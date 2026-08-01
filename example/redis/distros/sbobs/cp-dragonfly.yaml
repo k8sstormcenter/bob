@@ -3,21 +3,17 @@ kind: ContainerProfile
 metadata:
   name: dragonfly
   namespace: dragonfly
+  annotations:
+    kubescape.io/managed-by: User
 spec:
   architectures:
   - amd64
   capabilities:
   - CAP_IPC_LOCK
-  - CAP_SETGID
-  - CAP_SETPCAP
-  - CAP_SETUID
-  - CAP_SYS_ADMIN
-  - CAP_SYS_RESOURCE
   egress:
   - dns: ''
     dnsNames: null
     identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
-    ipAddress: ''
     namespaceSelector:
       matchLabels:
         kubernetes.io/metadata.name: kube-system
@@ -33,7 +29,6 @@ spec:
     dnsNames:
     - version.dragonflydb.io.
     identifier: 988b5ed0477012e30ff4b8eabdc2e7d6528f23149964f5ed88079f9dc1d3348f
-    ipAddress: 173.194.193.121
     namespaceSelector: null
     podSelector: null
     ports:
@@ -41,268 +36,57 @@ spec:
       port: 443
       protocol: TCP
     type: external
+    ipAddresses:
+    - 173.194.193.0/24
   endpoints: null
   execs:
   - args:
-    - /usr/bin/tini
-    - --
-    - entrypoint.sh
-    - --alsologtostderr
-    - --break_replication_on_master_restart=true
-    - --primary_port_http_enabled=false
-    - --admin_port=9999
-    - --admin_nopass
-    path: /usr/bin/tini
-  - args:
-    - /usr/local/bin/entrypoint.sh
-    - --alsologtostderr
-    - --break_replication_on_master_restart=true
-    - --primary_port_http_enabled=false
-    - --admin_port=9999
-    - --admin_nopass
-    path: /usr/bin/dash
-  - args:
-    - /usr/bin/id
-    - -u
-    path: /usr/bin/id
-  - args:
-    - /usr/bin/find
-    - .
-    - '!'
-    - -user
-    - dfly
-    - -exec
-    - chown
-    - dfly
-    - '{}'
-    - +
-    path: /usr/bin/find
-  - args:
-    - /usr/bin/setpriv
-    - --reuid=dfly
-    - --regid=dfly
-    - --clear-groups
-    - --
-    - /usr/local/bin/entrypoint.sh
-    - dragonfly
-    - --logtostderr
-    - --alsologtostderr
-    - --break_replication_on_master_restart=true
-    - --primary_port_http_enabled=false
-    - --admin_port=9999
-    - --admin_nopass
-    path: /usr/bin/setpriv
-  - args:
-    - /usr/bin/nc
-    - -q1
-    - localhost
-    - '9999'
-    path: /usr/bin/nc.openbsd
-  - args:
     - /usr/local/bin/dragonfly
-    - --logtostderr
-    - --alsologtostderr
-    - --break_replication_on_master_restart=true
-    - --primary_port_http_enabled=false
-    - --admin_port=9999
-    - --admin_nopass
+    - --bind
+    - 0.0.0.0
+    - --port
+    - '6379'
+    - --requirepass=
+    - --dbfilename
+    - dump
     path: /usr/local/bin/dragonfly
-  - args:
-    - /usr/local/bin/entrypoint.sh
-    - dragonfly
-    - --logtostderr
-    - --alsologtostderr
-    - --break_replication_on_master_restart=true
-    - --primary_port_http_enabled=false
-    - --admin_port=9999
-    - --admin_nopass
-    path: /usr/bin/dash
-  - args:
-    - /bin/sh
-    - /usr/local/bin/healthcheck.sh
-    path: /usr/bin/dash
   identifiedCallStacks: null
-  imageID: docker.dragonflydb.io/dragonflydb/dragonfly@sha256:0fa01a2b929e704c7a9300d23e7f52002ebd39e90996fb8bb63826aed92fa06f
-  imageTag: docker.dragonflydb.io/dragonflydb/dragonfly:v1.39.0
-  ingress:
-  - dns: ''
-    dnsNames: null
-    identifier: 2d835421bcdfe17f2e02213f16e86264cdc03dc424c766dc83b9d3ae53f1960a
-    ipAddress: ''
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: dragonfly-operator-system
-    podSelector:
-      matchLabels:
-        control-plane: controller-manager
-    ports:
-    - name: TCP-9999
-      port: 9999
-      protocol: TCP
-    type: internal
+  ingress: null
   matchLabels:
-    app: dragonfly
-    app.kubernetes.io/name: dragonfly
-    app.kubernetes.io/part-of: dragonfly
+    app.kubernetes.io/name: redis
   opens:
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /104/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /112/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /120/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /128/setgroups
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /137/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /146/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /154/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /162/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /17/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /170/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /178/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /186/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /194/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /202/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /25/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /33/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /41/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /49/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /56/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /65/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /73/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /81/setgroups
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /89/setgroups
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /96/setgroups
   - flags:
     - O_RDONLY
     path: /apex/com.android.tzdata/etc/tz/tzdata
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    - O_NOCTTY
     - O_NONBLOCK
     - O_DIRECTORY
-    - O_NOFOLLOW
+    - O_CLOEXEC
     path: /data
   - flags:
     - O_RDONLY
     path: /data/misc/zoneinfo/current/tzdata
   - flags:
-    - O_WRONLY
-    - O_CREAT
-    - O_TRUNC
-    path: /dev/null
-  - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/gai.conf
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/group
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/host.conf
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
     path: /etc/hosts
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /etc/ld.so.cache
   - flags:
-    - O_RDONLY
     - O_CLOEXEC
+    - O_RDONLY
     path: /etc/localtime
   - flags:
     - O_RDONLY
     path: /etc/netsvc.conf
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
     path: /etc/nsswitch.conf
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/passwd
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
     path: /etc/resolv.conf
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/services
   - flags:
     - O_RDONLY
     path: /etc/ssl/certs/ca-certificates.crt
@@ -311,271 +95,32 @@ spec:
     path: /etc/svc.conf
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/glibc-hwcaps/x86-64-v2/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/glibc-hwcaps/x86-64-v3/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/haswell/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/haswell/x86_64/libnss_db.so.2
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /lib/libnss_db-2.35.so
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/tls/haswell/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/tls/haswell/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/tls/libnss_db.so.2
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /lib/tls/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/haswell/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/haswell/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/libnss_db-2.35.so
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/tls/haswell/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/tls/haswell/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/tls/libnss_db.so.2
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /lib/x86_64-linux-gnu/tls/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64-linux-gnu/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /lib/x86_64/libnss_db.so.2
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /local.sh
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
     path: /ocal.sh
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
-    path: "/proc/\u22EF"
+    - O_CLOEXEC
+    path: /proc/⋯
+  - flags:
+    - O_RDONLY
+    path: /proc/⋯/cgroup
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: "/proc/\u22EF/cgroup"
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/kernel/cap_last_cap"
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/mountinfo"
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/mounts"
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/status"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/1/fd"
+    path: /proc/⋯/status
   - flags:
     - O_DIRECTORY
     - O_CLOEXEC
     - O_RDONLY
-    path: "/proc/\u22EF/task/104/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/112/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/120/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/128/fd"
+    path: /proc/⋯/task/⋯/fd
   - flags:
     - O_RDWR
-    path: "/proc/\u22EF/task/13/comm"
+    path: /proc/⋯/task/⋯/comm
   - flags:
     - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/137/fd"
-  - flags:
-    - O_RDWR
-    path: "/proc/\u22EF/task/14/comm"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/146/fd"
-  - flags:
-    - O_RDWR
-    path: "/proc/\u22EF/task/15/comm"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/154/fd"
-  - flags:
-    - O_RDWR
-    path: "/proc/\u22EF/task/16/comm"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/162/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/17/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/170/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/178/fd"
-  - flags:
-    - O_DIRECTORY
-    - O_CLOEXEC
-    - O_RDONLY
-    path: "/proc/\u22EF/task/186/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/194/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/202/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/25/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/33/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/41/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/49/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/56/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/65/fd"
-  - flags:
-    - O_DIRECTORY
-    - O_CLOEXEC
-    - O_RDONLY
-    path: "/proc/\u22EF/task/73/fd"
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    - O_DIRECTORY
-    path: "/proc/\u22EF/task/81/fd"
-  - flags:
-    - O_DIRECTORY
-    - O_CLOEXEC
-    - O_RDONLY
-    path: "/proc/\u22EF/task/89/fd"
-  - flags:
-    - O_RDONLY
-    - O_DIRECTORY
-    - O_CLOEXEC
-    path: "/proc/\u22EF/task/96/fd"
-  - flags:
-    - O_RDONLY
-    path: "/proc/\u22EF/vm/overcommit_memory"
+    path: /proc/⋯/vm/overcommit_memory
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /runc
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
     path: /sys/devices/system/cpu/cpu0/tsc_freq_khz
   - flags:
     - O_RDONLY
@@ -583,7 +128,6 @@ spec:
     path: /sys/devices/system/cpu/online
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
     path: /sys/fs/cgroup/cpu.max
   - flags:
     - O_RDONLY
@@ -611,87 +155,34 @@ spec:
     path: /sys/fs/cgroup/user.slice/cpu.cfs_quota_us
   - flags:
     - O_RDONLY
-    path: /sys/fs/cgroup/user.slice/cpu.max
-  - flags:
-    - O_RDONLY
     path: /sys/fs/cgroup/user.slice/memory.limit_in_bytes
   - flags:
     - O_RDONLY
     path: /sys/fs/cgroup/user.slice/memory.max
   - flags:
     - O_RDONLY
-    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-  - flags:
-    - O_RDONLY
     path: /system/usr/share/zoneinfo/tzdata
   - flags:
-    - O_RDONLY
+    - O_APPEND
     - O_CLOEXEC
-    path: /usr/lib/glibc-hwcaps/x86-64-v2/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/glibc-hwcaps/x86-64-v3/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/haswell/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/haswell/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/libnss_db-2.35.so
+    - O_WRONLY
+    - O_CREAT
+    path: /tmp/dragonfly.unknown-user.INFO.20260801-175646.1.log
   - flags:
     - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/libnss_db.so.2
+    - O_WRONLY
+    - O_CREAT
+    - O_APPEND
+    path: /tmp/dragonfly.unknown-user.WARNING.20260801-175646.1.log
   - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/tls/haswell/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/tls/haswell/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/tls/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/tls/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/haswell/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/haswell/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libbsd.so.0.11.5
+    - O_RDWR
+    - O_CREAT
+    - O_EXCL
+    path: /tmp/helio-log-probe-J2nTuQ
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /usr/lib/x86_64-linux-gnu/libc.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libcap-ng.so.0.0.0
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -703,27 +194,7 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libmd.so.0.0.5
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libnss_db-2.35.so
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.10.4
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
     path: /usr/lib/x86_64-linux-gnu/libpthread.so.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libresolv.so.2
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -731,41 +202,7 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libselinux.so.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
     path: /usr/lib/x86_64-linux-gnu/libz.so.1.2.11
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/tls/haswell/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/tls/haswell/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/tls/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/tls/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64/libnss_db.so.2
-  - flags:
-    - O_RDONLY
-    path: /usr/local/bin/entrypoint.sh
-  - flags:
-    - O_RDONLY
-    path: /usr/local/bin/healthcheck.sh
   - flags:
     - O_RDONLY
     path: /usr/local/ssl/ssl/openssl.cnf
@@ -800,8 +237,17 @@ spec:
       - Proactor1
       - Proactor2
       - Proactor3
+      - Proactor4
+      - Proactor5
+      - Proactor6
+      - Proactor7
+      - Proactor8
+      - Proactor9
+      - Proactor10
+      - Proactor11
+      - Proactor12
+      - Proactor13
+      - Proactor14
+      - Proactor15
     R1031: {}
     R2000: {}
-  seccompProfile:
-    spec:
-      defaultAction: ''
