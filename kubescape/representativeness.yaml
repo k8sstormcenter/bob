@@ -31,7 +31,12 @@ argocd-repo-server:
     - /usr/local/bin/kustomize
   egress_public_ip: true      # a real clone leaves the cluster (github.com)
   egress_ports: [TCP-443]
-  opens_min: 100
+  # No opens_min, and this is the clearest case for why counts are useless here.
+  # The correctly-anchored profile has 47 opens; the idle #170 profile had 51.
+  # The good one is SMALLER, because /tmp/* and the CA bundle are pre-collapsed
+  # to the form storage would produce anyway. Anything that discriminated on
+  # count would pass the broken profile and fail the correct one. The execs and
+  # public-egress assertions above are what actually separate them.
 
 argocd-server:
   function: serve the API, and fan out to redis, repo-server and the apiserver
