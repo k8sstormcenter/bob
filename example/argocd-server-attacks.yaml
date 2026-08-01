@@ -66,7 +66,7 @@ attacks:
   - name: cve-2023-22482-authbypass-k8s-pivot
     type: cmdinject
     exec:
-      command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null); perl -e 'use IO::Socket::SSL; my $s = IO::Socket::SSL->new(PeerAddr => $ENV{KUBERNETES_SERVICE_HOST}, PeerPort => 443, SSL_verify_mode => 0, Timeout => 3); print $s ? qq{api_reached} : qq{api_unreached}' 2>&1 | head -c 40; echo; echo k8s_pivot_done"]
+      command: ["sh", "-c", "TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null); perl -e 'use IO::Socket::SSL; my $s = IO::Socket::SSL->new(PeerAddr => $ENV{KUBERNETES_SERVICE_HOST}, PeerPort => 443, SSL_verify_mode => 0, Timeout => 3); print $s ? qq{api_reached} : qq{api_unreached}' >/dev/null 2>&1 && echo k8s_pivot_done"]
     successIndicators:
       - responseContains: "k8s_pivot_done"
     expectedDetections:

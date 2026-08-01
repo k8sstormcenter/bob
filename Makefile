@@ -329,6 +329,28 @@ endif
 export KS_RUNC_MNT
 KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC))
 
+# node-agent's learn window. The chart default is 2m and values.yaml MUST keep
+# it: CI waits 600s for a completed ContainerProfile, so any global bump past
+# that makes every leg time out with no profile — a whole-matrix outage to serve
+# one app.
+#
+# Argo CD needs longer than 2m because its SBoBs are only representative if the
+# window covers real GitOps work — creating Applications, cloning repos, running
+# helm/kustomize renders, syncing (see bob#170, where a 2m window on an idle
+# control plane learned 5 execs instead of 10 and 51 opens instead of 517). So
+# the longer window is opt-in, per-install, and never touches CI:
+#   make kubescape KS_LEARN_PERIOD=15m
+KS_LEARN_PERIOD ?=
+
+ifneq ($(KS_LEARN_PERIOD),)
+KS_LEARN_OK := $(shell printf '%s' "$(KS_LEARN_PERIOD)" | grep -qE '^[0-9]+(s|m|h)$$' && echo yes || echo no)
+ifneq ($(KS_LEARN_OK),yes)
+$(error KS_LEARN_PERIOD must be a Go duration like 15m or 900s, got "$(KS_LEARN_PERIOD)")
+endif
+endif
+
+KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.learningPeriod=$(KS_LEARN_PERIOD))
+
 # One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
 # Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
 # so a rule that cannot fire on an app is never confused with one nobody covered.
@@ -345,13 +367,14 @@ rule-coverage-gifs:
 show-runc:
 	@echo "KS_RUNC:          $(if $(KS_RUNC),$(KS_RUNC),(unset - using IG's stock paths))"
 	@echo "KS_RUNC_MNT:      $(if $(KS_RUNC_MNT),$(KS_RUNC_MNT),(unset - no extra hostPath mount))"
-	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS),$(KS_RUNC_FLAGS),(none))"
+	@echo "KS_LEARN_PERIOD:  $(if $(KS_LEARN_PERIOD),$(KS_LEARN_PERIOD),(unset - chart default 2m))"
+	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS)$(KS_LEARN_FLAGS),$(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS),(none))"
 
 .PHONY: kubescape
 kubescape:
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) --post-renderer $(KS_POST_RENDERER)
 	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
 	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
@@ -397,7 +420,7 @@ alertmanager:
 	# upgrade --install (not bare upgrade): idempotent, and does not require the
 	# kubescape release to pre-exist — so `make alertmanager` works on a fresh
 	# cluster / standalone, same as `make kubescape`.
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) --post-renderer $(KS_POST_RENDERER)
 	$(MAKE) wait-node-agent
 	$(MAKE) verify-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
@@ -415,7 +438,7 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) --post-renderer $(KS_POST_RENDERER)
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent

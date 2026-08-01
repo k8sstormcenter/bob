@@ -1,7 +1,7 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: argocd-applicationset-controller
+  name: argocd-notifications-controller
   namespace: argocd
   annotations:
     kubescape.io/managed-by: User
@@ -12,10 +12,10 @@ spec:
   - args:
     - /usr/bin/tini
     - --
-    - /usr/local/bin/argocd-applicationset-controller
+    - /usr/local/bin/argocd-notifications
     path: /usr/bin/tini
   - args:
-    - /usr/local/bin/argocd-applicationset-controller
+    - /usr/local/bin/argocd-notifications
     path: /usr/local/bin/argocd
   opens:
   - flags:
@@ -23,9 +23,13 @@ spec:
     - O_CLOEXEC
     path: /etc/apache/mime.types
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
+    - O_CLOEXEC
     path: /etc/apache2/mime.types
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/hosts
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -41,7 +45,15 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
     path: /etc/passwd
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/resolv.conf
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -83,8 +95,8 @@ spec:
     - O_RDONLY
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
+    - O_CLOEXEC
     path: /usr/lib/x86_64-linux-gnu/libc.so.6
   - flags:
     - O_RDONLY
@@ -132,9 +144,9 @@ spec:
     R0006:
       processAllowed:
       - tini
-      - argocd-applicat
+      - argocd-notifica
   matchLabels:
-    app.kubernetes.io/name: argocd-applicationset-controller
+    app.kubernetes.io/name: argocd-notifications-controller
   ingress:
   - dns: ''
     dnsNames: null
@@ -143,8 +155,8 @@ spec:
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-8080
-      port: 8080
+    - name: TCP-9001
+      port: 9001
       protocol: TCP
     type: external
   egress:
@@ -163,4 +175,32 @@ spec:
     - name: TCP-443
       port: 443
       protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/name: argocd-repo-server
+    ports:
+    - name: TCP-8081
+      port: 8081
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    ipAddress: ''
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
     type: internal
