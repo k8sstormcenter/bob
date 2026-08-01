@@ -243,7 +243,11 @@ jobs:
           helm version
 
       - name: Install kubescape
-        run: make kubescape
+        # KS_POST_RENDER=1 forces node-agent networkStreamingEnabled. The chart
+        # ANDs it with cloud-submit, so without it R0005 (DNS) and R0011 (egress)
+        # never fire and every network assertion silently passes as "no alert".
+        # Bare `make kubescape` stays stock for clients.
+        run: make kubescape KS_POST_RENDER=1
 
       - name: Install alertmanager
         run: make alertmanager
@@ -940,7 +944,11 @@ jobs:
       - name: Install kubescape + deploy app on B
         if: steps.check.outputs.skip != 'true'
         run: |
-          make kubescape
+          # KS_POST_RENDER=1 forces node-agent networkStreamingEnabled. The chart
+          # ANDs it with cloud-submit, so without it R0005 (DNS) and R0011
+          # (egress) never fire and every network assertion silently passes as
+          # "no alert". Bare `make kubescape` stays stock for clients.
+          make kubescape KS_POST_RENDER=1
           make alertmanager
           make deploy-${{ matrix.app }}
           kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=300s

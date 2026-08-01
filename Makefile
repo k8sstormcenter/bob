@@ -268,7 +268,21 @@ kubescape-orig:
 # below instead of a patch-then-bounce. Do not reintroduce `rollout restart ds
 # node-agent`. Also do NOT pass --set nodeAgent.privileged=true: the chart
 # default is false and privileged node-agent has crashed this host.
+# The post-renderer is OPT-IN and OFF by default. `make kubescape` is what
+# clients run, and it must install the chart as published — no rewriting of the
+# rendered manifest behind their back.
+#
+# What it does when enabled: forces node-agent networkStreamingEnabled=true, and
+# mounts the filesystem holding a non-stock runc when KS_RUNC_MNT is set. The
+# streaming flag matters because the chart ANDs it with cloud-submit, so on an
+# on-prem stack with no backend it renders FALSE and R0005 (DNS) / R0011 (egress)
+# silently never fire. That is a real limitation of the upstream chart, but
+# working around it is a lab decision, not something to impose on an install.
+#
+#   make kubescape KS_POST_RENDER=1
+KS_POST_RENDER ?=
 KS_POST_RENDERER := ./kubescape/post-render.sh
+KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER),--post-renderer $(KS_POST_RENDERER))
 
 # node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
 # (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths
@@ -378,7 +392,7 @@ show-runc:
 kubescape:
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
 	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
@@ -412,7 +426,8 @@ verify-streaming:
 	@kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' \
 		| python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("networkStreamingEnabled") is True else 1)' \
 		&& echo "OK: networkStreamingEnabled=true (R0005/R0011 can fire)" \
-		|| { echo "ERROR: node-agent networkStreamingEnabled != true — the profile's inline network is inert; R0005 (DNS) and R0011 (egress) will silently never fire. Re-run 'make kubescape' or see docs/portability-spec.md D7a."; exit 1; }
+		|| { echo "NOTE: networkStreamingEnabled is false — the chart gates it behind cloud-submit, so on an on-prem stack the profile's inline network shape is inert and R0005 (DNS) / R0011 (egress) cannot fire."; \
+		     echo "      This is the stock chart behaviour, not an error. To force it: make kubescape KS_POST_RENDER=1   (see docs/portability-spec.md D7a)"; }
 
 .PHONY: alertmanager
 alertmanager:
@@ -424,7 +439,7 @@ alertmanager:
 	# upgrade --install (not bare upgrade): idempotent, and does not require the
 	# kubescape release to pre-exist — so `make alertmanager` works on a fresh
 	# cluster / standalone, same as `make kubescape`.
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	$(MAKE) wait-node-agent
 	$(MAKE) verify-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
@@ -442,7 +457,7 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent

@@ -113,8 +113,11 @@ log "Build OK: bin/bobctl"
 if $SETUP_ONLY || ! $TUNE_ONLY; then
   # ── install kubescape ──────────────────────────────────────────────────────
   log "=== Install kubescape (namespace: $KS_NS) ==="
-  make kubescape
-
+  # KS_POST_RENDER=1 forces node-agent networkStreamingEnabled. The chart
+  # ANDs it with cloud-submit, so without it R0005 (DNS) and R0011
+  # (egress) never fire and every network assertion silently passes as
+  # "no alert". Bare `make kubescape` stays stock for clients.
+  make kubescape KS_POST_RENDER=1
   # ── install alertmanager ───────────────────────────────────────────────────
   log "=== Install alertmanager ==="
   make alertmanager
