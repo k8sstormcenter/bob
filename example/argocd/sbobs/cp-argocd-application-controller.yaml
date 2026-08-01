@@ -12,16 +12,84 @@ spec:
   - path: /usr/local/bin/argocd
     args: [/usr/local/bin/argocd-application-controller, ⋯⋯]
   opens:
-  - path: /home/argocd/*
-    flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
-  - path: /run/secrets/kubernetes.io/serviceaccount/*
-    flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
-  - path: /tmp/*
-    flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+    path: /dev/shm/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/apache/mime.types
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/apache2/mime.types
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/hosts
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/httpd/conf/mime.types
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/ld.so.cache
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/mime.types
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/nsswitch.conf
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/passwd
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/resolv.conf
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/FETCH_HEAD
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/HEAD
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/remotes/origin/crenshaw-dev-patch-1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/remotes/origin/master
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/remotes/origin/wanghong230-patch-1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags/bg-deploy-v0.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags/bg-deploy-v0.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags/bg-guestbook-v0.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags/bg-guestbook-v0.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags/guestbook-v0.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags/guestbook-v0.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags/pre-post-sync-v0.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /git/refs/tags/pre-post-sync-v0.2
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
+    path: /home/argocd/.kube/cache/*
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /home/argocd/.kube/config
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/⋯/limits
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/⋯/net/core/somaxconn
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/⋯/stat
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+    path: /proc/⋯/task/1/fd
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
+  - flags: [O_RDONLY]
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /usr/lib/x86_64-linux-gnu/libc.so.6
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /usr/local/bin/argocd
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/share/mime/globs2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/share/mime/globs2
   - flags: [O_RDONLY]
     path: /usr/share/zoneinfo/Etc/UTC
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]

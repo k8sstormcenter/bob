@@ -11,7 +11,15 @@ spec:
     args: [/shared/argocd-dex, ⋯⋯]
   opens:
   - flags: [O_CLOEXEC, O_RDONLY]
+    path: /.kube/config
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/apache/mime.types
+  - flags: [O_CLOEXEC, O_RDONLY]
     path: /etc/apache2/mime.types
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/httpd/conf/mime.types
+  - flags: [O_RDONLY]
+    path: /etc/localtime
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /etc/mime.types
   - flags: [O_CLOEXEC, O_RDONLY]
@@ -32,6 +40,8 @@ spec:
     path: /tmp/tls.crt
   - flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
     path: /tmp/tls.key
+  - flags: [O_RDONLY]
+    path: /usr/local/go/lib/time/zoneinfo.zip
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /usr/local/share/mime/globs2
   - flags: [O_CLOEXEC, O_RDONLY]

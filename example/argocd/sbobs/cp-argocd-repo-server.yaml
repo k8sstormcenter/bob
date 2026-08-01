@@ -169,15 +169,15 @@ spec:
     - {name: TCP-8081, port: 8081, protocol: TCP}
     type: internal
   egress:
-  - dnsNames: [github.com]
-    identifier: b5b004e9170d84c35c473466761979f8805df92aa0becb5f5d8a13886292cf94
+  - identifier: 760ff312ee1dc2fb28f74beb6f89fd37143fc11476e33af1541f9426b37945a2
     namespaceSelector: null
-    podSelector: null
+    podSelector:
+      matchLabels: {app.kubernetes.io/name: argocd-redis}
     ports:
-    - {name: TCP-443, port: 443, protocol: TCP}
-    type: external
-  - dnsNames: [github.com]
-    identifier: 1e2c3b8253ef65bbb38bb96e642bd3c6d40827f27a1f6c41435805be35b74c77
+    - {name: TCP-6379, port: 6379, protocol: TCP}
+    type: internal
+  - dnsNames: [charts.helm.sh]
+    identifier: e14947516f312d9c20b5aaedac27e8e861f3c87f28ac60c43b207d1eac70e1ff
     namespaceSelector: null
     podSelector: null
     ports:
@@ -191,21 +191,14 @@ spec:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: external
   - dnsNames: [charts.helm.sh]
-    identifier: 241919dfab60476109181f40a9631fca0a3b120b6fbf60ee053dfb9a656ebaa3
-    namespaceSelector: null
-    podSelector: null
-    ports:
-    - {name: TCP-443, port: 443, protocol: TCP}
-    type: external
-  - dnsNames: [charts.helm.sh]
-    identifier: e14947516f312d9c20b5aaedac27e8e861f3c87f28ac60c43b207d1eac70e1ff
-    namespaceSelector: null
-    podSelector: null
-    ports:
-    - {name: TCP-443, port: 443, protocol: TCP}
-    type: external
-  - dnsNames: [charts.helm.sh]
     identifier: 416834682cb3faa275475bb568d44e33d16fee516f3c6e74743060eb584db5a2
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - dnsNames: [charts.helm.sh]
+    identifier: 241919dfab60476109181f40a9631fca0a3b120b6fbf60ee053dfb9a656ebaa3
     namespaceSelector: null
     podSelector: null
     ports:
@@ -219,10 +212,17 @@ spec:
     ports:
     - {name: UDP-53, port: 53, protocol: UDP}
     type: internal
-  - identifier: 760ff312ee1dc2fb28f74beb6f89fd37143fc11476e33af1541f9426b37945a2
+  - dnsNames: [github.com]
+    identifier: 1e2c3b8253ef65bbb38bb96e642bd3c6d40827f27a1f6c41435805be35b74c77
     namespaceSelector: null
-    podSelector:
-      matchLabels: {app.kubernetes.io/name: argocd-redis}
+    podSelector: null
     ports:
-    - {name: TCP-6379, port: 6379, protocol: TCP}
-    type: internal
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - dnsNames: [github.com]
+    identifier: b5b004e9170d84c35c473466761979f8805df92aa0becb5f5d8a13886292cf94
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external

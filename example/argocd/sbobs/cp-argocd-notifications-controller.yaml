@@ -86,6 +86,13 @@ spec:
     type: external
     ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
   egress:
+  - identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
+    namespaceSelector: null
+    podSelector:
+      matchLabels: {app.kubernetes.io/name: argocd-repo-server}
+    ports:
+    - {name: TCP-8081, port: 8081, protocol: TCP}
+    type: internal
   - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: default}
@@ -102,11 +109,4 @@ spec:
       matchLabels: {k8s-app: kube-dns}
     ports:
     - {name: UDP-53, port: 53, protocol: UDP}
-    type: internal
-  - identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
-    namespaceSelector: null
-    podSelector:
-      matchLabels: {app.kubernetes.io/name: argocd-repo-server}
-    ports:
-    - {name: TCP-8081, port: 8081, protocol: TCP}
     type: internal
