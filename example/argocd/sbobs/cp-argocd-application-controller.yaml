@@ -9,115 +9,19 @@ spec:
   architectures:
   - amd64
   execs:
-  - args:
+  - path: /usr/bin/tini
+    args:
     - /usr/bin/tini
-    - --
+    - ⋯⋯
+  - path: /usr/local/bin/argocd
+    args:
     - /usr/local/bin/argocd-application-controller
-    path: /usr/bin/tini
-  - args:
-    - /usr/local/bin/argocd-application-controller
-    path: /usr/local/bin/argocd
+    - ⋯⋯
   opens:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /048_Secure_Server_CA.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /1.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /2.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /A.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /A_-_R4.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /A_-_R5.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /A_2021.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /A_ECC_v3.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /Authority.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /CA.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /Class_2.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /G3.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /Gold=_Főtanúsítvány.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /IDORES_SEGUROS.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /Root.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /Root_G5.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /Root_GB_CA.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /_1.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /_G4.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /_Research_Institutions_RootCA_2015.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /_Root_G5.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /ation_Authority_-_G2.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /cation_Authority.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /crt
+    path: /4_46_21.2502219693/token
   - flags:
     - O_CLOEXEC
     - O_CREAT
@@ -152,8 +56,8 @@ spec:
     - O_CLOEXEC
     path: /etc/mime.types
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
+    - O_CLOEXEC
     path: /etc/nsswitch.conf
   - flags:
     - O_RDONLY
@@ -166,35 +70,79 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
+    path: /git/FETCH_HEAD
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /git/HEAD
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /git/HEAD.lock
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /git/config
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /git/index
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /git/index.lock
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /git/objects/maintenance.lock
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /git/objects/pack
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /git/objects/pack/pack-9fa41365da573899352c9b1c25b950ca0f4473b7.idx
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /git/objects/pack/pack-9fa41365da573899352c9b1c25b950ca0f4473b7.pack
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /git/refs
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/admissionregistration.k8s.io/v1/serverresources.json
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/admissionregistration.k8s.io/v1/serverresources.json.3610379858
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/admissionregistration.k8s.io/v1/serverresources.json.2755404560
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/admissionregistration.k8s.io/v1/serverresources.json.4033649938
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/admissionregistration.k8s.io/v1/serverresources.json.3551678170
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apiextensions.k8s.io/v1/serverresources.json
   - flags:
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apiextensions.k8s.io/v1/serverresources.json.3454497144
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apiextensions.k8s.io/v1/serverresources.json.3343805363
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apiextensions.k8s.io/v1/serverresources.json.736597838
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apiextensions.k8s.io/v1/serverresources.json.4146760474
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -204,23 +152,29 @@ spec:
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apiregistration.k8s.io/v1/serverresources.json.1249400717
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apiregistration.k8s.io/v1/serverresources.json.3191541890
   - flags:
-    - O_RDONLY
+    - O_RDWR
+    - O_CREAT
+    - O_EXCL
     - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apiregistration.k8s.io/v1/serverresources.json.3467685802
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apps/v1/serverresources.json
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apps/v1/serverresources.json.3914903798
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apps/v1/serverresources.json.2471686159
   - flags:
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apps/v1/serverresources.json.435576571
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/apps/v1/serverresources.json.3702643324
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -230,61 +184,61 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/argoproj.io/v1alpha1/serverresources.json.1648194329
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/argoproj.io/v1alpha1/serverresources.json.1700510368
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/argoproj.io/v1alpha1/serverresources.json.403585023
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/argoproj.io/v1alpha1/serverresources.json.744301926
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authentication.k8s.io/v1/serverresources.json
   - flags:
-    - O_RDWR
-    - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authentication.k8s.io/v1/serverresources.json.1007512450
+    - O_RDWR
+    - O_CREAT
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authentication.k8s.io/v1/serverresources.json.3177361088
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authentication.k8s.io/v1/serverresources.json.3461798687
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authentication.k8s.io/v1/serverresources.json.4184869489
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authorization.k8s.io/v1/serverresources.json
   - flags:
-    - O_RDWR
-    - O_CREAT
-    - O_EXCL
-    - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authorization.k8s.io/v1/serverresources.json.3965002734
-  - flags:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
     - O_RDWR
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authorization.k8s.io/v1/serverresources.json.628984400
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authorization.k8s.io/v1/serverresources.json.2264853679
   - flags:
+    - O_RDWR
+    - O_CREAT
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/authorization.k8s.io/v1/serverresources.json.2469456648
+  - flags:
+    - O_CLOEXEC
     - O_RDONLY
-    - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/autoscaling/v1/serverresources.json
   - flags:
+    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/autoscaling/v1/serverresources.json.1412058831
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/autoscaling/v1/serverresources.json.2626470745
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/autoscaling/v1/serverresources.json.3022281812
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/autoscaling/v1/serverresources.json.3315121208
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -294,39 +248,45 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/autoscaling/v2/serverresources.json.129633660
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/autoscaling/v2/serverresources.json.1038446550
+  - flags:
+    - O_RDWR
+    - O_CREAT
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/autoscaling/v2/serverresources.json.2061618802
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/batch/v1/serverresources.json
   - flags:
-    - O_EXCL
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/batch/v1/serverresources.json.1465623033
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/batch/v1/serverresources.json.360763777
   - flags:
-    - O_EXCL
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/batch/v1/serverresources.json.911875569
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/batch/v1/serverresources.json.3790360352
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/certificates.k8s.io/v1/serverresources.json
   - flags:
+    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/certificates.k8s.io/v1/serverresources.json.2838123766
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/certificates.k8s.io/v1/serverresources.json.1540031034
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/certificates.k8s.io/v1/serverresources.json.3526361795
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/certificates.k8s.io/v1/serverresources.json.3554528404
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -336,13 +296,13 @@ spec:
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/clickhouse-keeper.altinity.com/v1/serverresources.json.2830507689
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/clickhouse-keeper.altinity.com/v1/serverresources.json.3039948208
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/clickhouse-keeper.altinity.com/v1/serverresources.json.933522497
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/clickhouse-keeper.altinity.com/v1/serverresources.json.3232912620
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -352,61 +312,61 @@ spec:
     - O_EXCL
     - O_CLOEXEC
     - O_RDWR
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/clickhouse.altinity.com/v1/serverresources.json.1936630526
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/clickhouse.altinity.com/v1/serverresources.json.137212402
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/clickhouse.altinity.com/v1/serverresources.json.382785163
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/clickhouse.altinity.com/v1/serverresources.json.2275875716
   - flags:
-    - O_RDONLY
     - O_CLOEXEC
+    - O_RDONLY
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/coordination.k8s.io/v1/serverresources.json
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/coordination.k8s.io/v1/serverresources.json.17194002
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/coordination.k8s.io/v1/serverresources.json.3300248625
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/coordination.k8s.io/v1/serverresources.json.1736387479
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/coordination.k8s.io/v1/serverresources.json.756619239
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v1alpha1/serverresources.json
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v1alpha1/serverresources.json.3513099309
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v1alpha1/serverresources.json.2844810217
   - flags:
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v1alpha1/serverresources.json.688616347
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v1alpha1/serverresources.json.572109225
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v2alpha1/serverresources.json
   - flags:
-    - O_EXCL
     - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v2alpha1/serverresources.json.1781256215
+    - O_EXCL
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v2alpha1/serverresources.json.1774342774
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v2alpha1/serverresources.json.3407864109
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/dapr.io/v2alpha1/serverresources.json.302182957
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -416,7 +376,13 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/discovery.k8s.io/v1/serverresources.json.400412518
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/discovery.k8s.io/v1/serverresources.json.149917231
+  - flags:
+    - O_EXCL
+    - O_CLOEXEC
+    - O_RDWR
+    - O_CREAT
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/discovery.k8s.io/v1/serverresources.json.2315832137
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -426,81 +392,93 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/events.k8s.io/v1/serverresources.json.4211376873
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/events.k8s.io/v1/serverresources.json.2647494793
+  - flags:
+    - O_RDWR
+    - O_CREAT
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/events.k8s.io/v1/serverresources.json.3651908934
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/flowcontrol.apiserver.k8s.io/v1/serverresources.json
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/flowcontrol.apiserver.k8s.io/v1/serverresources.json.38685996
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/flowcontrol.apiserver.k8s.io/v1/serverresources.json.2400784660
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/flowcontrol.apiserver.k8s.io/v1/serverresources.json.4226731003
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/flowcontrol.apiserver.k8s.io/v1/serverresources.json.3153009171
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/helm.cattle.io/v1/serverresources.json
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/helm.cattle.io/v1/serverresources.json.663879642
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/helm.cattle.io/v1/serverresources.json.2128749551
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/helm.cattle.io/v1/serverresources.json.844278018
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/helm.cattle.io/v1/serverresources.json.3530080637
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/hostdata.kubescape.cloud/v1beta1/serverresources.json
   - flags:
-    - O_EXCL
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/hostdata.kubescape.cloud/v1beta1/serverresources.json.3590353060
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/hostdata.kubescape.cloud/v1beta1/serverresources.json.254769674
   - flags:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
     - O_RDWR
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/hostdata.kubescape.cloud/v1beta1/serverresources.json.4038005578
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/hostdata.kubescape.cloud/v1beta1/serverresources.json.3927785183
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/k3s.cattle.io/v1/serverresources.json
   - flags:
+    - O_RDWR
+    - O_CREAT
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/k3s.cattle.io/v1/serverresources.json.1187247676
+  - flags:
     - O_EXCL
     - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/k3s.cattle.io/v1/serverresources.json.3863599383
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/k3s.cattle.io/v1/serverresources.json.3276524241
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
+    - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1/serverresources.json
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1/serverresources.json.2786634165
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1/serverresources.json.1027094029
   - flags:
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1/serverresources.json.673578285
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1/serverresources.json.803352597
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -510,39 +488,45 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1alpha1/serverresources.json.1078293466
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1alpha1/serverresources.json.2390447245
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1alpha1/serverresources.json.2409624437
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1alpha1/serverresources.json.3151764950
   - flags:
     - O_CLOEXEC
     - O_RDONLY
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1beta1/serverresources.json
   - flags:
-    - O_CLOEXEC
-    - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1beta1/serverresources.json.2628575775
+    - O_CLOEXEC
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1beta1/serverresources.json.3206627464
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1beta1/serverresources.json.2665398130
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1beta1/serverresources.json.3855479859
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/metrics.k8s.io/v1beta1/serverresources.json
   - flags:
+    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/metrics.k8s.io/v1beta1/serverresources.json.2097766916
+  - flags:
+    - O_EXCL
+    - O_CLOEXEC
     - O_RDWR
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/metrics.k8s.io/v1beta1/serverresources.json.1428235514
+    - O_CREAT
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/metrics.k8s.io/v1beta1/serverresources.json.663546469
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -552,39 +536,45 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/networking.k8s.io/v1/serverresources.json.2546411183
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/networking.k8s.io/v1/serverresources.json.667356712
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/networking.k8s.io/v1/serverresources.json.2747986114
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/networking.k8s.io/v1/serverresources.json.936837616
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/node.k8s.io/v1/serverresources.json
   - flags:
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/node.k8s.io/v1/serverresources.json.3574375492
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/node.k8s.io/v1/serverresources.json.1979861102
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/node.k8s.io/v1/serverresources.json.690518409
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/node.k8s.io/v1/serverresources.json.2700629567
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1/serverresources.json
   - flags:
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1/serverresources.json.2852976355
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1/serverresources.json.1647759692
+  - flags:
+    - O_RDWR
+    - O_CREAT
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1/serverresources.json.1788842965
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -594,45 +584,45 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha1/serverresources.json.2873539052
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha1/serverresources.json.1117187950
   - flags:
-    - O_CLOEXEC
-    - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha1/serverresources.json.3262614076
+    - O_CLOEXEC
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha1/serverresources.json.269224907
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha2/serverresources.json
   - flags:
+    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha2/serverresources.json.3304875754
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha2/serverresources.json.4284726418
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha2/serverresources.json.3806774026
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha2/serverresources.json.547023956
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v2/serverresources.json
   - flags:
-    - O_EXCL
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v2/serverresources.json.2476358972
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v2/serverresources.json.1118138170
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v2/serverresources.json.3608503311
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v2/serverresources.json.3894625035
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -642,45 +632,45 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/policy/v1/serverresources.json.3591451763
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/policy/v1/serverresources.json.2081068296
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/policy/v1/serverresources.json.4267946740
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/policy/v1/serverresources.json.3996784383
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/postgresql.cnpg.io/v1/serverresources.json
   - flags:
-    - O_RDWR
-    - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/postgresql.cnpg.io/v1/serverresources.json.1522281062
+    - O_RDWR
+    - O_CREAT
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/postgresql.cnpg.io/v1/serverresources.json.1264463116
   - flags:
-    - O_EXCL
     - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/postgresql.cnpg.io/v1/serverresources.json.2890798845
+    - O_EXCL
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/postgresql.cnpg.io/v1/serverresources.json.1881561768
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/px.dev/v1alpha1/serverresources.json
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/px.dev/v1alpha1/serverresources.json.3662578914
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/px.dev/v1alpha1/serverresources.json.1359204174
   - flags:
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
     - O_EXCL
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/px.dev/v1alpha1/serverresources.json.4044351492
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/px.dev/v1alpha1/serverresources.json.411324103
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -690,61 +680,55 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/rbac.authorization.k8s.io/v1/serverresources.json.2096830510
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/rbac.authorization.k8s.io/v1/serverresources.json.2945841843
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/rbac.authorization.k8s.io/v1/serverresources.json.4137840501
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/rbac.authorization.k8s.io/v1/serverresources.json.4032780576
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/resource.k8s.io/v1/serverresources.json
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/resource.k8s.io/v1/serverresources.json.1114215303
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/resource.k8s.io/v1/serverresources.json.1992177595
   - flags:
-    - O_EXCL
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/resource.k8s.io/v1/serverresources.json.1544532718
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/resource.k8s.io/v1/serverresources.json.2070955490
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/scheduling.k8s.io/v1/serverresources.json
   - flags:
-    - O_EXCL
-    - O_CLOEXEC
     - O_RDWR
     - O_CREAT
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/scheduling.k8s.io/v1/serverresources.json.184880327
+    - O_EXCL
+    - O_CLOEXEC
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/scheduling.k8s.io/v1/serverresources.json.1670205140
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/scheduling.k8s.io/v1/serverresources.json.2117084553
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/scheduling.k8s.io/v1/serverresources.json.3131913903
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/servergroups.json
   - flags:
-    - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/servergroups.json.1657278190
-  - flags:
     - O_RDWR
-    - O_CREAT
-    - O_EXCL
-    - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/servergroups.json.3322569066
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/servergroups.json.3877786374
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -754,13 +738,13 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/spdx.softwarecomposition.kubescape.io/v1beta1/serverresources.json.2722881257
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/spdx.softwarecomposition.kubescape.io/v1beta1/serverresources.json.105534062
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/spdx.softwarecomposition.kubescape.io/v1beta1/serverresources.json.847133995
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/spdx.softwarecomposition.kubescape.io/v1beta1/serverresources.json.1956944562
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -770,13 +754,13 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/storage.k8s.io/v1/serverresources.json.1021084223
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/storage.k8s.io/v1/serverresources.json.3704311450
   - flags:
     - O_RDWR
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/storage.k8s.io/v1/serverresources.json.2426538668
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/storage.k8s.io/v1/serverresources.json.3771146575
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -786,7 +770,13 @@ spec:
     - O_CREAT
     - O_EXCL
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/v1/serverresources.json.1276953140
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/v1/serverresources.json.1530321732
+  - flags:
+    - O_CREAT
+    - O_EXCL
+    - O_CLOEXEC
+    - O_RDWR
+    path: /home/argocd/.kube/cache/discovery/10.43.0.1_443/v1/serverresources.json.1696210099
   - flags:
     - O_CLOEXEC
     - O_CREAT
@@ -794,76 +784,28 @@ spec:
     - O_RDWR
     path: /home/argocd/.kube/cache/http/.diskv-temp/⋯
   - flags:
-    - O_RDONLY
     - O_CLOEXEC
-    path: /home/argocd/.kube/cache/http/aa8d5d64c5abdd27066a17e721d6f900
-  - flags:
     - O_RDONLY
-    - O_CLOEXEC
     path: /home/argocd/.kube/cache/http/c4aecb76f685b466627e2fc96487307a
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /home/argocd/.kube/cache/http/d772aef737ee37f27da0354a15665bf6
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /home/argocd/.kube/config
   - flags:
-    - O_RDONLY
     - O_CLOEXEC
-    path: /icate_Authority_-_G2.crt
+    - O_RDONLY
+    path: /pps
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /ion_Authority.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /k_CA.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /l.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /n_RootCA3.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /n_Root_CA.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /ok_Sertifikasi_-_Surum_1.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /on_Authority.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /oot.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /oot_G3.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /or_Root_CA_1.crt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /ot_Certificate_Authority_-_G2.crt
+    path: /pps/templates
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /proc/⋯
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
+    - O_CLOEXEC
     path: /proc/⋯/limits
   - flags:
     - O_RDONLY
@@ -881,34 +823,26 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /rt
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /rtificate_Authority_2017.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
     path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
   - flags:
-    - O_RDONLY
     - O_CLOEXEC
+    - O_RDONLY
     path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
   - flags:
     - O_RDONLY
+    - O_CLOEXEC
+    path: /sonnet-guestbook
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /sonnet-guestbook-tla
+  - flags:
+    - O_RDONLY
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /t
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /t_CA_2009.crt
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -920,14 +854,14 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/local/share/mime/globs2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
     path: /usr/share/mime/globs2
   - flags:
     - O_RDONLY
     path: /usr/share/zoneinfo/Etc/UTC
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /ustomize-guestbook
   capabilities:
   - CAP_DAC_OVERRIDE
   - CAP_DAC_READ_SEARCH
@@ -939,7 +873,7 @@ spec:
       Connection:
       - close
       Host:
-      - 10.42.0.208:8082
+      - 10.42.0.250:8082
     internal: true
     methods:
     - GET

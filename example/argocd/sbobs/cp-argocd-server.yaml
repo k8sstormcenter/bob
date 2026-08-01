@@ -9,23 +9,19 @@ spec:
   architectures:
   - amd64
   execs:
-  - args:
+  - path: /usr/bin/tini
+    args:
     - /usr/bin/tini
-    - --
+    - ⋯⋯
+  - path: /usr/local/bin/argocd
+    args:
     - /usr/local/bin/argocd-server
-    path: /usr/bin/tini
-  - args:
-    - /usr/local/bin/argocd-server
-    path: /usr/local/bin/argocd
+    - ⋯⋯
   opens:
   - flags:
-    - O_RDONLY
     - O_CLOEXEC
-    path: /etc/apache/mime.types
-  - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/apache2/mime.types
+    path: /a.kubescape.cloud/v1beta1/serverresources.json
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -33,15 +29,7 @@ spec:
   - flags:
     - O_CLOEXEC
     - O_RDONLY
-    path: /etc/httpd/conf/mime.types
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
     path: /etc/ld.so.cache
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/mime.types
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -57,15 +45,15 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /home/argocd/.kube/config
+    path: /onregistration.k8s.io/v1/serverresources.json
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /proc/⋯/net/core/somaxconn
   - flags:
+    - O_RDONLY
     - O_DIRECTORY
     - O_CLOEXEC
-    - O_RDONLY
     path: /proc/⋯/task/1/fd
   - flags:
     - O_RDONLY
@@ -81,10 +69,26 @@ spec:
     path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
   - flags:
     - O_RDONLY
+    - O_CLOEXEC
+    path: /ry.k8s.io/v1/serverresources.json
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /s.io/v1/serverresources.json
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /stration.k8s.io/v1/serverresources.json
+  - flags:
+    - O_RDONLY
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
   - flags:
     - O_RDONLY
     - O_CLOEXEC
+    path: /use-keeper.altinity.com/v1/serverresources.json
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
     path: /usr/lib/x86_64-linux-gnu/libc.so.6
   - flags:
     - O_RDONLY
@@ -92,15 +96,11 @@ spec:
     path: /usr/local/bin/argocd
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/local/share/mime/globs2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/share/mime/globs2
-  - flags:
-    - O_RDONLY
     path: /usr/share/zoneinfo/Etc/UTC
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /v2alpha1/serverresources.json
   capabilities:
   - CAP_DAC_OVERRIDE
   - CAP_DAC_READ_SEARCH
@@ -138,6 +138,19 @@ spec:
       protocol: TCP
     type: external
   egress:
+  - dns: ''
+    dnsNames: null
+    identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/name: argocd-repo-server
+    ports:
+    - name: TCP-8081
+      port: 8081
+      protocol: TCP
+    type: internal
   - dns: ''
     dnsNames: null
     identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
@@ -181,17 +194,4 @@ spec:
     - name: UDP-53
       port: 53
       protocol: UDP
-    type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
-    ipAddress: ''
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
-        app.kubernetes.io/name: argocd-repo-server
-    ports:
-    - name: TCP-8081
-      port: 8081
-      protocol: TCP
     type: internal

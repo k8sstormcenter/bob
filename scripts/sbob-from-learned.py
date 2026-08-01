@@ -102,6 +102,38 @@ def is_over_broad(path: str) -> bool:
     return segs[0] in WILDCARD_SEGMENTS or all(s in WILDCARD_SEGMENTS for s in segs)
 
 
+def anchor_wildcards(dropped_paths, anchors):
+    """Turn unanchored paths into anchored patterns on the workload's real roots.
+
+    Dropping them is safe but expensive: every legitimate read underneath then
+    fires R0002. The prefix cannot be recovered per-path — the collapse already
+    destroyed it — so the caller supplies the roots the workload is known to
+    write to (for argocd-repo-server these are the emptyDir volumeMounts in the
+    Deployment: /tmp, /helm-working-dir, /app/config).
+
+    An anchored `/tmp/*` keeps the same breadth under /tmp as the broken
+    `/*/Chart.yaml` had, but its first segment is literal, so it cannot swallow
+    the rest of the profile on save and it still does not match /etc/shadow.
+    """
+    flags = sorted({f for o in dropped_paths for f in (o.get("flags") or [])})
+    return [{"path": a.rstrip("/") + "/*", "flags": flags} for a in anchors]
+
+
+def collapse_exec_args(execs):
+    """One entry per binary, args [argv0, ⋯⋯] (zero-or-more).
+
+    Learned args pin values that can never recur — commit SHAs, checkout UUIDs,
+    temp filenames, pod names — so the literal entry matches exactly once and is
+    dead weight afterwards. A bare [path] is no better: CompareExecArgs shows it
+    does NOT match an invocation that has arguments.
+    """
+    by = {}
+    for e in execs:
+        argv = e.get("args") or []
+        by.setdefault(e["path"], argv[0] if argv else e["path"])
+    return [{"path": p, "args": [a, "⋯⋯"]} for p, a in sorted(by.items())]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--in", dest="src", required=True, help="learned profile as JSON")
@@ -109,6 +141,12 @@ def main():
     ap.add_argument("--name", required=True, help="SBoB name = the bind-label value")
     ap.add_argument("--namespace", required=True)
     ap.add_argument("--keep-syscalls", action="store_true")
+    ap.add_argument("--anchor", action="append", default=[], metavar="PREFIX",
+                    help="re-anchor unanchored opens onto PREFIX/* instead of "
+                         "dropping them; repeatable (e.g. --anchor /tmp)")
+    ap.add_argument("--collapse-dir", action="append", default=[], metavar="PREFIX",
+                    help="pre-collapse everything under PREFIX to PREFIX/⋯, the "
+                         "form storage would produce anyway; repeatable")
     args = ap.parse_args()
 
     spec = json.loads(Path(args.src).read_text())["spec"]
@@ -116,8 +154,22 @@ def main():
     opens = spec.get("opens") or []
     for o in opens:
         o["path"] = normalise_rotating(o.get("path", ""))
-    dropped = [o["path"] for o in opens if is_over_broad(o.get("path", ""))]
+    bad = [o for o in opens if is_over_broad(o.get("path", ""))]
     kept = [o for o in opens if not is_over_broad(o.get("path", ""))]
+    dropped = [o["path"] for o in bad]
+    if bad and args.anchor:
+        kept.extend(anchor_wildcards(bad, args.anchor))
+
+    # Pre-collapse directories that exceed the analyzer's threshold, so the
+    # committed file already equals what storage will store. Otherwise the file
+    # and the enforced policy silently disagree.
+    for pfx in args.collapse_dir:
+        pfx = pfx.rstrip("/") + "/"
+        under = [o for o in kept if o["path"].startswith(pfx)]
+        if len(under) > 1:
+            kept = [o for o in kept if not o["path"].startswith(pfx)]
+            kept.append({"path": pfx + "⋯",
+                         "flags": sorted({f for o in under for f in (o.get("flags") or [])})})
 
     # Deduplicate execs by (path, args) — a learned profile repeats an exec once
     # per distinct invocation, which is noise in a shipped artifact.
@@ -127,6 +179,7 @@ def main():
         if key not in seen:
             seen.add(key)
             execs.append(e)
+    execs = collapse_exec_args(execs)
 
     # R0006 is not satisfied by listing the token in `opens` — it is a separate
     # rule that has to name the process allowed to read a ServiceAccount token.

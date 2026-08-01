@@ -9,15 +9,23 @@ spec:
   architectures:
   - amd64
   execs:
-  - args:
+  - path: /usr/bin/tini
+    args:
     - /usr/bin/tini
-    - --
+    - ⋯⋯
+  - path: /usr/local/bin/argocd
+    args:
     - /usr/local/bin/argocd-notifications
-    path: /usr/bin/tini
-  - args:
-    - /usr/local/bin/argocd-notifications
-    path: /usr/local/bin/argocd
+    - ⋯⋯
   opens:
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /4_11_59.3810046613/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /87307a
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -38,10 +46,6 @@ spec:
     - O_RDONLY
     - O_CLOEXEC
     path: /etc/ld.so.cache
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/mime.types
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -104,14 +108,6 @@ spec:
     path: /usr/local/bin/argocd
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/local/share/mime/globs2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/share/mime/globs2
-  - flags:
-    - O_RDONLY
     path: /usr/share/zoneinfo/Etc/UTC
   capabilities:
   - CAP_DAC_OVERRIDE
@@ -162,6 +158,21 @@ spec:
   egress:
   - dns: ''
     dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    ipAddress: ''
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  - dns: ''
+    dnsNames: null
     identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
     ipAddress: 10.43.0.1
     namespaceSelector:
@@ -188,19 +199,4 @@ spec:
     - name: TCP-8081
       port: 8081
       protocol: TCP
-    type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
-    ipAddress: ''
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: kube-system
-    podSelector:
-      matchLabels:
-        k8s-app: kube-dns
-    ports:
-    - name: UDP-53
-      port: 53
-      protocol: UDP
     type: internal

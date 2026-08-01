@@ -71,3 +71,26 @@ argocd-applicationset-controller:
   egress_include_ips: ["10.43.0.1"]
   opens_min: 15
   weak: true
+
+argocd-dex-server:
+  function: serve OIDC/SSO and watch its config from the apiserver
+  # dex is launched from /shared by the copyutil init container, not from a path
+  # in its own image — asserting that catches a broken init handoff too.
+  execs_include:
+    - /shared/argocd-dex
+  egress_ports: [TCP-443]
+  egress_include_ips: ["10.43.0.1"]
+  opens_min: 10
+
+argocd-redis:
+  function: cache manifests and app state for the server and controller
+  # HONEST LIMITATION: redis is a server. It accepts connections and initiates
+  # none, so it has NO egress at all and there is nothing here that separates a
+  # busy redis from an idle one. Only the exec set is asserted. Making this
+  # meaningful needs a client-side check (server/controller reaching TCP-6379),
+  # which the argocd-server and argocd-application-controller entries above
+  # already carry — that is where redis traffic is actually observable.
+  execs_include:
+    - /usr/local/bin/redis-server
+  opens_min: 10
+  weak: true
