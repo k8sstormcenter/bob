@@ -1,0 +1,68 @@
+# Evidence that a learn window actually exercised the workload's primary
+# function, checked by scripts/check-representativeness.py.
+#
+# This exists because of bob#170. The argocd SBoBs were learned from an Argo CD
+# with zero Applications: nothing ever synced, so the profiles encoded Argo CD
+# idling. repo-server learned 5 execs instead of 10, 51 opens instead of 517,
+# and null egress instead of reaching github.com. The SBoBs then flagged the
+# GitOps toolchain itself as attack, and every existing gate passed:
+#
+#   tune score 0        measures detections against the functional tests you
+#                       supply — supply idle traffic, get an idle verdict
+#   contrast 0 Blind    compares the profile to an app-TYPE envelope, never
+#                       asks whether the baseline is representative
+#   rule-coverage card  counts rules the attacks lit — orthogonal
+#
+# So the question this file answers is the one nothing else asked: what does
+# this workload DO, and did the learn window make it do that?
+#
+# Assertions are deliberately behavioural, not size-based. "opens > 100" would
+# have passed the idle argocd-server (21 opens is correct for it); what
+# distinguishes working from idle is WHICH peers it talked to and WHICH binaries
+# it ran. Thresholds are floors observed on a representative learn, not targets.
+
+argocd-repo-server:
+  function: clone git repositories and render manifests with helm/kustomize
+  # The strongest signal in the whole set: an idle repo-server never forks a
+  # renderer and never dials a public host. Both were absent in the #170 SBoB.
+  execs_include:
+    - /usr/bin/git
+    - /usr/local/bin/helm
+    - /usr/local/bin/kustomize
+  egress_public_ip: true      # a real clone leaves the cluster (github.com)
+  egress_ports: [TCP-443]
+  opens_min: 100
+
+argocd-server:
+  function: serve the API, and fan out to redis, repo-server and the apiserver
+  # TCP-8081 is repo-server: the API server only dials it when something asked
+  # for a manifest render. Idle, that peer never appears.
+  egress_ports: [TCP-443, TCP-6379, TCP-8081]
+  egress_include_ips: ["10.43.0.1"]
+  opens_min: 15
+
+argocd-application-controller:
+  function: reconcile Applications — compare live vs desired and sync
+  # Same reasoning: reconciling means asking repo-server (8081) for the desired
+  # state and caching it in redis (6379). Zero Applications means neither.
+  egress_ports: [TCP-443, TCP-6379, TCP-8081]
+  egress_include_ips: ["10.43.0.1"]
+  opens_min: 100
+
+argocd-notifications-controller:
+  function: watch Application state and evaluate notification triggers
+  egress_ports: [TCP-443, TCP-8081]
+  egress_include_ips: ["10.43.0.1"]
+  opens_min: 15
+
+argocd-applicationset-controller:
+  function: generate Applications from generators
+  # HONEST LIMITATION: this component polls the apiserver whether or not any
+  # ApplicationSet exists, so TCP-443 does NOT discriminate working from idle
+  # and this gate is weak. Making it meaningful needs an ApplicationSet whose
+  # generator reaches something observable (a git generator -> public egress).
+  # Left explicit rather than dressed up as coverage.
+  egress_ports: [TCP-443]
+  egress_include_ips: ["10.43.0.1"]
+  opens_min: 15
+  weak: true
