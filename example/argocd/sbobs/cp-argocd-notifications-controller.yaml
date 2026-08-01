@@ -13,8 +13,6 @@ spec:
     args: [/usr/local/bin/argocd-notifications, ⋯⋯]
   opens:
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /87307a
-  - flags: [O_CLOEXEC, O_RDONLY]
     path: /etc/apache/mime.types
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /etc/apache2/mime.types
@@ -24,6 +22,8 @@ spec:
     path: /etc/httpd/conf/mime.types
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /etc/ld.so.cache
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/mime.types
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /etc/nsswitch.conf
   - flags: [O_CLOEXEC, O_RDONLY]
@@ -54,6 +54,10 @@ spec:
     path: /usr/lib/x86_64-linux-gnu/libc.so.6
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /usr/local/bin/argocd
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/share/mime/globs2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/share/mime/globs2
   - flags: [O_RDONLY]
     path: /usr/share/zoneinfo/Etc/UTC
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
@@ -82,14 +86,6 @@ spec:
     type: external
     ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
   egress:
-  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: kube-system}
-    podSelector:
-      matchLabels: {k8s-app: kube-dns}
-    ports:
-    - {name: UDP-53, port: 53, protocol: UDP}
-    type: internal
   - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: default}
@@ -99,6 +95,14 @@ spec:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: internal
     ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: kube-system}
+    podSelector:
+      matchLabels: {k8s-app: kube-dns}
+    ports:
+    - {name: UDP-53, port: 53, protocol: UDP}
+    type: internal
   - identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
     namespaceSelector: null
     podSelector:

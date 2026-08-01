@@ -86,6 +86,15 @@ spec:
     type: external
     ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
   egress:
+  - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: default}
+    podSelector:
+      matchLabels: {component: apiserver, provider: kubernetes}
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: internal
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
   - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: kube-system}
@@ -101,12 +110,3 @@ spec:
     ports:
     - {name: TCP-8081, port: 8081, protocol: TCP}
     type: internal
-  - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: default}
-    podSelector:
-      matchLabels: {component: apiserver, provider: kubernetes}
-    ports:
-    - {name: TCP-443, port: 443, protocol: TCP}
-    type: internal
-    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]

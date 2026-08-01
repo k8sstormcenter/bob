@@ -53,7 +53,11 @@ argocd-application-controller:
   # state and caching it in redis (6379). Zero Applications means neither.
   egress_ports: [TCP-443, TCP-6379, TCP-8081]
   egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
-  opens_min: 100
+  # No opens_min, same reason as repo-server. The kube discovery cache writes a
+  # new atomic-write temp file per refresh, so a long representative run makes
+  # node-agent collapse that whole subtree; the CORRECT profile is then a
+  # handful of anchored roots, while a short unrepresentative run leaves dozens
+  # of literals. Count rewards the wrong one.
 
 argocd-notifications-controller:
   function: watch Application state and evaluate notification triggers

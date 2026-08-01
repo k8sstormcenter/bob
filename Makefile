@@ -349,7 +349,11 @@ $(error KS_LEARN_PERIOD must be a Go duration like 15m or 900s, got "$(KS_LEARN_
 endif
 endif
 
-KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.learningPeriod=$(KS_LEARN_PERIOD))
+# maxLearningPeriod is the one that maps to maxSniffingTimePerContainer in the
+# rendered node-agent config.json, i.e. the actual learn window. learningPeriod
+# is a DIFFERENT knob and setting it leaves the window at its default — verified
+# by templating the chart both ways.
+KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.maxLearningPeriod=$(KS_LEARN_PERIOD))
 
 # One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
 # Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
