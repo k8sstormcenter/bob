@@ -8,141 +8,65 @@ metadata:
 spec:
   architectures:
   - amd64
+  imageID: quay.io/argoproj/argocd@sha256:2019f67cda4d38bec55cdb0a595361f0ea10d8dff9e91d6b994f77c62f193f21
+  imageTag: quay.io/argoproj/argocd:v2.9.3
   execs:
-  - args:
-    - /usr/bin/git
-    - fetch
-    - origin
-    - --tags
-    - --force
-    - --prune
-    path: /usr/bin/git
-  - args:
-    - /usr/local/bin/helm
-    - template
-    - .
-    - --name-template
-    - helm-guestbook
-    - --namespace
-    - gitops-demo
-    - --kube-version
-    - '1.35'
-    - --api-versions
-    - admissionregistration.k8s.io/v1
-    - --api-versions
-    - admissionregistration.k8s.io/v1/MutatingWebhookConfiguration
-    - --api-versions
-    - admissionregistration.k8s.io/v1/ValidatingAdmissionPolicy
-    - --api-versions
-    - admissionregistration.k8s.io/v1/ValidatingAdmissionPolicyBinding
-    - --api-versions
-    - admissionregistration.k8s.io/v1/ValidatingWebhookConfiguration
-    - --api-versions
-    path: /usr/local/bin/helm
-  - args:
-    - /usr/local/bin/kustomize
-    - build
-    - /tmp/_argocd-repo/194e7baf-76b2-44e1-b494-9ca1f84a5e9d/kustomize-guestbook
-    - --enable-alpha-plugins
-    - --enable-exec
-    path: /usr/local/bin/kustomize
-  - args:
-    - /usr/bin/tini
-    - --
-    - /usr/local/bin/argocd-repo-server
-    path: /usr/bin/tini
-  - args:
-    - /usr/bin/gpg
-    - --no-permission-warning
-    - --logger-fd
-    - '1'
-    - --batch
-    - --gen-key
-    - /tmp/gpg-key-recipe1260621259
-    path: /usr/bin/gpg
-  - args:
-    - /usr/bin/gpg-agent
-    path: /usr/bin/gpg-agent
-  - args:
+  - path: /usr/bin/dash
+    args:
     - /usr/local/bin/gpg-wrapper.sh
-    - --no-permission-warning
-    - --list-secret-keys
-    - 4FC16E28B9BCF25A
-    path: /usr/bin/dash
-  - args:
+    - ⋯⋯
+  - path: /usr/bin/git
+    args:
+    - /usr/bin/git
+    - ⋯⋯
+  - path: /usr/bin/gpg
+    args:
+    - /usr/bin/gpg
+    - ⋯⋯
+  - path: /usr/bin/gpg-agent
+    args:
+    - /usr/bin/gpg-agent
+    - ⋯⋯
+  - path: /usr/bin/tini
+    args:
+    - /usr/bin/tini
+    - ⋯⋯
+  - path: /usr/lib/git-core/git
+    args:
+    - /usr/lib/git-core/git
+    - ⋯⋯
+  - path: /usr/lib/git-core/git-remote-http
+    args:
     - /usr/lib/git-core/git-remote-https
-    - origin
-    - https://github.com/argoproj/argocd-example-apps.git
-    path: /usr/lib/git-core/git-remote-http
-  - args:
-    - /usr/lib/git-core/git
-    - maintenance
-    - run
-    - --auto
-    - --no-quiet
-    path: /usr/lib/git-core/git
-  - args:
-    - /usr/bin/git
-    - clean
-    - -ffdx
-    path: /usr/bin/git
-  - args:
-    - /usr/bin/gpg
-    - --no-permission-warning
-    - --list-secret-keys
-    - 4FC16E28B9BCF25A
-    path: /usr/bin/gpg
-  - args:
-    - /usr/bin/gpg
-    - --no-permission-warning
-    - -a
-    - --export
-    - 4FC16E28B9BCF25A
-    path: /usr/bin/gpg
-  - args:
-    - /usr/lib/git-core/git
-    - remote-https
-    - origin
-    - https://github.com/argoproj/argocd-example-apps.git
-    path: /usr/lib/git-core/git
-  - args:
-    - /usr/lib/git-core/git
-    - index-pack
-    - --stdin
-    - --fix-thin
-    - --keep=fetch-pack 31 on argocd-repo-server-677d44c68c-8s4jx
-    - --pack_header=2,595
-    path: /usr/lib/git-core/git
-  - args:
+    - ⋯⋯
+  - path: /usr/lib/git-core/git-remote-https
+    args:
+    - /usr/lib/git-core/git-remote-https
+    - ⋯⋯
+  - path: /usr/local/bin/argocd
+    args:
     - /usr/local/bin/argocd-repo-server
-    path: /usr/local/bin/argocd
-  - args:
-    - /usr/bin/gpg
-    - --no-permission-warning
-    - --list-public-keys
-    path: /usr/bin/gpg
-  - args:
-    - /usr/bin/git
-    - checkout
-    - --force
-    - 8088f4c0d970abb09e250248cc97e35623447cb5
-    path: /usr/bin/git
-  - args:
-    - /usr/lib/git-core/git
-    - rev-list
-    - --objects
-    - --stdin
-    - --not
-    - --all
-    - --quiet
-    - --alternate-refs
-    path: /usr/lib/git-core/git
-  - args:
-    - /usr/bin/git
-    - rev-parse
-    - HEAD
-    path: /usr/bin/git
+    - ⋯⋯
+  - path: /usr/local/bin/argocd-repo-server
+    args:
+    - /usr/local/bin/argocd-repo-server
+    - ⋯⋯
+  - path: /usr/local/bin/gpg-wrapper.sh
+    args:
+    - /usr/local/bin/gpg-wrapper.sh
+    - ⋯⋯
+  - path: /usr/local/bin/helm
+    args:
+    - /usr/local/bin/helm
+    - ⋯⋯
+  - path: /usr/local/bin/kustomize
+    args:
+    - /usr/local/bin/kustomize
+    - ⋯⋯
   opens:
+  - path: /app/config
+    flags:
+    - O_RDONLY
   - flags:
     - O_CREAT
     - O_EXCL
@@ -150,10 +74,52 @@ spec:
     - O_TRUNC
     - O_WRONLY
     path: /app/config/gpg/keys/*
+  - path: /dev/urandom
+    flags:
+    - O_RDONLY
+  - path: /etc/gcrypt
+    flags:
+    - O_RDONLY
+  - path: /etc/gnupg
+    flags:
+    - O_RDONLY
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /etc/host.conf
+  - path: /etc/hosts
+    flags:
+    - O_RDONLY
+  - path: /etc/ld.so.cache
+    flags:
+    - O_RDONLY
+  - path: /etc/mime.types
+    flags:
+    - O_RDONLY
+  - path: /etc/nsswitch.conf
+    flags:
+    - O_RDONLY
+  - path: /etc/passwd
+    flags:
+    - O_RDONLY
+  - path: /etc/resolv.conf
+    flags:
+    - O_RDONLY
+  - path: /etc/ssl/certs/ca-certificates.crt
+    flags:
+    - O_RDONLY
+  - path: /helm-working-dir
+    flags:
+    - O_RDWR
+    - O_CREAT
+  - path: /home/argocd
+    flags:
+    - O_RDWR
+    - O_CREAT
+  - path: /tmp
+    flags:
+    - O_RDWR
+    - O_CREAT
   - flags:
     - O_APPEND
     - O_CLOEXEC
@@ -165,6 +131,9 @@ spec:
     - O_RDWR
     - O_WRONLY
     path: /tmp/*
+  - path: /usr/lib
+    flags:
+    - O_RDONLY
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -321,6 +290,9 @@ spec:
     - O_RDONLY
     - O_CLOEXEC
     path: /usr/lib/x86_64-linux-gnu/libzstd.so.1.4.8
+  - path: /usr/local
+    flags:
+    - O_RDONLY
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -333,6 +305,9 @@ spec:
     - O_RDONLY
     - O_CLOEXEC
     path: /usr/local/bin/kustomize
+  - path: /usr/share
+    flags:
+    - O_RDONLY
   - flags:
     - O_CLOEXEC
     - O_RDONLY

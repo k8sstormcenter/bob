@@ -11,7 +11,7 @@
 #   3. kubectl apply -f example/argocd/argocd.yaml        # this file
 #   4. # bind the tuned User SBoB (node-agent loads it at pod start):
 #      kubectl delete containerprofile argocd-repo-server -n argocd --ignore-not-found
-#      kubectl apply -n argocd -f example/argocd/sbobs/cp-app.yaml
+#      kubectl apply -n argocd -f example/argocd/sbobs/cp-argocd-repo-server.yaml
 #      kubectl patch deployment argocd-repo-server -n argocd --type merge -p \
 #        '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"argocd-repo-server"}}}}}'
 #      kubectl rollout restart deployment/argocd-repo-server -n argocd
