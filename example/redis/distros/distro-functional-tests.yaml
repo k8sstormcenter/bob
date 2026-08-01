@@ -1,0 +1,29 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: redis-distro-functional-tests
+  description: >-
+    Benign redis-protocol read/write path implemented by every distro under
+    comparison (redis, valkey, keydb, dragonfly). Must not alert.
+target:
+  service: redis
+  namespace: redis-oss
+  port: 6379
+  scheme: redis
+tests:
+  - name: ping
+    redis: { command: ["PING"] }
+  - name: info-server
+    redis: { command: ["INFO", "server"] }
+  - name: set-key
+    redis: { command: ["SET", "bob:probe", "v1"] }
+  - name: get-key
+    redis: { command: ["GET", "bob:probe"] }
+  - name: dbsize
+    redis: { command: ["DBSIZE"] }
+  - name: client-list
+    redis: { command: ["CLIENT", "LIST"] }
+  - name: command-count
+    redis: { command: ["COMMAND", "COUNT"] }
+  - name: del-key
+    redis: { command: ["DEL", "bob:probe"] }

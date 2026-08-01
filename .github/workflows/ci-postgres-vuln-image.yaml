@@ -2,7 +2,7 @@ name: CI - postgres-vulnerable image
 
 # Builds and publishes the postgres-vuln demo image (postgres:16 +
 # plpython3u/plperlu/dblink for the PL-RCE + SSRF attack suite) to GHCR,
-# so the postgres-vuln/ demo no longer depends on a locally-built
+# so the example/postgres-vuln/ demo no longer depends on a locally-built
 # `postgres-vuln:latest` (which ImagePullBackOffs on any cluster that
 # didn't build it). Mirrors ci-redis-image.yaml / ci-chain-images.yaml.
 #
@@ -16,7 +16,7 @@ on:
     branches:
       - main
     paths:
-      - 'postgres-vuln/Dockerfile'
+      - 'example/postgres-vuln/Dockerfile'
       - '.github/workflows/ci-postgres-vuln-image.yaml'
   workflow_dispatch:
 
@@ -59,8 +59,8 @@ jobs:
       - name: Build (load for smoke test)
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
-          context: postgres-vuln
-          file: postgres-vuln/Dockerfile
+          context: example/postgres-vuln
+          file: example/postgres-vuln/Dockerfile
           load: true
           tags: postgres-vuln:smoke
 
@@ -85,8 +85,8 @@ jobs:
       - name: Push (multi-arch)
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
-          context: postgres-vuln
-          file: postgres-vuln/Dockerfile
+          context: example/postgres-vuln
+          file: example/postgres-vuln/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
