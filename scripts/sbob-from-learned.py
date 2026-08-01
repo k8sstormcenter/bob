@@ -29,6 +29,20 @@ from pathlib import Path
 
 import yaml
 
+
+class NoAliasDumper(yaml.SafeDumper):
+    """Never emit &id001/*id001 anchors.
+
+    PyYAML back-references any value it sees twice BY IDENTITY. An SBoB is read
+    at review time to see what a workload is allowed to do, and an alias hides
+    the actual flags behind a pointer. Generators must also avoid sharing list
+    objects between entries; this is the backstop for when they slip.
+    """
+
+    def ignore_aliases(self, data):
+        return True
+
+
 WILDCARD_SEGMENTS = {"*", "**", "⋯", "⋯⋯"}
 
 # Kubernetes projected volumes (ServiceAccount tokens, ConfigMaps, Secrets) write
@@ -116,7 +130,10 @@ def anchor_wildcards(dropped_paths, anchors):
     the rest of the profile on save and it still does not match /etc/shadow.
     """
     flags = sorted({f for o in dropped_paths for f in (o.get("flags") or [])})
-    return [{"path": a.rstrip("/") + "/*", "flags": flags} for a in anchors]
+    # list(flags) per entry, NOT the shared object: PyYAML emits &id001/*id001
+    # anchors for any value it sees twice by identity, which turns a policy file
+    # into something nobody can read at review time.
+    return [{"path": a.rstrip("/") + "/*", "flags": list(flags)} for a in anchors]
 
 
 def collapse_exec_args(execs):
@@ -216,7 +233,12 @@ def main():
             out["spec"][k] = spec[k]
 
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.out).write_text(yaml.safe_dump(out, sort_keys=False, width=200, allow_unicode=True))
+    # Compact flow form — one entry per line. An SBoB is read as a policy
+    # document; block style turns 50 entries into 200+ lines and buries the
+    # paths among their flags.
+    Path(args.out).write_text(yaml.dump(
+        out, sort_keys=False, width=4096, allow_unicode=True,
+        default_flow_style=None, Dumper=NoAliasDumper))
 
     print(f"{args.out}: execs={len(execs)} opens={len(kept)} "
           f"egress={len(spec.get('egress') or [])}")

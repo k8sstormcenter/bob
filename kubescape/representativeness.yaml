@@ -29,7 +29,8 @@ argocd-repo-server:
     - /usr/bin/git
     - /usr/local/bin/helm
     - /usr/local/bin/kustomize
-  egress_public_ip: true      # a real clone leaves the cluster (github.com)
+  egress_public_ip: true      # a real clone leaves the cluster
+  egress_include_dns: [github.com, charts.helm.sh]
   egress_ports: [TCP-443]
   # No opens_min, and this is the clearest case for why counts are useless here.
   # The correctly-anchored profile has 47 opens; the idle #170 profile had 51.
@@ -43,7 +44,7 @@ argocd-server:
   # TCP-8081 is repo-server: the API server only dials it when something asked
   # for a manifest render. Idle, that peer never appears.
   egress_ports: [TCP-443, TCP-6379, TCP-8081]
-  egress_include_ips: ["10.43.0.1"]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 15
 
 argocd-application-controller:
@@ -51,13 +52,13 @@ argocd-application-controller:
   # Same reasoning: reconciling means asking repo-server (8081) for the desired
   # state and caching it in redis (6379). Zero Applications means neither.
   egress_ports: [TCP-443, TCP-6379, TCP-8081]
-  egress_include_ips: ["10.43.0.1"]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 100
 
 argocd-notifications-controller:
   function: watch Application state and evaluate notification triggers
   egress_ports: [TCP-443, TCP-8081]
-  egress_include_ips: ["10.43.0.1"]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 15
 
 argocd-applicationset-controller:
@@ -68,7 +69,7 @@ argocd-applicationset-controller:
   # generator reaches something observable (a git generator -> public egress).
   # Left explicit rather than dressed up as coverage.
   egress_ports: [TCP-443]
-  egress_include_ips: ["10.43.0.1"]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 15
   weak: true
 
@@ -79,7 +80,7 @@ argocd-dex-server:
   execs_include:
     - /shared/argocd-dex
   egress_ports: [TCP-443]
-  egress_include_ips: ["10.43.0.1"]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 10
 
 argocd-redis:

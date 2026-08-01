@@ -31,6 +31,23 @@ from pathlib import Path
 import yaml
 
 
+def _covers(entries, wanted):
+    """True if any profile entry matches `wanted` — literal, CIDR, or "*"."""
+    try:
+        target = ipaddress.ip_address(wanted)
+    except ValueError:
+        return wanted in entries
+    for e in entries:
+        if e == "*" or e == wanted:
+            return True
+        try:
+            if target in ipaddress.ip_network(e, strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
+
+
 def is_public(ip):
     """True for a routable address outside the cluster (a real external dial)."""
     try:
@@ -72,7 +89,12 @@ def profile_facts(spec):
         "over_broad": [o.get("path", "") for o in opens
                        if is_over_broad_open(o.get("path", ""))],
         "ports": {p.get("name") for e in egress for p in (e.get("ports") or [])},
-        "ips": {e.get("ipAddress") for e in egress if e.get("ipAddress")},
+        # Read BOTH forms. ipAddress/dns are the deprecated singulars; the
+        # v0.0.2 fields are the lists, and an IPAddresses entry may be a literal,
+        # a CIDR, or "*" (pkg/registry/file/networkmatch, spec 5.7/5.8).
+        "ips": ({e.get("ipAddress") for e in egress if e.get("ipAddress")}
+                | {a for e in egress for a in (e.get("ipAddresses") or [])}),
+        "dns": {d.rstrip(".") for e in egress for d in (e.get("dnsNames") or [])},
         "egress_count": len(egress),
     }
 
@@ -92,12 +114,22 @@ def check(name, rules, facts):
         fails.append(f"no egress on {', '.join(sorted(missing))} "
                      f"(saw {', '.join(sorted(facts['ports'])) or 'nothing'})")
 
-    for ip in rules.get("egress_include_ips") or []:
-        if ip not in facts["ips"]:
-            fails.append(f"never reached {ip}")
+    # An expectation is satisfied by a literal match OR by a CIDR that contains
+    # it — a portable SBoB states 10.43.0.0/16, not the cluster's actual
+    # apiserver IP, so a string compare would fail every correct profile.
+    for want in rules.get("egress_include_ips") or []:
+        if not _covers(facts["ips"], want):
+            fails.append(f"never reached {want} (saw {sorted(facts['ips']) or 'nothing'})")
+
+    for want in rules.get("egress_include_dns") or []:
+        if want not in facts["dns"]:
+            fails.append(f"no egress to {want} (saw {sorted(facts['dns']) or 'nothing'})")
 
     if rules.get("egress_public_ip"):
-        pub = [i for i in facts["ips"] if is_public(i)]
+        pub = [i for i in facts["ips"] if is_public(i.split("/")[0])]
+        # A portable profile keys external peers on DNS, not on rotating IPs, so
+        # a public DNS name counts as leaving the cluster just as an IP does.
+        pub += sorted(facts["dns"])
         if not pub:
             fails.append("no egress to any public address — nothing was cloned "
                          "from outside the cluster")

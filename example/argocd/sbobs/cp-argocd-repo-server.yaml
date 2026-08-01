@@ -3,428 +3,226 @@ kind: ContainerProfile
 metadata:
   name: argocd-repo-server
   namespace: argocd
-  annotations:
-    kubescape.io/managed-by: User
+  annotations: {kubescape.io/managed-by: User}
 spec:
-  architectures:
-  - amd64
+  architectures: [amd64]
   execs:
   - path: /usr/bin/dash
-    args:
-    - /usr/local/bin/gpg-wrapper.sh
-    - ⋯⋯
+    args: [/usr/local/bin/gpg-wrapper.sh, ⋯⋯]
   - path: /usr/bin/git
-    args:
-    - /usr/bin/git
-    - ⋯⋯
+    args: [/usr/bin/git, ⋯⋯]
   - path: /usr/bin/gpg
-    args:
-    - /usr/bin/gpg
-    - ⋯⋯
+    args: [/usr/bin/gpg, ⋯⋯]
   - path: /usr/bin/gpg-agent
-    args:
-    - /usr/bin/gpg-agent
-    - ⋯⋯
+    args: [/usr/bin/gpg-agent, ⋯⋯]
   - path: /usr/bin/tini
-    args:
-    - /usr/bin/tini
-    - ⋯⋯
+    args: [/usr/bin/tini, ⋯⋯]
   - path: /usr/lib/git-core/git
-    args:
-    - /usr/lib/git-core/git
-    - ⋯⋯
+    args: [/usr/lib/git-core/git, ⋯⋯]
   - path: /usr/lib/git-core/git-remote-http
-    args:
-    - /usr/lib/git-core/git-remote-https
-    - ⋯⋯
+    args: [/usr/lib/git-core/git-remote-https, ⋯⋯]
   - path: /usr/local/bin/argocd
-    args:
-    - /usr/local/bin/argocd-repo-server
-    - ⋯⋯
+    args: [/usr/local/bin/argocd-repo-server, ⋯⋯]
   - path: /usr/local/bin/helm
-    args:
-    - /usr/local/bin/helm
-    - ⋯⋯
+    args: [/usr/local/bin/helm, ⋯⋯]
   - path: /usr/local/bin/kustomize
-    args:
-    - /usr/local/bin/kustomize
-    - ⋯⋯
+    args: [/usr/local/bin/kustomize, ⋯⋯]
   opens:
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/host.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libassuan.so.0.8.5
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.0.9
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.0.9
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libc.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libcom_err.so.2.1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libcrypto.so.3
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4.7.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libffi.so.8.1.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libgcrypt.so.20.3.4
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libgmp.so.10.4.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libgnutls.so.30.31.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libgpg-error.so.0.32.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libhogweed.so.6.4
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libidn2.so.0.3.7
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libkeyutils.so.1.9
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libkrb5.so.3.3
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/liblber-2.5.so.0.1.11
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libldap-2.5.so.0.1.11
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libm.so.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libnettle.so.8.4
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libnghttp2.so.14.20.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libnpth.so.0.1.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libp11-kit.so.0.3.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.10.4
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libpsl.so.5.3.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libresolv.so.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/librtmp.so.1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libsasl2.so.2.0.25
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libssh.so.4.8.7
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libtasn1.so.6.6.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libtinfo.so.6.3
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libunistring.so.2.2.0
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libz.so.1.2.11
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libzstd.so.1.4.8
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/local/bin/argocd
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/local/bin/helm
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/local/bin/kustomize
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/share/zoneinfo/Etc/UTC
-  - path: /tmp/*
-    flags: &id001
-    - O_APPEND
-    - O_CLOEXEC
-    - O_CREAT
-    - O_DIRECTORY
-    - O_EXCL
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    - O_RDWR
-    - O_TRUNC
-    - O_WRONLY
-  - path: /helm-working-dir/*
-    flags: *id001
   - path: /app/config/*
-    flags: *id001
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/host.conf
+  - path: /helm-working-dir/*
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /tmp/*
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libassuan.so.0.8.5
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.0.9
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.0.9
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libc.so.6
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libcom_err.so.2.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libcrypto.so.3
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4.7.0
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libffi.so.8.1.0
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libgcrypt.so.20.3.4
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libgmp.so.10.4.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libgnutls.so.30.31.0
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libgpg-error.so.0.32.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libhogweed.so.6.4
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libidn2.so.0.3.7
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libkeyutils.so.1.9
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libkrb5.so.3.3
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/liblber-2.5.so.0.1.11
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libldap-2.5.so.0.1.11
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libm.so.6
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libnettle.so.8.4
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libnghttp2.so.14.20.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libnpth.so.0.1.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libp11-kit.so.0.3.0
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.10.4
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libpsl.so.5.3.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libresolv.so.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/librtmp.so.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libsasl2.so.2.0.25
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libssh.so.4.8.7
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libtasn1.so.6.6.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libtinfo.so.6.3
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libunistring.so.2.2.0
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libz.so.1.2.11
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libzstd.so.1.4.8
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/bin/argocd
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/bin/helm
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/bin/kustomize
   - path: /usr/share/ca-certificates/mozilla/⋯
-    flags:
-    - O_CLOEXEC
-    - O_RDONLY
-  capabilities:
-  - CAP_DAC_OVERRIDE
-  - CAP_DAC_READ_SEARCH
-  - CAP_NET_ADMIN
+    flags: [O_CLOEXEC, O_RDONLY]
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/share/zoneinfo/Etc/UTC
+  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   endpoints:
   - direction: inbound
     endpoint: :8084/healthz
     headers:
-      Connection:
-      - close
-      Host:
-      - 10.42.0.244:8084
+      Connection: [close]
+      Host: ['*:8084']
     internal: true
-    methods:
-    - GET
+    methods: [GET]
   - direction: inbound
     endpoint: :6443/metrics
     headers:
-      Accept-Encoding:
-      - gzip
-      Host:
-      - 127.0.0.1:6443
+      Accept-Encoding: [gzip]
+      Host: ['*:6443']
     internal: true
-    methods:
-    - GET
+    methods: [GET]
   rulePolicies:
     R0002:
-      processAllowed:
-      - runc:[1:INIT]
-      - runc:[1:CHILD]
-      - runc:[2:INIT]
-      - runc:[3:INIT]
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
     R0004:
-      processAllowed:
-      - runc:[1:INIT]
-      - runc:[1:CHILD]
-      - runc:[2:INIT]
-      - runc:[3:INIT]
-  matchLabels:
-    app.kubernetes.io/name: argocd-repo-server
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+  matchLabels: {app.kubernetes.io/name: argocd-repo-server}
   ingress:
-  - dns: ''
-    dnsNames: null
-    identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
-    ipAddress: 10.42.0.1
+  - identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-8084
-      port: 8084
-      protocol: TCP
+    - {name: TCP-8084, port: 8084, protocol: TCP}
     type: external
-  - dns: ''
-    dnsNames: null
-    identifier: d93b79fbec160a0515c1632b70a626152653f142c3a311111243c31b0b0d1ce7
-    ipAddress: ''
+    ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
+  - identifier: d93b79fbec160a0515c1632b70a626152653f142c3a311111243c31b0b0d1ce7
     namespaceSelector: null
     podSelector:
-      matchLabels:
-        app.kubernetes.io/name: argocd-application-controller
-        apps.kubernetes.io/pod-index: '0'
-        statefulset.kubernetes.io/pod-name: argocd-application-controller-0
+      matchLabels: {app.kubernetes.io/name: argocd-application-controller, apps.kubernetes.io/pod-index: '0', statefulset.kubernetes.io/pod-name: argocd-application-controller-0}
     ports:
-    - name: TCP-8081
-      port: 8081
-      protocol: TCP
+    - {name: TCP-8081, port: 8081, protocol: TCP}
     type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: 31d7c34d1bf8a60b5bbb32a25efd7bdd86ed364ef9618683438efd4d6a4b7962
-    ipAddress: ''
+  - identifier: 31d7c34d1bf8a60b5bbb32a25efd7bdd86ed364ef9618683438efd4d6a4b7962
     namespaceSelector: null
     podSelector:
-      matchLabels:
-        app.kubernetes.io/name: argocd-applicationset-controller
+      matchLabels: {app.kubernetes.io/name: argocd-applicationset-controller}
     ports:
-    - name: TCP-8081
-      port: 8081
-      protocol: TCP
+    - {name: TCP-8081, port: 8081, protocol: TCP}
     type: internal
   egress:
-  - dns: github.com.
-    dnsNames:
-    - github.com.
+  - dnsNames: [github.com]
     identifier: b5b004e9170d84c35c473466761979f8805df92aa0becb5f5d8a13886292cf94
-    ipAddress: 140.82.121.4
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
+    - {name: TCP-443, port: 443, protocol: TCP}
     type: external
-  - dns: charts.helm.sh.
-    dnsNames:
-    - charts.helm.sh.
+  - dnsNames: [charts.helm.sh]
     identifier: 416834682cb3faa275475bb568d44e33d16fee516f3c6e74743060eb584db5a2
-    ipAddress: 185.199.109.153
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
+    - {name: TCP-443, port: 443, protocol: TCP}
     type: external
-  - dns: charts.helm.sh.
-    dnsNames:
-    - charts.helm.sh.
+  - dnsNames: [charts.helm.sh]
     identifier: 241919dfab60476109181f40a9631fca0a3b120b6fbf60ee053dfb9a656ebaa3
-    ipAddress: 185.199.110.153
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
+    - {name: TCP-443, port: 443, protocol: TCP}
     type: external
-  - dns: charts.helm.sh.
-    dnsNames:
-    - charts.helm.sh.
+  - dnsNames: [charts.helm.sh]
     identifier: e14947516f312d9c20b5aaedac27e8e861f3c87f28ac60c43b207d1eac70e1ff
-    ipAddress: 185.199.108.153
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
+    - {name: TCP-443, port: 443, protocol: TCP}
     type: external
-  - dns: github.com.
-    dnsNames:
-    - github.com.
+  - dnsNames: [github.com]
     identifier: 1e2c3b8253ef65bbb38bb96e642bd3c6d40827f27a1f6c41435805be35b74c77
-    ipAddress: 140.82.121.3
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
+    - {name: TCP-443, port: 443, protocol: TCP}
     type: external
-  - dns: charts.helm.sh.
-    dnsNames:
-    - charts.helm.sh.
+  - dnsNames: [charts.helm.sh]
     identifier: 71fd766bcc234a020a04683c509a8a663e44601363bddceda35429bfd6942a76
-    ipAddress: 185.199.111.153
     namespaceSelector: null
     podSelector: null
     ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
+    - {name: TCP-443, port: 443, protocol: TCP}
     type: external
-  - dns: ''
-    dnsNames: null
-    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
-    ipAddress: ''
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
     namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: kube-system
+      matchLabels: {kubernetes.io/metadata.name: kube-system}
     podSelector:
-      matchLabels:
-        k8s-app: kube-dns
+      matchLabels: {k8s-app: kube-dns}
     ports:
-    - name: UDP-53
-      port: 53
-      protocol: UDP
+    - {name: UDP-53, port: 53, protocol: UDP}
     type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: 760ff312ee1dc2fb28f74beb6f89fd37143fc11476e33af1541f9426b37945a2
-    ipAddress: ''
+  - identifier: 760ff312ee1dc2fb28f74beb6f89fd37143fc11476e33af1541f9426b37945a2
     namespaceSelector: null
     podSelector:
-      matchLabels:
-        app.kubernetes.io/name: argocd-redis
+      matchLabels: {app.kubernetes.io/name: argocd-redis}
     ports:
-    - name: TCP-6379
-      port: 6379
-      protocol: TCP
+    - {name: TCP-6379, port: 6379, protocol: TCP}
     type: internal
