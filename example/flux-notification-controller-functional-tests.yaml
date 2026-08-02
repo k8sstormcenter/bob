@@ -1,0 +1,7 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata: {name: notification-controller-functional}
+target: {service: notification-controller, namespace: flux-system, port: 80, scheme: http}
+tests:
+- name: metrics
+  http: {method: GET, path: /metrics, expectedStatus: 200}

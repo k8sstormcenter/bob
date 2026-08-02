@@ -109,6 +109,21 @@ deploy-argocd:
 	@echo "=== Argo CD subcomponents ==="
 	kubectl get pods -n argocd
 
+FLUX_VERSION ?= v2.9.3
+.PHONY: deploy-flux
+deploy-flux:
+	@echo "=== Deploying Flux $(FLUX_VERSION) (all controllers) ==="
+	kubectl apply -f https://github.com/fluxcd/flux2/releases/download/$(FLUX_VERSION)/install.yaml
+	kubectl apply -f example/flux-vulnerable.yaml
+	@echo "=== Wait for all Flux controllers ==="
+	-kubectl rollout status -n flux-system deploy/source-controller             --timeout=300s
+	-kubectl rollout status -n flux-system deploy/kustomize-controller          --timeout=300s
+	-kubectl rollout status -n flux-system deploy/helm-controller               --timeout=300s
+	-kubectl rollout status -n flux-system deploy/notification-controller       --timeout=300s
+	-kubectl rollout status -n flux-system deploy/image-reflector-controller    --timeout=300s
+	-kubectl rollout status -n flux-system deploy/image-automation-controller   --timeout=300s
+	kubectl get pods -n flux-system
+
 .PHONY: deploy-postgres
 deploy-postgres:
 	@echo "=== Deploying postgres (CloudNativePG) ==="

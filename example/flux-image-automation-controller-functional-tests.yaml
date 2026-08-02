@@ -1,0 +1,7 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata: {name: image-automation-controller-functional}
+target: {service: image-automation-controller, namespace: flux-system, port: 8080, scheme: http}
+tests:
+- name: metrics
+  http: {method: GET, path: /metrics, expectedStatus: 200}
