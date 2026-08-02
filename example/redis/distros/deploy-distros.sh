@@ -38,7 +38,7 @@ deploy_keydb() {
   helm repo add enapter https://enapter.github.io/charts/ >/dev/null
   helm repo update >/dev/null
   helm install keydb enapter/keydb --version 0.48.0 \
-    --set image.repository=eqalpha/keydb --set image.tag=x86_64_v6.3.2 \
+    --set imageRepository=eqalpha/keydb --set imageTag=x86_64_v6.3.2 \
     -n keydb --create-namespace
 }
 
