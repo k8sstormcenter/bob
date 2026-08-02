@@ -351,7 +351,7 @@ show-runc:
 kubescape:
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) 
 	kubectl apply -f kubescape/default-rules.yaml
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
@@ -392,7 +392,7 @@ alertmanager:
 	# upgrade --install (not bare upgrade): idempotent, and does not require the
 	# kubescape release to pre-exist — so `make alertmanager` works on a fresh
 	# cluster / standalone, same as `make kubescape`.
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS)
 	$(MAKE) wait-node-agent
 	$(MAKE) verify-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
