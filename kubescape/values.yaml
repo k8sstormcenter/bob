@@ -30,11 +30,17 @@ nodeAgent:
       ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
-  # kubevuln (image vulnerability scanning) is not part of the SBoB runtime-
-  # detection demo — disable it so it is never installed and the install does
-  # not block waiting for its deployment.
+  # The SBoB demo is runtime-detection only. Disable every scanning capability
+  # the chart enables by default so those components are never installed — this
+  # is both a big install-time speedup (no kubescape config-scanner, no kubevuln,
+  # no host node-scanner, no SBOM generation, no schedulers) and removes work the
+  # demo does not use. Only storage + node-agent + the alert wiring remain.
+  configurationScan: disable
+  nodeScan: disable
+  nodeSbomGeneration: disable
   vulnerabilityScan: disable
   relevancy: disable
+  admissionController: disable
   # networkEventsStreaming gates the network rules R0005 (unexpected DNS/domain)
   # and R0011 (unexpected egress) — the only rules that read the shipped
   # NetworkNeighborhood. `enable` is REQUIRED here: postgres/postgres-vuln

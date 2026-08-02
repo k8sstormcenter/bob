@@ -352,11 +352,7 @@ kubescape:
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
 	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
-	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
-	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
-	-kubectl apply  -f kubescape/default-rules.yaml
-	$(MAKE) wait-node-agent
-	$(MAKE) verify-streaming
+	kubectl apply -f kubescape/default-rules.yaml
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
 # restart: node-agent binds user-supplied profiles and starts its learning
