@@ -1,36 +1,31 @@
 #!/usr/bin/env bash
-# Helm post-renderer for the kubescape-operator chart. Two rewrites:
+# Helm post-renderer for the kubescape-operator chart.
 #
-# 1. force node-agent networkStreamingEnabled=true (always)
+# Mounts the filesystem holding a non-stock runc, when KS_RUNC_MNT is set.
+# node-agent's `host` volume is a NON-recursive bind of "/", so a runc on a
+# separate mount is invisible inside the container even with the correct
+# RUNTIME_PATH.
 #
-#    The chart ANDs capabilities.networkEventsStreaming with cloud-submit
-#    (templates/_common.tpl, "capabilities.gates"): submit is true only when
-#    .Values.server is non-empty. On an on-prem stack with no backend the flag
-#    therefore renders FALSE no matter what capabilities.networkEventsStreaming
-#    says, which leaves the profile's inline network shape inert and makes
-#    R0005 (DNS) and R0011 (egress) silently never fire.
+# This cannot be done with --set. The chart ships nodeAgent.volumes as a
+# fully-populated list, so `--set nodeAgent.volumes[0]...` OVERWRITES the first
+# default entry rather than appending — that silently drops /profiles and
+# node-agent CrashLoops. The top-level `volumes` key does append, but it is
+# GLOBAL: it injects the mount into all six chart workloads when only node-agent
+# needs it. So the append is done here, against the rendered DaemonSet, where it
+# can be scoped precisely and needs no index arithmetic against chart internals.
 #
-# 2. mount the filesystem holding a non-stock runc (only when KS_RUNC_MNT is set)
-#
-#    node-agent's `host` volume is a NON-recursive bind of "/", so a runc on a
-#    separate mount is invisible inside the container even with the correct
-#    RUNTIME_PATH. The extra hostPath fixes that.
-#
-#    This cannot be done with --set. The chart ships nodeAgent.volumes as a
-#    fully-populated list, so `--set nodeAgent.volumes[0]...` OVERWRITES the
-#    first default entry rather than appending — that silently drops /profiles
-#    and node-agent CrashLoops. The top-level `volumes` key does append, but it
-#    is GLOBAL: it injects the mount into all six chart workloads (kubescape,
-#    kubevuln, operator, both schedulers) when only node-agent needs it. So the
-#    append is done here, against the rendered DaemonSet, where it can be
-#    scoped precisely and needs no index arithmetic against chart internals.
-#
-# Rewriting the rendered manifest rather than patching the live object matters:
-# a post-install patch only reaches node-agent if the DaemonSet is restarted,
-# and node-agent must not be restarted on the laptop k3s. Rewriting here means
-# the very first node-agent boot already has the correct config.
-#
-# See docs/portability-spec.md D7a.
+# This script previously also forced networkStreamingEnabled=true, on the belief
+# that R0005 (DNS) and R0011 (egress) could not fire without it. That was WRONG
+# and the rewrite is removed. In node-agent, EnableNetworkStreaming gates exactly
+# one thing (cmd/main.go): whether NetworkStream is a real client or a mock.
+# NetworkStream is an EXPORTER that POSTs events to /v1/networkstreams. The rules
+# are CEL expressions evaluating nn.is_domain_in_egress / nn.was_address_in_egress
+# against the profile, fed by the network and dns tracers — and those tracers are
+# registered unconditionally (tracers/tracer_factory.go). Forcing the flag on with
+# no backend configured only produced a recurring
+#   "NetworkStream - failed to send network events ... unsupported protocol scheme"
+# error roughly once a minute. Verified empirically: with streaming off, both
+# R0005 and R0011 are evaluated on their events exactly as with it on.
 set -euo pipefail
 
 python3 -c '
@@ -39,25 +34,7 @@ import os, sys
 MNT = os.environ.get("KS_RUNC_MNT", "").strip()
 VOL = "ks-runc-fs"
 
-raw = sys.stdin.read()
-OFF = "\"networkStreamingEnabled\": false"
-ON = "\"networkStreamingEnabled\": true"
-stream = raw.replace(OFF, ON)
-
-# A silent no-op here is the exact bug this script exists to prevent: the flag
-# renders false, the profile network shape stays inert, and R0005/R0011 never
-# fire while everything looks healthy. So a replace that matched nothing has to
-# be distinguished from one that had nothing to do.
-#
-#   OFF present            -> rewritten, normal case
-#   OFF absent, ON present -> already enabled (a cloud-submit stack), fine
-#   neither present        -> the chart renamed or dropped the field; the
-#                             rewrite is now a no-op and detection would go
-#                             quietly dead. Fail instead.
-if raw.count(OFF) == 0 and raw.count(ON) == 0:
-    sys.exit("post-render: no networkStreamingEnabled field in the rendered "
-             "manifest - the chart changed and this rewrite is now a no-op; "
-             "fix it before installing or R0005/R0011 will silently never fire")
+stream = sys.stdin.read()
 
 # The default path — rewrite 1 only — is a plain string replace and must stay
 # dependency-free: CI and every contributor go through here, and a missing

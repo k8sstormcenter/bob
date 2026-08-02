@@ -272,17 +272,15 @@ kubescape-orig:
 # clients run, and it must install the chart as published — no rewriting of the
 # rendered manifest behind their back.
 #
-# What it does when enabled: forces node-agent networkStreamingEnabled=true, and
-# mounts the filesystem holding a non-stock runc when KS_RUNC_MNT is set. The
-# streaming flag matters because the chart ANDs it with cloud-submit, so on an
-# on-prem stack with no backend it renders FALSE and R0005 (DNS) / R0011 (egress)
-# silently never fire. That is a real limitation of the upstream chart, but
-# working around it is a lab decision, not something to impose on an install.
+# It now does ONE thing: mount the filesystem holding a non-stock runc, which is
+# only needed alongside KS_RUNC_MNT and cannot be expressed with --set (see
+# kubescape/post-render.sh). It is therefore implied by KS_RUNC_MNT and rarely
+# worth setting by hand.
 #
-#   make kubescape KS_POST_RENDER=1
+#   make kubescape KS_RUNC=/path/to/runc KS_RUNC_MNT=/mnt/dev-data
 KS_POST_RENDER ?=
 KS_POST_RENDERER := ./kubescape/post-render.sh
-KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER),--post-renderer $(KS_POST_RENDERER))
+KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER)$(KS_RUNC_MNT),--post-renderer $(KS_POST_RENDERER))
 
 # node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
 # (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths
@@ -398,7 +396,6 @@ kubescape:
 	-kubectl apply  -f kubescape/default-rules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent
-	$(MAKE) verify-streaming
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
 # restart: node-agent binds user-supplied profiles and starts its learning
@@ -409,25 +406,6 @@ wait-node-agent:
 	kubectl rollout status -n honey ds node-agent --timeout=300s
 	@echo "=== node-agent pods ==="
 	kubectl get pods -n honey -l app.kubernetes.io/component=node-agent -o wide
-
-# enable-streaming is retained as a compatibility alias. The flag is now forced
-# at render time by $(KS_POST_RENDERER), so there is nothing to patch and
-# nothing to restart — this only verifies the result.
-.PHONY: enable-streaming
-enable-streaming: verify-streaming
-
-# Fail loud if node-agent network streaming is not actually live. Without it
-# the profile's inline network shape (ingress/egress) is inert and R0005 (DNS) /
-# R0011 (egress) silently never fire — which reads as "clean" when it is really
-# "blind".
-.PHONY: verify-streaming
-verify-streaming:
-	@echo "Verifying node-agent networkStreamingEnabled is live..."
-	@kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' \
-		| python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("networkStreamingEnabled") is True else 1)' \
-		&& echo "OK: networkStreamingEnabled=true (R0005/R0011 can fire)" \
-		|| { echo "NOTE: networkStreamingEnabled is false — the chart gates it behind cloud-submit, so on an on-prem stack the profile's inline network shape is inert and R0005 (DNS) / R0011 (egress) cannot fire."; \
-		     echo "      This is the stock chart behaviour, not an error. To force it: make kubescape KS_POST_RENDER=1   (see docs/portability-spec.md D7a)"; }
 
 .PHONY: alertmanager
 alertmanager:
@@ -441,7 +419,6 @@ alertmanager:
 	# cluster / standalone, same as `make kubescape`.
 	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	$(MAKE) wait-node-agent
-	$(MAKE) verify-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
 .PHONY: fwd-autotune
@@ -461,7 +438,6 @@ kubescape-vendor:
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent
-	$(MAKE) verify-streaming
 
 
 
