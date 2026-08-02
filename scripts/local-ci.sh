@@ -114,7 +114,6 @@ if $SETUP_ONLY || ! $TUNE_ONLY; then
   # ── install kubescape ──────────────────────────────────────────────────────
   log "=== Install kubescape (namespace: $KS_NS) ==="
   make kubescape
-
   # ── install alertmanager ───────────────────────────────────────────────────
   log "=== Install alertmanager ==="
   make alertmanager

@@ -1,36 +1,3 @@
-#!/usr/bin/env bash
-# Helm post-renderer for the kubescape-operator chart. Two rewrites:
-#
-# 1. force node-agent networkStreamingEnabled=true (always)
-#
-#    The chart ANDs capabilities.networkEventsStreaming with cloud-submit
-#    (templates/_common.tpl, "capabilities.gates"): submit is true only when
-#    .Values.server is non-empty. On an on-prem stack with no backend the flag
-#    therefore renders FALSE no matter what capabilities.networkEventsStreaming
-#    says, which leaves the profile's inline network shape inert and makes
-#    R0005 (DNS) and R0011 (egress) silently never fire.
-#
-# 2. mount the filesystem holding a non-stock runc (only when KS_RUNC_MNT is set)
-#
-#    node-agent's `host` volume is a NON-recursive bind of "/", so a runc on a
-#    separate mount is invisible inside the container even with the correct
-#    RUNTIME_PATH. The extra hostPath fixes that.
-#
-#    This cannot be done with --set. The chart ships nodeAgent.volumes as a
-#    fully-populated list, so `--set nodeAgent.volumes[0]...` OVERWRITES the
-#    first default entry rather than appending — that silently drops /profiles
-#    and node-agent CrashLoops. The top-level `volumes` key does append, but it
-#    is GLOBAL: it injects the mount into all six chart workloads (kubescape,
-#    kubevuln, operator, both schedulers) when only node-agent needs it. So the
-#    append is done here, against the rendered DaemonSet, where it can be
-#    scoped precisely and needs no index arithmetic against chart internals.
-#
-# Rewriting the rendered manifest rather than patching the live object matters:
-# a post-install patch only reaches node-agent if the DaemonSet is restarted,
-# and node-agent must not be restarted on the laptop k3s. Rewriting here means
-# the very first node-agent boot already has the correct config.
-#
-# See docs/portability-spec.md D7a.
 set -euo pipefail
 
 python3 -c '
@@ -39,30 +6,8 @@ import os, sys
 MNT = os.environ.get("KS_RUNC_MNT", "").strip()
 VOL = "ks-runc-fs"
 
-raw = sys.stdin.read()
-OFF = "\"networkStreamingEnabled\": false"
-ON = "\"networkStreamingEnabled\": true"
-stream = raw.replace(OFF, ON)
+stream = sys.stdin.read()
 
-# A silent no-op here is the exact bug this script exists to prevent: the flag
-# renders false, the profile network shape stays inert, and R0005/R0011 never
-# fire while everything looks healthy. So a replace that matched nothing has to
-# be distinguished from one that had nothing to do.
-#
-#   OFF present            -> rewritten, normal case
-#   OFF absent, ON present -> already enabled (a cloud-submit stack), fine
-#   neither present        -> the chart renamed or dropped the field; the
-#                             rewrite is now a no-op and detection would go
-#                             quietly dead. Fail instead.
-if raw.count(OFF) == 0 and raw.count(ON) == 0:
-    sys.exit("post-render: no networkStreamingEnabled field in the rendered "
-             "manifest - the chart changed and this rewrite is now a no-op; "
-             "fix it before installing or R0005/R0011 will silently never fire")
-
-# The default path — rewrite 1 only — is a plain string replace and must stay
-# dependency-free: CI and every contributor go through here, and a missing
-# PyYAML would otherwise break `make kubescape` for everyone to serve a
-# laptop-only feature. yaml is imported below, after the opt-in is confirmed.
 if not MNT:
     sys.stdout.write(stream)
     sys.exit(0)
@@ -79,9 +24,6 @@ def is_node_agent(doc):
     return (isinstance(doc, dict) and doc.get("kind") == "DaemonSet"
             and doc.get("metadata", {}).get("name") == "node-agent")
 
-# Only the node-agent DaemonSet is round-tripped through the YAML parser; every
-# other document is emitted byte-for-byte as helm rendered it. Re-serialising
-# the whole stream would reflow block scalars such as the embedded config.json.
 out, patched = [], 0
 for chunk in stream.split("\n---\n"):
     try:

@@ -70,6 +70,9 @@ jobs:
         run: |
           go build -o ../bin/bobctl ./main.go
 
+      - name: Validate all example suites against the current schema
+        run: ./scripts/validate-suites.sh bin/bobctl
+
       - name: Upload bobctl binary
         uses: actions/upload-artifact@v4
         with:

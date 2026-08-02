@@ -1,0 +1,16 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: CollapseConfiguration
+metadata:
+  name: default
+spec:
+  openDynamicThreshold: 50
+  endpointDynamicThreshold: 50
+  collapseConfigs:
+    - {prefix: /etc, threshold: 100}
+    - {prefix: /etc/apache2, threshold: 50}
+    - {prefix: /opt, threshold: 50}
+    - {prefix: /var/run, threshold: 50}
+    - {prefix: /app, threshold: 50}
+    - {prefix: /home/argocd/.kube/cache, threshold: 1}
+    - {prefix: /tmp/_argocd-repo, threshold: 1}
+    - {prefix: /helm-working-dir, threshold: 1}
