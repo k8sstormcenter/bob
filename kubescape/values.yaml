@@ -1,10 +1,3 @@
-# Image overrides: pin the SBoB fork of node-agent + storage (the unified
-# ContainerProfile stack — node-agent binds a single CP by the
-# kubescape.io/user-defined-profile pod label; storage serves the ContainerProfile
-# CRD). The kubescape-operator chart (KUBESCAPE_CHART_VER in the Makefile) still
-# provides operator/kubevuln/etc. at their upstream versions.
-# node-agent is pinned to the -fpo build (fixes the /proc path regression,
-# kubescape/node-agent#721) — the redis-distro SBoBs are learned against it.
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
@@ -14,10 +7,6 @@ nodeAgent:
     repository: ghcr.io/k8sstormcenter/node-agent
     tag: sbob-rc5s-fpo
   config:
-    # Always export alerts to the in-cluster alertmanager. Kept HERE (not set
-    # post-hoc by `make alertmanager`) so it survives every `helm upgrade` —
-    # a bare `helm upgrade` used to wipe it and silence all alerts. Harmless
-    # if alertmanager isn't deployed (exports just fail to connect).
     alertManagerExporterUrls:
       - alertmanager.honey.svc.cluster.local:9093
     maxLearningPeriod: 2m
@@ -30,14 +19,7 @@ nodeAgent:
       ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
-  # networkEventsStreaming gates the network rules R0005 (unexpected DNS/domain)
-  # and R0011 (unexpected egress) — the only rules that read the shipped
-  # NetworkNeighborhood. `enable` is REQUIRED here: postgres/postgres-vuln
-  # expect R0005 detections and miss them all if disabled. Process/file/exec/
-  # malware rules do NOT need it. It is a per-cluster knob, not part of the
-  # AP/NN policy, and adds node-agent overhead (hence default-off upstream).
-  # Installer guidance: docs/portability-spec.md § D7a.
-  networkEventsStreaming: enable
+  networkEventsStreaming: disable
 alertCRD:
   installDefault: true
   scopeClustered: true

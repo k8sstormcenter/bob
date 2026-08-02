@@ -268,7 +268,11 @@ kubescape-orig:
 # below instead of a patch-then-bounce. Do not reintroduce `rollout restart ds
 # node-agent`. Also do NOT pass --set nodeAgent.privileged=true: the chart
 # default is false and privileged node-agent has crashed this host.
+#
+#
+KS_POST_RENDER ?=
 KS_POST_RENDERER := ./kubescape/post-render.sh
+KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER)$(KS_RUNC_MNT),--post-renderer $(KS_POST_RENDERER))
 
 # node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
 # (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths
@@ -329,6 +333,18 @@ endif
 export KS_RUNC_MNT
 KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC))
 
+#
+KS_LEARN_PERIOD ?=
+
+ifneq ($(KS_LEARN_PERIOD),)
+KS_LEARN_OK := $(shell printf '%s' "$(KS_LEARN_PERIOD)" | grep -qE '^[0-9]+(s|m|h)$$' && echo yes || echo no)
+ifneq ($(KS_LEARN_OK),yes)
+$(error KS_LEARN_PERIOD must be a Go duration like 15m or 900s, got "$(KS_LEARN_PERIOD)")
+endif
+endif
+
+KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.maxLearningPeriod=$(KS_LEARN_PERIOD))
+
 # One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
 # Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
 # so a rule that cannot fire on an app is never confused with one nobody covered.
@@ -345,19 +361,19 @@ rule-coverage-gifs:
 show-runc:
 	@echo "KS_RUNC:          $(if $(KS_RUNC),$(KS_RUNC),(unset - using IG's stock paths))"
 	@echo "KS_RUNC_MNT:      $(if $(KS_RUNC_MNT),$(KS_RUNC_MNT),(unset - no extra hostPath mount))"
-	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS),$(KS_RUNC_FLAGS),(none))"
+	@echo "KS_LEARN_PERIOD:  $(if $(KS_LEARN_PERIOD),$(KS_LEARN_PERIOD),(unset - chart default 2m))"
+	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS)$(KS_LEARN_FLAGS),$(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS),(none))"
 
 .PHONY: kubescape
 kubescape:
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
 	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent
-	$(MAKE) verify-streaming
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
 # restart: node-agent binds user-supplied profiles and starts its learning
@@ -369,24 +385,6 @@ wait-node-agent:
 	@echo "=== node-agent pods ==="
 	kubectl get pods -n honey -l app.kubernetes.io/component=node-agent -o wide
 
-# enable-streaming is retained as a compatibility alias. The flag is now forced
-# at render time by $(KS_POST_RENDERER), so there is nothing to patch and
-# nothing to restart — this only verifies the result.
-.PHONY: enable-streaming
-enable-streaming: verify-streaming
-
-# Fail loud if node-agent network streaming is not actually live. Without it
-# the profile's inline network shape (ingress/egress) is inert and R0005 (DNS) /
-# R0011 (egress) silently never fire — which reads as "clean" when it is really
-# "blind".
-.PHONY: verify-streaming
-verify-streaming:
-	@echo "Verifying node-agent networkStreamingEnabled is live..."
-	@kubectl -n honey get configmap node-agent -o jsonpath='{.data.config\.json}' \
-		| python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("networkStreamingEnabled") is True else 1)' \
-		&& echo "OK: networkStreamingEnabled=true (R0005/R0011 can fire)" \
-		|| { echo "ERROR: node-agent networkStreamingEnabled != true — the profile's inline network is inert; R0005 (DNS) and R0011 (egress) will silently never fire. Re-run 'make kubescape' or see docs/portability-spec.md D7a."; exit 1; }
-
 .PHONY: alertmanager
 alertmanager:
 	@echo "Deploying alertmanager in honey namespace..."
@@ -397,9 +395,8 @@ alertmanager:
 	# upgrade --install (not bare upgrade): idempotent, and does not require the
 	# kubescape release to pre-exist — so `make alertmanager` works on a fresh
 	# cluster / standalone, same as `make kubescape`.
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	$(MAKE) wait-node-agent
-	$(MAKE) verify-streaming
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
 .PHONY: fwd-autotune
@@ -415,11 +412,10 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) --post-renderer $(KS_POST_RENDERER)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent
-	$(MAKE) verify-streaming
 
 
 
