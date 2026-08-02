@@ -210,7 +210,7 @@ spec:
     - O_WRONLY
     - O_CREAT
     - O_TRUNC
-    path: /data/temp-⋯.rdb
+    path: /data/⋯
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -271,7 +271,8 @@ spec:
     - O_WRONLY
     - O_CREAT
     - O_TRUNC
-    path: /data/appendonlydir/temp-appendonly.aof.manifest
+    - O_APPEND
+    path: /data/appendonlydir/⋯
   - flags:
     - O_RDONLY
     path: /health/⋯/ping_liveness_local.sh
@@ -295,11 +296,6 @@ spec:
     - O_RDONLY
     - O_CLOEXEC
     path: /opt/bitnami/redis/lib/libgcc_s.so.1
-  - flags:
-    - O_APPEND
-    - O_WRONLY
-    - O_CREAT
-    path: /data/appendonlydir/appendonly.aof.1.incr.aof
   - flags:
     - O_CREAT
     - O_EXCL
@@ -374,11 +370,6 @@ spec:
     - O_RDONLY
     - O_CLOEXEC
     path: /usr/lib/libcrypt.so.1.1.0
-  - flags:
-    - O_WRONLY
-    - O_CREAT
-    - O_TRUNC
-    path: /data/temp-rewriteaof-1.aof
   - flags:
     - O_RDONLY
     - O_CLOEXEC
