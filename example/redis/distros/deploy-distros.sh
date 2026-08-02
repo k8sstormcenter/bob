@@ -1,64 +1,30 @@
 #!/usr/bin/env bash
-# Deploy a redis-protocol distro via its most-popular native installer AND bind
-# its SBoB in one shot: the pod carries the kubescape.io/user-defined-profile
-# label (baked into the helm values / operator CR) and the matching
-# ContainerProfile from sbobs/ is applied, so node-agent enforces the SBoB from
-# the moment the pod starts — no post-deploy patching.
+# Deploy an upstream redis-protocol distro with its SBoB bound at deploy time.
+# Each manifest uses the UPSTREAM distro image (the image the SBoB in sbobs/ was
+# learned against) and carries the kubescape.io/user-defined-profile pod label;
+# the matching ContainerProfile is applied in the same step, so node-agent
+# enforces the SBoB from the moment the pod starts — no post-deploy patch.
 #
-#   distro     installer                       ns          bound profile
-#   redis-oss  bitnami/redis 27.0.18           redis-oss   sbobs/cp-redis.yaml
-#   valkey     bitnami/valkey 6.2.5            valkey      sbobs/cp-valkey.yaml
-#   keydb      enapter/keydb 0.48.0            keydb       sbobs/cp-keydb.yaml
-#   dragonfly  dragonfly-operator 1.6.1        dragonfly   sbobs/cp-dragonfly.yaml
+#   distro     upstream image                  ns          bound profile
+#   redis-oss  redis:8.10.0                    redis-oss   sbobs/cp-redis.yaml
+#   valkey     valkey/valkey:9.1.1             valkey      sbobs/cp-valkey.yaml
+#   keydb      eqalpha/keydb:x86_64_v6.3.4     keydb       sbobs/cp-keydb.yaml
+#   dragonfly  dragonflydb/dragonfly:v1.39.0   dragonfly   sbobs/cp-dragonfly.yaml
 #
-# Usage:
-#   ./deploy-distros.sh [redis|valkey|keydb|dragonfly|all]   (no arg = all)
+# Usage: ./deploy-distros.sh [redis|valkey|keydb|dragonfly|all]   (no arg = all)
 set -euo pipefail
 cd "$(dirname "$0")"
 
-deploy_redis() {
-  helm install redis oci://registry-1.docker.io/bitnamicharts/redis --version 27.0.18 \
-    -n redis-oss --create-namespace -f helm-values/redis-oss.yaml
-  kubectl apply -f sbobs/cp-redis.yaml
+bind() {  # manifest ns sbob
+  kubectl apply -f "$1.yaml"
+  kubectl apply -f "sbobs/$3"
+  kubectl -n "$2" rollout status deploy/redis --timeout=120s
 }
 
-deploy_valkey() {
-  helm install valkey oci://registry-1.docker.io/bitnamicharts/valkey --version 6.2.5 \
-    -n valkey --create-namespace -f helm-values/valkey.yaml
-  kubectl apply -f sbobs/cp-valkey.yaml
-}
-
-deploy_keydb() {
-  helm repo add enapter https://enapter.github.io/charts/ >/dev/null
-  helm repo update >/dev/null
-  helm install keydb enapter/keydb --version 0.48.0 \
-    -n keydb --create-namespace -f helm-values/keydb.yaml
-  kubectl apply -f sbobs/cp-keydb.yaml
-}
-
-deploy_dragonfly() {
-  kubectl apply --server-side \
-    -f https://raw.githubusercontent.com/dragonflydb/dragonfly-operator/v1.6.1/manifests/dragonfly-operator.yaml
-  kubectl -n dragonfly-operator-system rollout status \
-    deploy/dragonfly-operator-controller-manager --timeout=150s
-  kubectl create namespace dragonfly
-  # podMetadata.labels is the operator-supported way to label the managed pod;
-  # patching the StatefulSet directly is reverted by the operator.
-  kubectl apply -f - <<'CR'
-apiVersion: dragonflydb.io/v1alpha1
-kind: Dragonfly
-metadata:
-  name: dragonfly
-  namespace: dragonfly
-spec:
-  replicas: 1
-  image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.39.0
-  podMetadata:
-    labels:
-      kubescape.io/user-defined-profile: dragonfly
-CR
-  kubectl apply -f sbobs/cp-dragonfly.yaml
-}
+deploy_redis()     { bind redis-oss redis-oss cp-redis.yaml ; }
+deploy_valkey()    { bind valkey    valkey    cp-valkey.yaml ; }
+deploy_keydb()     { bind keydb     keydb     cp-keydb.yaml ; }
+deploy_dragonfly() { bind dragonfly dragonfly cp-dragonfly.yaml ; }
 
 distro="${1:-all}"
 case "$distro" in
