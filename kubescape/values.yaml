@@ -30,6 +30,11 @@ nodeAgent:
       ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
+  # kubevuln (image vulnerability scanning) is not part of the SBoB runtime-
+  # detection demo — disable it so it is never installed and the install does
+  # not block waiting for its deployment.
+  vulnerabilityScan: disable
+  relevancy: disable
   # networkEventsStreaming gates the network rules R0005 (unexpected DNS/domain)
   # and R0011 (unexpected egress) — the only rules that read the shipped
   # NetworkNeighborhood. `enable` is REQUIRED here: postgres/postgres-vuln

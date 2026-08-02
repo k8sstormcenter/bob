@@ -355,7 +355,6 @@ kubescape:
 	@echo "Ensuring CRDs are up-to-date (helm upgrade skips CRDs)..."
 	-helm show crds kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) | kubectl apply --server-side --force-conflicts -f - 2>/dev/null || true
 	-kubectl apply  -f kubescape/default-rules.yaml
-	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent
 	$(MAKE) verify-streaming
 
