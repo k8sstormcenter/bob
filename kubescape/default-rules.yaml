@@ -14,7 +14,7 @@ spec:
         ruleExpression:
           - eventType: exec
             expression: >-
-              !ap.was_executed(event.containerId,
+              !cp.was_executed(event.containerId,
               parse.get_exec_path(event.args, event.comm, event.exepath))
         uniqueId: event.comm + '_' + event.exepath
       id: R0001
@@ -41,9 +41,9 @@ spec:
         ruleExpression:
           - eventType: exec
             expression: >-
-              ap.was_executed(event.containerId,
+              cp.was_executed(event.containerId,
               parse.get_exec_path(event.args, event.comm, event.exepath)) &&
-              !ap.was_executed_with_args(event.containerId,
+              !cp.was_executed_with_args(event.containerId,
               parse.get_exec_path(event.args, event.comm, event.exepath),
               event.args)
         uniqueId: >-
@@ -71,7 +71,7 @@ spec:
         ruleExpression:
           - eventType: open
             expression:  >-
-              !ap.was_path_opened(event.containerId, event.path)
+              !cp.was_path_opened(event.containerId, event.path)
         uniqueId: event.comm + '_' + event.path
       id: R0002
       isTriggerAlert: true
@@ -96,7 +96,7 @@ spec:
           + string(event.pid)
         ruleExpression:
           - eventType: syscall
-            expression: '!ap.was_syscall_used(event.containerId, event.syscallName)'
+            expression: '!cp.was_syscall_used(event.containerId, event.syscallName)'
         uniqueId: event.syscallName
       id: R0003
       isTriggerAlert: false
@@ -120,7 +120,7 @@ spec:
           event.syscallName + ' with PID ' + string(event.pid)
         ruleExpression:
           - eventType: capabilities
-            expression: '!ap.was_capability_used(event.containerId, event.capName)'
+            expression: '!cp.was_capability_used(event.containerId, event.capName)'
         uniqueId: event.comm + '_' + event.capName
       id: R0004
       isTriggerAlert: false
@@ -146,7 +146,7 @@ spec:
           - eventType: dns
             expression: >-
               !event.name.endsWith('.svc.cluster.local.') &&
-              !nn.is_domain_in_egress(event.containerId, event.name)
+              !cp.is_domain_in_egress(event.containerId, event.name)
         uniqueId: event.comm + '_' + event.name
       id: R0005
       isTriggerAlert: true
@@ -174,7 +174,7 @@ spec:
                (event.path.startsWith('/var/run/secrets/kubernetes.io/serviceaccount') && event.path.endsWith('/token')) ||
                (event.path.startsWith('/run/secrets/eks.amazonaws.com/serviceaccount') && event.path.endsWith('/token')) ||
                (event.path.startsWith('/var/run/secrets/eks.amazonaws.com/serviceaccount') && event.path.endsWith('/token'))) &&
-              !ap.was_path_opened_with_suffix(event.containerId, '/token')
+              !cp.was_path_opened_with_suffix(event.containerId, '/token')
         uniqueId: event.comm
       id: R0006
       isTriggerAlert: true
@@ -199,13 +199,13 @@ spec:
           - eventType: exec
             expression: >-
               (event.comm == 'kubectl' || event.exepath.endsWith('/kubectl')) &&
-              !ap.was_executed(event.containerId,
+              !cp.was_executed(event.containerId,
               parse.get_exec_path(event.args, event.comm, event.exepath))
           - eventType: network
             expression: >-
               event.pktType == 'OUTGOING' &&
               k8s.is_api_server_address(event.dstAddr) &&
-              !nn.was_address_in_egress(event.containerId, event.dstAddr)
+              !cp.was_address_in_egress(event.containerId, event.dstAddr)
         uniqueId: >-
           eventType == 'exec' ? 'exec_' + event.comm : 'network_' +
           event.dstAddr
@@ -233,7 +233,7 @@ spec:
             expression: >
               event.path.startsWith('/proc/') && 
               event.path.endsWith('/environ') &&
-              !ap.was_path_opened_with_suffix(event.containerId, '/environ')
+              !cp.was_path_opened_with_suffix(event.containerId, '/environ')
         uniqueId: event.comm + '_' + event.path
       id: R0008
       isTriggerAlert: true
@@ -257,7 +257,7 @@ spec:
         ruleExpression:
           - eventType: bpf
             expression: >-
-              event.cmd == uint(5) && !ap.was_syscall_used(event.containerId,
+              event.cmd == uint(5) && !cp.was_syscall_used(event.containerId,
               'bpf')
         uniqueId: event.comm + '_' + 'bpf' + '_' + string(event.cmd)
       id: R0009
@@ -282,7 +282,7 @@ spec:
           - eventType: open
             expression: >-
               event.path.startsWith('/etc/shadow') &&
-              !ap.was_path_opened(event.containerId, event.path)
+              !cp.was_path_opened(event.containerId, event.path)
         uniqueId: event.comm + '_' + event.path
       id: R0010
       isTriggerAlert: true
@@ -309,7 +309,7 @@ spec:
           - eventType: network
             expression: >-
               event.pktType == 'OUTGOING' && !net.is_private_ip(event.dstAddr)
-              && !nn.was_address_in_egress(event.containerId, event.dstAddr)
+              && !cp.was_address_in_egress(event.containerId, event.dstAddr)
         uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
       id: R0011
       isTriggerAlert: true
@@ -362,7 +362,7 @@ spec:
             expression: >
               (event.upperlayer == true ||
                event.pupperlayer == true) &&
-              !ap.was_executed(event.containerId,
+              !cp.was_executed(event.containerId,
               parse.get_exec_path(event.args, event.comm, event.exepath))
         uniqueId: event.comm + '_' + event.exepath + '_' + event.pcomm
       id: R1001
@@ -415,7 +415,7 @@ spec:
             expression: >-
               dyn(event.srcPort) >= 32768 && dyn(event.srcPort) <= 60999 &&
               !(dyn(event.dstPort) in [22, 2022]) &&
-              !nn.was_address_in_egress(event.containerId, event.dstIp)
+              !cp.was_address_in_egress(event.containerId, event.dstIp)
         uniqueId: event.comm + '_' + event.dstIp + '_' + string(dyn(event.dstPort))
       id: R1003
       isTriggerAlert: true
@@ -438,7 +438,7 @@ spec:
         ruleExpression:
           - eventType: exec
             expression: >-
-              !ap.was_executed(event.containerId,
+              !cp.was_executed(event.containerId,
               parse.get_exec_path(event.args, event.comm, event.exepath)) &&
               k8s.get_container_mount_paths(event.namespace, event.podName,
               event.containerName).exists(mount, event.exepath.startsWith(mount)
@@ -492,7 +492,7 @@ spec:
         ruleExpression:
           - eventType: unshare
             expression: >-
-              event.pcomm != 'runc' && !ap.was_syscall_used(event.containerId,
+              event.pcomm != 'runc' && !cp.was_syscall_used(event.containerId,
               'unshare')
         uniqueId: event.comm + '_' + 'unshare'
       id: R1006
@@ -609,7 +609,7 @@ spec:
             expression: >-
               event.proto == 'TCP' && event.pktType == 'OUTGOING' &&
               event.dstPort in [3333, 45700] &&
-              !nn.was_address_in_egress(event.containerId, event.dstAddr)
+              !cp.was_address_in_egress(event.containerId, event.dstAddr)
         uniqueId: event.comm + '_' + string(event.dstPort)
       id: R1009
       isTriggerAlert: false
@@ -636,7 +636,7 @@ spec:
             expression: >-
               (event.oldPath.startsWith('/etc/shadow') ||
               event.oldPath.startsWith('/etc/sudoers')) &&
-              !ap.was_path_opened(event.containerId, event.oldPath)
+              !cp.was_path_opened(event.containerId, event.oldPath)
         uniqueId: event.comm + '_' + event.oldPath
       id: R1010
       isTriggerAlert: true
@@ -691,7 +691,7 @@ spec:
             expression: >-
               (event.oldPath.startsWith('/etc/shadow') ||
               event.oldPath.startsWith('/etc/sudoers')) &&
-              !ap.was_path_opened(event.containerId, event.oldPath)
+              !cp.was_path_opened(event.containerId, event.oldPath)
         uniqueId: event.comm + '_' + event.oldPath
       id: R1012
       isTriggerAlert: true
