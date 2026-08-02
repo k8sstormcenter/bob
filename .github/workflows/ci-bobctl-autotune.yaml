@@ -70,11 +70,6 @@ jobs:
         run: |
           go build -o ../bin/bobctl ./main.go
 
-      # Schema-check EVERY suite under example/, not just the ones the tune
-      # matrix happens to run. Argo CD is not in that matrix, so its suites
-      # drifted out of schema unnoticed until an outside user tried to run them
-      # (bob#171). Runs here rather than in the matrix because it needs no
-      # cluster — bobctl validates a suite before it touches kubernetes.
       - name: Validate all example suites against the current schema
         run: ./scripts/validate-suites.sh bin/bobctl
 

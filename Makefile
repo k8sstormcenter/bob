@@ -268,16 +268,8 @@ kubescape-orig:
 # below instead of a patch-then-bounce. Do not reintroduce `rollout restart ds
 # node-agent`. Also do NOT pass --set nodeAgent.privileged=true: the chart
 # default is false and privileged node-agent has crashed this host.
-# The post-renderer is OPT-IN and OFF by default. `make kubescape` is what
-# clients run, and it must install the chart as published — no rewriting of the
-# rendered manifest behind their back.
 #
-# It now does ONE thing: mount the filesystem holding a non-stock runc, which is
-# only needed alongside KS_RUNC_MNT and cannot be expressed with --set (see
-# kubescape/post-render.sh). It is therefore implied by KS_RUNC_MNT and rarely
-# worth setting by hand.
 #
-#   make kubescape KS_RUNC=/path/to/runc KS_RUNC_MNT=/mnt/dev-data
 KS_POST_RENDER ?=
 KS_POST_RENDERER := ./kubescape/post-render.sh
 KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER)$(KS_RUNC_MNT),--post-renderer $(KS_POST_RENDERER))
@@ -341,17 +333,7 @@ endif
 export KS_RUNC_MNT
 KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC))
 
-# node-agent's learn window. The chart default is 2m and values.yaml MUST keep
-# it: CI waits 600s for a completed ContainerProfile, so any global bump past
-# that makes every leg time out with no profile — a whole-matrix outage to serve
-# one app.
 #
-# Argo CD needs longer than 2m because its SBoBs are only representative if the
-# window covers real GitOps work — creating Applications, cloning repos, running
-# helm/kustomize renders, syncing (see bob#170, where a 2m window on an idle
-# control plane learned 5 execs instead of 10 and 51 opens instead of 517). So
-# the longer window is opt-in, per-install, and never touches CI:
-#   make kubescape KS_LEARN_PERIOD=15m
 KS_LEARN_PERIOD ?=
 
 ifneq ($(KS_LEARN_PERIOD),)
@@ -361,10 +343,6 @@ $(error KS_LEARN_PERIOD must be a Go duration like 15m or 900s, got "$(KS_LEARN_
 endif
 endif
 
-# maxLearningPeriod is the one that maps to maxSniffingTimePerContainer in the
-# rendered node-agent config.json, i.e. the actual learn window. learningPeriod
-# is a DIFFERENT knob and setting it leaves the window at its default — verified
-# by templating the chart both ways.
 KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.maxLearningPeriod=$(KS_LEARN_PERIOD))
 
 # One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.

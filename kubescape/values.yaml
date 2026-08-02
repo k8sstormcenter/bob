@@ -1,10 +1,3 @@
-# Image overrides: pin the SBoB fork of node-agent + storage (the unified
-# ContainerProfile stack — node-agent binds a single CP by the
-# kubescape.io/user-defined-profile pod label; storage serves the ContainerProfile
-# CRD). The kubescape-operator chart (KUBESCAPE_CHART_VER in the Makefile) still
-# provides operator/kubevuln/etc. at their upstream versions.
-# node-agent is pinned to the -fpo build (fixes the /proc path regression,
-# kubescape/node-agent#721) — the redis-distro SBoBs are learned against it.
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
@@ -12,20 +5,8 @@ storage:
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    # sbob-rc5s-fpo = migrate/sbob HEAD (eab532e4) + the pkg/utils/path.go change
-    # from k8sstormcenter/node-agent#59. NormalizePath now re-roots headless
-    # /proc/<pid>/<file> opens through an explicit allowlist instead of only
-    # task|fd, so "/17/setgroups" resolves to "/proc/17/setgroups".
-    #
-    # MUST be paired with storage:sbob-rc5s — it is built against the migrated
-    # storage. Do NOT build from the original fix/fullpathopens branch: it was 32
-    # commits behind migrate/sbob and fails the AP/NN mock compile.
     tag: sbob-rc5s-fpo
   config:
-    # Always export alerts to the in-cluster alertmanager. Kept HERE (not set
-    # post-hoc by `make alertmanager`) so it survives every `helm upgrade` —
-    # a bare `helm upgrade` used to wipe it and silence all alerts. Harmless
-    # if alertmanager isn't deployed (exports just fail to connect).
     alertManagerExporterUrls:
       - alertmanager.honey.svc.cluster.local:9093
     maxLearningPeriod: 2m
@@ -38,23 +19,6 @@ nodeAgent:
       ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
-  # networkEventsStreaming does NOT gate R0005 or R0011. It was set to `enable`
-  # on that belief and the belief was wrong.
-  #
-  # In node-agent it reaches exactly one place (cmd/main.go): whether
-  # NetworkStream is a real client or a mock. NetworkStream is an EXPORTER that
-  # POSTs events to /v1/networkstreams. The rules are CEL expressions evaluating
-  # nn.is_domain_in_egress / nn.was_address_in_egress against the profile, fed by
-  # the network and dns tracers — and those are registered unconditionally
-  # (containerwatcher/v2/tracers/tracer_factory.go). Verified live: with the flag
-  # off, both R0005 and R0011 are still evaluated on their events.
-  #
-  # In the chart it changes only the capabilities string and a warning; it gates
-  # no template. And because it is ANDed with cloud-submit, the node-agent config
-  # renders networkStreamingEnabled=false either way on a backend-less install —
-  # so `enable` bought nothing except a spurious warning and, when we forced the
-  # flag true with a post-renderer, a recurring "failed to send network events"
-  # error against an endpoint that does not exist.
   networkEventsStreaming: disable
 alertCRD:
   installDefault: true

@@ -1,31 +1,3 @@
-#!/usr/bin/env bash
-# Helm post-renderer for the kubescape-operator chart.
-#
-# Mounts the filesystem holding a non-stock runc, when KS_RUNC_MNT is set.
-# node-agent's `host` volume is a NON-recursive bind of "/", so a runc on a
-# separate mount is invisible inside the container even with the correct
-# RUNTIME_PATH.
-#
-# This cannot be done with --set. The chart ships nodeAgent.volumes as a
-# fully-populated list, so `--set nodeAgent.volumes[0]...` OVERWRITES the first
-# default entry rather than appending — that silently drops /profiles and
-# node-agent CrashLoops. The top-level `volumes` key does append, but it is
-# GLOBAL: it injects the mount into all six chart workloads when only node-agent
-# needs it. So the append is done here, against the rendered DaemonSet, where it
-# can be scoped precisely and needs no index arithmetic against chart internals.
-#
-# This script previously also forced networkStreamingEnabled=true, on the belief
-# that R0005 (DNS) and R0011 (egress) could not fire without it. That was WRONG
-# and the rewrite is removed. In node-agent, EnableNetworkStreaming gates exactly
-# one thing (cmd/main.go): whether NetworkStream is a real client or a mock.
-# NetworkStream is an EXPORTER that POSTs events to /v1/networkstreams. The rules
-# are CEL expressions evaluating nn.is_domain_in_egress / nn.was_address_in_egress
-# against the profile, fed by the network and dns tracers — and those tracers are
-# registered unconditionally (tracers/tracer_factory.go). Forcing the flag on with
-# no backend configured only produced a recurring
-#   "NetworkStream - failed to send network events ... unsupported protocol scheme"
-# error roughly once a minute. Verified empirically: with streaming off, both
-# R0005 and R0011 are evaluated on their events exactly as with it on.
 set -euo pipefail
 
 python3 -c '
@@ -36,10 +8,6 @@ VOL = "ks-runc-fs"
 
 stream = sys.stdin.read()
 
-# The default path — rewrite 1 only — is a plain string replace and must stay
-# dependency-free: CI and every contributor go through here, and a missing
-# PyYAML would otherwise break `make kubescape` for everyone to serve a
-# laptop-only feature. yaml is imported below, after the opt-in is confirmed.
 if not MNT:
     sys.stdout.write(stream)
     sys.exit(0)
@@ -56,9 +24,6 @@ def is_node_agent(doc):
     return (isinstance(doc, dict) and doc.get("kind") == "DaemonSet"
             and doc.get("metadata", {}).get("name") == "node-agent")
 
-# Only the node-agent DaemonSet is round-tripped through the YAML parser; every
-# other document is emitted byte-for-byte as helm rendered it. Re-serialising
-# the whole stream would reflow block scalars such as the embedded config.json.
 out, patched = [], 0
 for chunk in stream.split("\n---\n"):
     try:
