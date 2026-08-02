@@ -208,8 +208,18 @@ spec:
     path: /usr/local/ssl/ssl/openssl.cnf
   rulePolicies:
     R0001: {}
-    R0002: {}
-    R0004: {}
+    R0002:
+      processAllowed:
+      - runc:[1:INIT]
+      - runc:[1:CHILD]
+      - runc:[2:INIT]
+      - runc:[3:INIT]
+    R0004:
+      processAllowed:
+      - runc:[1:INIT]
+      - runc:[1:CHILD]
+      - runc:[2:INIT]
+      - runc:[3:INIT]
     R0005: {}
     R0006: {}
     R0007: {}
