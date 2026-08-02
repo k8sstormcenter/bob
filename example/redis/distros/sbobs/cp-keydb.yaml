@@ -10,57 +10,202 @@ spec:
   - amd64
   capabilities:
   - CAP_NET_ADMIN
-  egress: null
-  endpoints: null
+  - CAP_SETGID
+  - CAP_SETPCAP
+  - CAP_SETUID
+  - CAP_SYS_ADMIN
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: e656ed0238ada70c2ec985b2a57b11dbb945d58c1c4e799cbfceaeefe67ebc26
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/instance: keydb
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keydb
+        app.kubernetes.io/version: 6.3.2
+        apps.kubernetes.io/pod-index: '1'
+        helm.sh/chart: keydb-0.48.0
+        statefulset.kubernetes.io/pod-name: keydb-1
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: acf3acacc39ccc3af4417be8024ad8537d2ca7987f2677ef3a655b4280359f7e
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/instance: keydb
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keydb
+        app.kubernetes.io/version: 6.3.2
+        apps.kubernetes.io/pod-index: '2'
+        helm.sh/chart: keydb-0.48.0
+        statefulset.kubernetes.io/pod-name: keydb-2
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  - dns: api.keydb.dev.
+    dnsNames:
+    - api.keydb.dev.
+    identifier: d34a80c7c584d2469a69916cea79b7d6eb4856d690018531f5b3b7bec42b88a7
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-80
+      port: 80
+      protocol: TCP
+    type: external
+    ipAddresses:
+    - 18.221.162.0/24
+  endpoints:
+  - direction: outbound
+    endpoint: :80/motd/motd_server.txt
+    headers:
+      Host:
+      - api.keydb.dev
+    internal: false
+    methods:
+    - GET
   execs:
   - args:
     - /usr/local/bin/keydb-server
-    - /etc/redis/redis.conf
+    - /etc/keydb/redis.conf
+    - --active-replica
+    - 'yes'
+    - --multi-master
+    - 'yes'
+    - --appendonly
+    - 'no'
+    - --bind
+    - 0.0.0.0
+    - --port
+    - '6379'
+    - --protected-mode
+    - 'no'
+    - --server-threads
+    - '2'
+    - --replicaof keydb-1.keydb-headless 6379
+    - --replicaof keydb-2.keydb-headless 6379
     path: /usr/local/bin/keydb-server
+  - args:
+    - /health/ping_readiness_local.sh
+    - '1'
+    - /health/ping_liveness_local.sh
+    - '5'
+    - /utils/server.sh
+    path: /bin/bash
+  - args:
+    - /usr/bin/timeout
+    - -s
+    - '15'
+    - '1'
+    - keydb-cli
+    - -h
+    - localhost
+    - -p
+    - '6379'
+    - GET
+    - 90f717dd-0e68-43b8-9363-fddaad00d6c9
+    - '5'
+    - PING
+    path: /usr/bin/timeout
+  - args:
+    - /usr/local/bin/keydb-cli
+    - -h
+    - localhost
+    - -p
+    - '6379'
+    - GET
+    - 90f717dd-0e68-43b8-9363-fddaad00d6c9
+    - PING
+    path: /usr/local/bin/keydb-cli
+  - args:
+    - /bin/sh
+    - -c
+    - /health/ping_readiness_local.sh 1
+    - /health/ping_liveness_local.sh 5
+    path: /bin/dash
+  - args:
+    - /bin/hostname
+    path: /bin/hostname
   identifiedCallStacks: null
-  ingress: null
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: acf3acacc39ccc3af4417be8024ad8537d2ca7987f2677ef3a655b4280359f7e
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/instance: keydb
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keydb
+        app.kubernetes.io/version: 6.3.2
+        apps.kubernetes.io/pod-index: '2'
+        helm.sh/chart: keydb-0.48.0
+        statefulset.kubernetes.io/pod-name: keydb-2
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: e656ed0238ada70c2ec985b2a57b11dbb945d58c1c4e799cbfceaeefe67ebc26
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/instance: keydb
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: keydb
+        app.kubernetes.io/version: 6.3.2
+        apps.kubernetes.io/pod-index: '1'
+        helm.sh/chart: keydb-0.48.0
+        statefulset.kubernetes.io/pod-name: keydb-1
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
   matchLabels:
-    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: keydb
+    app.kubernetes.io/name: keydb
   opens:
   - flags:
-    - O_WRONLY
-    - O_CREAT
-    - O_APPEND
-    path: /data/appendonly.aof
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libwind.so.0.0.0
   - flags:
-    - O_WRONLY
-    - O_CREAT
     - O_TRUNC
-    path: /data/temp-1-0.rdb
+    - O_WRONLY
+    - O_CREAT
+    path: /data/temp-1-3.rdb
   - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_EXCL
     - O_RDONLY
-    path: /dev/urandom
-  - flags:
-    - O_RDONLY
-    path: /dump.rdb
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/ld.so.cache
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /etc/localtime
-  - flags:
-    - O_RDONLY
-    path: /etc/redis/..2026_08_02_09_58_49.3061973114/redis.conf
-  - flags:
-    - O_RDONLY
-    path: /proc/⋯/net/core/somaxconn
-  - flags:
-    - O_RDONLY
-    path: /proc/⋯/oom_score_adj
-  - flags:
-    - O_RDONLY
-    path: /proc/⋯/smaps
-  - flags:
-    - O_RDONLY
-    path: /proc/⋯/stat
+    path: /data/temp--1017233193.1.rdb
   - flags:
     - O_RDONLY
     - O_DIRECTORY
@@ -69,77 +214,7 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /proc/⋯/vm/overcommit_memory
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /sys/devices/system/cpu/online
-  - flags:
-    - O_RDONLY
-    path: /sys/kernel/mm/transparent_hugepage/enabled
-  - flags:
-    - O_RDONLY
-    path: /usr/lib/ssl/openssl.cnf
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libasn1.so.8.0.0
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.0.7
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.0.7
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libc-2.31.so
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libcom_err.so.2.1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libcrypt.so.1.1.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libcurl.so.4.6.0
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libdl-2.31.so
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libffi.so.7.1.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libgmp.so.10.4.0
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libgnutls.so.30.27.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libgssapi.so.3.0.0
+    path: /etc/passwd
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -147,83 +222,88 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libhcrypto.so.4.1.0
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libheimbase.so.1.0.0
+    path: /usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libheimntlm.so.0.1.0
+    path: /lib/x86_64-linux-gnu/libresolv-2.27.so
   - flags:
-    - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libhogweed.so.5.0
-  - flags:
     - O_RDONLY
-    - O_CLOEXEC
     path: /usr/lib/x86_64-linux-gnu/libhx509.so.5.0.0
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libidn2.so.0.3.6
+    path: /usr/lib/ssl/openssl.cnf
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    path: /root/.keydb-server-motd
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1
+    path: /lib/x86_64-linux-gnu/librt-2.27.so
+  - flags:
+    - O_RDONLY
+    path: /health/..2026_08_02_16_44_31.3247611078/ping_liveness_local.sh
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libkrb5.so.26.0.0
+    path: /usr/lib/x86_64-linux-gnu/libnettle.so.6.5
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libkrb5.so.3.3
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_RDONLY
+    path: /proc/⋯/oom_score_adj
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_APPEND
+    path: /data/appendonly.aof
+  - flags:
+    - O_RDONLY
+    path: /utils/..2026_08_02_16_44_31.747525751/server.sh
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libkrb5support.so.0.1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/liblber-2.4.so.2.10.12
+    path: /usr/lib/x86_64-linux-gnu/libidn2.so.0.3.3
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libldap_r-2.4.so.2.10.12
+    path: /usr/lib/x86_64-linux-gnu/libpsl.so.5.2.0
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/liblz4.so.1.9.2
+    path: /usr/lib/x86_64-linux-gnu/libtasn1.so.6.5.5
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libsnappy.so.1.1.7
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libm-2.31.so
+    path: /usr/lib/x86_64-linux-gnu/libhcrypto.so.4.1.0
+  - flags:
+    - O_RDONLY
+    path: /dump.rdb
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libnettle.so.7.0
+    path: /lib/x86_64-linux-gnu/libnss_nis-2.27.so
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    path: /data/temp-1-1.rdb
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libnghttp2.so.14.19.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libp11-kit.so.0.3.0
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libpsl.so.5.3.2
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libpthread-2.31.so
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libresolv-2.31.so
+    path: /lib/x86_64-linux-gnu/libnss_files-2.27.so
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -231,23 +311,7 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/librtmp.so.1
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libsasl2.so.2.0.25
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libsnappy.so.1.1.8
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6
-  - flags:
-    - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libssh.so.4.8.4
+    path: /etc/localtime
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -255,35 +319,261 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28
+    path: /lib/x86_64-linux-gnu/libcom_err.so.2.1
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libtasn1.so.6.6.0
+    path: /usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6
   - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /usr/lib/x86_64-linux-gnu/libunistring.so.2.1.0
   - flags:
     - O_RDONLY
-    - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0
+    path: /sys/kernel/mm/transparent_hugepage/enabled
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/libwind.so.0.0.0
+    path: /lib/x86_64-linux-gnu/libgcc_s.so.1
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libz.so.1.2.11
+    path: /proc/⋯/stat
   - flags:
-    - O_CLOEXEC
     - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/libzstd.so.1.4.4
+    path: /proc/⋯/smaps
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/x86_64-linux-gnu/⋯
+    path: /lib/x86_64-linux-gnu/libuuid.so.1.3.0
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/sys/kernel/cap_last_cap
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/⋯/mountinfo
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libz.so.1.2.11
+  - flags:
+    - O_RDONLY
+    path: /etc/keydb/keydb.conf
+  - flags:
+    - O_RDONLY
+    path: /proc/sys/net/core/somaxconn
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /sys/devices/system/cpu/online
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libgmp.so.10.3.2
+  - flags:
+    - O_RDONLY
+    path: /dev/random
+  - flags:
+    - O_RDONLY
+    path: /data/dump.rdb
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libbz2.so.1.0.4
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libcurl.so.4.5.0
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/librtmp.so.1
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libldap_r-2.4.so.2.10.8
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libgnutls.so.30.14.10
+  - flags:
+    - O_RDONLY
+    path: /dev/urandom
+  - flags:
+    - O_CREAT
+    - O_TRUNC
+    - O_WRONLY
+    path: /run/keydb_6379.pid
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /sys/fs/cgroup/cpu.max
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /lib/x86_64-linux-gnu/libtinfo.so.5.9
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libsasl2.so.2.0.25
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /runc
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libgssapi.so.3.0.0
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libp11-kit.so.0.3.0
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libkrb5.so.26.0.0
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libasn1.so.8.0.0
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/sys/vm/overcommit_memory
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libdl-2.27.so
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libnss_dns-2.27.so
+  - flags:
+    - O_RDONLY
+    path: /health/..2026_08_02_16_44_31.3247611078/ping_readiness_local.sh
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libc-2.27.so
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libnss_compat-2.27.so
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libpthread-2.27.so
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libhogweed.so.4.5
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/resolv.conf
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libzstd.so.1.3.3
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libm-2.27.so
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/liblber-2.4.so.2.10.8
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    path: /data/temp-1-2.rdb
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libheimbase.so.1.0.0
+  - flags:
+    - O_RDWR
+    - O_NONBLOCK
+    path: /dev/tty
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libnsl-2.27.so
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/setgroups
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/gai.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/liblz4.so.1.7.1
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libnghttp2.so.14.15.2
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libkeyutils.so.1.5
+  - flags:
+    - O_RDONLY
+    path: /dev/srandom
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/host.conf
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /lib/x86_64-linux-gnu/libcrypt-2.27.so
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libheimntlm.so.0.1.0
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libk5crypto.so.3.1
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_EXCL
+    - O_RDONLY
+    path: /data/temp--1017261883.1.rdb
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libkrb5.so.3.3
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/libffi.so.6.0.4
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/cgroup
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/ld.so.cache
   rulePolicies:
     R0002:
       processAllowed:
