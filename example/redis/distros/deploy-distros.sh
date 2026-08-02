@@ -1,41 +1,39 @@
 #!/usr/bin/env bash
-# Deploy the redis-protocol distros via their most-popular native installer,
-# EXACTLY PINNED (chart version + image digest) so the learned SBoBs in sbobs/
-# are strongly versioned and reproducible. One namespace each.
+# Deploy a redis-protocol distro via its most-popular native installer AND bind
+# its SBoB in one shot: the pod carries the kubescape.io/user-defined-profile
+# label (baked into the helm values / operator CR) and the matching
+# ContainerProfile from sbobs/ is applied, so node-agent enforces the SBoB from
+# the moment the pod starts — no post-deploy patching.
 #
-#   distro     chart / operator          app ver   image (pinned by digest/tag)
-#   redis      bitnami/redis 27.0.18     8.8.1     bitnami/redis@sha256:08863c2c…
-#   valkey     bitnami/valkey 6.2.5      9.1.1     bitnami/valkey@sha256:4a1c16ea…
-#   keydb      enapter/keydb 0.48.0      6.3.2     eqalpha/keydb:x86_64_v6.3.2
-#   dragonfly  dragonfly-operator 1.6.1  1.39.0    dragonflydb/dragonfly:v1.39.0
+#   distro     installer                       ns          bound profile
+#   redis-oss  bitnami/redis 27.0.18           redis-oss   sbobs/cp-redis.yaml
+#   valkey     bitnami/valkey 6.2.5            valkey      sbobs/cp-valkey.yaml
+#   keydb      enapter/keydb 0.48.0            keydb       sbobs/cp-keydb.yaml
+#   dragonfly  dragonfly-operator 1.6.1        dragonfly   sbobs/cp-dragonfly.yaml
 #
 # Usage:
-#   ./deploy-distros.sh [redis|valkey|keydb|dragonfly|all]
-#   (no argument = all)
+#   ./deploy-distros.sh [redis|valkey|keydb|dragonfly|all]   (no arg = all)
 set -euo pipefail
+cd "$(dirname "$0")"
 
 deploy_redis() {
   helm install redis oci://registry-1.docker.io/bitnamicharts/redis --version 27.0.18 \
-    --set architecture=standalone --set auth.enabled=false \
-    --set image.repository=bitnami/redis \
-    --set image.digest=sha256:08863c2c3f4e051fb6139b38fa223e9c13be5033326a59bead182860d899bf98 \
-    -n redis --create-namespace
+    -n redis-oss --create-namespace -f helm-values/redis-oss.yaml
+  kubectl apply -f sbobs/cp-redis.yaml
 }
 
 deploy_valkey() {
   helm install valkey oci://registry-1.docker.io/bitnamicharts/valkey --version 6.2.5 \
-    --set architecture=standalone --set auth.enabled=false \
-    --set image.repository=bitnami/valkey \
-    --set image.digest=sha256:4a1c16ea2ece2baea6c1d7a116c00060f5bfbf1d2807b703a552ba840c87956e \
-    -n valkey --create-namespace
+    -n valkey --create-namespace -f helm-values/valkey.yaml
+  kubectl apply -f sbobs/cp-valkey.yaml
 }
 
 deploy_keydb() {
   helm repo add enapter https://enapter.github.io/charts/ >/dev/null
   helm repo update >/dev/null
   helm install keydb enapter/keydb --version 0.48.0 \
-    --set image.repository=eqalpha/keydb --set image.tag=x86_64_v6.3.2 \
-    -n keydb --create-namespace
+    -n keydb --create-namespace -f helm-values/keydb.yaml
+  kubectl apply -f sbobs/cp-keydb.yaml
 }
 
 deploy_dragonfly() {
@@ -44,6 +42,8 @@ deploy_dragonfly() {
   kubectl -n dragonfly-operator-system rollout status \
     deploy/dragonfly-operator-controller-manager --timeout=150s
   kubectl create namespace dragonfly
+  # podMetadata.labels is the operator-supported way to label the managed pod;
+  # patching the StatefulSet directly is reverted by the operator.
   kubectl apply -f - <<'CR'
 apiVersion: dragonflydb.io/v1alpha1
 kind: Dragonfly
@@ -53,16 +53,20 @@ metadata:
 spec:
   replicas: 1
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.39.0
+  podMetadata:
+    labels:
+      kubescape.io/user-defined-profile: dragonfly
 CR
+  kubectl apply -f sbobs/cp-dragonfly.yaml
 }
 
 distro="${1:-all}"
 case "$distro" in
-  redis)     deploy_redis ;;
-  valkey)    deploy_valkey ;;
-  keydb)     deploy_keydb ;;
-  dragonfly) deploy_dragonfly ;;
-  all)       deploy_redis; deploy_valkey; deploy_keydb; deploy_dragonfly ;;
+  redis|redis-oss) deploy_redis ;;
+  valkey)          deploy_valkey ;;
+  keydb)           deploy_keydb ;;
+  dragonfly)       deploy_dragonfly ;;
+  all)             deploy_redis; deploy_valkey; deploy_keydb; deploy_dragonfly ;;
   *)
     echo "unknown distro: $distro" >&2
     echo "usage: $0 [redis|valkey|keydb|dragonfly|all]" >&2

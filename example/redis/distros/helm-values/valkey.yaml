@@ -1,0 +1,16 @@
+# Helm values for the valkey distro (bitnami/valkey 6.2.5, standalone).
+# Bakes the SBoB bind label into the primary pod so the ContainerProfile
+# `valkey` binds automatically on start.
+#
+#   helm install valkey oci://registry-1.docker.io/bitnamicharts/valkey \
+#     --version 6.2.5 -n valkey --create-namespace -f helm-values/valkey.yaml
+#   kubectl apply -f sbobs/cp-valkey.yaml
+architecture: standalone
+auth:
+  enabled: false
+image:
+  repository: bitnami/valkey
+  digest: sha256:4a1c16ea2ece2baea6c1d7a116c00060f5bfbf1d2807b703a552ba840c87956e
+primary:
+  podLabels:
+    kubescape.io/user-defined-profile: valkey
