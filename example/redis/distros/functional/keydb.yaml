@@ -1,0 +1,138 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: redis-functional-realistic
+  description: >-
+    Realistic redis-protocol workload that exercises the SERVER's full behaviour
+    for SBoB learning — not just PING/SET/GET. Covers every data type, keyspace
+    management, expiry, scripting (Lua fork of the interpreter), streams,
+    pub/sub publish, transactions, admin/introspection, and — critically — the
+    PERSISTENCE paths (BGSAVE / BGREWRITEAOF fork a child; CONFIG SET appendonly
+    yes turns on AOF file writes). These are the code paths a trivial suite never
+    triggers, so the learned profile is otherwise incomplete. RESP over TCP,
+    single connection (SUBSCRIBE/MONITOR/blocking ops omitted — need concurrency).
+target:
+  service: keydb
+  namespace: keydb
+  port: 6379
+  scheme: redis
+tests:
+  # ── Connection / server / introspection ───────────────────────────────────
+  - {name: ping,          redis: {command: ["PING"], expectedReply: "PONG"}}
+  - {name: echo,          redis: {command: ["ECHO", "bob"], expectedReply: "bob"}}
+  - {name: select0,       redis: {command: ["SELECT", "0"], expectedReply: "OK"}}
+  - {name: client-setname, redis: {command: ["CLIENT", "SETNAME", "bobclient"]}}
+  - {name: client-id,     redis: {command: ["CLIENT", "ID"]}}
+  - {name: client-info,   redis: {command: ["CLIENT", "INFO"]}}
+  - {name: command-count, redis: {command: ["COMMAND", "COUNT"]}}
+  - {name: config-maxmem, redis: {command: ["CONFIG", "GET", "maxmemory"]}}
+  - {name: info-server,   redis: {command: ["INFO", "server"], expectedReply: "redis_version"}}
+  - {name: info-persist,  redis: {command: ["INFO", "persistence"]}}
+  - {name: info-stats,    redis: {command: ["INFO", "stats"]}}
+  - {name: info-cpu,      redis: {command: ["INFO", "cpu"]}}
+  - {name: time,          redis: {command: ["TIME"]}}
+  - {name: dbsize,        redis: {command: ["DBSIZE"]}}
+  - {name: slowlog-get,   redis: {command: ["SLOWLOG", "GET", "10"]}}
+  - {name: memory-doctor, redis: {command: ["MEMORY", "DOCTOR"]}}
+
+  # ── Strings + expiry variants ─────────────────────────────────────────────
+  - {name: set,           redis: {command: ["SET", "s:k", "hello"], expectedReply: "OK"}}
+  - {name: set-ex,        redis: {command: ["SET", "s:ttl", "v", "EX", "100"]}}
+  - {name: set-nx,        redis: {command: ["SET", "s:k", "no", "NX"]}}
+  - {name: append,        redis: {command: ["APPEND", "s:k", "-world"]}}
+  - {name: strlen,        redis: {command: ["STRLEN", "s:k"]}}
+  - {name: getrange,      redis: {command: ["GETRANGE", "s:k", "0", "4"]}}
+  - {name: setrange,      redis: {command: ["SETRANGE", "s:k", "0", "J"]}}
+  - {name: getdel,        redis: {command: ["GETDEL", "s:ttl"]}}
+  - {name: mset,          redis: {command: ["MSET", "s:a", "1", "s:b", "2", "s:c", "3"]}}
+  - {name: mget,          redis: {command: ["MGET", "s:a", "s:b", "s:c"]}}
+  - {name: incr,          redis: {command: ["INCR", "n:ctr"]}}
+  - {name: incrby,        redis: {command: ["INCRBY", "n:ctr", "10"]}}
+  - {name: incrbyfloat,   redis: {command: ["INCRBYFLOAT", "n:f", "3.14"]}}
+
+  # ── Bitmaps ───────────────────────────────────────────────────────────────
+  - {name: setbit,        redis: {command: ["SETBIT", "bm:k", "7", "1"]}}
+  - {name: getbit,        redis: {command: ["GETBIT", "bm:k", "7"]}}
+  - {name: bitcount,      redis: {command: ["BITCOUNT", "bm:k"]}}
+  - {name: bitfield,      redis: {command: ["BITFIELD", "bm:f", "SET", "u8", "0", "255", "GET", "u8", "0"]}}
+
+  # ── Hashes ────────────────────────────────────────────────────────────────
+  - {name: hset,          redis: {command: ["HSET", "h:u", "name", "bob", "age", "5"]}}
+  - {name: hget,          redis: {command: ["HGET", "h:u", "name"], expectedReply: "bob"}}
+  - {name: hgetall,       redis: {command: ["HGETALL", "h:u"]}}
+  - {name: hincrby,       redis: {command: ["HINCRBY", "h:u", "age", "1"]}}
+  - {name: hrandfield,    redis: {command: ["HRANDFIELD", "h:u", "2"]}}
+  - {name: hscan,         redis: {command: ["HSCAN", "h:u", "0"]}}
+
+  # ── Lists ─────────────────────────────────────────────────────────────────
+  - {name: rpush,         redis: {command: ["RPUSH", "l:q", "a", "b", "c", "d"]}}
+  - {name: lrange,        redis: {command: ["LRANGE", "l:q", "0", "-1"]}}
+  - {name: lpop,          redis: {command: ["LPOP", "l:q"]}}
+  - {name: linsert,       redis: {command: ["LINSERT", "l:q", "BEFORE", "c", "b2"]}}
+  - {name: lmove,         redis: {command: ["LMOVE", "l:q", "l:q2", "LEFT", "RIGHT"]}}
+  - {name: llen,          redis: {command: ["LLEN", "l:q"]}}
+
+  # ── Sets ──────────────────────────────────────────────────────────────────
+  - {name: sadd,          redis: {command: ["SADD", "set:a", "x", "y", "z"]}}
+  - {name: sadd2,         redis: {command: ["SADD", "set:b", "y", "z", "w"]}}
+  - {name: sinter,        redis: {command: ["SINTER", "set:a", "set:b"]}}
+  - {name: sunionstore,   redis: {command: ["SUNIONSTORE", "set:u", "set:a", "set:b"]}}
+  - {name: sscan,         redis: {command: ["SSCAN", "set:a", "0"]}}
+
+  # ── Sorted sets ───────────────────────────────────────────────────────────
+  - {name: zadd,          redis: {command: ["ZADD", "z:lb", "1", "a", "2", "b", "3", "c"]}}
+  - {name: zrangebyscore, redis: {command: ["ZRANGEBYSCORE", "z:lb", "-inf", "+inf"]}}
+  - {name: zincrby,       redis: {command: ["ZINCRBY", "z:lb", "5", "a"]}}
+  - {name: zpopmax,       redis: {command: ["ZPOPMAX", "z:lb"]}}
+  - {name: zrangestore,   redis: {command: ["ZRANGESTORE", "z:dst", "z:lb", "0", "-1"]}}
+
+  # ── HyperLogLog / Geo ─────────────────────────────────────────────────────
+  - {name: pfadd,         redis: {command: ["PFADD", "hll:v", "a", "b", "c"]}}
+  - {name: pfcount,       redis: {command: ["PFCOUNT", "hll:v"]}}
+  - {name: geoadd,        redis: {command: ["GEOADD", "geo:p", "13.361", "38.115", "palermo"]}}
+  - {name: geosearch,     redis: {command: ["GEOSEARCH", "geo:p", "FROMMEMBER", "palermo", "BYRADIUS", "200", "km", "ASC"]}}
+
+  # ── Streams ───────────────────────────────────────────────────────────────
+  - {name: xadd1,         redis: {command: ["XADD", "st:s", "*", "f", "1"]}}
+  - {name: xadd2,         redis: {command: ["XADD", "st:s", "*", "f", "2"]}}
+  - {name: xlen,          redis: {command: ["XLEN", "st:s"]}}
+  - {name: xrange,        redis: {command: ["XRANGE", "st:s", "-", "+"]}}
+  - {name: xinfo,         redis: {command: ["XINFO", "STREAM", "st:s"]}}
+  - {name: xtrim,         redis: {command: ["XTRIM", "st:s", "MAXLEN", "100"]}}
+
+  # ── Scripting (Lua) + functions ───────────────────────────────────────────
+  - {name: eval,          redis: {command: ["EVAL", "return redis.call('SET', KEYS[1], ARGV[1])", "1", "lua:k", "luaval"]}}
+  - {name: eval-compute,  redis: {command: ["EVAL", "local t=0 for i=1,100 do t=t+i end return t", "0"]}}
+  - {name: script-load,   redis: {command: ["SCRIPT", "LOAD", "return 1"]}}
+  - {name: function-list, redis: {command: ["FUNCTION", "LIST"]}}
+  - {name: function-stats,redis: {command: ["FUNCTION", "STATS"]}}
+
+  # NOTE: MULTI/EXEC transactions and SUBSCRIBE/MONITOR/blocking ops are omitted —
+  # bobctl's RESP client opens a fresh RESP2 connection per test, so multi-command
+  # transaction state and concurrent pub/sub cannot be exercised through it. Drive
+  # those via a dedicated load pod (redis-benchmark / a Lua-scripted client) if the
+  # profile needs the transaction/replication-buffer code paths.
+
+  # ── Pub/Sub publish (fire-and-forget) ─────────────────────────────────────
+  - {name: publish,       redis: {command: ["PUBLISH", "ch:events", "hello-subscribers"]}}
+  - {name: pubsub-chan,   redis: {command: ["PUBSUB", "CHANNELS"]}}
+
+  # ── Generic keyspace / expiry / object introspection ──────────────────────
+  - {name: expire,        redis: {command: ["EXPIRE", "s:k", "300"]}}
+  - {name: ttl,           redis: {command: ["TTL", "s:k"]}}
+  - {name: persist,       redis: {command: ["PERSIST", "s:k"]}}
+  - {name: type,          redis: {command: ["TYPE", "z:lb"]}}
+  - {name: object-encoding, redis: {command: ["OBJECT", "ENCODING", "z:lb"]}}
+  - {name: copy,          redis: {command: ["COPY", "s:k", "s:kcopy"]}}
+  - {name: scan,          redis: {command: ["SCAN", "0", "COUNT", "100"]}}
+  - {name: randomkey,     redis: {command: ["RANDOMKEY"]}}
+  - {name: touch,         redis: {command: ["TOUCH", "s:a", "s:b"]}}
+
+  # ── Persistence — the fork-triggering paths (key for a realistic profile) ──
+  - {name: bgsave,        redis: {command: ["BGSAVE", "SCHEDULE"]}}
+  - {name: lastsave,      redis: {command: ["LASTSAVE"]}}
+  - {name: config-aof-on, redis: {command: ["CONFIG", "SET", "appendonly", "yes"], expectedReply: "OK"}}
+  - {name: config-aof-off, redis: {command: ["CONFIG", "SET", "appendonly", "no"]}}
+
+  # ── Cleanup ───────────────────────────────────────────────────────────────
+  - {name: unlink,        redis: {command: ["UNLINK", "s:kcopy", "l:q2", "set:u", "z:dst"]}}

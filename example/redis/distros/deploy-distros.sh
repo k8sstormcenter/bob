@@ -10,9 +10,13 @@
 #   dragonfly  dragonfly-operator 1.6.1  1.39.0    dragonflydb/dragonfly:v1.39.0
 #
 # Usage:
-#   ./deploy-distros.sh [redis|valkey|keydb|dragonfly|all]
-#   (no argument = all)
+#   ./deploy-distros.sh [redis|valkey|keydb|dragonfly|all] [sbob]
+#   (no first argument = all; pass "sbob" as the second argument to bind the
+#    matching ContainerProfile from sbobs/ at deploy time)
 set -euo pipefail
+cd "$(dirname "$0")"
+
+SBOB="${2:-}"
 
 deploy_redis() {
   helm install redis oci://registry-1.docker.io/bitnamicharts/redis --version 27.0.18 \
@@ -34,7 +38,7 @@ deploy_keydb() {
   helm repo add enapter https://enapter.github.io/charts/ >/dev/null
   helm repo update >/dev/null
   helm install keydb enapter/keydb --version 0.48.0 \
-    --set image.repository=eqalpha/keydb --set image.tag=x86_64_v6.3.2 \
+    --set imageRepository=eqalpha/keydb --set imageTag=x86_64_v6.3.2 \
     -n keydb --create-namespace
 }
 
@@ -56,16 +60,43 @@ spec:
 CR
 }
 
+# --- SBoB binding (only when the "sbob" toggle is passed) -------------------
+# Apply the ContainerProfile into the install namespace (its committed namespace
+# is overridden at apply time, not in the file) and label the workload's pod so
+# node-agent enforces it. StatefulSet pods for redis/valkey/keydb; the operator
+# CR for dragonfly (patching the StatefulSet there is reverted by the operator).
+apply_cp() {  # ns  cp-file
+  sed "0,/^  namespace:/{s/^  namespace: .*/  namespace: $1/}" "sbobs/$2" | kubectl apply -f -
+}
+label_sts() {  # ns  statefulset  profile
+  kubectl -n "$1" patch statefulset "$2" --type merge \
+    -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"kubescape.io/user-defined-profile\":\"$3\"}}}}}"
+}
+
+bind_redis()  { apply_cp redis  cp-redis.yaml;  label_sts redis  redis-master   redis; }
+bind_valkey() { apply_cp valkey cp-valkey.yaml; label_sts valkey valkey-primary valkey; }
+bind_keydb()  { apply_cp keydb  cp-keydb.yaml;  label_sts keydb  keydb          keydb; }
+bind_dragonfly() {
+  apply_cp dragonfly cp-dragonfly.yaml
+  kubectl -n dragonfly patch dragonfly dragonfly --type merge \
+    -p '{"spec":{"podMetadata":{"labels":{"kubescape.io/user-defined-profile":"dragonfly"}}}}'
+}
+
+do_distro() {  # deploy-fn  bind-fn
+  "$1"
+  [ "$SBOB" = sbob ] && "$2" || true
+}
+
 distro="${1:-all}"
 case "$distro" in
-  redis)     deploy_redis ;;
-  valkey)    deploy_valkey ;;
-  keydb)     deploy_keydb ;;
-  dragonfly) deploy_dragonfly ;;
-  all)       deploy_redis; deploy_valkey; deploy_keydb; deploy_dragonfly ;;
+  redis)     do_distro deploy_redis     bind_redis ;;
+  valkey)    do_distro deploy_valkey    bind_valkey ;;
+  keydb)     do_distro deploy_keydb     bind_keydb ;;
+  dragonfly) do_distro deploy_dragonfly bind_dragonfly ;;
+  all)       do_distro deploy_redis bind_redis; do_distro deploy_valkey bind_valkey; do_distro deploy_keydb bind_keydb; do_distro deploy_dragonfly bind_dragonfly ;;
   *)
     echo "unknown distro: $distro" >&2
-    echo "usage: $0 [redis|valkey|keydb|dragonfly|all]" >&2
+    echo "usage: $0 [redis|valkey|keydb|dragonfly|all] [sbob]" >&2
     exit 2
     ;;
 esac
