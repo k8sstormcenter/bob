@@ -1,0 +1,356 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: postgres-bitnami
+  namespace: postgres
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_CHOWN
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_SETGID
+  - CAP_SETPCAP
+  - CAP_SETUID
+  - CAP_SYS_ADMIN
+  egress: null
+  endpoints: null
+  execs:
+  - args:
+    - /usr/bin/find
+    - /docker-entrypoint-preinitdb.d/
+    - -type
+    - f
+    - -name
+    - '*.sh'
+    - /docker-entrypoint-initdb.d/
+    - -regex
+    - .*\.\(sh\|sql\|sql.gz\)
+    path: /usr/bin/find
+  - args:
+    - /usr/bin/mkdir
+    - -p
+    - /bitnami/postgresql/data
+    path: /usr/bin/mkdir
+  - args:
+    - /usr/bin/sed
+    - "s\x01trust\x01md5\x01g"
+    - /opt/bitnami/postgresql/conf/pg_hba.conf
+    - "s\x01^#*\\s*log_connections\\s*=.*\x01log_connections = 'false'\x01g"
+    - /opt/bitnami/postgresql/conf/postgresql.conf
+    - "s\x01^#*\\s*port\\s*=.*\x01port = '5432'\x01g"
+    - "s\x01^#*\\s*listen_addresses\\s*=.*\x01listen_addresses = '*'\x01g"
+    - "s\x01^#*\\s*client_min_messages\\s*=.*\x01client_min_messages = 'error'\x01\
+      g"
+    - "s\x01^#*\\s*wal_level\\s*=.*\x01wal_level = 'replica'\x01g"
+    - "s\x01^#*\\s*fsync\\s*=.*\x01fsync = 'on'\x01g"
+    - "s\x01^#*\\s*wal_keep_size\\s*=.*\x01wal_keep_size = '128MB'\x01g"
+    - "s\x01^#*\\s*hot_standby\\s*=.*\x01hot_standby = 'on'\x01g"
+    - "s\x01^#*\\s*log_disconnections\\s*=.*\x01log_disconnections = 'false'\x01g"
+    - "s\x01^#*\\s*max_wal_senders\\s*=.*\x01max_wal_senders = '16'\x01g"
+    - "s\x01^#*\\s*shared_preload_libraries\\s*=.*\x01shared_preload_libraries = 'pgaudit'\x01\
+      g"
+    - "s\x01^#*\\s*log_hostname\\s*=.*\x01log_hostname = 'false'\x01g"
+    - "s\x01^#*\\s*max_wal_size\\s*=.*\x01max_wal_size = '400MB'\x01g"
+    path: /usr/bin/sed
+  - args:
+    - /usr/bin/grep
+    - -qE
+    - ^#*\s*shared_preload_libraries
+    - /opt/bitnami/postgresql/conf/postgresql.conf
+    - ^#*\s*wal_keep_size
+    - ^#*\s*max_wal_senders
+    - ^#*\s*hot_standby
+    - ^#*\s*pgaudit.log_catalog
+    - ^#*\s*log_hostname
+    - -oE
+    - ^[0-9]+
+    - ^#*\s*max_wal_size
+    - ^#*\s*port
+    - ^#*\s*wal_level
+    - ^#*\s*client_min_messages
+    - ^#*\s*log_disconnections
+    - '[0-9]+\.[0-9]+'
+    - ^#*\s*fsync
+    - ^#*\s*log_connections
+    - ^#*\s*listen_addresses
+    path: /usr/bin/grep
+  - args:
+    - /usr/bin/touch
+    - /opt/bitnami/postgresql/tmp/.initialized
+    path: /usr/bin/touch
+  - args:
+    - /bin/sh
+    - -ec
+    - 'exec pg_isready -U "app" -d "dbname=app" -h 127.0.0.1 -p 5432
+
+      [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized
+      ]
+
+      '
+    - -c
+    - --
+    - '"/opt/bitnami/postgresql/bin/postgres" --check -F -c log_checkpoints=false  -c
+      max_connections=100 -c autovacuum_worker_slots=16 -c shared_buffers=1000 -c
+      dynamic_shared_memory_type=posix < "/dev/null" > "/dev/null" 2>&1'
+    - /opt/bitnami/scripts/postgresql/setup.sh
+    - /opt/bitnami/scripts/postgresql/run.sh
+    - 'exec pg_isready -U "app" -d "dbname=app" -h 127.0.0.1 -p 5432
+
+      '
+    - /opt/bitnami/scripts/postgresql/entrypoint.sh
+    - '"/opt/bitnami/postgresql/bin/postgres" --boot -F -c log_checkpoints=false  -X
+      16777216 -k'
+    - locale -a
+    - exec "/opt/bitnami/postgresql/bin/postgres" -D "/bitnami/postgresql/data" --config-file=/opt/bitnami/postgresql/conf/postgresql.conf
+      --external_pid_file=/opt/bitnami/postgresql/tmp/postgresql.pid --hba_file=/opt/bitnami/postgresql/conf/pg_hba.conf
+      < "/dev
+    - '"/opt/bitnami/postgresql/bin/postgres" -V'
+    - '"/opt/bitnami/postgresql/bin/postgres" --check -F -c log_checkpoints=false  -c
+      max_connections=100 -c autovacuum_worker_slots=16 -c shared_buffers=16384 -c
+      dynamic_shared_memory_type=posix < "/dev/null" > "/dev/null" 2>&1'
+    - '"/opt/bitnami/postgresql/bin/postgres" --single -F -O -j -c search_path=pg_catalog
+      -c exit_on_error=true -c log_checkpoints=false  template1 >/dev/null'
+    path: /usr/bin/bash
+  - args:
+    - /usr/bin/mktemp
+    path: /usr/bin/mktemp
+  - args:
+    - /usr/bin/ls
+    - -A
+    - /bitnami/postgresql/data
+    path: /usr/bin/ls
+  - args:
+    - /opt/bitnami/postgresql/bin/postgres
+    - --check
+    - -F
+    - -c
+    - log_checkpoints=false
+    - -c
+    - max_connections=100
+    - -c
+    - autovacuum_worker_slots=16
+    - -c
+    - shared_buffers=16384
+    - -c
+    - dynamic_shared_memory_type=posix
+    - --boot
+    - -X
+    - '16777216'
+    - -k
+    - --single
+    - -O
+    - -j
+    - search_path=pg_catalog
+    - exit_on_error=true
+    - template1
+    - -V
+    - -D
+    - /bitnami/postgresql/data
+    - --config-file=/opt/bitnami/postgresql/conf/postgresql.conf
+    - --external_pid_file=/opt/bitnami/postgresql/tmp/postgresql.pid
+    - --hba_file=/opt/bitnami/postgresql/conf/pg_hba.conf
+    - shared_buffers=1000
+    path: /opt/bitnami/postgresql/bin/postgres
+  - args:
+    - /usr/bin/locale
+    - -a
+    path: /usr/bin/locale
+  - args:
+    - /usr/bin/sleep
+    - '1'
+    path: /usr/bin/sleep
+  - args:
+    - /opt/bitnami/postgresql/bin/psql
+    - --version
+    - -U
+    - postgres
+    - -p
+    - '5432'
+    - -h
+    - 127.0.0.1
+    - -d
+    - app
+    path: /opt/bitnami/postgresql/bin/psql
+  - args:
+    - /usr/bin/rm
+    - -f
+    - /bitnami/postgresql/data/postgresql.conf
+    - /bitnami/postgresql/data/pg_hba.conf
+    - /opt/bitnami/postgresql/tmp/postgresql.pid
+    path: /usr/bin/rm
+  - args:
+    - /usr/bin/id
+    - -g
+    - -u
+    path: /usr/bin/id
+  - args:
+    - /usr/bin/cat
+    path: /usr/bin/cat
+  - args:
+    - /opt/bitnami/postgresql/bin/initdb
+    - -E
+    - UTF8
+    - -D
+    - /bitnami/postgresql/data
+    - -U
+    - postgres
+    path: /opt/bitnami/postgresql/bin/initdb
+  - args:
+    - /usr/bin/cp
+    - -nr
+    - /opt/bitnami/postgresql/conf.default/.
+    - /opt/bitnami/postgresql/conf
+    path: /usr/bin/cp
+  - args:
+    - /opt/bitnami/postgresql/bin/pg_ctl
+    - stop
+    - -w
+    - -D
+    - /bitnami/postgresql/data
+    - -m
+    - fast
+    - -t
+    - '60'
+    - start
+    - -W
+    - -l
+    - /opt/bitnami/postgresql/logs/postgresql.log
+    - -o
+    - --config-file=/opt/bitnami/postgresql/conf/postgresql.conf --external_pid_file=/opt/bitnami/postgresql/tmp/postgresql.pid
+      --hba_file=/opt/bitnami/postgresql/conf/pg_hba.conf
+    path: /opt/bitnami/postgresql/bin/pg_ctl
+  - args:
+    - /usr/bin/getent
+    - passwd
+    - '1001'
+    path: /usr/bin/getent
+  - args:
+    - /usr/bin/chmod
+    - go-rwx
+    - /bitnami/postgresql/data
+    - u+rwx
+    - '600'
+    - /opt/bitnami/postgresql/conf/.pgpass
+    path: /usr/bin/chmod
+  - args:
+    - /usr/bin/realpath
+    - /bitnami/postgresql/data
+    path: /usr/bin/realpath
+  - args:
+    - /usr/bin/date
+    - '+%T.%2N '
+    path: /usr/bin/date
+  - args:
+    - /opt/bitnami/postgresql/bin/pg_isready
+    - -U
+    - app
+    - -d
+    - dbname=app
+    - -h
+    - 127.0.0.1
+    - -p
+    - '5432'
+    - postgres
+    path: /opt/bitnami/postgresql/bin/pg_isready
+  identifiedCallStacks: null
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: b7fcbe23188eb75461cfbf1e15674431e8f0a24c8c5b81269491064b384e631b
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pg-client
+        app.kubernetes.io/name: pg-client
+    ports:
+    - name: TCP-5432
+      port: 5432
+      protocol: TCP
+    type: internal
+  matchLabels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: pg-bitnami
+    app.kubernetes.io/name: postgresql
+  opens:
+  - flags:
+    - O_CLOEXEC
+    - O_CREAT
+    - O_DIRECTORY
+    - O_EXCL
+    - O_NOFOLLOW
+    - O_NONBLOCK
+    - O_RDONLY
+    - O_RDWR
+    - O_TRUNC
+    - O_WRONLY
+    path: /*
+  - flags:
+    - O_CLOEXEC
+    - O_CREAT
+    - O_RDONLY
+    - O_RDWR
+    - O_TRUNC
+    path: /*/0.0
+  - flags:
+    - O_CLOEXEC
+    - O_CREAT
+    - O_RDONLY
+    - O_RDWR
+    - O_TRUNC
+    path: /*/1.0
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /*/libpq.so.5
+  - flags:
+    - O_CLOEXEC
+    - O_DIRECTORY
+    - O_NOCTTY
+    - O_NOFOLLOW
+    - O_NONBLOCK
+    - O_RDONLY
+    - O_RDWR
+    path: /⋯
+  rulePolicies:
+    R0002:
+      processAllowed:
+      - runc:[1:INIT]
+      - runc:[1:CHILD]
+      - runc:[2:INIT]
+      - runc:[3:INIT]
+      - postgres
+      - sh
+      - run.sh
+      - ln
+      - bash
+      - find
+      - mkdir
+      - sed
+      - grep
+      - touch
+      - mktemp
+      - ls
+      - locale
+      - sleep
+      - psql
+      - rm
+      - id
+      - cat
+      - initdb
+      - cp
+      - pg_ctl
+      - getent
+      - chmod
+      - realpath
+      - date
+      - pg_isready
+    R0004:
+      processAllowed:
+      - runc:[1:INIT]
+      - runc:[1:CHILD]
+      - runc:[2:INIT]
+      - runc:[3:INIT]

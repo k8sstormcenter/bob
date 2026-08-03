@@ -1,0 +1,50 @@
+# Fork 2: Bitnami PostgreSQL (Helm chart `bitnami/postgresql`, image
+# bitnami/postgresql). The server comes from the chart (installed by
+# deploy-distros.sh, standalone/primary); this manifest carries only the
+# pg-client pod (SAME postgres:17 image as every other fork, so ONE portable
+# client SBoB covers all three) and its Service. pg-client connects to the
+# chart's `pg-bitnami-postgresql` service.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgres-bitnami
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pg-client
+  namespace: postgres-bitnami
+  labels:
+    app: pg-client
+    app.kubernetes.io/name: pg-client
+spec:
+  containers:
+    - name: pg-client
+      image: postgres:17
+      command: ["sleep", "infinity"]
+      env:
+        - name: PGHOST
+          value: "pg-bitnami-postgresql"
+        - name: PGPORT
+          value: "5432"
+        - name: PGDATABASE
+          value: "app"
+        - name: PGUSER
+          value: "app"
+        - name: PGPASSWORD
+          value: "bobtest"
+  restartPolicy: Never
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-client
+  namespace: postgres-bitnami
+spec:
+  selector:
+    app: pg-client
+  clusterIP: None
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
