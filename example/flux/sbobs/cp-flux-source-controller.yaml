@@ -14,7 +14,7 @@ spec:
   - path: /data
     flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
   - path: /data/⋯/*
-    flags: &id001 [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /etc/group
   - flags: [O_CLOEXEC, O_RDONLY]
@@ -61,10 +61,8 @@ spec:
     path: /sys/kernel/mm/hugepages
   - flags: [O_RDONLY]
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-  - path: /tmp/⋯
-    flags: *id001
-  - path: /tmp/⋯/*
-    flags: *id001
+  - path: /tmp/*
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /usr/local/bin/source-controller
   - flags: [O_CLOEXEC, O_RDONLY]

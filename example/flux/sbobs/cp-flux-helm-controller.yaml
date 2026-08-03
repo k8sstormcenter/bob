@@ -49,10 +49,8 @@ spec:
     path: /sys/kernel/mm/hugepages
   - flags: [O_RDONLY]
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-  - path: /tmp/⋯
-    flags: &id001 [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
-  - path: /tmp/⋯/*
-    flags: *id001
+  - path: /tmp/*
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /usr/local/bin/helm-controller
   syscalls: [accept4, brk, close, connect, epoll_ctl, epoll_pwait, fcntl, fstat, futex, getpeername, getpid, getrandom, getsockname, getsockopt, ioctl, madvise, mmap, munmap, nanosleep, newfstatat, openat, prctl, pread64, read, rt_sigreturn, sched_getaffinity, sched_yield, setsockopt, socket, statfs, tgkill, uname, write]
