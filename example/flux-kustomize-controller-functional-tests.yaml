@@ -1,7 +1,49 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: FunctionalTestSuite
-metadata: {name: kustomize-controller-functional}
+metadata: {name: kustomize-controller-functional, description: 'Prometheus scrape and pprof ops surface on kustomize-controller:8080.'}
 target: {service: kustomize-controller, namespace: flux-system, port: 8080, scheme: http}
 tests:
-- name: metrics
+- name: prometheus-scrape-1
+  http:
+    method: GET
+    path: /metrics
+    expectedStatus: 200
+    headers: &id001 {Accept: 'application/openmetrics-text;version=1.0.0;q=0.9,text/plain;version=0.0.4;q=0.5,*/*;q=0.1', User-Agent: Prometheus/2.53.0, Accept-Encoding: gzip}
+- name: prometheus-scrape-2
+  http:
+    method: GET
+    path: /metrics
+    expectedStatus: 200
+    headers: *id001
+- name: prometheus-scrape-3
+  http:
+    method: GET
+    path: /metrics
+    expectedStatus: 200
+    headers: *id001
+- name: metrics-plain-client
   http: {method: GET, path: /metrics, expectedStatus: 200}
+- name: pprof-index
+  http: {method: GET, path: /debug/pprof/, expectedStatus: 200}
+- name: pprof-heap
+  http: {method: GET, path: /debug/pprof/heap, expectedStatus: 200}
+- name: pprof-goroutine
+  http: {method: GET, path: /debug/pprof/goroutine, expectedStatus: 200}
+- name: pprof-allocs
+  http: {method: GET, path: /debug/pprof/allocs, expectedStatus: 200}
+- name: pprof-threadcreate
+  http: {method: GET, path: /debug/pprof/threadcreate, expectedStatus: 200}
+- name: pprof-block
+  http: {method: GET, path: /debug/pprof/block, expectedStatus: 200}
+- name: pprof-mutex
+  http: {method: GET, path: /debug/pprof/mutex, expectedStatus: 200}
+- name: pprof-cmdline
+  http: {method: GET, path: /debug/pprof/cmdline, expectedStatus: 200}
+- name: pprof-symbol
+  http: {method: GET, path: /debug/pprof/symbol, expectedStatus: 200}
+- name: pprof-trace-1s
+  http: {method: GET, path: '/debug/pprof/trace?seconds=1', expectedStatus: 200}
+- name: pprof-cpu-1s
+  http: {method: GET, path: '/debug/pprof/profile?seconds=1', expectedStatus: 200}
+- name: unknown-path-404
+  http: {method: GET, path: /nope, expectedStatus: 404}

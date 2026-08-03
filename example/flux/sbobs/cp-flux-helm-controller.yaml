@@ -6,74 +6,70 @@ metadata:
   annotations: {kubescape.io/managed-by: User}
 spec:
   architectures: [amd64]
-  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   execs:
-  - args: [/usr/local/bin/helm-controller, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces=true, --log-level=info, --log-encoding=json, --enable-leader-election]
-    path: /usr/local/bin/helm-controller
+  - path: /usr/local/bin/helm-controller
+    args: [/usr/local/bin/helm-controller, ⋯⋯]
   opens:
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/hosts
-  - flags: [O_RDONLY]
-    path: /etc/localtime
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/nsswitch.conf
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/resolv.conf
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯/cgroup
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯/limits
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯/mountinfo
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯/net/*
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯/stat
-  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-    path: /proc/⋯/task/*
-  - path: /run/secrets/kubernetes.io/serviceaccount
+  - path: /.kube/config
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/hosts
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/localtime
+    flags: [O_RDONLY]
+  - path: /etc/nsswitch.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/resolv.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/cgroup
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/mountinfo
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/net/core/somaxconn
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/task/⋯/fd
     flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - path: /run/secrets/kubernetes.io/serviceaccount/⋯
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/fs/cgroup/cpu.max
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/kernel/mm/hugepages
     flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /sys/fs/cgroup/*
-  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-    path: /sys/kernel/mm/hugepages
-  - flags: [O_RDONLY]
-    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-  - path: /tmp/*
-    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /usr/local/bin/helm-controller
-  syscalls: [accept4, brk, close, connect, epoll_ctl, epoll_pwait, fcntl, fstat, futex, getpeername, getpid, getrandom, getsockname, getsockopt, ioctl, madvise, mmap, munmap, nanosleep, newfstatat, openat, prctl, pread64, read, rt_sigreturn, sched_getaffinity, sched_yield, setsockopt, socket, statfs, tgkill, uname, write]
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    flags: [O_RDONLY]
+  - path: /usr/local/bin/helm-controller
+    flags: [O_CLOEXEC, O_RDONLY]
+  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   endpoints:
   - direction: outbound
-    endpoint: :80/
+    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-0/podinfo-6.5.3.tgz
     headers:
       Accept-Encoding: [gzip]
-      Host: [notification-controller.flux-system.svc.cluster.local.]
-    internal: true
-    methods: [POST]
-  - direction: inbound
-    endpoint: :6443/metrics
-    headers:
-      Accept-Encoding: [gzip]
-      Host: ['*:6443']
+      Host: [source-controller.flux-system.svc.cluster.local.]
     internal: true
     methods: [GET]
-  - direction: inbound
-    endpoint: :9440/readyz
+  - direction: outbound
+    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-1/podinfo-6.5.3.tgz
     headers:
-      Connection: [close]
-      Host: ['*:9440']
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-2/podinfo-6.5.3.tgz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-3/podinfo-6.5.3.tgz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
     internal: true
     methods: [GET]
   - direction: inbound
@@ -84,6 +80,13 @@ spec:
     internal: true
     methods: [GET]
   - direction: outbound
+    endpoint: :80/helmchart/flux-system/flux-system-podinfo-oci-release/podinfo-6.14.1.tgz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
     endpoint: :80/helmchart/flux-system/flux-system-podinfo-http/podinfo-6.14.1.tgz
     headers:
       Accept-Encoding: [gzip]
@@ -91,10 +94,24 @@ spec:
     internal: true
     methods: [GET]
   - direction: outbound
-    endpoint: :80/helmchart/flux-system/flux-system-podinfo-oci-release/podinfo-6.14.1.tgz
+    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-4/podinfo-6.5.3.tgz
     headers:
       Accept-Encoding: [gzip]
       Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [notification-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [POST]
+  - direction: inbound
+    endpoint: :9440/readyz
+    headers:
+      Connection: [close]
+      Host: ['*:9440']
     internal: true
     methods: [GET]
   rulePolicies:
@@ -103,9 +120,8 @@ spec:
     R0004:
       processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
     R0006:
-      processAllowed: [helm-controller, flux]
+      processAllowed: [helm-controller]
   matchLabels: {app: helm-controller}
-  ingress: []
   egress:
   - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
     namespaceSelector:
@@ -115,6 +131,7 @@ spec:
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: internal
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
   - identifier: fe58df7a963551c0c6867f7e656900c1f1ee38c7a31a4e4da6aca7bb1e4be988
     namespaceSelector: null
     podSelector:
@@ -137,5 +154,3 @@ spec:
     ports:
     - {name: TCP-80, port: 80, protocol: TCP}
     type: internal
-  imageID: ghcr.io/fluxcd/helm-controller@sha256:16ada99456385100698a5d7adf90aba8a2089d987ab541c9566b6d7b0e897038
-  imageTag: ghcr.io/fluxcd/helm-controller:v1.6.3

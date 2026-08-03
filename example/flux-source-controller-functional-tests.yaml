@@ -1,7 +1,27 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: FunctionalTestSuite
-metadata: {name: source-controller-functional}
+metadata: {name: source-controller-functional, description: 'Artifact-server read path on source-controller:80, the exact traffic kustomize-controller and helm-controller generate on every reconcile.'}
 target: {service: source-controller, namespace: flux-system, port: 80, scheme: http}
 tests:
-- name: metrics
-  http: {method: GET, path: /metrics, expectedStatus: 200}
+- name: artifact-index
+  http: {method: GET, path: /, expectedStatus: 200}
+- name: artifact-index-gitrepository
+  http: {method: GET, path: /gitrepository/, expectedStatus: 200}
+- name: artifact-index-gitrepository-ns
+  http: {method: GET, path: /gitrepository/flux-system/, expectedStatus: 200}
+- name: artifact-index-podinfo
+  http: {method: GET, path: /gitrepository/flux-system/podinfo/, expectedStatus: 200}
+- name: artifact-index-podinfo-tag
+  http: {method: GET, path: /gitrepository/flux-system/podinfo-tag/, expectedStatus: 200}
+- name: artifact-index-flux-example
+  http: {method: GET, path: /gitrepository/flux-system/flux-example/, expectedStatus: 200}
+- name: artifact-index-helmchart
+  http: {method: GET, path: /helmchart/, expectedStatus: 200}
+- name: artifact-index-helmchart-ns
+  http: {method: GET, path: /helmchart/flux-system/, expectedStatus: 200}
+- name: artifact-unknown-kind-404
+  http: {method: GET, path: /doesnotexist/, expectedStatus: 404}
+- name: artifact-unknown-source-404
+  http: {method: GET, path: /gitrepository/flux-system/nosuchrepo/, expectedStatus: 404}
+- name: artifact-traversal-blocked
+  http: {method: GET, path: /gitrepository/../../etc/passwd, expectedStatus: 404}

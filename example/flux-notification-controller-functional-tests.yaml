@@ -1,7 +1,76 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: FunctionalTestSuite
-metadata: {name: notification-controller-functional}
+metadata: {name: notification-controller-functional, description: 'Event-ingestion POSTs on notification-controller:80, the exact traffic every other Flux controller sends on every reconcile.'}
 target: {service: notification-controller, namespace: flux-system, port: 80, scheme: http}
 tests:
-- name: metrics
-  http: {method: GET, path: /metrics, expectedStatus: 200}
+- name: event-kustomization-reconciled
+  http:
+    method: POST
+    path: /
+    expectedStatus: 202
+    body: '{"involvedObject":{"kind":"Kustomization","namespace":"flux-system","name":"podinfo-kustomize","apiVersion":"kustomize.toolkit.fluxcd.io/v1"},"severity":"info","timestamp":"2026-01-01T00:00:00Z","message":"Reconciliation finished in 1.2s, next run in 1m0s","reason":"ReconciliationSucceeded","reportingController":"kustomize-controller"}'
+    headers: &id001 {Content-Type: application/json}
+- name: event-kustomization-progressing
+  http:
+    method: POST
+    path: /
+    expectedStatus: 202
+    body: '{"involvedObject":{"kind":"Kustomization","namespace":"flux-system","name":"podinfo-oci","apiVersion":"kustomize.toolkit.fluxcd.io/v1"},"severity":"info","timestamp":"2026-01-01T00:00:00Z","message":"Deployment/flux-system/podinfo configured","reason":"Progressing","reportingController":"kustomize-controller"}'
+    headers: *id001
+- name: event-gitrepository-new-revision
+  http:
+    method: POST
+    path: /
+    expectedStatus: 202
+    body: '{"involvedObject":{"kind":"GitRepository","namespace":"flux-system","name":"podinfo","apiVersion":"source.toolkit.fluxcd.io/v1"},"severity":"info","timestamp":"2026-01-01T00:00:00Z","message":"stored artifact for revision master@sha1:eec06d1","reason":"NewArtifact","reportingController":"source-controller"}'
+    headers: *id001
+- name: event-gitrepository-fetch-failed
+  http:
+    method: POST
+    path: /
+    expectedStatus: 202
+    body: '{"involvedObject":{"kind":"GitRepository","namespace":"flux-system","name":"flux-example","apiVersion":"source.toolkit.fluxcd.io/v1"},"severity":"error","timestamp":"2026-01-01T00:00:00Z","message":"failed to checkout and determine revision","reason":"GitOperationFailed","reportingController":"source-controller"}'
+    headers: *id001
+- name: event-helmrelease-upgrade
+  http:
+    method: POST
+    path: /
+    expectedStatus: 202
+    body: '{"involvedObject":{"kind":"HelmRelease","namespace":"flux-system","name":"podinfo-helm","apiVersion":"helm.toolkit.fluxcd.io/v2"},"severity":"info","timestamp":"2026-01-01T00:00:00Z","message":"Helm upgrade succeeded for release flux-system/podinfo","reason":"UpgradeSucceeded","reportingController":"helm-controller"}'
+    headers: *id001
+- name: event-helmchart-pulled
+  http:
+    method: POST
+    path: /
+    expectedStatus: 202
+    body: '{"involvedObject":{"kind":"HelmChart","namespace":"flux-system","name":"flux-system-podinfo-helm","apiVersion":"source.toolkit.fluxcd.io/v1"},"severity":"info","timestamp":"2026-01-01T00:00:00Z","message":"pulled chart version 6.9.2","reason":"ChartPullSucceeded","reportingController":"source-controller"}'
+    headers: *id001
+- name: event-imagepolicy-selected
+  http:
+    method: POST
+    path: /
+    expectedStatus: 202
+    body: '{"involvedObject":{"kind":"ImagePolicy","namespace":"flux-system","name":"podinfo-semver","apiVersion":"image.toolkit.fluxcd.io/v1beta2"},"severity":"info","timestamp":"2026-01-01T00:00:00Z","message":"Latest image tag for podinfo resolved to 6.9.2","reason":"Succeeded","reportingController":"image-reflector-controller"}'
+    headers: *id001
+- name: event-alert-suspended
+  http:
+    method: POST
+    path: /
+    expectedStatus: 202
+    body: '{"involvedObject":{"kind":"Alert","namespace":"flux-system","name":"flux-alert","apiVersion":"notification.toolkit.fluxcd.io/v1beta3"},"severity":"info","timestamp":"2026-01-01T00:00:00Z","message":"Reconciliation is suspended","reason":"Suspended","reportingController":"notification-controller"}'
+    headers: *id001
+- name: event-duplicate-rate-limited
+  http:
+    method: POST
+    path: /
+    expectedStatus: 429
+    body: '{"involvedObject":{"kind":"Kustomization","namespace":"flux-system","name":"podinfo-kustomize","apiVersion":"kustomize.toolkit.fluxcd.io/v1"},"severity":"info","timestamp":"2026-01-01T00:00:00Z","message":"Reconciliation finished in 1.2s, next run in 1m0s","reason":"ReconciliationSucceeded","reportingController":"kustomize-controller"}'
+    headers: *id001
+- name: event-empty-body-rejected
+  http:
+    method: POST
+    path: /
+    expectedStatus: 400
+    headers: *id001
+- name: event-get-not-an-endpoint
+  http: {method: GET, path: /, expectedStatus: 400}
