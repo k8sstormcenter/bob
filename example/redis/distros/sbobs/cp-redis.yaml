@@ -86,10 +86,6 @@ spec:
     app.kubernetes.io/name: redis
   opens:
   - flags:
-    - O_RDWR
-    - O_NONBLOCK
-    path: /local.sh #testing for truncated path
-  - flags:
     - O_RDONLY
     - O_CLOEXEC
     path: /opt/bitnami/redis/lib/libz.so.1
