@@ -74,6 +74,10 @@ spec:
     path: /proc/⋯/stat
   - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
     path: /proc/⋯/task/1/fd
+  - path: /run/secrets/kubernetes.io/serviceaccount
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
   - flags: [O_CLOEXEC, O_RDONLY]
