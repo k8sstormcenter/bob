@@ -6,36 +6,44 @@ metadata:
   annotations: {kubescape.io/managed-by: User}
 spec:
   architectures: [amd64]
-  imageID: ghcr.io/fluxcd/image-automation-controller@sha256:81128adfd127601530d3dffc1deaf7c9eeec5b9aa555b3ab80cab37fa5d909a4
-  imageTag: ghcr.io/fluxcd/image-automation-controller:v1.2.3
+  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   execs:
-  - args: [/usr/local/bin/image-automation-controller, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces, --log-level=info, --log-encoding=json, --enable-leader-election]
+  - args: [/usr/local/bin/image-automation-controller, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces=true, --log-level=info, --log-encoding=json, --enable-leader-election]
     path: /usr/local/bin/image-automation-controller
   opens:
+  - path: /data
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - path: /data/*
+    flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_WRONLY]
   - flags: [O_RDONLY]
     path: /etc/localtime
   - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
     path: /proc/⋯/cgroup
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/⋯/limits
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /proc/⋯/mountinfo
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /proc/⋯/net/*
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/⋯/stat
   - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
     path: /proc/⋯/task/*
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_02_18_31_04.1105186762/ca.crt
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_02_18_31_04.1105186762/namespace
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_02_18_31_04.1105186762/token
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /sys/fs/cgroup/*
   - flags: [O_RDONLY]
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /usr/local/bin/image-automation-controller
-  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
-  syscalls: null
+  syscalls: [accept4, epoll_ctl, epoll_pwait, fcntl, futex, getpid, getsockname, mmap, nanosleep, newfstatat, openat, prctl, rt_sigprocmask, rt_sigreturn, sched_getaffinity, setsockopt, statfs, tgkill, write]
   endpoints:
   - direction: inbound
     endpoint: :9440/readyz
@@ -51,9 +59,22 @@ spec:
       Host: ['*:9440']
     internal: true
     methods: [GET]
-  rulePolicies: {}
+  - direction: inbound
+    endpoint: :6443/metrics
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['*:6443']
+    internal: true
+    methods: [GET]
+  rulePolicies:
+    R0002:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0004:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0006:
+      processAllowed: [image-automatio, flux]
   matchLabels: {app: image-automation-controller}
-  ingress: null
+  ingress: []
   egress:
   - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
     namespaceSelector:
@@ -63,3 +84,5 @@ spec:
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: internal
+  imageID: ghcr.io/fluxcd/image-automation-controller@sha256:81128adfd127601530d3dffc1deaf7c9eeec5b9aa555b3ab80cab37fa5d909a4
+  imageTag: ghcr.io/fluxcd/image-automation-controller:v1.2.3

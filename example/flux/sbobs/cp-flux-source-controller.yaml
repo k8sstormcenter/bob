@@ -6,20 +6,33 @@ metadata:
   annotations: {kubescape.io/managed-by: User}
 spec:
   architectures: [amd64]
-  imageID: ghcr.io/fluxcd/source-controller@sha256:ff8f3c92f1bcb433e858c948040c3a3393fe73f5dd72048a4502bfaf0a4c26cd
-  imageTag: ghcr.io/fluxcd/source-controller:v1.9.3
+  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   execs:
-  - args: [/usr/local/bin/source-controller, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces, --log-level=info, --log-encoding=json, --enable-leader-election, --storage-path=/data, --storage-adv-addr=source-controller.flux-system.svc.cluster.local.]
+  - args: [/usr/local/bin/source-controller, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces=true, --log-level=info, --log-encoding=json, --enable-leader-election, --storage-path=/data, --storage-adv-addr=source-controller.flux-system.svc.cluster.local.]
     path: /usr/local/bin/source-controller
   opens:
+  - path: /data
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR]
+    path: /data/*
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /data
+    path: /etc/group
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /data/index.html
+    path: /etc/hosts
   - flags: [O_RDONLY]
     path: /etc/localtime
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/machine-id
+    path: /etc/nsswitch.conf
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/passwd
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+    path: /etc/pki/tls/certs
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/resolv.conf
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+    path: /etc/ssl/certs
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/ssl/certs/ca-certificates.crt
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /proc/⋯/cgroup
   - flags: [O_CLOEXEC, O_RDONLY]
@@ -31,11 +44,11 @@ spec:
   - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
     path: /proc/⋯/task/*
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_02_18_31_03.1920239511/ca.crt
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_02_18_31_03.1920239511/namespace
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
   - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_02_18_31_03.1920239511/token
+    path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /sys/class/⋯/*
   - flags: [O_CLOEXEC, O_RDONLY]
@@ -44,16 +57,47 @@ spec:
     path: /sys/kernel/mm/hugepages
   - flags: [O_RDONLY]
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - path: /tmp/*
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
   - flags: [O_CLOEXEC, O_RDONLY]
     path: /usr/local/bin/source-controller
-  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
-  syscalls: null
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/share/ca-certificates/mozilla/⋯
+  syscalls: [fchmodat, getuid, sendfile, symlinkat]
   endpoints:
-  - direction: inbound
-    endpoint: :9090/
+  - direction: outbound
+    endpoint: :80/
     headers:
-      Connection: [close]
-      Host: ['*:9090']
+      Accept-Encoding: [gzip]
+      Host: [notification-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [POST]
+  - direction: inbound
+    endpoint: :80/gitrepository/flux-system/podinfo/eec06d1ea459af4cb4e10e806f8be7c7bd58b361.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :80/gitrepository/flux-system/podinfo-tag/33dac1ba40f73555725fbf620bf3b4f6f1a5ad89.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :80/helmchart/flux-system/flux-system-podinfo-oci-release/podinfo-6.14.1.tgz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :80/helmchart/flux-system/flux-system-podinfo-http/podinfo-6.14.1.tgz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
     internal: true
     methods: [GET]
   - direction: inbound
@@ -63,10 +107,79 @@ spec:
       Host: ['*:9440']
     internal: true
     methods: [GET]
-  rulePolicies: {}
+  - direction: inbound
+    endpoint: :6443/metrics
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['*:6443']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :9090/
+    headers:
+      Connection: [close]
+      Host: ['*:9090']
+    internal: true
+    methods: [GET]
+  rulePolicies:
+    R0002:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0004:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0006:
+      processAllowed: [source-controll, flux]
   matchLabels: {app: source-controller}
-  ingress: null
+  ingress: []
   egress:
+  - dnsNames: [pkg-containers.githubusercontent.com]
+    identifier: dc93fbad0ac0bf8cba186db8b4ebd16185e5588cb8aa01f6b62cb12848fbf444
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - dnsNames: [pkg-containers.githubusercontent.com]
+    identifier: c2ae281371342dca380d55b18abe181ade61fe63630e29b7b2c197551d8e0cba
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - dnsNames: [stefanprodan.github.io]
+    identifier: cba5245a51973380a817f7607a6b2534ec6d5724d3a89eff9850e916c5816e30
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - dnsNames: [stefanprodan.github.io]
+    identifier: c2bde85e531d068a920efe38f0e2abc420e109d208d4af2f75c75bdaec2d3a85
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - dnsNames: [stefanprodan.github.io]
+    identifier: 8a7fd888dfb70e98e564f3e03815f063db1228a55db15e210f6f5df2883a2eae
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - dnsNames: [ghcr.io]
+    identifier: 2a0ed2ea62a29faf0e7069f4097c797cf45e855cabb0d4e1fd754a75e7268c98
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - identifier: ab59749df52a78595af091ff332d12b0887696bd8448dc34b9da2dc926873a50
+    namespaceSelector: null
+    podSelector:
+      matchLabels: {app: notification-controller}
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    type: internal
   - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: default}
@@ -75,3 +188,20 @@ spec:
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: internal
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: kube-system}
+    podSelector:
+      matchLabels: {k8s-app: kube-dns}
+    ports:
+    - {name: UDP-53, port: 53, protocol: UDP}
+    type: internal
+  - dnsNames: [github.com]
+    identifier: 1e2c3b8253ef65bbb38bb96e642bd3c6d40827f27a1f6c41435805be35b74c77
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  imageID: ghcr.io/fluxcd/source-controller@sha256:ff8f3c92f1bcb433e858c948040c3a3393fe73f5dd72048a4502bfaf0a4c26cd
+  imageTag: ghcr.io/fluxcd/source-controller:v1.9.3
