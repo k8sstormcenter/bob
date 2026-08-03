@@ -1,0 +1,57 @@
+# Redis attack demo — the vulnerable redis app + its user-defined SBoB, for the
+# SOC e2e suite. Mirrors example/java-poc/skaffold.yaml.
+#
+# Deploys ONLY the sample workload + its SBoB. It assumes the detection/forensics
+# stack (kubescape + CRDs, vector, ClickHouse, dx) is already up — that is the soc
+# repo's Skaffold. They compose: soc stack first, then this app.
+#
+# Deploy order matters: namespace -> SBoB -> workload. A user-defined
+# ContainerProfile must EXIST before the pod starts, or the node-agent binds a
+# learnt sibling profile instead of the User one (no R0001 on deviation). rawYaml
+# applies in order so the SBoB lands first; the after-hook bounces the pod once
+# node-agent has registered the SBoB.
+#
+#   skaffold deploy -m redis-apps -p k3s
+#
+# Image is prebuilt (ghcr.io/k8sstormcenter/redis-vulnerable), so this only deploys.
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: redis-apps
+manifests:
+  rawYaml:
+    # 1) namespace
+    - 00-namespace.yaml
+    # 2) user-defined SBoB (must precede the pod it binds)
+    - sbobs/cp-redis.yaml
+    # 3) workload + a client for cross-pod redis traffic
+    - redis.yaml
+    - client.yaml
+deploy:
+  kubectl:
+    defaultNamespace: ""
+    hooks:
+      after: &sbob-bind-bounce
+        # The User SBoB must be registered by the node-agent BEFORE the redis pod
+        # starts; rawYaml races the pod ahead of registration. Once node-agent is
+        # Ready, delete the redis pod (delete — NOT rollout restart, which clobbers
+        # the managed-by:User annotation) so the fresh pod binds the User SBoB.
+        - host:
+            command:
+              - bash
+              - -c
+              - |
+                set -e
+                kubectl -n honey rollout status ds/node-agent --timeout=180s 2>/dev/null || true
+                kubectl -n redis-demo delete pod -l app=redis --ignore-not-found --wait=false 2>/dev/null || true
+                echo "bounced redis pod to bind its User SBoB"
+            os: [linux, darwin]
+profiles:
+  # k3s is the only supported target for now (flannel + hostPort assumptions live
+  # in the soc stack). Explicit profile so cloud targets can be added later.
+  - name: k3s
+    deploy:
+      kubectl:
+        defaultNamespace: ""
+        hooks:
+          after: *sbob-bind-bounce
