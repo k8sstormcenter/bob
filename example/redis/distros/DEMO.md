@@ -63,34 +63,26 @@ print("functional FPs:", len(fp), dict(Counter(x["labels"].get("rule_id") for x 
 print("attack TPs (distinct rules):", len(tp), tp)'
 ```
 
-## 5. Allow a client by identity (ingress)
+## 5. Detect a client, then allowlist it by identity (ingress)
 
 `CP=containerprofiles.spdx.softwarecomposition.kubescape.io`
 
-Deploy the client — unlisted, R0012 fires:
+Watch R0012 on redis-master's node-agent:
+
+```
+MNODE=$(kubectl -n redis get pod redis-master-0 -o jsonpath='{.spec.nodeName}')
+NA=$(kubectl -n honey get pod -o wide --field-selector spec.nodeName=$MNODE --no-headers | awk '/node-agent/{print $1;exit}')
+kubectl -n honey logs -f $NA | grep "Unexpected ingress network"
+```
+
+Deploy the client (`app: redis-client`, unlisted) — R0012 fires:
 
 ```
 kubectl apply -f ../client.yaml
 ```
 
-Allowlist by label — R0012 silent:
+Allowlist that identity — R0012 stops within ~30s (profile-projection refresh):
 
 ```
 kubectl -n redis patch $CP redis --type merge -p '{"spec":{"ingress":[{"type":"internal","podSelector":{"matchLabels":{"app":"redis-client"}},"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"redis"}},"ports":[{"name":"TCP-6379","port":6379,"protocol":"TCP"}]}]}}'
-```
-
-## 6. Selector matrix — allowlisted silent, rogue alerts, same-node and cross-node
-
-```
-./selector-repro.sh
-```
-
-Expect:
-
-```
-client             node         allowlisted R0012  verdict
-sel-allow-intra    <master>     yes         0      PASS
-sel-rogue-intra    <master>     no          >0     PASS
-sel-allow-inter    <other>      yes         0      PASS
-sel-rogue-inter    <other>      no          >0     PASS
 ```
