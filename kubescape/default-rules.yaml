@@ -308,7 +308,7 @@ spec:
         ruleExpression:
           - eventType: network
             expression: >-
-              event.pktType == 'OUTGOING' && !net.is_private_ip(event.dstAddr)
+              event.pktType == 'OUTGOING'
               && !cp.was_address_in_egress(event.containerId, event.dstAddr)
         uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
       id: R0011
