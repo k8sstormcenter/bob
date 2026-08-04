@@ -78,8 +78,13 @@ bind_valkey() { apply_cp valkey cp-valkey.yaml; label_sts valkey valkey-primary 
 bind_keydb()  { apply_cp keydb  cp-keydb.yaml;  label_sts keydb  keydb          keydb; }
 bind_dragonfly() {
   apply_cp dragonfly cp-dragonfly.yaml
+  # The operator only stamps podMetadata onto NEWLY created pods — a live patch does
+  # not relabel the running instance, so node-agent never switches to the profile.
+  # Patch the CR, then recreate the instance pod so it is born with the label.
   kubectl -n dragonfly patch dragonfly dragonfly --type merge \
     -p '{"spec":{"podMetadata":{"labels":{"kubescape.io/user-defined-profile":"dragonfly"}}}}'
+  kubectl -n dragonfly delete pod dragonfly-0 --ignore-not-found
+  kubectl -n dragonfly wait --for=condition=ready pod/dragonfly-0 --timeout=120s
 }
 
 do_distro() {  # deploy-fn  bind-fn
