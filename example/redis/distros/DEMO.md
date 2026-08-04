@@ -78,3 +78,19 @@ Allowlist by label — R0012 silent:
 ```
 kubectl -n redis patch $CP redis --type merge -p '{"spec":{"ingress":[{"type":"internal","podSelector":{"matchLabels":{"app":"redis-client"}},"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"redis"}},"ports":[{"name":"TCP-6379","port":6379,"protocol":"TCP"}]}]}}'
 ```
+
+## 6. Selector matrix — allowlisted silent, rogue alerts, same-node and cross-node
+
+```
+./selector-repro.sh
+```
+
+Expect:
+
+```
+client             node         allowlisted R0012  verdict
+sel-allow-intra    <master>     yes         0      PASS
+sel-rogue-intra    <master>     no          >0     PASS
+sel-allow-inter    <other>      yes         0      PASS
+sel-rogue-inter    <other>      no          >0     PASS
+```
