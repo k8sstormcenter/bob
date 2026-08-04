@@ -1,0 +1,36 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: redis-apps
+manifests:
+  rawYaml:
+    # 1) namespace
+    - 00-namespace.yaml
+    # 2) user-defined SBoB (must precede the pod it binds)
+    - sbobs/cp-redis.yaml
+    # 3) workload + a client for cross-pod redis traffic
+    - redis.yaml
+    - client.yaml
+deploy:
+  kubectl:
+    defaultNamespace: ""
+    hooks:
+      after: &sbob-bind-bounce
+        - host:
+            command:
+              - bash
+              - -c
+              - |
+                set -e
+                kubectl -n redis-demo delete pod -l app=redis --ignore-not-found --wait=false 2>/dev/null || true
+                echo "bounced redis pod to bind its User SBoB"
+            os: [linux, darwin]
+profiles:
+  # k3s is the only supported target for now (flannel + hostPort assumptions live
+  # in the soc stack). Explicit profile so cloud targets can be added later.
+  - name: k3s
+    deploy:
+      kubectl:
+        defaultNamespace: ""
+        hooks:
+          after: *sbob-bind-bounce
