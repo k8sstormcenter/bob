@@ -6,6 +6,7 @@ nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
     tag: sbob-rc5s-celnet
+    pullPolicy: Always
   config:
     alertManagerExporterUrls:
       - alertmanager.honey.svc.cluster.local:9093
