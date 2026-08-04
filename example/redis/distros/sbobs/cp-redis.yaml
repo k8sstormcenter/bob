@@ -79,7 +79,21 @@ spec:
     - '{print $1;}'
     path: /usr/bin/gawk
   identifiedCallStacks: null
-  ingress: null
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: 7b1e9c4a2f6d8e0b3c5a1f9d4e7b2c6a8f0d3e5b1c9a4f7d2e6b0c8a3f5d1e9b
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: redis
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/name: redis-client
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
   matchLabels:
     app.kubernetes.io/component: master
     app.kubernetes.io/instance: redis
