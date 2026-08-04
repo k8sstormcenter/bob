@@ -127,3 +127,36 @@ apps:
     # loads. R1001: this node-agent build emits zero R1001 cluster-wide — the
     # drifted exec trips R1000 instead, which IS asserted.
     probe: [R0009, R1001]
+
+  # Redis-protocol distros — same attack surface bound to each vendor SBoB, so
+  # the four cards show the SAME coverage: contrast is a property of the SBoB, not
+  # the distro. R0002/R0004 fire as verified-but-unasserted (runc + attack side
+  # effects). Live-verified with each SBoB bound at deploy (./deploy-distros.sh <d> sbob).
+  - name: redis-oss
+    title: redis (bitnami)
+    out: example/redis/distros/rule-coverage/redis-oss.gif
+    suites: [example/redis/distros/attacks/redis-oss.yaml]
+    observed: [R0002, R0004]
+    probe: [R0009, R0040, R1001, R1002, R1003, R1006, R1011, R1015, R2000]
+    note: bitnami/redis native install, SBoB bound at deploy
+  - name: valkey
+    title: valkey (bitnami)
+    out: example/redis/distros/rule-coverage/valkey.gif
+    suites: [example/redis/distros/attacks/valkey.yaml]
+    observed: [R0002, R0004]
+    probe: [R0009, R0040, R1001, R1002, R1003, R1006, R1011, R1015, R2000]
+    note: bitnami/valkey native install, SBoB bound at deploy
+  - name: keydb
+    title: keydb (enapter)
+    out: example/redis/distros/rule-coverage/keydb.gif
+    suites: [example/redis/distros/attacks/keydb.yaml]
+    observed: [R0002, R0004]
+    probe: [R0009, R0040, R1001, R1002, R1003, R1006, R1011, R1015, R2000]
+    note: enapter/keydb native install, SBoB bound at deploy
+  - name: dragonfly
+    title: dragonfly (operator)
+    out: example/redis/distros/rule-coverage/dragonfly.gif
+    suites: [example/redis/distros/attacks/dragonfly.yaml]
+    observed: [R0002, R0004]
+    probe: [R0009, R0040, R1001, R1002, R1003, R1006, R1011, R1015, R2000]
+    note: dragonfly-operator native install, SBoB bound at deploy

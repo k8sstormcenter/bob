@@ -100,12 +100,12 @@ tests:
   - {name: xinfo,         redis: {command: ["XINFO", "STREAM", "st:s"]}}
   - {name: xtrim,         redis: {command: ["XTRIM", "st:s", "MAXLEN", "100"]}}
 
-  # ── Scripting (Lua) + functions ───────────────────────────────────────────
+  # ── Scripting (Lua) ─────────────────────────────────────────────────────────
+  # keydb 6.x is Redis-6-based: FUNCTION (Redis 7.0 server-side functions) is not
+  # implemented, so only EVAL/SCRIPT are exercised here.
   - {name: eval,          redis: {command: ["EVAL", "return redis.call('SET', KEYS[1], ARGV[1])", "1", "lua:k", "luaval"]}}
   - {name: eval-compute,  redis: {command: ["EVAL", "local t=0 for i=1,100 do t=t+i end return t", "0"]}}
   - {name: script-load,   redis: {command: ["SCRIPT", "LOAD", "return 1"]}}
-  - {name: function-list, redis: {command: ["FUNCTION", "LIST"]}}
-  - {name: function-stats,redis: {command: ["FUNCTION", "STATS"]}}
 
   # NOTE: MULTI/EXEC transactions and SUBSCRIBE/MONITOR/blocking ops are omitted —
   # bobctl's RESP client opens a fresh RESP2 connection per test, so multi-command
