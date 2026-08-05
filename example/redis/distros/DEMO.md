@@ -75,9 +75,11 @@ NA=$(kubectl -n honey get pod -o wide --field-selector spec.nodeName=$MNODE --no
 kubectl -n honey logs -f $NA | grep "Unexpected ingress network"
 ```
 
-Deploy the client (`app: redis-client`, unlisted) — R0012 fires:
+Deploy the client with its own SBoB (so the client's own redis-cli/egress stay
+in-profile and don't self-alert). Unlisted on redis-master — R0012 fires:
 
 ```
+kubectl apply -f sbobs/cp-redis-client.yaml
 kubectl apply -f ../client.yaml
 ```
 
