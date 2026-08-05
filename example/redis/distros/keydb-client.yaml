@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keydb-client
+  namespace: keydb
+  labels:
+    app: keydb-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keydb-client
+  template:
+    metadata:
+      labels:
+        app: keydb-client
+        kubescape.io/ignore: "true"
+    spec:
+      containers:
+        - name: client
+          image: redis:7-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              i=0
+              while true; do
+                redis-cli -h keydb -p 6379 SET "k:$i" "v:$i" >/dev/null
+                i=$((i+1)); sleep 2
+              done
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits: { cpu: 250m, memory: 128Mi }
