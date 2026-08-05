@@ -7,63 +7,35 @@ metadata:
 spec:
   architectures: [amd64]
   execs:
-  - path: /usr/local/bin/source-controller
-    args: [/usr/local/bin/source-controller, ⋯⋯]
+  - {path: /usr/local/bin/source-controller, args: [/usr/local/bin/source-controller, ⋯⋯]}
   opens:
-  - path: /.config/helm/registry/config.json
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /.docker/config.json
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /data
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /data/*
-    flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR]
-  - path: /etc/group
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/hosts
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/localtime
-    flags: [O_RDONLY]
-  - path: /etc/nsswitch.conf
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/passwd
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/resolv.conf
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/ssl/certs
-    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - path: /etc/ssl/certs/ca-certificates.crt
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/cgroup
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/cpuset
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/mountinfo
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/net/core/somaxconn
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/task/⋯/fd
-    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /sys/fs/cgroup/cpu.max
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /sys/kernel/mm/hugepages
-    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-    flags: [O_RDONLY]
-  - path: /tmp
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /tmp/⋯
-    flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
-  - path: /usr/local/bin/source-controller
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /usr/share/ca-certificates/mozilla/⋯
-    flags: [O_CLOEXEC, O_RDONLY]
+  - {path: /.config/helm/registry/config.json, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /.docker/config.json, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /data, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /data/*, flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR]}
+  - {path: /etc/group, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/hosts, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/localtime, flags: [O_RDONLY]}
+  - {path: /etc/nsswitch.conf, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/passwd, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/resolv.conf, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/ssl/certs, flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]}
+  - {path: /etc/ssl/certs/ca-certificates.crt, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/cgroup, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/cpuset, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/mountinfo, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/net/core/somaxconn, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/task/⋯/fd, flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /sys/fs/cgroup/cpu.max, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /sys/kernel/mm/hugepages, flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]}
+  - {path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, flags: [O_RDONLY]}
+  - {path: /tmp, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /tmp/⋯, flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]}
+  - {path: /usr/local/bin/source-controller, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /usr/share/ca-certificates/mozilla/⋯, flags: [O_CLOEXEC, O_RDONLY]}
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   endpoints:
   - direction: inbound
@@ -358,3 +330,42 @@ spec:
     ports:
     - {name: UDP-53, port: 53, protocol: UDP}
     type: internal
+  ingress:
+  - identifier: kubelet-probes
+    type: internal
+    ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
+    ports:
+    - {name: TCP-9440, port: 9440, protocol: TCP}
+    - {name: TCP-8080, port: 8080, protocol: TCP}
+  - identifier: from-kustomize-controller
+    type: internal
+    podSelector:
+      matchLabels: {app: kustomize-controller}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: flux-system}
+    ports:
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+  - identifier: from-helm-controller
+    type: internal
+    podSelector:
+      matchLabels: {app: helm-controller}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: flux-system}
+    ports:
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+  - identifier: from-image-reflector-controller
+    type: internal
+    podSelector:
+      matchLabels: {app: image-reflector-controller}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: flux-system}
+    ports:
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+  - identifier: from-image-automation-controller
+    type: internal
+    podSelector:
+      matchLabels: {app: image-automation-controller}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: flux-system}
+    ports:
+    - {name: TCP-9090, port: 9090, protocol: TCP}

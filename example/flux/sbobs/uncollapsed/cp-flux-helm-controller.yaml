@@ -7,41 +7,24 @@ metadata:
 spec:
   architectures: [amd64]
   execs:
-  - path: /usr/local/bin/helm-controller
-    args: [/usr/local/bin/helm-controller, ⋯⋯]
+  - {path: /usr/local/bin/helm-controller, args: [/usr/local/bin/helm-controller, ⋯⋯]}
   opens:
-  - path: /.kube/config
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/hosts
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/localtime
-    flags: [O_RDONLY]
-  - path: /etc/nsswitch.conf
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/resolv.conf
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/cgroup
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/mountinfo
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/net/core/somaxconn
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /proc/⋯/task/⋯/fd
-    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /sys/fs/cgroup/cpu.max
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /sys/kernel/mm/hugepages
-    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-    flags: [O_RDONLY]
-  - path: /usr/local/bin/helm-controller
-    flags: [O_CLOEXEC, O_RDONLY]
+  - {path: /.kube/config, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/hosts, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/localtime, flags: [O_RDONLY]}
+  - {path: /etc/nsswitch.conf, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/resolv.conf, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/cgroup, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/mountinfo, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/net/core/somaxconn, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/task/⋯/fd, flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /sys/fs/cgroup/cpu.max, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /sys/kernel/mm/hugepages, flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]}
+  - {path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, flags: [O_RDONLY]}
+  - {path: /usr/local/bin/helm-controller, flags: [O_CLOEXEC, O_RDONLY]}
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   endpoints:
   - direction: outbound
@@ -154,3 +137,10 @@ spec:
     ports:
     - {name: TCP-80, port: 80, protocol: TCP}
     type: internal
+  ingress:
+  - identifier: kubelet-probes
+    type: internal
+    ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
+    ports:
+    - {name: TCP-9440, port: 9440, protocol: TCP}
+    - {name: TCP-8080, port: 8080, protocol: TCP}
