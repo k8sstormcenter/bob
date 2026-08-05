@@ -1,0 +1,176 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: redis-client
+  namespace: redis
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  architectures:
+  - amd64
+  capabilities: []
+  execs:
+  - path: /usr/local/bin/redis-cli
+    args:
+    - /usr/local/bin/redis-cli
+    - -h
+    - redis-master
+    - -p
+    - '6379'
+    - SET
+    - ⋯⋯
+  - path: /bin/busybox
+    args:
+    - /bin/sleep
+    - '2'
+  - path: /bin/busybox
+    args:
+    - /bin/sh
+    - -c
+    - "i=0\nwhile true; do\n  redis-cli -h redis-master -p 6379 SET \"k:$i\" \"v:$i\" >/dev/null\n  i=$((i+1)); sleep 2\ndone\n"
+  opens:
+  - flags:
+    - O_LARGEFILE
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    path: /dev/null
+  - flags:
+    - O_RDONLY
+    - O_LARGEFILE
+    - O_CLOEXEC
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    - O_LARGEFILE
+    - O_CLOEXEC
+    path: /etc/ld-musl-x86_64.path
+  - flags:
+    - O_RDONLY
+    - O_LARGEFILE
+    - O_CLOEXEC
+    path: /etc/resolv.conf
+  - flags:
+    - O_LARGEFILE
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /lib/libcrypto.so.3
+  - flags:
+    - O_RDONLY
+    - O_LARGEFILE
+    - O_CLOEXEC
+    path: /lib/libssl.so.3
+  - flags:
+    - O_DIRECTORY
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/vm/overcommit_memory
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/enabled
+  - flags:
+    - O_RDONLY
+    - O_LARGEFILE
+    - O_CLOEXEC
+    path: /usr/lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    - O_LARGEFILE
+    path: /usr/lib/libssl.so.3
+  - flags:
+    - O_RDONLY
+    - O_LARGEFILE
+    - O_CLOEXEC
+    path: /usr/local/lib/libcrypto.so.3
+  - flags:
+    - O_RDONLY
+    - O_LARGEFILE
+    - O_CLOEXEC
+    path: /usr/local/lib/libssl.so.3
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    ipAddress: ''
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: bdae5e0af800f7b8d49b38f0d64180cd548a5812480a538c24f2379fc6ded2bd
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/component: master
+        app.kubernetes.io/instance: redis
+        app.kubernetes.io/name: redis
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  ingress: null
+  matchLabels:
+    app: redis-client
+  syscalls:
+  - arch_prctl
+  - bind
+  - brk
+  - capget
+  - capset
+  - chdir
+  - connect
+  - dup2
+  - epoll_pwait
+  - execve
+  - exit
+  - exit_group
+  - faccessat2
+  - fcntl
+  - fork
+  - fstatfs
+  - getpid
+  - gettid
+  - getuid
+  - ioctl
+  - madvise
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat2
+  - prctl
+  - readlink
+  - recvfrom
+  - recvmsg
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sendto
+  - set_tid_address
+  - setgid
+  - setgroups
+  - setsockopt
+  - sigaltstack
+  - socket
+  - statx
+  - tgkill
+  - tkill
+  - unknown
+  - wait4
+  - writev
+  identifiedCallStacks: null

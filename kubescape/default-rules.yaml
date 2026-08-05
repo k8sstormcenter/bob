@@ -308,14 +308,46 @@ spec:
         ruleExpression:
           - eventType: network
             expression: >-
-              event.pktType == 'OUTGOING' && !net.is_private_ip(event.dstAddr)
+              event.pktType == 'OUTGOING'
+              && !event.dstAddr.startsWith('127.')
               && !cp.was_address_in_egress(event.containerId, event.dstAddr)
+              && !cp.was_selector_in_egress(event.containerId, event.dstNamespace, event.dstPodLabels)
         uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
       id: R0011
       isTriggerAlert: true
       mitreTactic: TA0010
       mitreTechnique: T1041
       name: Unexpected Egress Network Traffic
+      profileDependency: 0
+      severity: 5
+      supportPolicy: false
+      tags:
+        - whitelisted
+        - network
+        - anomaly
+        - networkprofile
+    - description: >-
+        Detecting unexpected ingress network traffic — an inbound connection whose
+        peer is not whitelisted by the application profile ingress.
+      enabled: true
+      expressions:
+        message: >-
+          'Unexpected ingress network communication from: ' + event.dstAddr + ':' +
+          string(event.dstPort) + ' using ' + event.proto + ' to: ' +
+          event.containerName
+        ruleExpression:
+          - eventType: network
+            expression: >-
+              event.pktType == 'HOST'
+              && !event.dstAddr.startsWith('127.')
+              && !cp.was_address_in_ingress(event.containerId, event.dstAddr)
+              && !cp.was_selector_in_ingress(event.containerId, event.dstNamespace, event.dstPodLabels)
+        uniqueId: event.dstAddr + '_' + string(event.dstPort) + '_' + event.proto
+      id: R0012
+      isTriggerAlert: true
+      mitreTactic: TA0011
+      mitreTechnique: T1071
+      name: Unexpected Ingress Network Traffic
       profileDependency: 0
       severity: 5
       supportPolicy: false

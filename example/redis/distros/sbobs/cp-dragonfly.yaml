@@ -61,10 +61,7 @@ spec:
     - --admin_nopass
     path: /usr/bin/setpriv
   - args:
-    - /usr/bin/nc
-    - -q1
-    - localhost
-    - '9999'
+    - ⋯⋯
     path: /usr/bin/nc.openbsd
   - args:
     - /usr/bin/tini
@@ -77,16 +74,7 @@ spec:
     - --admin_nopass
     path: /usr/bin/tini
   - args:
-    - /usr/local/bin/entrypoint.sh
-    - dragonfly
-    - --logtostderr
-    - --alsologtostderr
-    - --break_replication_on_master_restart=true
-    - --primary_port_http_enabled=false
-    - --admin_port=9999
-    - --admin_nopass
-    - /bin/sh
-    - /usr/local/bin/healthcheck.sh
+    - ⋯⋯
     path: /usr/bin/dash
   - args:
     - /usr/bin/id

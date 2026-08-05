@@ -17,35 +17,13 @@ spec:
   egress:
   - dns: ''
     dnsNames: null
-    identifier: e656ed0238ada70c2ec985b2a57b11dbb945d58c1c4e799cbfceaeefe67ebc26
-    namespaceSelector: null
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: keydb
     podSelector:
       matchLabels:
-        app.kubernetes.io/instance: keydb
-        app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keydb
-        app.kubernetes.io/version: 6.3.2
-        apps.kubernetes.io/pod-index: '1'
-        helm.sh/chart: keydb-0.48.0
-        statefulset.kubernetes.io/pod-name: keydb-1
-    ports:
-    - name: TCP-6379
-      port: 6379
-      protocol: TCP
-    type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: acf3acacc39ccc3af4417be8024ad8537d2ca7987f2677ef3a655b4280359f7e
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
         app.kubernetes.io/instance: keydb
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: keydb
-        app.kubernetes.io/version: 6.3.2
-        apps.kubernetes.io/pod-index: '2'
-        helm.sh/chart: keydb-0.48.0
-        statefulset.kubernetes.io/pod-name: keydb-2
     ports:
     - name: TCP-6379
       port: 6379
@@ -109,42 +87,16 @@ spec:
     - --replicaof keydb-2.keydb-headless 6379
     path: /usr/local/bin/keydb-server
   - args:
-    - /health/ping_readiness_local.sh
-    - '1'
-    - /health/ping_liveness_local.sh
-    - '5'
-    - /utils/server.sh
+    - ⋯⋯
     path: /bin/bash
   - args:
-    - /usr/bin/timeout
-    - -s
-    - '15'
-    - '1'
-    - keydb-cli
-    - -h
-    - localhost
-    - -p
-    - '6379'
-    - GET
-    - 90f717dd-0e68-43b8-9363-fddaad00d6c9
-    - '5'
-    - PING
+    - ⋯⋯
     path: /usr/bin/timeout
   - args:
-    - /usr/local/bin/keydb-cli
-    - -h
-    - localhost
-    - -p
-    - '6379'
-    - GET
-    - 90f717dd-0e68-43b8-9363-fddaad00d6c9
-    - PING
+    - ⋯⋯
     path: /usr/local/bin/keydb-cli
   - args:
-    - /bin/sh
-    - -c
-    - /health/ping_readiness_local.sh 1
-    - /health/ping_liveness_local.sh 5
+    - ⋯⋯
     path: /bin/dash
   - args:
     - /bin/hostname
@@ -153,35 +105,13 @@ spec:
   ingress:
   - dns: ''
     dnsNames: null
-    identifier: acf3acacc39ccc3af4417be8024ad8537d2ca7987f2677ef3a655b4280359f7e
-    namespaceSelector: null
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: keydb
     podSelector:
       matchLabels:
-        app.kubernetes.io/instance: keydb
-        app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keydb
-        app.kubernetes.io/version: 6.3.2
-        apps.kubernetes.io/pod-index: '2'
-        helm.sh/chart: keydb-0.48.0
-        statefulset.kubernetes.io/pod-name: keydb-2
-    ports:
-    - name: TCP-6379
-      port: 6379
-      protocol: TCP
-    type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: e656ed0238ada70c2ec985b2a57b11dbb945d58c1c4e799cbfceaeefe67ebc26
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
         app.kubernetes.io/instance: keydb
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: keydb
-        app.kubernetes.io/version: 6.3.2
-        apps.kubernetes.io/pod-index: '1'
-        helm.sh/chart: keydb-0.48.0
-        statefulset.kubernetes.io/pod-name: keydb-1
     ports:
     - name: TCP-6379
       port: 6379

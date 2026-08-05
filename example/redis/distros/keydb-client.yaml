@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-client
-  namespace: redis
+  name: keydb-client
+  namespace: keydb
   labels:
-    app: redis-client
+    app: keydb-client
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redis-client
+      app: keydb-client
   template:
     metadata:
       labels:
-        app: redis-client
-        kubescape.io/user-defined-profile: redis-client
+        app: keydb-client
+        kubescape.io/ignore: "true"
     spec:
       containers:
         - name: client
@@ -24,7 +24,7 @@ spec:
             - |
               i=0
               while true; do
-                redis-cli -h redis-master -p 6379 SET "k:$i" "v:$i" >/dev/null
+                redis-cli -h keydb -p 6379 SET "k:$i" "v:$i" >/dev/null
                 i=$((i+1)); sleep 2
               done
           resources:

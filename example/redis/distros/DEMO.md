@@ -62,3 +62,29 @@ tp=sorted({x["labels"].get("rule_id") for x in al if x.get("startsAt","")>=t0})
 print("functional FPs:", len(fp), dict(Counter(x["labels"].get("rule_id") for x in fp)) or "CLEAN")
 print("attack TPs (distinct rules):", len(tp), tp)'
 ```
+
+## 5. Detect a client, then allowlist it by identity (ingress)
+
+`CP=containerprofiles.spdx.softwarecomposition.kubescape.io`
+
+Watch R0012 on redis-master's node-agent:
+
+```
+MNODE=$(kubectl -n redis get pod redis-master-0 -o jsonpath='{.spec.nodeName}')
+NA=$(kubectl -n honey get pod -o wide --field-selector spec.nodeName=$MNODE --no-headers | awk '/node-agent/{print $1;exit}')
+kubectl -n honey logs -f $NA | grep "Unexpected ingress network"
+```
+
+Deploy the client with its own SBoB (so the client's own redis-cli/egress stay
+in-profile and don't self-alert). Unlisted on redis-master — R0012 fires:
+
+```
+kubectl apply -f sbobs/cp-redis-client.yaml
+kubectl apply -f ../client.yaml
+```
+
+Allowlist that identity — R0012 stops within ~30s (profile-projection refresh):
+
+```
+kubectl -n redis patch $CP redis --type merge -p '{"spec":{"ingress":[{"type":"internal","podSelector":{"matchLabels":{"app":"redis-client"}},"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"redis"}},"ports":[{"name":"TCP-6379","port":6379,"protocol":"TCP"}]}]}}'
+```
