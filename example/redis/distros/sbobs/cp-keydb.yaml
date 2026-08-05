@@ -109,42 +109,16 @@ spec:
     - --replicaof keydb-2.keydb-headless 6379
     path: /usr/local/bin/keydb-server
   - args:
-    - /health/ping_readiness_local.sh
-    - '1'
-    - /health/ping_liveness_local.sh
-    - '5'
-    - /utils/server.sh
+    - ⋯⋯
     path: /bin/bash
   - args:
-    - /usr/bin/timeout
-    - -s
-    - '15'
-    - '1'
-    - keydb-cli
-    - -h
-    - localhost
-    - -p
-    - '6379'
-    - GET
-    - 90f717dd-0e68-43b8-9363-fddaad00d6c9
-    - '5'
-    - PING
+    - ⋯⋯
     path: /usr/bin/timeout
   - args:
-    - /usr/local/bin/keydb-cli
-    - -h
-    - localhost
-    - -p
-    - '6379'
-    - GET
-    - 90f717dd-0e68-43b8-9363-fddaad00d6c9
-    - PING
+    - ⋯⋯
     path: /usr/local/bin/keydb-cli
   - args:
-    - /bin/sh
-    - -c
-    - /health/ping_readiness_local.sh 1
-    - /health/ping_liveness_local.sh 5
+    - ⋯⋯
     path: /bin/dash
   - args:
     - /bin/hostname
