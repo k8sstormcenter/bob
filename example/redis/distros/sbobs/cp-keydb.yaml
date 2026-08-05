@@ -17,35 +17,13 @@ spec:
   egress:
   - dns: ''
     dnsNames: null
-    identifier: e656ed0238ada70c2ec985b2a57b11dbb945d58c1c4e799cbfceaeefe67ebc26
-    namespaceSelector: null
-    podSelector:
+    namespaceSelector: &id001
       matchLabels:
-        app.kubernetes.io/instance: keydb
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: keydb
-        app.kubernetes.io/version: 6.3.2
-        apps.kubernetes.io/pod-index: '1'
-        helm.sh/chart: keydb-0.48.0
-        statefulset.kubernetes.io/pod-name: keydb-1
-    ports:
-    - name: TCP-6379
-      port: 6379
-      protocol: TCP
-    type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: acf3acacc39ccc3af4417be8024ad8537d2ca7987f2677ef3a655b4280359f7e
-    namespaceSelector: null
-    podSelector:
+        kubernetes.io/metadata.name: keydb
+    podSelector: &id002
       matchLabels:
-        app.kubernetes.io/instance: keydb
-        app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: keydb
-        app.kubernetes.io/version: 6.3.2
-        apps.kubernetes.io/pod-index: '2'
-        helm.sh/chart: keydb-0.48.0
-        statefulset.kubernetes.io/pod-name: keydb-2
+        app.kubernetes.io/instance: keydb
     ports:
     - name: TCP-6379
       port: 6379
@@ -127,35 +105,8 @@ spec:
   ingress:
   - dns: ''
     dnsNames: null
-    identifier: acf3acacc39ccc3af4417be8024ad8537d2ca7987f2677ef3a655b4280359f7e
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
-        app.kubernetes.io/instance: keydb
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: keydb
-        app.kubernetes.io/version: 6.3.2
-        apps.kubernetes.io/pod-index: '2'
-        helm.sh/chart: keydb-0.48.0
-        statefulset.kubernetes.io/pod-name: keydb-2
-    ports:
-    - name: TCP-6379
-      port: 6379
-      protocol: TCP
-    type: internal
-  - dns: ''
-    dnsNames: null
-    identifier: e656ed0238ada70c2ec985b2a57b11dbb945d58c1c4e799cbfceaeefe67ebc26
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
-        app.kubernetes.io/instance: keydb
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: keydb
-        app.kubernetes.io/version: 6.3.2
-        apps.kubernetes.io/pod-index: '1'
-        helm.sh/chart: keydb-0.48.0
-        statefulset.kubernetes.io/pod-name: keydb-1
+    namespaceSelector: *id001
+    podSelector: *id002
     ports:
     - name: TCP-6379
       port: 6379
