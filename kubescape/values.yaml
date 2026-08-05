@@ -20,11 +20,6 @@ nodeAgent:
       ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
-  # The SBoB demo is runtime-detection only. Disable every scanning capability
-  # the chart enables by default so those components are never installed — this
-  # is both a big install-time speedup (no kubescape config-scanner, no kubevuln,
-  # no host node-scanner, no SBOM generation, no schedulers) and removes work the
-  # demo does not use. Only storage + node-agent + the alert wiring remain.
   configurationScan: disable
   nodeScan: disable
   nodeSbomGeneration: disable
