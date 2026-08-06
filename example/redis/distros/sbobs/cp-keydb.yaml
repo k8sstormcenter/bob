@@ -17,6 +17,7 @@ spec:
   egress:
   - dns: ''
     dnsNames: null
+    identifier: afe5ca3e8244ca0102df670e40835118b4323ea427580969ab1e06a48d10385a
     namespaceSelector:
       matchLabels:
         kubernetes.io/metadata.name: keydb
@@ -105,6 +106,21 @@ spec:
   ingress:
   - dns: ''
     dnsNames: null
+    identifier: 9f60989176d22fb09f6077bb9550021635028e7583242bd8ff666a2dcc8ae7c8
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: keydb
+    podSelector:
+      matchLabels:
+        app: keydb-client
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: 9e047607d4fc16d05bbc415eee1e2298a1f59440a9e8b7b503c3518823ff7d1a
     namespaceSelector:
       matchLabels:
         kubernetes.io/metadata.name: keydb

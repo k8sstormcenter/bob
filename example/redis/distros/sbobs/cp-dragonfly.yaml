@@ -105,6 +105,20 @@ spec:
   ingress:
   - dns: ''
     dnsNames: null
+    identifier: fe4b31a700d52bc2ef3c8ba59b0c3b393d268d00554b17ee746ef9123e1635a9
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: dragonfly
+    podSelector:
+      matchLabels:
+        app: dragonfly-client
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
     identifier: 2d835421bcdfe17f2e02213f16e86264cdc03dc424c766dc83b9d3ae53f1960a
     namespaceSelector:
       matchLabels:

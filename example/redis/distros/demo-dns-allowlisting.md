@@ -65,9 +65,9 @@ Both peers are there, recorded by **identity**:
 not an address. This is deliberate and is the whole point of the selector work:
 pod IPs go stale on reschedule, identities do not.
 
-## 5. Why it alerted anyway
+## 5. Why it alerted, and what fixed it
 
-R0011 matched peers **only** by address:
+R0011 originally matched peers **only** by address:
 
 ```
 event.pktType == 'OUTGOING'
@@ -76,23 +76,37 @@ event.pktType == 'OUTGOING'
 ```
 
 `was_address_in_egress` reads `ipAddress`/`ipAddresses`. Against a
-selector-shaped entry it can never match, so a correctly-learned client alerts
-forever, on every packet, and no amount of relearning fixes it. R0012 (ingress)
-already checked both forms; R0011 checked one. This is closed by adding the
-selector arm, exactly mirroring R0012:
+selector-shaped entry it can never match, so a correctly-learned client alerted
+forever and relearning did not help. R0012 (ingress) already checked both forms.
+
+That is fixed in `main` — R0011 now carries the selector arm too:
 
 ```
 && !cp.was_selector_in_egress(event.containerId, event.dstNamespace, event.dstPodLabels)
 ```
 
-`cp.was_selector_in_egress` ships in the pinned `sbob-rc5s-celnet` node-agent
-alongside `cp.was_selector_in_ingress`; it was simply never wired into a rule.
+With it, the same client, unchanged, is silent: **0 R0011**.
 
-With that in place the same client, unchanged, is silent:
+### Egress selectors must each carry a distinct `identifier`
+
+`identifier` is storage's **merge key** for network entries. Two egress entries
+that share one — including two entries that both leave it empty — are merged
+into a single entry on write: the second `podSelector` is dropped and only the
+ports are unioned. The profile then looks plausible but has silently lost a
+peer, and that peer alerts forever.
+
+Symptom, from a profile written without identifiers:
 
 ```
-client alerts: 0 R0011
+egress:                       # two entries applied
+- podSelector: {k8s-app: kube-dns}          ports: [UDP-53]
+- podSelector: {app.kubernetes.io/name: valkey}  ports: [TCP-6379]
+
+egress:                       # one entry stored
+- podSelector: {app.kubernetes.io/name: valkey}  ports: [UDP-53, TCP-6379]
 ```
+
+Every entry in the committed SBoBs therefore carries an explicit identifier.
 
 ## 6. Allowlisting a peer that has no identity
 
@@ -111,7 +125,60 @@ Prefer a selector when the peer is a pod. Reach for a CIDR only when it is not,
 and keep it as tight as the peer allows — a wide range here is a real egress
 hole, and `*` allowlists every destination.
 
-## 7. What this demo does not cover
+## 7. Ingress on the server
+
+The mirror step — allowlisting the client on the **server's** ingress — is in
+these SBoBs as an entry naming the client's identity, e.g. `sbobs/cp-valkey.yaml`:
+
+```yaml
+ingress:
+- podSelector:       {matchLabels: {app: valkey-client}}
+  namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: valkey}}
+  ports: [{name: TCP-6379, port: 6379, protocol: TCP}]
+```
+
+This works. Instrumenting `wasSelectorIn` shows the comparison succeeding:
+
+```
+INGRESS | peer_ns=valkey
+        | peer_labels=map[app:valkey-client kubescape.io/user-defined-profile:valkey-client ...]
+        | profile_selectors=[pod=map[app:valkey-client] ns=map[kubernetes.io/metadata.name:valkey]]
+        | match=true
+```
+
+### Expect exactly one alert at pod start
+
+R0012 fires **once** per workload right after a client pod starts, then goes
+quiet. Measured across a client restart: valkey at +2s, keydb at +3s, one alert
+each, nothing after. Until Inspektor Gadget's kubeipresolver has the new pod in
+its inventory the peer resolves with no labels, and a peer with no labels cannot
+satisfy any `podSelector` — `wasSelectorIn` returns false by design.
+
+Do not mistake that single startup alert for the allowlist failing. Equally, do
+not "fix" it by putting the **server's own** labels in its ingress list: that
+matches every inbound peer and allowlists the whole cluster.
+
+### Selectors must use labels the resolver actually reports
+
+The identity the rule matches against is what kubeipresolver stamps on the
+event, which is not always the full set the API server shows. Dragonfly is the
+case in point — the pod carries `role: master`, but the resolved peer does not:
+
+```
+peer_labels = map[app:dragonfly app.kubernetes.io/component:dragonfly
+                  app.kubernetes.io/instance:dragonfly
+                  app.kubernetes.io/managed-by:dragonfly-operator
+                  app.kubernetes.io/name:dragonfly ...]      # no role:
+pod labels  = {"app":"dragonfly", ..., "role":"master", ...}
+```
+
+The learner records the API-server view, so the learned egress selector for
+`dragonfly-client` contained `role: master` and never matched: 127 R0011 in a
+steady-state window. Narrowing the selector to `app: dragonfly` alone takes it
+to 0. `cp-dragonfly-client.yaml` therefore ships the stable subset, not the raw
+learned selector.
+
+## 8. What this demo does not cover
 
 The client still raises **R0040** (`Unexpected process arguments`) for each
 `redis-cli` invocation, because it has no user-defined profile pinning those
