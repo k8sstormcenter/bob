@@ -1,0 +1,120 @@
+# Fork 1: official PostgreSQL (docker library `postgres:17`).
+# Same shape as example/postgres/cluster.yaml (CNPG) but a plain Deployment:
+# a postgres server + a pg-client pod (SAME upstream image, so it carries psql/
+# pgbench/pg_dump/…) where the functional suite and attacks exec. The SBoB binds
+# to pg-client (client-side contrast leg).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgres-oss
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: postgres-oss
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        bob.k8sstormcenter.io/distro: postgres-oss
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          env:
+            - name: POSTGRES_DB
+              value: app
+            - name: POSTGRES_USER
+              value: app
+            - name: POSTGRES_PASSWORD
+              value: bobtest
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+              name: pg
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: initdb
+          configMap:
+            name: postgres-initdb
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+  namespace: postgres-oss
+data:
+  10-bobtest.sql: |
+    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+    CREATE TABLE IF NOT EXISTS bobtest (
+      id SERIAL PRIMARY KEY, key TEXT NOT NULL, value TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW());
+    INSERT INTO bobtest (key, value) VALUES ('init', 'baseline');
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: postgres-oss
+spec:
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pg-client
+  namespace: postgres-oss
+  labels:
+    app: pg-client
+    app.kubernetes.io/name: pg-client
+spec:
+  containers:
+    - name: pg-client
+      image: postgres:17
+      command: ["sleep", "infinity"]
+      env:
+        - name: PGHOST
+          value: postgres
+        - name: PGPORT
+          value: "5432"
+        - name: PGDATABASE
+          value: app
+        - name: PGUSER
+          value: app
+        - name: PGPASSWORD
+          value: bobtest
+  restartPolicy: Never
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-client
+  namespace: postgres-oss
+spec:
+  selector:
+    app: pg-client
+  clusterIP: None
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
