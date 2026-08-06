@@ -32,6 +32,10 @@ spec:
     path: /proc/⋯/task/1/fd
   - flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY]
     path: /proc/⋯/vm/overcommit_memory
+  - path: /run/secrets/kubernetes.io/serviceaccount
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
   - flags: [O_CLOEXEC, O_LARGEFILE, O_NONBLOCK, O_RDONLY]
     path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
   - flags: [O_LARGEFILE, O_RDONLY]

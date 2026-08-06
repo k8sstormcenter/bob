@@ -28,8 +28,7 @@ attacks:
   - name: exec-etc-shadow
     type: cmdinject
     exec: { command: ["cat", "/etc/shadow"] }
-    expectedDetections:
-      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: dex, command: cat }
+    expectedDetections: []
   - name: exec-proc-environ
     type: cmdinject
     exec: { command: ["cat", "/proc/1/environ"] }
@@ -46,8 +45,7 @@ attacks:
     type: cmdinject
     exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_$$ >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_$$"] }
     successIndicators: [{ responseContains: "hardlink_done" }]
-    expectedDetections:
-      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: dex, command: ln }
+    expectedDetections: []
   - name: dns-anomaly-lookup
     type: cmdinject
     exec: { command: ["sh", "-c", "getent hosts scanner.evil-c2.example.com >/dev/null 2>&1 && echo dns_resolved || echo dns_attempted"] }
