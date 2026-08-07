@@ -1,0 +1,706 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: flux-kustomize-controller
+  namespace: flux-system
+  annotations: {kubescape.io/managed-by: User}
+spec:
+  architectures: [amd64]
+  execs:
+  - {path: /sbin/tini, args: [/sbin/tini, ⋯⋯]}
+  - {path: /usr/local/bin/kustomize-controller, args: [/usr/local/bin/kustomize-controller, ⋯⋯]}
+  opens:
+  - {path: /.yaml, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/hosts, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/localtime, flags: [O_RDONLY]}
+  - {path: /etc/nsswitch.conf, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /etc/resolv.conf, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/cgroup, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/mountinfo, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/net/core/somaxconn, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /proc/⋯/task/⋯/fd, flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /sys/fs/cgroup/cpu.max, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, flags: [O_RDONLY]}
+  - {path: /tmp, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /tmp/⋯, flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR]}
+  - {path: /tmp/⋯/.cosign, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/.cosign/README.md, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/.cosign/cosign.pub, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/.notation, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/.notation/README.md, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/.notation/codesign.cnf, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/.notation/notation.crt, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/.notation/signingkeys.json, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/.notation/trustpolicy.json, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/Dockerfile, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/Dockerfile.base, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/Dockerfile.xx, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/Kustomization, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /tmp/⋯/LICENSE, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/Makefile, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/README.md, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/charts/podinfo, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/charts/podinfo/.helmignore, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/Chart.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/LICENSE, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/README.md, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/NOTES.txt, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/_helpers.tpl, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/certificate.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/grpcroute.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/hooks, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/hooks/job.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/hpa.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/httproute.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/ingress.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/linkerd.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/pdb.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/redis, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/redis/config.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/redis/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/redis/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/serviceaccount.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/servicemonitor.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/tests, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/tests/cache.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/tests/fail.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/tests/grpc.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/tests/jwt.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/tests/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/tests/timeout.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/templates/tests/tls.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/values-prod.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/charts/podinfo/values.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/cmd, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/cmd/podcli, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/cmd/podcli/check.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/cmd/podcli/main.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/cmd/podcli/version.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/cmd/podcli/ws.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/cmd/podinfo, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/cmd/podinfo/main.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/README.md, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/bases/backend, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/bases/backend/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/backend/hpa.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/backend/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/backend/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/cache, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/bases/cache/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/cache/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/cache/redis.conf, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/cache/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/README.md, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/cronjob-backup-daily.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/cronjob-rollup-daily.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/cronjob-rollup-weekly.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/deployment-replica.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/hpa-replica.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/pvc-primary.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/scripts, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/scripts/backup.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/scripts/rollup.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/service-primary.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/service-replica.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/serviceaccount.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/database/statefulset-primary.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/cronjob-warm-cache.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/hpa.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/scripts, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/scripts/warm-cache-init.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/scripts/warm-cache.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/bases/frontend/serviceaccount.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/kind.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/overlays/dev, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/overlays/dev/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays/dev/labels.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays/dev/namespace.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays/production, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/overlays/production/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays/production/labels.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays/production/namespace.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays/staging, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/overlays/staging/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays/staging/labels.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/overlays/staging/namespace.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/secure/backend, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/secure/backend/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/backend/hpa.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/backend/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/common, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/secure/common/cluster-issuer.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/common/namespace.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/common/reconciler-rbac.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/common/service-account.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/frontend, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/secure/frontend/certificate.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/frontend/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/frontend/hpa.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/secure/frontend/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/webapp/backend, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/webapp/backend/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp/backend/hpa.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp/backend/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp/common, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/webapp/common/namespace.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp/common/reconciler-rbac.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp/common/service-account.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp/frontend, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/deploy/webapp/frontend/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp/frontend/hpa.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/deploy/webapp/frontend/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/go.mod, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/go.sum, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/kustomization.yml, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /tmp/⋯/kustomize, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/kustomize/Kustomization, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /tmp/⋯/kustomize/deployment.yaml, flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/kustomize/hpa.yaml, flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/kustomize/kustomization.yaml, flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/kustomize/kustomization.yml, flags: [O_CLOEXEC, O_RDONLY]}
+  - {path: /tmp/⋯/kustomize/service.yaml, flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/otel, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/otel/Makefile, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/otel/README.md, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/otel/docker-compose.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/otel/grafana-datasources.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/otel/otel-config.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/cache.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/chunked.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/chunked_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/configs.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/delay.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/delay_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/docs, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/docs/docs.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/docs/swagger.json, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/docs/swagger.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/echo.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/echo_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/echows.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/env.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/env_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/delay, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/delay.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/delay/delay.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/delay/delay.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/delay/delay_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/delay_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/echo, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/echo.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/echo/echo.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/echo/echo.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/echo/echo_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/echo_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/env, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/env.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/env/env.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/env/env.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/env/env_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/env_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/headers, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/headers.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/headers/headers.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/headers/headers.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/headers/headers_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/headers_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/info, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/info.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/info/info.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/info/info.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/info/info_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/info_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/mock_grpc.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/panic, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/panic.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/panic/panic.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/panic/panic.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/panic/panic_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/server.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/status, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/status.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/status/status.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/status/status.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/status/status_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/status_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/token, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/token.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/token/token.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/token/token.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/token/token_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/token_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/version, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/version.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/version/version.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/version/version.proto, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/version/version_grpc.pb.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/grpc/version_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/headers.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/headers_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/health.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/health_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/http.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/body_limit_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/cache.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/cache_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/chunked.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/chunked_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/configs.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/configs_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/delay.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/delay_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/docs, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/api/http/docs/docs.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/docs/swagger.json, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/docs/swagger.yaml, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/echo.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/echo_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/echows.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/echows_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/env.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/env_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/fault_injection.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/fault_injection_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/headers.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/headers_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/health.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/health_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/http.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/http_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/index.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/info.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/info_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/logging.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/metrics.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/mock.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/panic.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/server.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/server_prefix_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/status.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/status_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/store.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/store_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/token.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/token_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/tracer.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/version.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/http/version_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/index.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/info.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/info_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/logging.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/metrics.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/mock.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/panic.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/server.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/status.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/status_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/store.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/token.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/token_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/tracer.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/version.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/api/version_test.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/fscache, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/fscache/fscache.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/grpc, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/grpc/server.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/signals, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/signals/shutdown.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/signals/signal.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/signals/signal_posix.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/signals/signal_windows.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/pkg/version, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/pkg/version/version.go, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/podinfo.yaml, flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/test, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/test/build.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/test/deploy.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/test/e2e.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/test/test.sh, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/bundles, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/bundles/test.podinfo.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/README.md, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admission, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admission/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admission/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admission/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admissionregistration, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admissionregistration/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admissionregistration/v1/doc_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admissionregistration/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/admissionregistration/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/apps, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/apps/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/apps/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/apps/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/authentication, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/authentication/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/authentication/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/authentication/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/authorization, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/authorization/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/authorization/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/authorization/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/autoscaling, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/autoscaling/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/autoscaling/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/autoscaling/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/autoscaling/v2, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/autoscaling/v2/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/autoscaling/v2/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/batch, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/batch/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/batch/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/batch/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/certificates, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/certificates/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/certificates/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/certificates/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/coordination, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/coordination/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/coordination/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/coordination/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/core, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/core/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/core/v1/annotation_key_constants_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/core/v1/doc_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/core/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/core/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/core/v1/well_known_labels_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/core/v1/well_known_taints_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/discovery, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/discovery/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/discovery/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/discovery/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/discovery/v1/well_known_labels_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/events, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/events/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/events/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/events/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/networking, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/networking/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/networking/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/networking/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/networking/v1/well_known_annotations_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/node, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/node/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/node/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/node/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/policy, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/policy/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/policy/v1/doc_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/policy/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/policy/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/rbac, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/rbac/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/rbac/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/rbac/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/scheduling, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/scheduling/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/scheduling/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/scheduling/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/storage, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/storage/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/storage/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/api/storage/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver/pkg, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver/pkg/apis, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1/doc_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1/types_jsonschema_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/api, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/api/resource, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/api/resource/amount_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/api/resource/math_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/api/resource/quantity_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/api/resource/suffix_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/duration_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/group_version_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/meta_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/micro_time_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/register_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/time_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/time_proto_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/apis/meta/v1/watch_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/allocator_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/codec_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/conversion_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/converter_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/doc_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/embedded_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/helper_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/interfaces_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/negotiate_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/splice_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/swagger_doc_generator_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/types_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/runtime/types_proto_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/types, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/types/doc_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/types/namespacedname_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/types/nodename_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/types/patch_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/types/uid_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/util, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/util/intstr, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/util/intstr/intstr_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/watch, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/watch/doc_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/watch/filter_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/watch/mux_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/watch/streamwatcher_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/k8s.io/apimachinery/pkg/watch/watch_go_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/alertmanager, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/alertmanager/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/alertmanager/v1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/alertmanagerconfig, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/alertmanagerconfig/v1alpha1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/alertmanagerconfig/v1alpha1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/podmonitor, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/podmonitor/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/podmonitor/v1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/probe, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/probe/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/probe/v1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheus, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheus/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheus/v1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheusagent, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheusagent/v1alpha1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheusagent/v1alpha1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheusrule, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheusrule/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/prometheusrule/v1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/scrapeconfig, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/scrapeconfig/v1alpha1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/scrapeconfig/v1alpha1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/servicemonitor, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/servicemonitor/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/servicemonitor/v1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/thanosruler, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/thanosruler/v1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/gen/monitoring.coreos.com/thanosruler/v1/types_gen.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/module.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core/v1alpha1, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core/v1alpha1/action.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core/v1alpha1/image.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core/v1alpha1/instance.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core/v1alpha1/metadata.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core/v1alpha1/requirements.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core/v1alpha1/selector.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/cue.mod/pkg/timoni.sh/core/v1alpha1/semver.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/debug_tool.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/debug_values.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates/config.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates/deployment.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates/hpa.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates/ingress.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates/job.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates/service.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates/serviceaccount.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/templates/servicemonitor.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/timoni.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/timoni/podinfo/values.cue, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /tmp/⋯/ui, flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]}
+  - {path: /tmp/⋯/ui/vue.html, flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]}
+  - {path: /usr/local/bin/kustomize-controller, flags: [O_CLOEXEC, O_RDONLY]}
+  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
+  endpoints:
+  - direction: inbound
+    endpoint: :9440/healthz
+    headers:
+      Connection: [close]
+      Host: ['*:9440']
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-6/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-8/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :9440/readyz
+    headers:
+      Connection: [close]
+      Host: ['*:9440']
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [notification-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [POST]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-4/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/gitrepository/flux-system/podinfo/eec06d1ea459af4cb4e10e806f8be7c7bd58b361.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-0/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-3/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-7/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-1/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-5/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/gitrepository/flux-system/podinfo-tag/33dac1ba40f73555725fbf620bf3b4f6f1a5ad89.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-9/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
+    endpoint: :80/ocirepository/kustomize-benchmark/podinfo-ks-2/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766.tar.gz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  rulePolicies:
+    R0002:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0004:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0006:
+      processAllowed: [tini, kustomize-contr]
+  matchLabels: {app: kustomize-controller}
+  egress:
+  - identifier: ab59749df52a78595af091ff332d12b0887696bd8448dc34b9da2dc926873a50
+    namespaceSelector: null
+    podSelector:
+      matchLabels: {app: notification-controller}
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    type: internal
+  - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: default}
+    podSelector:
+      matchLabels: {component: apiserver, provider: kubernetes}
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: internal
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: kube-system}
+    podSelector:
+      matchLabels: {k8s-app: kube-dns}
+    ports:
+    - {name: UDP-53, port: 53, protocol: UDP}
+    type: internal
+  - identifier: fe58df7a963551c0c6867f7e656900c1f1ee38c7a31a4e4da6aca7bb1e4be988
+    namespaceSelector: null
+    podSelector:
+      matchLabels: {app: source-controller}
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    type: internal
+  ingress:
+  - identifier: kubelet-probes
+    type: internal
+    ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
+    ports:
+    - {name: TCP-9440, port: 9440, protocol: TCP}
+    - {name: TCP-8080, port: 8080, protocol: TCP}

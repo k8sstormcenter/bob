@@ -109,6 +109,37 @@ deploy-argocd:
 	@echo "=== Argo CD subcomponents ==="
 	kubectl get pods -n argocd
 
+FLUX_VERSION ?= v2.9.3
+FLUX ?= $(shell command -v flux 2>/dev/null || echo /mnt/dev-data/bin/flux)
+.PHONY: deploy-flux
+deploy-flux:
+	$(FLUX) install --namespace=flux-system \
+		--components-extra=image-reflector-controller,image-automation-controller \
+		--export > /tmp/flux-install.yaml
+	kubectl apply -f /tmp/flux-install.yaml
+	kubectl apply -f example/flux-vulnerable.yaml
+	kubectl apply -f example/flux/flux-collapse-config.yaml
+	-kubectl rollout status -n flux-system deploy/source-controller             --timeout=300s
+	-kubectl rollout status -n flux-system deploy/kustomize-controller          --timeout=300s
+	-kubectl rollout status -n flux-system deploy/helm-controller               --timeout=300s
+	-kubectl rollout status -n flux-system deploy/notification-controller       --timeout=300s
+	-kubectl rollout status -n flux-system deploy/image-reflector-controller    --timeout=300s
+	-kubectl rollout status -n flux-system deploy/image-automation-controller   --timeout=300s
+	$(FLUX) check
+	kubectl get pods -n flux-system
+
+FLUX_BENCH_KS ?= 20
+FLUX_BENCH_HR ?= 10
+FLUX_BENCH_ROUNDS ?= 1
+.PHONY: flux-benchmark
+flux-benchmark:
+	KS=$(FLUX_BENCH_KS) HR=$(FLUX_BENCH_HR) ROUNDS=$(FLUX_BENCH_ROUNDS) \
+		example/flux/benchmark/run-flux-benchmark.sh
+
+.PHONY: flux-benchmark-down
+flux-benchmark-down:
+	example/flux/benchmark/run-flux-benchmark.sh --teardown
+
 .PHONY: deploy-postgres
 deploy-postgres:
 	@echo "=== Deploying postgres (CloudNativePG) ==="
@@ -270,9 +301,14 @@ kubescape-orig:
 # default is false and privileged node-agent has crashed this host.
 #
 #
+# --post-renderer is NOT used by any default path. helm 3 and helm 4 disagree on
+# whether it takes a path or a plugin name, so anything on the critical path that
+# depends on it breaks on every helm bump. KS_RUNC_MNT is applied with a plain
+# -f overlay instead (see KS_RUNC_MNT_FLAGS below). This stays only for ad-hoc
+# use: make kubescape KS_POST_RENDER=1
 KS_POST_RENDER ?=
 KS_POST_RENDERER := ./kubescape/post-render.sh
-KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER)$(KS_RUNC_MNT),--post-renderer $(KS_POST_RENDERER))
+KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER),--post-renderer $(KS_POST_RENDERER))
 
 # node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
 # (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths
@@ -327,11 +363,20 @@ $(error KS_RUNC must be an absolute path on the cluster NODE, got "$(KS_RUNC)")
 endif
 endif
 
-# Only the env var goes through helm; the filesystem mount that KS_RUNC_MNT
-# implies is applied by $(KS_POST_RENDERER), which reads it from the
-# environment — hence the export.
-export KS_RUNC_MNT
 KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC))
+
+# The filesystem mount KS_RUNC_MNT implies is a generated values overlay applied
+# with -f. That behaves identically under helm 3 and helm 4; --post-renderer does
+# not, which is why it is no longer on this path.
+KS_RUNC_MNT_VALUES := /tmp/ks-runc-mount-values.yaml
+KS_RUNC_MNT_FLAGS := $(if $(KS_RUNC_MNT),-f $(KS_RUNC_MNT_VALUES))
+
+.PHONY: ks-runc-mount-values
+ks-runc-mount-values:
+ifneq ($(KS_RUNC_MNT),)
+	python3 scripts/gen-runc-mount-values.py --version $(KUBESCAPE_CHART_VER) \
+		--mount $(KS_RUNC_MNT) -o $(KS_RUNC_MNT_VALUES)
+endif
 
 #
 KS_LEARN_PERIOD ?=
@@ -365,12 +410,13 @@ show-runc:
 	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS)$(KS_LEARN_FLAGS),$(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS),(none))"
 
 .PHONY: kubescape
-kubescape:
+kubescape: ks-runc-mount-values
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_RUNC_MNT_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f kubescape/default-rules.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
+	kubectl apply -f kubescape/collapse-config.yaml
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
 # restart: node-agent binds user-supplied profiles and starts its learning
@@ -403,7 +449,7 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_RUNC_MNT_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent

@@ -68,6 +68,54 @@ case "$APP" in
     # listing order.
     PROFILE_MATCH=replicaset-mariadb-client
     ;;
+  flux-source-controller)
+    NS=flux-system
+    SUITE=example/flux-source-controller-attacks.yaml
+    FUNCTESTS=example/flux-source-controller-functional-tests.yaml
+    PROFILE_MATCH=source-controller-.*-manager
+    SERVICE=source-controller
+    SERVICE_PORT=80
+    ;;
+  flux-kustomize-controller)
+    NS=flux-system
+    SUITE=example/flux-kustomize-controller-attacks.yaml
+    FUNCTESTS=example/flux-kustomize-controller-functional-tests.yaml
+    PROFILE_MATCH=kustomize-controller-.*-manager
+    SERVICE=kustomize-controller
+    SERVICE_PORT=8080
+    ;;
+  flux-helm-controller)
+    NS=flux-system
+    SUITE=example/flux-helm-controller-attacks.yaml
+    FUNCTESTS=example/flux-helm-controller-functional-tests.yaml
+    PROFILE_MATCH=helm-controller-.*-manager
+    SERVICE=helm-controller
+    SERVICE_PORT=8080
+    ;;
+  flux-notification-controller)
+    NS=flux-system
+    SUITE=example/flux-notification-controller-attacks.yaml
+    FUNCTESTS=example/flux-notification-controller-functional-tests.yaml
+    PROFILE_MATCH=notification-controller-.*-manager
+    SERVICE=notification-controller
+    SERVICE_PORT=80
+    ;;
+  flux-image-reflector-controller)
+    NS=flux-system
+    SUITE=example/flux-image-reflector-controller-attacks.yaml
+    FUNCTESTS=example/flux-image-reflector-controller-functional-tests.yaml
+    PROFILE_MATCH=image-reflector-controller-.*-manager
+    SERVICE=image-reflector-controller
+    SERVICE_PORT=8080
+    ;;
+  flux-image-automation-controller)
+    NS=flux-system
+    SUITE=example/flux-image-automation-controller-attacks.yaml
+    FUNCTESTS=example/flux-image-automation-controller-functional-tests.yaml
+    PROFILE_MATCH=image-automation-controller-.*-manager
+    SERVICE=image-automation-controller
+    SERVICE_PORT=8080
+    ;;
   argocd-server)
     NS=argocd
     SUITE=example/argocd-server-attacks.yaml

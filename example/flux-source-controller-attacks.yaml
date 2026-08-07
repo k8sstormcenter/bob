@@ -1,0 +1,66 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata: {name: source-controller-killchain, description: 'Flux source-controller contrast leg. Every assertion below was verified to fire on a live flux-system deployment with a learned profile present; rules that did not fire are probes with expectedDetections: [].'}
+target: {service: source-controller, namespace: flux-system, port: 80, protocol: tcp}
+attacks:
+- name: exec-etc-shadow
+  type: cmdinject
+  exec:
+    command: [cat, /etc/shadow]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: manager, command: cat}
+  - {ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: manager, command: cat}
+- name: symlink-shadow
+  type: cmdinject
+  exec:
+    command: [sh, -c, rm -f /tmp/sl_$$; ln -s /etc/shadow /tmp/sl_$$ && echo symlink_done; rm -f /tmp/sl_$$]
+  successIndicators:
+  - {responseContains: symlink_done}
+  expectedDetections:
+  - {ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: manager, command: ln}
+- name: hardlink-shadow
+  type: cmdinject
+  exec:
+    command: [sh, -c, ln /etc/shadow /tmp/hl_$$ >/dev/null 2>&1; echo hardlink_attempted; rm -f /tmp/hl_$$]
+  successIndicators:
+  - {responseContains: hardlink_attempted}
+  expectedDetections:
+  - {ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: manager, command: ln}
+- name: dns-anomaly-lookup
+  type: cmdinject
+  exec:
+    command: [sh, -c, getent hosts scanner.evil-c2.example.com >/dev/null 2>&1; echo dns_attempted]
+  successIndicators:
+  - {responseContains: dns_attempted}
+  expectedDetections:
+  - {ruleID: R0005, ruleName: DNS Anomalies in container, containerName: manager}
+- name: egress-external-c2
+  type: cmdinject
+  exec:
+    command: [sh, -c, 'wget -q -T 5 -O /dev/null http://1.1.1.1/ >/dev/null 2>&1; echo egress_attempted']
+  successIndicators:
+  - {responseContains: egress_attempted}
+  expectedDetections:
+  - {ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: manager}
+- name: exec-from-tmp-mount
+  type: cmdinject
+  exec:
+    command: [sh, -c, cp /bin/echo /tmp/payload_$$ && chmod +x /tmp/payload_$$ && /tmp/payload_$$ mount_exec_done; rm -f /tmp/payload_$$]
+  successIndicators:
+  - {responseContains: mount_exec_done}
+  expectedDetections:
+  - {ruleID: R1004, ruleName: Process executed from mount, containerName: manager}
+- name: read-proc-environ
+  type: cmdinject
+  exec:
+    command: [sh, -c, cat /proc/1/environ >/dev/null 2>&1; echo environ_attempted]
+  successIndicators:
+  - {responseContains: environ_attempted}
+  expectedDetections: []
+- name: read-sa-token
+  type: cmdinject
+  exec:
+    command: [sh, -c, cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1; echo satoken_attempted]
+  successIndicators:
+  - {responseContains: satoken_attempted}
+  expectedDetections: []
