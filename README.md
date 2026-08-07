@@ -1,4 +1,7 @@
 # Software Bill of Behavior SBOB 
+
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/k8sstormcenter/bob/badge)](https://scorecard.dev/viewer/?uri=github.com/k8sstormcenter/bob)
+
 Imagine a software vendor distills all their knowledge of their own testing into a standard file and ships it `with each update` . Just like a Container Package-Insert (Packungsbeilage) 📦📃🩻
 
 
