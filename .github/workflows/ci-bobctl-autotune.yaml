@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo and private submodules
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
@@ -60,7 +60,7 @@ jobs:
           ls ../storage/go.mod
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: '1.25'
           cache-dependency-path: pkg/go.sum
@@ -74,7 +74,7 @@ jobs:
         run: ./scripts/validate-suites.sh bin/bobctl
 
       - name: Upload bobctl binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: bobctl
           path: bin/bobctl
@@ -196,7 +196,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           token: ${{ secrets.ENTLEIN_PAT}}
 
@@ -210,7 +210,7 @@ jobs:
           grep 'tag:' kubescape/values.yaml
 
       - name: Download bobctl binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: bobctl
           path: bin
@@ -220,13 +220,13 @@ jobs:
 
       - name: Set up k3s cluster
         if: matrix.k8s-distribution == 'k3s'
-        uses: jupyterhub/action-k3s-helm@v4
+        uses: jupyterhub/action-k3s-helm@502a9ff4d816dad543e359971fe2c3128d0f4c6e # v4
         with:
           k3s-version: ${{ matrix.kubernetes-version }}+k3s1
 
       - name: Set up Kind cluster
         if: matrix.k8s-distribution == 'kind'
-        uses: helm/kind-action@v1
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1
         with:
           node_image: kindest/node:${{ matrix.kubernetes-version }}
 
@@ -647,7 +647,7 @@ jobs:
       - name: Upload tune GIF
         if: always()
         id: upload-gif
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: tune-gif-${{ matrix.app }}-${{ matrix.os }}
           path: results/tune.gif
@@ -865,7 +865,7 @@ jobs:
 
       - name: Upload result artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: result-${{ matrix.app }}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
           path: results/
@@ -894,19 +894,19 @@ jobs:
             app_namespace: postgres-vuln
     steps:
       - name: Checkout repo and private submodules
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
       - name: Download bobctl
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: bobctl
           path: bin
       - run: chmod +x bin/bobctl
       - name: Download tune result
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: result-${{ matrix.app }}-ubuntu-24.04-k3s-v1.33.3
           path: results
@@ -984,7 +984,7 @@ jobs:
       - name: Re-upload tune GIF (with measured P)
         if: always() && steps.check.outputs.skip != 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: tune-gif-${{ matrix.app }}-ubuntu-24.04
           path: results/tune.gif
@@ -993,7 +993,7 @@ jobs:
           retention-days: 30
       - name: Upload portability result
         if: always() && steps.check.outputs.skip != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: portability-${{ matrix.app }}
           path: results/portability.json
@@ -1005,7 +1005,7 @@ jobs:
     if: always()
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: artifacts
 
