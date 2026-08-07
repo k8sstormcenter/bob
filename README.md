@@ -68,9 +68,5 @@ kubectl logs -n honey -l app=node-agent -c node-agent
 ## Try it out in a lab with a k3s and a k8s
 Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
-## FAQ: why does this repo not have any stars
-Because it was turned into a private repo for a few hours ... well gotta `adversarially test the AI` dont we. 
 
-### Why is there no Security.md? And no OpenSSF scorecard?
-In the first week of August, we are testing the whole setup. Then you ll see it.
 
