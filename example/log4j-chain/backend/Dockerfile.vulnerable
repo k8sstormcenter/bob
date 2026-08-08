@@ -1,13 +1,13 @@
 # Scenario A — vulnerable log4j 2.14.1, ops-friendly ubuntu base.
 # Has /bin/sh, psql, curl, getent — full toolbox for an attacker post-RCE.
 
-FROM maven:3.9-eclipse-temurin-11 AS build
+FROM maven:3.9-eclipse-temurin-11@sha256:5818ee89bddd09cc7b265bea1919c5088f82a4e17f0adc104e12e94cb26bea03 AS build
 WORKDIR /src
 COPY pom.xml ./
 COPY src ./src
 RUN LOG4J_VERSION=2.14.1 mvn -B package -DskipTests
 
-FROM eclipse-temurin:11-jdk
+FROM eclipse-temurin:11-jdk@sha256:4d14042fcb8451c643170f8d7f556b817a7aa65800c582ad9190dbc60d424886
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client curl dnsutils ca-certificates && \
     rm -rf /var/lib/apt/lists/*
