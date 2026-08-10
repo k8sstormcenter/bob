@@ -49,10 +49,12 @@ kubectl -n "$NS" set env daemonset/node-agent KS_LOGGER_LEVEL=debug
 # 5. wait (set env already triggered the rollout)
 kubectl -n "$NS" rollout status daemonset node-agent --timeout=300s
 
-# confirm (capture first: pipefail + grep -m1 would SIGPIPE kubectl and
-# fail the pipeline even on a match)
-LOGS=$(kubectl -n "$NS" logs daemonset/node-agent -c node-agent --tail=200 2>/dev/null)
-if echo "$LOGS" | grep -q "signed bundle overlays enabled"; then
+# confirm (capture first: pipefail + grep -m1 would SIGPIPE kubectl and fail
+# the pipeline even on a match). On an idempotent re-run nothing restarts, so
+# the startup line may be far back — search the full pod log and also accept
+# recent bundle-assembly activity as proof the feature is live.
+LOGS=$(kubectl -n "$NS" logs daemonset/node-agent -c node-agent 2>/dev/null)
+if echo "$LOGS" | grep -qE "signed bundle overlays enabled|assembled signed bundle overlay"; then
   echo "OK: signed bundle overlays enabled"
 else
   echo "ERROR: node-agent did not report bundle overlays enabled — check the logs"; exit 1
