@@ -58,7 +58,9 @@ kubectl -n "$NS" rollout status daemonset node-agent --timeout=300s
 LOGS=$(for p in $(kubectl -n "$NS" get pods -l app.kubernetes.io/component=node-agent -o name); do
   kubectl -n "$NS" logs "$p" -c node-agent 2>/dev/null
 done)
-if echo "$LOGS" | grep -qE "signed bundle overlays enabled|assembled signed bundle overlay"; then
+# pure-bash match: echo|grep -q under pipefail SIGPIPEs once the log outgrows
+# the pipe buffer (grep exits on first match while echo is still writing)
+if [[ "$LOGS" == *"signed bundle overlays enabled"* || "$LOGS" == *"assembled signed bundle overlay"* ]]; then
   echo "OK: signed bundle overlays enabled"
 else
   echo "ERROR: node-agent did not report bundle overlays enabled — check the logs"; exit 1
