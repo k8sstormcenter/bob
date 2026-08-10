@@ -29,7 +29,7 @@ All keys under `keys/` are throwaway demo material.
 - the `sign-object` CLI (linux; pick your arch):
 
 ```
-curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.0/sign-object-linux-amd64 && chmod +x sign-object
+curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.1/sign-object-linux-amd64 && chmod +x sign-object
 ```
 
 (or build from source: `git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
@@ -37,7 +37,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 ## 1. Install kubescape with the right images
 
 `kubescape/values.yaml` in this repo pins the images that carry the feature
-(`ghcr.io/k8sstormcenter/{node-agent,storage}:v0.3.174`, built from the
+(`ghcr.io/k8sstormcenter/{node-agent,storage}:v0.3.175`, built from the
 `signature-overlays` branch). From the repo root:
 
 ```
@@ -60,19 +60,16 @@ Re-run it after any later `make kubescape` upgrade — helm re-renders the
 node-agent ConfigMap/DaemonSet and drops these patches (the script is
 idempotent).
 
-## 3. Deploy redis (pinned distros install)
+## 3. The vendor ships SIGNED fragments — before any workload exists
 
-```
-(cd .. && ./deploy-distros.sh redis)
-```
-
-## 4. Sign the vendor + user fragments, bind the bundle
-
-Signing uses **sign-after-roundtrip**: the fragment is applied unsigned, read
-back in the storage-normalised form (the storage server deflates specs on
-save), and THAT form is signed — otherwise the signature would be invalid the
-moment the object lands. `sign-fragment.sh` does the dance. Note the admission
-fragment is NOT part of this step — the client does not exist yet:
+Signing happens **offline**: `sign-object --embed-content` signs the fragment
+and embeds the exact signed content in the
+`signature.kubescape.io/content` annotation. The `*-signed.yaml` artifact is
+what the vendor ships; the cluster never sees an unsigned fragment, and the
+signature stays valid no matter how the storage server normalises the spec on
+save (annotations are never touched — the embedded bytes remain the verified
+source of truth). `sign-fragment.sh` signs and then ingests the artifact. The
+admission fragment is NOT part of this step — the client does not exist yet:
 
 ```
 ./sign-fragment.sh fragments/frag-base-redis.yaml  keys/vendor.pem
@@ -80,17 +77,24 @@ fragment is NOT part of this step — the client does not exist yet:
 ```
 
 There is no extra bundle object: fragments are grouped by their
-`signature.kubescape.io/bundle: redis` label, and the workload opts in by
-referencing the bundle name via the standard user-defined-profile label (same
-label the distros demo binds with):
+`signature.kubescape.io/bundle: redis` label (part of the signed content, so a
+fragment cannot be re-labeled into another bundle).
+
+## 4. Deploy redis (pinned distros install, sbob binding)
 
 ```
-kubectl -n redis patch statefulset redis-master --type merge -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"redis"}}}}}'
+(cd .. && ./deploy-distros.sh redis sbob)
 ```
 
-On pod (re)start node-agent lists the bundle's fragments, verifies each leaf
-against the trust policy, assembles the composite (2 fragments for now), and
-re-signs it with the cluster key:
+The `sbob` toggle binds the workload exactly as in the distros demo: it labels
+the statefulset with `kubescape.io/user-defined-profile: redis`. Because the
+signed fragments are ALREADY in place, the pod starts protected — node-agent
+finds the bundle on first load, so there is no window where the workload runs
+without its profile. (sbob mode also applies the classic flat `cp-redis.yaml`;
+the bundle takes precedence over it — it remains as the non-bundle fallback.)
+
+node-agent verifies each leaf against the trust policy, assembles the
+composite (2 fragments for now), and re-signs it with the cluster key:
 
 ```
 kubectl -n honey logs daemonset/node-agent -c node-agent | grep "assembled signed bundle overlay"
@@ -180,22 +184,25 @@ logs by rule id:
 kubectl -n honey logs daemonset/node-agent -c node-agent --since=5m | grep -oE '"ruleID":"R[0-9]+"[^,]*|"ruleName":"[^"]*"' | sort | uniq -c
 ```
 
-**(d) Tamper any leaf → the bundle fails closed + R1016:**
+**(d) Tamper the signed content → the bundle fails closed + R1016.**
+
+Because enforcement binds the EMBEDDED signed content, editing the stored spec
+is inert — tamper-proof by construction. An attacker must go after the signed
+content itself; without the operator key the signature then breaks:
 
 ```
-kubectl -n redis patch $CP redis-ops-overlay --type json -p '[{"op":"add","path":"/spec/execs/-","value":{"path":"/bin/backdoor"}}]'
+kubectl -n redis get $CP redis-ops-overlay -o jsonpath='{.metadata.annotations.signature\.kubescape\.io/content}' \
+  | python3 -c 'import sys,base64,gzip; d=gzip.decompress(base64.b64decode(sys.stdin.read())); d=d.replace(b"/usr/bin/df", b"/bin/backdoor"); print(base64.b64encode(gzip.compress(d)).decode())' \
+  | xargs -I{} kubectl -n redis annotate $CP redis-ops-overlay --overwrite signature.kubescape.io/content={}
 ```
 
-Within the reconcile interval node-agent re-verifies, the modified leaf no
+Within the reconcile interval node-agent re-verifies, the embedded content no
 longer matches its signature, an R1016 "Signed profile tampered" alert fires
 for the bundle, and the composite is dropped (no profile is enforced rather
-than a half-trusted one). Recover by re-signing the fragment over its current
-content:
+than a half-trusted one). Recover by re-shipping the vendor artifact:
 
 ```
-kubectl -n redis get $CP redis-ops-overlay -o yaml > /tmp/frag.yaml
-./sign-object sign --file /tmp/frag.yaml --output /tmp/frag-signed.yaml --key keys/operator.pem --type containerprofile
-kubectl -n redis replace -f /tmp/frag-signed.yaml
+./sign-fragment.sh fragments/frag-overlay-ops.yaml keys/operator.pem
 ```
 
 — the composite reassembles (new Merkle root in the log line) and enforcement
