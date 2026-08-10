@@ -45,7 +45,11 @@ kubectl -n "$NS" patch daemonset node-agent --type strategic -p '{
 kubectl -n "$NS" rollout restart daemonset node-agent
 kubectl -n "$NS" rollout status daemonset node-agent --timeout=300s
 
-# confirm
-kubectl -n "$NS" logs daemonset/node-agent -c node-agent --tail=200 | grep -m1 "signed bundle overlays enabled" \
-  && echo "OK: signed bundle overlays enabled" \
-  || { echo "ERROR: node-agent did not report bundle overlays enabled — check the logs"; exit 1; }
+# confirm (capture first: pipefail + grep -m1 would SIGPIPE kubectl and
+# fail the pipeline even on a match)
+LOGS=$(kubectl -n "$NS" logs daemonset/node-agent -c node-agent --tail=200 2>/dev/null)
+if echo "$LOGS" | grep -q "signed bundle overlays enabled"; then
+  echo "OK: signed bundle overlays enabled"
+else
+  echo "ERROR: node-agent did not report bundle overlays enabled — check the logs"; exit 1
+fi
