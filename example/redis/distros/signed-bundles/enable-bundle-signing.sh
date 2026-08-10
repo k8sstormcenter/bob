@@ -53,7 +53,11 @@ kubectl -n "$NS" rollout status daemonset node-agent --timeout=300s
 # the pipeline even on a match). On an idempotent re-run nothing restarts, so
 # the startup line may be far back — search the full pod log and also accept
 # recent bundle-assembly activity as proof the feature is live.
-LOGS=$(kubectl -n "$NS" logs daemonset/node-agent -c node-agent 2>/dev/null)
+# NB: kubectl logs on a workload reference (daemonset/...) silently defaults
+# to --tail=10 — iterate the pods to get full logs
+LOGS=$(for p in $(kubectl -n "$NS" get pods -l app.kubernetes.io/component=node-agent -o name); do
+  kubectl -n "$NS" logs "$p" -c node-agent 2>/dev/null
+done)
 if echo "$LOGS" | grep -qE "signed bundle overlays enabled|assembled signed bundle overlay"; then
   echo "OK: signed bundle overlays enabled"
 else
