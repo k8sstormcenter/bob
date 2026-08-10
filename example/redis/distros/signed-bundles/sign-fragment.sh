@@ -17,12 +17,18 @@ FRAGMENT="$1"; KEY="$2"
 SIGN_OBJECT="${SIGN_OBJECT:-./sign-object}"
 CPRES=containerprofiles.spdx.softwarecomposition.kubescape.io
 
-# apply the unsigned fragment; kubectl reports the object identity back, so no
-# YAML parser is needed on this machine
-OUT=$(kubectl apply -f "$FRAGMENT" -o jsonpath='{.metadata.name} {.metadata.namespace}')
+# identity via client-side dry-run (no YAML parser needed on this machine);
+# create only if absent — re-running against an existing (already signed)
+# fragment goes straight to the sign loop over the stored form
+OUT=$(kubectl create --dry-run=client -f "$FRAGMENT" -o jsonpath='{.metadata.name} {.metadata.namespace}')
 NAME=${OUT% *}
 NS=${OUT#* }
-echo "applied fragment $NS/$NAME (unsigned)"
+if kubectl -n "$NS" get "$CPRES" "$NAME" >/dev/null 2>&1; then
+  echo "fragment $NS/$NAME already exists — re-signing the stored object"
+else
+  kubectl create -f "$FRAGMENT" >/dev/null
+  echo "created fragment $NS/$NAME (unsigned)"
+fi
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
