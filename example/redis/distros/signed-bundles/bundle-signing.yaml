@@ -4,6 +4,11 @@ kind: ConfigMap
 metadata:
   name: node-agent-bundle-policy
   namespace: honey
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: kubescape
+    meta.helm.sh/release-namespace: honey
 data:
   trust-policy.json: |
     {
@@ -28,6 +33,11 @@ kind: Secret
 metadata:
   name: node-agent-bundle-key
   namespace: honey
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: kubescape
+    meta.helm.sh/release-namespace: honey
 type: Opaque
 stringData:
   signing-key.pem: |
