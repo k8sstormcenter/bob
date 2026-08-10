@@ -213,8 +213,10 @@ rejected:
 
 1. it carries a `signature.kubescape.io/fragment-class` label and the class
    exists in the trust policy;
-2. it is signed and the signature verifies over the storage-normalised
-   content (`metadata{name,namespace,labels}` + `spec`; annotations excluded);
+2. it is signed and the signature verifies over the EMBEDDED signed content
+   (`metadata{name,namespace,labels}` + `spec`, carried in the
+   `signature.kubescape.io/content` annotation) — so the stored spec, which the
+   server may normalise, is irrelevant to verification;
 3. the signer's public-key fingerprint (`key:<sha256(PKIX(pub))>`) is listed
    for its class;
 4. it sets only spec paths its class allows (e.g. `admission` →
