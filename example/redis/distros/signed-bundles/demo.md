@@ -25,12 +25,14 @@ All keys under `keys/` are throwaway demo material.
 
 ## 0. Prerequisites
 
-- a cluster + `kubectl`, `helm`, `python3`, Go ≥ 1.25
-- the `sign-object` CLI, built from the feature branch:
+- a cluster + `kubectl`, `helm`, `python3`
+- the `sign-object` CLI (linux; pick your arch):
 
 ```
-git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent /tmp/na && (cd /tmp/na && go build -o sign-object ./cmd/sign-object) && cp /tmp/na/sign-object .
+curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.0/sign-object-linux-amd64 && chmod +x sign-object
 ```
+
+(or build from source: `git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
 
 ## 1. Install kubescape with the right images
 
