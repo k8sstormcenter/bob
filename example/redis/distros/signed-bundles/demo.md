@@ -168,7 +168,12 @@ kubectl -n redis exec sts/redis-master -- df -h
 # admission fragment honoured: R0012 stopped in §6
 ```
 
-Alerts land in alertmanager as usual (`kubectl -n honey port-forward svc/alertmanager-operated 9093` → http://localhost:9093).
+Alerts are emitted via the stdout exporter — observe them in the node-agent
+logs by rule id:
+
+```
+kubectl -n honey logs daemonset/node-agent -c node-agent --since=5m | grep -oE '"ruleID":"R[0-9]+"[^,]*|"ruleName":"[^"]*"' | sort | uniq -c
+```
 
 **(d) Tamper any leaf → the bundle fails closed + R1016:**
 
