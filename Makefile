@@ -366,9 +366,11 @@ show-runc:
 
 .PHONY: kubescape
 # helm 4 applies server-side and refuses fields owned by the kubectl applies
-# below (default-rules / rule-binding); --force-conflicts restores helm-3
-# upgrade semantics for those objects. helm 3 has no such flag.
-KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" && echo --force-conflicts)
+# below (default-rules / rule-binding); --force-conflicts overrides that.
+# --server-side=true is pinned with it because "auto" (the default) inherits
+# client-side from a release previously upgraded by helm 3, and helm 4 rejects
+# --force-conflicts without server-side apply. helm 3 has neither flag.
+KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" && echo "--server-side=true --force-conflicts")
 
 kubescape:
 	$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
