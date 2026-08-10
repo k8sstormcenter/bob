@@ -3,8 +3,11 @@
 #   1. apply the fragment UNSIGNED
 #   2. read back the storage-normalised form (storage deflates specs on save —
 #      signing the local file instead would make the signature invalid on load)
-#   3. sign the normalised form with the given key
-#   4. replace the in-cluster object with the signed version
+#   3. sign the normalised form with the given key and replace the object
+#   4. VERIFY the re-fetched in-cluster object; if the save normalised the spec
+#      further (deflate reaches its fixed point after an extra pass on large
+#      learned profiles), sign again over the new form — loop until the stored
+#      object verifies (bounded).
 #
 # Usage: ./sign-fragment.sh <fragment.yaml> <private-key.pem>
 # Requires: kubectl and SIGN_OBJECT pointing at the sign-object binary
@@ -12,6 +15,7 @@
 set -euo pipefail
 FRAGMENT="$1"; KEY="$2"
 SIGN_OBJECT="${SIGN_OBJECT:-./sign-object}"
+CPRES=containerprofiles.spdx.softwarecomposition.kubescape.io
 
 # apply the unsigned fragment; kubectl reports the object identity back, so no
 # YAML parser is needed on this machine
@@ -22,9 +26,17 @@ echo "applied fragment $NS/$NAME (unsigned)"
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
-kubectl -n "$NS" get containerprofiles.spdx.softwarecomposition.kubescape.io "$NAME" -o yaml > "$TMP/normalised.yaml"
 
-"$SIGN_OBJECT" sign --file "$TMP/normalised.yaml" --output "$TMP/signed.yaml" --key "$KEY" --type containerprofile
-
-kubectl -n "$NS" replace -f "$TMP/signed.yaml"
-echo "OK: $NAME signed ($(basename "$KEY")) and replaced in-cluster"
+for attempt in 1 2 3; do
+  kubectl -n "$NS" get "$CPRES" "$NAME" -o yaml > "$TMP/normalised.yaml"
+  "$SIGN_OBJECT" sign --file "$TMP/normalised.yaml" --output "$TMP/signed.yaml" --key "$KEY" --type containerprofile >/dev/null
+  kubectl -n "$NS" replace -f "$TMP/signed.yaml" >/dev/null
+  # verify the object AS STORED — that is what node-agent will hash
+  kubectl -n "$NS" get "$CPRES" "$NAME" -o yaml > "$TMP/stored.yaml"
+  if "$SIGN_OBJECT" verify --file "$TMP/stored.yaml" --strict=false >/dev/null 2>&1; then
+    echo "OK: $NAME signed ($(basename "$KEY")), stored object verifies (attempt $attempt)"
+    exit 0
+  fi
+  echo "attempt $attempt: stored object does not verify yet (storage normalised the spec further); re-signing over the stored form"
+done
+echo "ERROR: $NAME still does not verify after 3 sign/replace rounds"; exit 1
