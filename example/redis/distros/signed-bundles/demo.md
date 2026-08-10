@@ -1,19 +1,21 @@
-# Signed SBoB fragment bundles — redis demo
+# Signed SBoB fragment bundles — redis distros demo
 
-Multiple parties each sign their own **fragment** of a ContainerProfile; the
-node-agent verifies every fragment against a per-class trust policy, assembles
-them into ONE effective profile, binds the assembly to the exact set of
-admissible fragments with a Merkle leaf-tree, and re-signs the composite with
-the cluster key. Tampering with any fragment fires **R1016** and drops the
-whole bundle (fail closed).
+This is the [distros demo](../DEMO.md) with one change: the "allowlist a client
+later" step (its §5 `kubectl patch` on the server profile) is replaced by a
+**cryptographically signed admission fragment**. Multiple parties each sign
+their own **fragment** of a ContainerProfile; node-agent verifies every
+fragment against a per-class trust policy, assembles them into ONE effective
+profile, binds the assembly to the exact set of admissible fragments with a
+Merkle leaf-tree, and re-signs the composite with the cluster key. Tampering
+with any fragment fires **R1016** and drops the whole bundle (fail closed).
 
-The cast, using the redis distros example:
+The cast:
 
 | Fragment | Class | Signed by | Contributes |
 |---|---|---|---|
-| `fragments/frag-base-redis.yaml` | `base` | vendor key | the learned redis SBoB (execs/opens/caps — **no ingress**) |
-| `fragments/frag-admission-redis-client.yaml` | `admission` | operator key | the "allowlist a client later" ingress entry (the §5 patch of [`../DEMO.md`](../DEMO.md), now a standalone signed object) |
+| `fragments/frag-base-redis.yaml` | `base` | vendor key | the learned redis SBoB from [`../sbobs/cp-redis.yaml`](../sbobs/cp-redis.yaml) (execs/opens/caps — **no ingress**) |
 | `fragments/frag-overlay-ops.yaml` | `overlay` | operator key | end-user addition: allow `df -h` for ops |
+| `fragments/frag-admission-redis-client.yaml` | `admission` | operator key | the client-allowlist ingress entry — shipped LATER, in §6 |
 
 The trust policy (`trust-policy.json`) pins per class **who may sign** (public-key
 fingerprint) and **which spec paths the class may set** — the admission signer
@@ -53,66 +55,107 @@ cd example/redis/distros/signed-bundles && ./enable-bundle-signing.sh
 
 The script fails unless node-agent logs `signed bundle overlays enabled`.
 
-## 3. Deploy redis
+## 3. Deploy redis (pinned distros install)
 
 ```
 (cd .. && ./deploy-distros.sh redis)
 ```
 
-## 4. Create and sign the fragments
+## 4. Sign the vendor + user fragments, bind the bundle
 
 Signing uses **sign-after-roundtrip**: the fragment is applied unsigned, read
 back in the storage-normalised form (the storage server deflates specs on
 save), and THAT form is signed — otherwise the signature would be invalid the
-moment the object lands. `sign-fragment.sh` does the dance:
+moment the object lands. `sign-fragment.sh` does the dance. Note the admission
+fragment is NOT part of this step — the client does not exist yet:
 
 ```
-./sign-fragment.sh fragments/frag-base-redis.yaml            keys/vendor.pem
-./sign-fragment.sh fragments/frag-admission-redis-client.yaml keys/operator.pem
-./sign-fragment.sh fragments/frag-overlay-ops.yaml           keys/operator.pem
+./sign-fragment.sh fragments/frag-base-redis.yaml  keys/vendor.pem
+./sign-fragment.sh fragments/frag-overlay-ops.yaml keys/operator.pem
 ```
 
-Each fragment now carries its signature in `signature.kubescape.io/*`
-annotations. Verify any of them independently (leaf verification):
-
-```
-export CP=containerprofiles.spdx.softwarecomposition.kubescape.io
-kubectl -n redis get $CP redis-base -o yaml > /tmp/leaf.yaml && ./sign-object verify --file /tmp/leaf.yaml --strict=false
-```
-
-## 5. Bundle = label. Ingest into kubescape
-
-There is no extra bundle object: the fragments are grouped by their
+There is no extra bundle object: fragments are grouped by their
 `signature.kubescape.io/bundle: redis` label, and the workload opts in by
-referencing the bundle name via the standard user-defined-profile label:
+referencing the bundle name via the standard user-defined-profile label (same
+label the distros demo binds with):
 
 ```
 kubectl -n redis patch statefulset redis-master --type merge -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"redis"}}}}}'
 ```
 
 On pod (re)start node-agent lists the bundle's fragments, verifies each leaf
-against the trust policy, assembles the composite, and re-signs it with the
-cluster key. Nothing extra to apply.
-
-## 6. Verify the composite is signed — without touching the leaves
-
-**(a) The assembly happened and is bound to a Merkle root:**
+against the trust policy, assembles the composite (2 fragments for now), and
+re-signs it with the cluster key:
 
 ```
 kubectl -n honey logs daemonset/node-agent -c node-agent | grep "assembled signed bundle overlay"
+# → bundle=redis fragments=2 root=<merkle-root-A>
 ```
 
-Expect `bundle=redis fragments=3 root=<merkle-root>`. The root commits to the
-exact set of verified leaves (class ‖ signer ‖ content-digest per leaf) — a
-fragment added, dropped, or altered changes the root. The composite the rules
-engine enforces carries this root plus a fresh cluster-key signature; it exists
-in the agent (it is assembled, not stored), so its signature is checked on
-every load exactly like any flat signed profile.
+## 5. A client appears — unexpected ingress fires
 
-**(b) The leaves are untouched:** re-run the §4 leaf verification for all three
-fragments — each still verifies with its ORIGINAL signature. Assembly reads the
-fragments; it never rewrites them, so composing the bundle cannot invalidate a
-leaf.
+Exactly the distros demo's "detect a client" step: deploy the client with its
+own SBoB (so the client's OWN redis-cli/egress stay quiet — that profile rides
+the ordinary flat single-CP path, bundles are only used where fragments exist):
+
+```
+kubectl apply -f ../sbobs/cp-redis-client.yaml
+kubectl apply -f ../../client.yaml
+```
+
+The server's composite has **no ingress** (the vendor base ships none), so the
+client's connections are unexpected — watch **R0012** fire on the node hosting
+redis-master:
+
+```
+MNODE=$(kubectl -n redis get pod redis-master-0 -o jsonpath='{.spec.nodeName}')
+NA=$(kubectl -n honey get pod -o wide --field-selector spec.nodeName=$MNODE --no-headers | awk '/node-agent/{print $1;exit}')
+kubectl -n honey logs -f $NA | grep "Unexpected ingress network"
+```
+
+## 6. Allowlist the client LATER — with a signed fragment
+
+Where the distros demo patches the server profile in place (an unsigned,
+unauditable mutation), the operator now ships the same ingress entry as a
+**standalone signed admission fragment**:
+
+```
+./sign-fragment.sh fragments/frag-admission-redis-client.yaml keys/operator.pem
+```
+
+Within the reconcile interval node-agent picks up the changed fragment set and
+re-assembles — same bundle, now 3 fragments and a NEW Merkle root:
+
+```
+kubectl -n honey logs daemonset/node-agent -c node-agent | grep "assembled signed bundle overlay" | tail -1
+# → bundle=redis fragments=3 root=<merkle-root-B>   (≠ root-A)
+```
+
+R0012 stops within ~30s — the client is admitted by a signed, attributable,
+path-confined object instead of an in-place edit. The admission key can ONLY
+add ingress/egress: had the operator key signed execs into this fragment, the
+whole bundle would be rejected.
+
+## 7. Verify the composite is signed — without touching the leaves
+
+**(a) The assembly is bound to a Merkle root** (§4/§6 log lines): the root
+commits to the exact set of verified leaves (class ‖ signer ‖ content-digest
+per leaf) — a fragment added, dropped, or altered changes the root, as the
+root-A → root-B transition in §6 just showed. The composite the rules engine
+enforces carries this root plus a fresh cluster-key signature; it is assembled
+in the agent (not stored), and its signature is checked on every load exactly
+like any flat signed profile.
+
+**(b) The leaves are untouched:** each fragment still verifies with its
+ORIGINAL signature — assembly reads fragments, it never rewrites them:
+
+```
+export CP=containerprofiles.spdx.softwarecomposition.kubescape.io
+for f in redis-base redis-ops-overlay redis-client-ingress; do
+  kubectl -n redis get $CP $f -o yaml > /tmp/leaf.yaml
+  ./sign-object verify --file /tmp/leaf.yaml --strict=false && echo "leaf $f: OK"
+done
+```
 
 **(c) The behaviour proves the union** (each check exercises a different
 fragment — and would fail if that fragment had been rejected):
@@ -122,9 +165,7 @@ fragment — and would fail if that fragment had been rejected):
 kubectl -n redis exec sts/redis-master -- id
 # overlay fragment honoured: df -h is allowed — no alert
 kubectl -n redis exec sts/redis-master -- df -h
-# admission fragment honoured: the redis-client connects without R0012
-#   (deploy the client per ../DEMO.md §5 — with the signed ingress fragment in
-#    place, the "unexpected ingress" alert does not fire for it)
+# admission fragment honoured: R0012 stopped in §6
 ```
 
 Alerts land in alertmanager as usual (`kubectl -n honey port-forward svc/alertmanager-operated 9093` → http://localhost:9093).
