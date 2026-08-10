@@ -52,7 +52,7 @@ signing key), and the fork chart renders the mounts and config at install time
 restarts. Confirm:
 
 ```
-kubectl -n honey logs daemonset/node-agent -c node-agent | grep "signed bundle overlays enabled"
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "signed bundle overlays enabled"
 ```
 
 (`enable-bundle-signing.sh` remains only for installs of the upstream chart,
@@ -95,7 +95,7 @@ node-agent verifies each leaf against the trust policy, assembles the
 composite (2 fragments for now), and re-signs it with the cluster key:
 
 ```
-kubectl -n honey logs daemonset/node-agent -c node-agent | grep "assembled signed bundle overlay"
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "assembled signed bundle overlay"
 # → bundle=redis fragments=2 root=<merkle-root-A>
 ```
 
@@ -134,7 +134,7 @@ Within the reconcile interval (~1 min) node-agent picks up the changed fragment 
 re-assembles — same bundle, now 3 fragments and a NEW Merkle root:
 
 ```
-kubectl -n honey logs daemonset/node-agent -c node-agent | grep "assembled signed bundle overlay" | tail -1
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "assembled signed bundle overlay" | tail -1
 # → bundle=redis fragments=3 root=<merkle-root-B>   (≠ root-A)
 ```
 
@@ -179,7 +179,7 @@ Alerts are emitted via the stdout exporter — observe them in the node-agent
 logs by rule id:
 
 ```
-kubectl -n honey logs daemonset/node-agent -c node-agent --since=5m | grep -oE '"ruleID":"R[0-9]+"[^,]*|"ruleName":"[^"]*"' | sort | uniq -c
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=5m | grep -oE '"ruleID":"R[0-9]+"[^,]*|"ruleName":"[^"]*"' | sort | uniq -c
 ```
 
 **(d) Tamper the signed content → the bundle fails closed + R1016.**
