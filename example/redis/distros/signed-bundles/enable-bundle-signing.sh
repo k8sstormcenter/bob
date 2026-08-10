@@ -41,8 +41,12 @@ kubectl -n "$NS" patch daemonset node-agent --type strategic -p '{
   }}}
 }'
 
-# 4. restart + wait
-kubectl -n "$NS" rollout restart daemonset node-agent
+# 4. debug logging: the bundle assembly line ("assembled signed bundle overlay"
+# with the Merkle root) is logged at debug level — the demo's observability
+# depends on it. Setting the env restarts the DaemonSet.
+kubectl -n "$NS" set env daemonset/node-agent KS_LOGGER_LEVEL=debug
+
+# 5. wait (set env already triggered the rollout)
 kubectl -n "$NS" rollout status daemonset node-agent --timeout=300s
 
 # confirm (capture first: pipefail + grep -m1 would SIGPIPE kubectl and

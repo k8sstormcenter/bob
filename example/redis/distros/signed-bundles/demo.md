@@ -123,7 +123,7 @@ unauditable mutation), the operator now ships the same ingress entry as a
 ./sign-fragment.sh fragments/frag-admission-redis-client.yaml keys/operator.pem
 ```
 
-Within the reconcile interval node-agent picks up the changed fragment set and
+Within the reconcile interval (~1 min) node-agent picks up the changed fragment set and
 re-assembles — same bundle, now 3 fragments and a NEW Merkle root:
 
 ```
@@ -131,7 +131,7 @@ kubectl -n honey logs daemonset/node-agent -c node-agent | grep "assembled signe
 # → bundle=redis fragments=3 root=<merkle-root-B>   (≠ root-A)
 ```
 
-R0012 stops within ~30s — the client is admitted by a signed, attributable,
+R0012 stops within a reconcile interval (~1–2 min) — the client is admitted by a signed, attributable,
 path-confined object instead of an in-place edit. The admission key can ONLY
 add ingress/egress: had the operator key signed execs into this fragment, the
 whole bundle would be rejected.
