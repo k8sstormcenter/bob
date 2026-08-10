@@ -56,6 +56,9 @@ cd example/redis/distros/signed-bundles && ./enable-bundle-signing.sh
 ```
 
 The script fails unless node-agent logs `signed bundle overlays enabled`.
+Re-run it after any later `make kubescape` upgrade — helm re-renders the
+node-agent ConfigMap/DaemonSet and drops these patches (the script is
+idempotent).
 
 ## 3. Deploy redis (pinned distros install)
 
