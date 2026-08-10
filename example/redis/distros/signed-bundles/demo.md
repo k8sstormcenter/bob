@@ -25,7 +25,7 @@ All keys under `keys/` are throwaway demo material.
 
 ## 0. Prerequisites
 
-- a cluster + `kubectl`, `helm`, `python3`
+- a cluster + `kubectl`, **helm 3** (helm 4 applies server-side and conflicts with the Makefile's `kubectl apply` of the rules objects — `make kubescape HELM=/path/to/helm3` if your default helm is v4), `python3`
 - the `sign-object` CLI (linux; pick your arch):
 
 ```
