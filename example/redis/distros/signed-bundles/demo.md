@@ -44,21 +44,19 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 make kubescape
 ```
 
-## 2. Enable signed-bundle overlays
+## 2. Signed-bundle support boots with the chart
 
-Applies the trust-policy ConfigMap + cluster signing-key Secret, adds
-`bundleTrustPolicyPath`/`bundleSigningKeyPath` to node-agent's config, mounts
-both at `/etc/bundle`, and restarts node-agent. Do this **before** deploying
-workloads (the restart discards learning in progress):
+`kubescape/values.yaml` sets `nodeAgent.bundleSigning` (trust policy + cluster
+signing key), and the fork chart renders the mounts and config at install time
+— node-agent starts with signed-bundle support enabled. Nothing to patch, no
+restarts. Confirm:
 
 ```
-cd example/redis/distros/signed-bundles && ./enable-bundle-signing.sh
+kubectl -n honey logs daemonset/node-agent -c node-agent | grep "signed bundle overlays enabled"
 ```
 
-The script fails unless node-agent logs `signed bundle overlays enabled`.
-Re-run it after any later `make kubescape` upgrade — helm re-renders the
-node-agent ConfigMap/DaemonSet and drops these patches (the script is
-idempotent).
+(`enable-bundle-signing.sh` remains only for installs of the upstream chart,
+which has no bundleSigning values.)
 
 ## 3. The vendor ships SIGNED fragments — before any workload exists
 
