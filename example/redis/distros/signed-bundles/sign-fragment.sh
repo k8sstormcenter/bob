@@ -7,16 +7,18 @@
 #   4. replace the in-cluster object with the signed version
 #
 # Usage: ./sign-fragment.sh <fragment.yaml> <private-key.pem>
-# Requires: kubectl, python3, and SIGN_OBJECT pointing at the sign-object binary
+# Requires: kubectl and SIGN_OBJECT pointing at the sign-object binary
 # (default: ./sign-object).
 set -euo pipefail
 FRAGMENT="$1"; KEY="$2"
 SIGN_OBJECT="${SIGN_OBJECT:-./sign-object}"
 
-NAME=$(python3 -c "import yaml,sys; d=yaml.safe_load(open('$FRAGMENT')); print(d['metadata']['name'])")
-NS=$(python3 -c "import yaml,sys; d=yaml.safe_load(open('$FRAGMENT')); print(d['metadata']['namespace'])")
-
-kubectl apply -f "$FRAGMENT"
+# apply the unsigned fragment; kubectl reports the object identity back, so no
+# YAML parser is needed on this machine
+OUT=$(kubectl apply -f "$FRAGMENT" -o jsonpath='{.metadata.name} {.metadata.namespace}')
+NAME=${OUT% *}
+NS=${OUT#* }
+echo "applied fragment $NS/$NAME (unsigned)"
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
