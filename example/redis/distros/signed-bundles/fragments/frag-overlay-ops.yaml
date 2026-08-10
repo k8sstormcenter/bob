@@ -1,0 +1,16 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: redis-ops-overlay
+  namespace: redis
+  labels:
+    signature.kubescape.io/bundle: redis
+    signature.kubescape.io/fragment-class: overlay
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  execs:
+    - path: /bin/df
+      args:
+        - /bin/df
+        - -h
