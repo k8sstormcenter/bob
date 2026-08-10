@@ -35,7 +35,7 @@ git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent /tm
 ## 1. Install kubescape with the right images
 
 `kubescape/values.yaml` in this repo pins the images that carry the feature
-(`ghcr.io/k8sstormcenter/{node-agent,storage}:v0.3.173`, built from the
+(`ghcr.io/k8sstormcenter/{node-agent,storage}:v0.3.174`, built from the
 `signature-overlays` branch). From the repo root:
 
 ```
