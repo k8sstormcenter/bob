@@ -36,7 +36,7 @@ All keys under `keys/` are throwaway demo material.
 
 ```
 cd example/redis/distros/signed-bundles
-curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.3/sign-object-linux-amd64 && chmod +x sign-object
+curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.4/sign-object-linux-amd64 && chmod +x sign-object
 ```
 
 (or build from source: `git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
@@ -44,7 +44,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 ## 1. Install kubescape with the right images
 
 `kubescape/values.yaml` in this repo pins the images that carry the feature
-(`ghcr.io/k8sstormcenter/node-agent:v0.3.180` and
+(`ghcr.io/k8sstormcenter/node-agent:v0.3.181` and
 `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays`
 branch). From the repo root:
 
