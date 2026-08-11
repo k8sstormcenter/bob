@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 # Sign a Rules object offline and ingest the signed artifact.
 #
-# Same model as sign-fragment.sh, for rules instead of profiles: the class
-# label and the namespace are part of the signed content, so a signed rules
-# fragment cannot be re-classed or moved to another namespace without breaking
-# its signature.
+# Same model as sign-fragment.sh, for rules instead of profiles: a rules
+# fragment carries the same bundle and fragment-class labels as a profile
+# fragment, and both are part of the signed content.
 #
-#   cluster   class -> the rules apply cluster-wide (the vendor baseline)
-#   namespace class -> the rules apply ONLY in the object's own namespace, and
-#                      override the cluster rule with the same ID there
+#   base    class -> the rules apply cluster-wide (the vendor baseline)
+#   overlay class -> the rules belong to a bundle and apply to the workloads
+#                    bound to it, overriding the base rule with the same ID
+#
+# The namespace is NOT signed, so the same signed artifact installs into
+# whichever namespace the customer chooses.
 #
 # Usage: ./sign-rules.sh <rules.yaml> <private-key.pem>
-# The class comes from the object's signature.kubescape.io/rule-class label.
+# The class and bundle come from the object's signature.kubescape.io labels.
 # Requires: kubectl and SIGN_OBJECT pointing at the sign-object binary
 # (default: ./sign-object).
 set -euo pipefail

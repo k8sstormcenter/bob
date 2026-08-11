@@ -30,14 +30,14 @@ All keys under `keys/` are published demo material and authenticate nothing — 
 
 ```
 cd example/redis/distros/signed-bundles
-curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.4/sign-object-linux-amd64 && chmod +x sign-object
+curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.5/sign-object-linux-amd64 && chmod +x sign-object
 ```
 
 (or build from source: `git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
 
 ## 1. Install kubescape with the right images
 
-`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.181` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
+`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.182` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
 
 From the repo root:
 
@@ -190,7 +190,7 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=1m | gre
 For every fragment, all of the following must hold or the whole bundle is rejected:
 
 1. it carries a `signature.kubescape.io/fragment-class` label and the class exists in the trust policy;
-2. it is signed and the signature verifies over the embedded signed content (`metadata{name,namespace,labels}` + `spec`), so the stored spec is irrelevant to verification;
+2. it is signed and the signature verifies over the embedded signed content (`metadata{name,labels}` + `spec`), so the stored spec is irrelevant to verification;
 3. the signer's public-key fingerprint (`key:<sha256(PKIX(pub))>`) is listed for its class;
 4. it sets only spec paths its class allows (e.g. `admission` → `ingress`/`egress` only).
 
@@ -201,6 +201,10 @@ echo "key:$(openssl pkey -pubin -in my.pem.pub -outform DER | sha256sum | cut -d
 ```
 
 Public keys are never stored on the cluster: each artifact carries its own certificate, and the policy holds only the fingerprint that certificate must match.
+
+`metadata.namespace` is deliberately NOT signed, because a vendor cannot know which namespace a customer will install into and re-signing per customer would defeat offline signing.
+
+What confines a fragment is therefore the signed `bundle` and `fragment-class` labels, not its placement — an attacker cannot move a fragment into another bundle or change its class, while choosing a namespace is an ordinary RBAC question.
 
 ## Bring your own root key (rotating the trust anchor)
 
@@ -252,31 +256,36 @@ kubectl -n redis apply  -f fragments/frag-overlay-ops.yaml  # re-create from the
 
 The signer identity is the public-key fingerprint the signature verified against, never the spoofable OIDC identity annotations, so a trusted signer cannot be impersonated by copying strings.
 
-## 9. Signed rules — one rule changed for one namespace
+## 9. Signed rules — the vendor ships rules with the bundle
 
 Profiles say what a workload may do; **rules** say what the agent alerts on.
 
 Any `Rules` object in any namespace is merged into one ruleset keyed by rule ID, so anyone who can create one could redefine `R0001` with `enabled: false` and turn off process detection cluster-wide.
 
-Signed rule fragments close that, and let a rule be changed for **one namespace only**.
+Signed rule fragments close that, and let the vendor ship rules as part of the same bundle as the profile.
 
-| Class | Signed by | Applies |
+A rules fragment carries the same two labels as a profile fragment, so one bundle holds both halves:
+
+| Object | Labels | Applies |
 |---|---|---|
-| `cluster` | vendor key | cluster-wide — the baseline ruleset |
-| `namespace` | operator key | ONLY in the object's own namespace, overriding the cluster rule with the same ID |
+| `ContainerProfile` | `bundle: redis`, `fragment-class: base` | the workloads bound to bundle `redis` |
+| `Rules` | `bundle: redis`, `fragment-class: overlay` | the same workloads, overriding the base rule with the same ID |
+| `Rules` (baseline) | `fragment-class: base` | cluster-wide, belonging to no bundle |
 
-The class, the namespace and the rules are all inside the signed content, so a fragment cannot be re-classed, moved, or edited without breaking its signature.
+An overlay applies to exactly the workloads bound to its bundle, **in whatever namespace the customer installed it**, and nowhere else.
+
+The bundle and the class are inside the signed content, so a fragment cannot be re-classed or re-targeted at another bundle; the namespace is not signed, so the same vendor artifact installs anywhere.
 
 `trust-policy.json` names who may sign each class and which rule IDs they may set, and here the operator may only touch `R0001` and `R0002`:
 
 ```
 "ruleClasses": {
-  "cluster":   {"signers": ["key:<vendor>"],   "allowedRuleIDs": ["*"]},
-  "namespace": {"signers": ["key:<operator>"], "allowedRuleIDs": ["R0001","R0002"]}
+  "base":    {"signers": ["key:<vendor>"],   "allowedRuleIDs": ["*"]},
+  "overlay": {"signers": ["key:<operator>"], "allowedRuleIDs": ["R0001","R0002"]}
 }
 ```
 
-**The scenario:** redis is the cache tier, where an unexpected process is a possible compromise rather than routine drift, so the redis team ships `R0001` at severity 10 with a redis-specific message for the redis namespace only.
+**The scenario:** redis is the cache tier, where an unexpected process is a possible compromise rather than routine drift, so the redis vendor ships `R0001` at severity 10 with a redis-specific message as part of the redis bundle.
 
 ### (a) Turn rule signing on
 
@@ -287,7 +296,7 @@ The class, the namespace and the rules are all inside the signed content, so a f
 kubectl -n honey create cm node-agent-bundle-policy --from-file=trust-policy.json=trust-policy.signed.json --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Rule signing is now on, which means every `Rules` object must verify or its rules are dropped, so the vendor signs the chart's unsigned baseline ruleset as a `cluster` fragment first — otherwise you correctly end up with no rules at all:
+Rule signing is now on, which means every `Rules` object must verify or its rules are dropped, so the vendor signs the chart's unsigned baseline ruleset as a `base` fragment first — otherwise you correctly end up with no rules at all:
 
 ```
 ./sign-rules.sh rules/baseline-rules.yaml keys/vendor.pem
@@ -296,22 +305,29 @@ kubectl -n honey rollout status daemonset node-agent --timeout=300s
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "signed rule fragments enabled"
 ```
 
-### (b) The redis team ships its rule
+### (b) The vendor ships the bundle's rules
 
 ```
 ./sign-rules.sh rules/rules-redis.yaml keys/operator.pem
 ```
 
-`rules/rules-redis.yaml` is a `Rules` object in the redis namespace, labelled `signature.kubescape.io/rule-class: namespace`, carrying `R0001` at severity 10 with the message `REDIS TIER CRITICAL: ...`.
+`rules/rules-redis.yaml` is a `Rules` object labelled `bundle: redis` + `fragment-class: overlay`, carrying `R0001` at severity 10 with the message `REDIS TIER CRITICAL: ...`.
 
-### (c) See the override — and see that it stays in redis
+### (c) See the override — and see that it follows the bundle, not the namespace
 
 ```
 kubectl -n redis exec sts/redis-master -- id
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "REDIS TIER CRITICAL"
 ```
 
-The same rule in any other namespace still carries the default `Unexpected process launched` message at severity 1 — one rule ID, two definitions, selected by the namespace that signed for it.
+The redis client from §5 runs in the **same namespace** but is not bound to the redis bundle, so its own alerts still carry the default `Unexpected process launched` message at severity 1:
+
+```
+kubectl -n redis exec deploy/redis-client -- id
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep '"RuleID":"R0001"'
+```
+
+One rule ID, two definitions, selected by the bundle a workload opted into rather than by where it happens to run.
 
 ### (d) The adversarial cases
 
@@ -326,7 +342,7 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | gre
 # → RulesWatcher - signed rule fragments  admitted=1 rejected=1
 ```
 
-The rogue rules never load, and detection is not switched off: with the namespace fragment dropped, redis falls back to the cluster `R0001` and still alerts, at severity 1 instead of 10.
+The rogue rules never load, and detection is not switched off: with the overlay dropped, redis falls back to the base `R0001` and still alerts, at severity 1 instead of 10.
 
 So signing protects the *content* of a rule, not the *presence* of the object — anyone who can create or delete `rules.kubescape.io` objects can overwrite the fragment and lose the tightening, so restrict that verb with RBAC if the override matters.
 
@@ -342,4 +358,6 @@ kubectl apply -f rules/rules-redis.yaml    # the UNSIGNED source
 
 **A trusted signer may not touch any rule they like**, so an operator fragment setting `R0007` is rejected with `rule ID not allowed for this class` — the same confinement idea as `allowedSpecPaths` for profiles.
 
-**Re-scoping is not possible**, because `metadata.namespace` is part of the signed content, so pointing a signed fragment at another namespace breaks its signature.
+**An overlay must declare a bundle**, so a rules overlay with no `bundle` label is rejected rather than applying everywhere.
+
+**Re-targeting is not possible**, because the bundle label is part of the signed content, so pointing a signed overlay at another bundle breaks its signature.
