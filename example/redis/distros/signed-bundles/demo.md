@@ -416,7 +416,18 @@ sed 's/severity: 10/severity: 10\n      enabled: false/' rules/rules-redis.yaml 
 ./sign-rules.sh /tmp/rogue-rules.yaml /tmp/rogue.pem
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "rules fragment rejected"
 # → signer not permitted for this fragment class; the fragment's rules are dropped whole
+# → RulesWatcher - signed rule fragments  admitted=1 rejected=1
 ```
+
+**What the attacker does and does not achieve.** The rogue rules never load, and
+detection in redis is not switched off: with the namespace fragment dropped,
+redis falls back to the **cluster** `R0001` and still alerts — at the baseline
+severity 1 with the default message, instead of severity 10 with the redis one.
+So signing protects the *content* of a rule, not the *presence* of the object:
+anyone who can create or delete `rules.kubescape.io` objects can overwrite the
+namespace fragment and lose the tightening it carried. Restrict that verb with
+RBAC if the override matters. Re-shipping the operator-signed fragment restores
+it within a reconcile interval.
 
 **An unsigned rules object is dropped** — with rule signing on, dropping the
 signature is not a way around it:
