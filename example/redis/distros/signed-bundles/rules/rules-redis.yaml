@@ -1,0 +1,36 @@
+apiVersion: kubescape.io/v1
+kind: Rules
+metadata:
+  name: rules-redis
+  namespace: redis
+  labels:
+    signature.kubescape.io/rule-class: namespace
+spec:
+  rules:
+    - id: R0001
+      name: Unexpected process launched
+      description: >-
+        Redis tier override: an unexpected process on the cache tier is treated
+        as a possible compromise, not routine drift.
+      enabled: true
+      severity: 10
+      expressions:
+        message: >-
+          'REDIS TIER CRITICAL: unexpected process ' + event.comm + ' (PID ' +
+          string(event.pid) + ') launched on the cache tier'
+        ruleExpression:
+          - eventType: exec
+            expression: >-
+              !cp.was_executed(event.containerId,
+              parse.get_exec_path(event.args, event.comm, event.exepath))
+        uniqueId: event.comm + '_' + event.exepath
+      isTriggerAlert: true
+      mitreTactic: TA0002
+      mitreTechnique: T1059
+      profileDependency: 0
+      supportPolicy: false
+      tags:
+        - anomaly
+        - process
+        - exec
+        - applicationprofile

@@ -1,16 +1,60 @@
 {
   "classes": {
     "base": {
-      "signers": ["key:1b962159c04a8b6dd5825b971d8417a144a1358d9e2f8c14368d14e1ebc67fbd"],
-      "allowedSpecPaths": ["architectures", "capabilities", "execs", "opens", "syscalls", "seccompProfile", "endpoints", "imageID", "imageTag", "rulePolicies", "identifiedCallStacks", "labelSelector"]
+      "signers": [
+        "key:1b962159c04a8b6dd5825b971d8417a144a1358d9e2f8c14368d14e1ebc67fbd"
+      ],
+      "allowedSpecPaths": [
+        "architectures",
+        "capabilities",
+        "execs",
+        "opens",
+        "syscalls",
+        "seccompProfile",
+        "endpoints",
+        "imageID",
+        "imageTag",
+        "rulePolicies",
+        "identifiedCallStacks",
+        "labelSelector"
+      ]
     },
     "admission": {
-      "signers": ["key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"],
-      "allowedSpecPaths": ["ingress", "egress"]
+      "signers": [
+        "key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"
+      ],
+      "allowedSpecPaths": [
+        "ingress",
+        "egress"
+      ]
     },
     "overlay": {
-      "signers": ["key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"],
-      "allowedSpecPaths": ["execs", "opens"]
+      "signers": [
+        "key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"
+      ],
+      "allowedSpecPaths": [
+        "execs",
+        "opens"
+      ]
+    }
+  },
+  "ruleClasses": {
+    "cluster": {
+      "signers": [
+        "key:1b962159c04a8b6dd5825b971d8417a144a1358d9e2f8c14368d14e1ebc67fbd"
+      ],
+      "allowedRuleIDs": [
+        "*"
+      ]
+    },
+    "namespace": {
+      "signers": [
+        "key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"
+      ],
+      "allowedRuleIDs": [
+        "R0001",
+        "R0002"
+      ]
     }
   }
 }

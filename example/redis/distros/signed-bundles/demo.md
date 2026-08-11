@@ -323,3 +323,116 @@ Both fail the whole bundle closed (no partial trust).
 The signer identity is the **public-key fingerprint** the signature verified
 against — not the (unsigned, spoofable) OIDC identity annotations — so a trusted
 signer cannot be impersonated by copying annotation strings.
+
+## 9. Signed rules — one rule changed for one namespace
+
+Profiles say what a workload may do. **Rules** say what the agent alerts on —
+and until now any `Rules` object in any namespace was merged into one global
+ruleset keyed by rule ID. Anyone who could create a `Rules` object could
+redefine `R0001` with `enabled: false` and turn off process detection for the
+whole cluster. Signed rule fragments close that, and add something useful:
+a rule can be changed for **one namespace only**.
+
+Two classes, same trust model as profile fragments:
+
+| Class | Signed by | Applies |
+|---|---|---|
+| `cluster` | vendor key | cluster-wide — the baseline ruleset |
+| `namespace` | operator key | ONLY in the object's own namespace, overriding the cluster rule with the same ID |
+
+The class, the namespace and the rules are all inside the signed content, so a
+fragment cannot be re-classed, moved to another namespace, or edited without
+breaking its signature. `trust-policy.json` names who may sign each class and
+which rule IDs they may set (`"*"` for any) — here the operator may only touch
+`R0001` and `R0002`:
+
+```
+"ruleClasses": {
+  "cluster":   {"signers": ["key:<vendor>"],   "allowedRuleIDs": ["*"]},
+  "namespace": {"signers": ["key:<operator>"], "allowedRuleIDs": ["R0001","R0002"]}
+}
+```
+
+**The scenario:** redis is the cache tier. An unexpected process there is a
+possible compromise, not routine drift — so the redis team ships `R0001` with
+severity 10 and a redis-specific message, **for the redis namespace only**.
+Everywhere else `R0001` keeps its cluster default.
+
+### (a) Turn rule signing on
+
+`trust-policy.json` in this directory already carries the `ruleClasses` above.
+Because the policy is root-signed, changing it means re-signing it:
+
+```
+./sign-object sign-policy --policy trust-policy.json --key keys/root.pem --output trust-policy.signed.json
+kubectl -n honey create cm node-agent-bundle-policy --from-file=trust-policy.json=trust-policy.signed.json --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Rule signing is now ON, which means **every** `Rules` object must verify or its
+rules are dropped. The baseline ruleset the chart installed is unsigned, so the
+vendor signs it as a `cluster` fragment before anything else — otherwise you
+correctly end up with no rules at all:
+
+```
+./sign-rules.sh rules/baseline-rules.yaml keys/vendor.pem
+kubectl -n honey rollout restart daemonset node-agent
+kubectl -n honey rollout status daemonset node-agent --timeout=300s
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "signed rule fragments enabled"
+```
+
+### (b) The redis team ships its rule
+
+```
+./sign-rules.sh rules/rules-redis.yaml keys/operator.pem
+```
+
+`rules/rules-redis.yaml` is a `Rules` object in the **redis** namespace,
+labelled `signature.kubescape.io/rule-class: namespace`, carrying one rule:
+`R0001` at severity 10 with the message `REDIS TIER CRITICAL: ...`.
+
+### (c) See the override — and see that it stays in redis
+
+Trigger an unexpected process in redis, and the alert carries the redis message
+and severity:
+
+```
+kubectl -n redis exec sts/redis-master -- id
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "REDIS TIER CRITICAL"
+```
+
+The same rule elsewhere is untouched — its alerts still carry the default
+`Unexpected process launched` message. One rule ID, two definitions, selected by
+the namespace that signed for it.
+
+### (d) The adversarial cases
+
+**An attacker ships a rule fragment to disable detection** — the whole point of
+signing rules. Create a `Rules` object in redis that redefines `R0001` with
+`enabled: false`, signed with a key that is not in the policy:
+
+```
+./sign-object generate-keypair --output /tmp/rogue.pem
+sed 's/severity: 10/severity: 10\n      enabled: false/' rules/rules-redis.yaml > /tmp/rogue-rules.yaml
+./sign-rules.sh /tmp/rogue-rules.yaml /tmp/rogue.pem
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "rules fragment rejected"
+# → signer not permitted for this fragment class; the fragment's rules are dropped whole
+```
+
+**An unsigned rules object is dropped** — with rule signing on, dropping the
+signature is not a way around it:
+
+```
+kubectl -n redis delete rules.kubescape.io rules-redis
+kubectl apply -f rules/rules-redis.yaml    # the UNSIGNED source
+# → rules fragment rejected: fragment is not signed
+```
+
+**A trusted signer may not touch any rule they like.** The operator key is
+permitted `R0001` and `R0002` only; a fragment of theirs that sets, say,
+`R0007` is rejected with `rule ID not allowed for this class` — the same
+path-confinement idea as `allowedSpecPaths` for profiles.
+
+**Re-scoping is not possible.** Editing `metadata.namespace` on a signed rules
+fragment to point at another namespace breaks the signature, because the
+namespace is part of the signed content — the fragment is rejected rather than
+silently applying somewhere it was never signed for.
