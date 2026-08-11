@@ -26,9 +26,13 @@ All keys under `keys/` are throwaway demo material.
 ## 0. Prerequisites
 
 - a cluster + `kubectl`, `helm` (3 or 4 — the Makefile auto-adds `--force-conflicts` on helm 4), `python3`
-- the `sign-object` CLI (linux; pick your arch):
+- **working directory:** `make kubescape` (§1) runs from the **repo root**; every
+  other command runs from `example/redis/distros/signed-bundles/`, which holds
+  `sign-object`, `sign-fragment.sh`, `fragments/`, and `keys/`.
+- the `sign-object` CLI (linux; pick your arch), fetched into that directory:
 
 ```
+cd example/redis/distros/signed-bundles
 curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.2/sign-object-linux-amd64 && chmod +x sign-object
 ```
 
@@ -71,6 +75,7 @@ source of truth). `sign-fragment.sh` signs and then ingests the artifact. The
 admission fragment is NOT part of this step — the client does not exist yet:
 
 ```
+cd example/redis/distros/signed-bundles   # if you cd'd to the repo root for §1
 ./sign-fragment.sh fragments/frag-base-redis.yaml  keys/vendor.pem
 ./sign-fragment.sh fragments/frag-overlay-ops.yaml keys/operator.pem
 ```
