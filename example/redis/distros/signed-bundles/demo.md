@@ -37,8 +37,9 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 ## 1. Install kubescape with the right images
 
 `kubescape/values.yaml` in this repo pins the images that carry the feature
-(`ghcr.io/k8sstormcenter/{node-agent,storage}:v0.3.177`, built from the
-`signature-overlays` branch). From the repo root:
+(`ghcr.io/k8sstormcenter/node-agent:v0.3.179` and
+`ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays`
+branch). From the repo root:
 
 ```
 make kubescape
@@ -179,7 +180,7 @@ Alerts are emitted via the stdout exporter — observe them in the node-agent
 logs by rule id:
 
 ```
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=5m | grep -oE '"ruleID":"R[0-9]+"[^,]*|"ruleName":"[^"]*"' | sort | uniq -c
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=5m | grep -oE '"RuleID":"R[0-9]+"' | sort | uniq -c
 ```
 
 **(d) Tamper the signed content → the bundle fails closed + R1016.**
@@ -203,8 +204,16 @@ than a half-trusted one). Recover by re-shipping the vendor artifact:
 ./sign-fragment.sh fragments/frag-overlay-ops.yaml keys/operator.pem
 ```
 
-— the composite reassembles (new Merkle root in the log line) and enforcement
-resumes.
+Recovery restores the exact signed content, so the composite reassembles to its
+pre-tamper root (an identical leaf set gives an identical Merkle root — this
+reuse logs at debug, not as a new-root transition line). The proof that
+enforcement is live again — not an empty profile — is behavioural: `df -h` is
+allowed once more and a fresh unlisted exec still alerts:
+
+```
+kubectl -n redis exec sts/redis-master -- uname -a
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=1m | grep '"RuleID":"R0001"'
+```
 
 ## How admissibility is decided (reference)
 
@@ -248,9 +257,14 @@ kubectl -n redis patch $CP redis-ops-overlay --type json \
 **An unsigned fragment is rejected:**
 
 ```
-kubectl -n redis apply -f fragments/frag-overlay-ops.yaml   # the UNSIGNED source
+kubectl -n redis delete $CP redis-ops-overlay               # drop the signed object
+kubectl -n redis apply  -f fragments/frag-overlay-ops.yaml  # re-create from the UNSIGNED source
 # → bundle overlay failed: "fragment is not signed"; composite drops until re-signed
 ```
+
+(`apply` alone would not do it — a 3-way merge keeps the existing signature
+annotations, so the object stays signed; the fragment must be re-created from
+the unsigned source.)
 
 **A fragment signed by an untrusted key is rejected** — sign with a key whose
 fingerprint is not in `trust-policy.json` for that class → `signer not permitted
