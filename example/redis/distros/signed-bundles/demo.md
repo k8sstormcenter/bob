@@ -5,9 +5,12 @@ later" step (its §5 `kubectl patch` on the server profile) is replaced by a
 **cryptographically signed admission fragment**. Multiple parties each sign
 their own **fragment** of a ContainerProfile; node-agent verifies every
 fragment against a per-class trust policy, assembles them into ONE effective
-profile, binds the assembly to the exact set of admissible fragments with a
-Merkle leaf-tree, and re-signs the composite with the cluster key. Tampering
-with any fragment fires **R1016** and drops the whole bundle (fail closed).
+profile, and binds the assembly to the exact set of admissible fragments with a
+Merkle leaf-tree. node-agent only **verifies** — it holds no signing key, and no
+private key exists anywhere on the cluster. The composite is re-derived from the
+signed fragments every reconcile tick, so it can never drift from them.
+Tampering with any fragment fires **R1016** and drops the whole bundle (fail
+closed).
 
 The cast:
 
@@ -33,7 +36,7 @@ All keys under `keys/` are throwaway demo material.
 
 ```
 cd example/redis/distros/signed-bundles
-curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.2/sign-object-linux-amd64 && chmod +x sign-object
+curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.3/sign-object-linux-amd64 && chmod +x sign-object
 ```
 
 (or build from source: `git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
@@ -41,7 +44,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 ## 1. Install kubescape with the right images
 
 `kubescape/values.yaml` in this repo pins the images that carry the feature
-(`ghcr.io/k8sstormcenter/node-agent:v0.3.179` and
+(`ghcr.io/k8sstormcenter/node-agent:v0.3.180` and
 `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays`
 branch). From the repo root:
 
@@ -51,9 +54,12 @@ make kubescape
 
 ## 2. Signed-bundle support boots with the chart
 
-`kubescape/values.yaml` sets `nodeAgent.bundleSigning` (trust policy + cluster
-signing key), and the fork chart renders the mounts and config at install time
-— node-agent starts with signed-bundle support enabled. Nothing to patch, no
+`kubescape/values.yaml` sets `nodeAgent.bundleSigning` — the **root-signed**
+trust policy (the set of trusted public-key fingerprints, itself signed by the
+root key and verified by node-agent against the root public key compiled into
+the image). No private key is deployed; node-agent only verifies. The fork chart
+renders the mount and config at install time — node-agent starts with
+signed-bundle support enabled. Nothing to patch, no
 restarts. Confirm:
 
 ```
@@ -97,8 +103,8 @@ finds the bundle on first load, so there is no window where the workload runs
 without its profile. (sbob mode also applies the classic flat `cp-redis.yaml`;
 the bundle takes precedence over it — it remains as the non-bundle fallback.)
 
-node-agent verifies each leaf against the trust policy, assembles the
-composite (2 fragments for now), and re-signs it with the cluster key:
+node-agent verifies each leaf against the trust policy and assembles the
+composite (2 fragments for now) in memory — no signing, no key:
 
 ```
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "assembled signed bundle overlay"
@@ -242,6 +248,43 @@ writes `my.pem` + `my.pem.pub`), derive the fingerprint from the public key:
 ```
 echo "key:$(openssl pkey -pubin -in my.pem.pub -outform DER | sha256sum | cut -d' ' -f1)"
 ```
+
+## Bring your own root key (rotating the trust anchor)
+
+The trust policy is only trustworthy because node-agent verifies its signature
+against a **root public key compiled into the node-agent image** — there is no
+cluster-side override, by design: the anchor cannot be edited on a running
+cluster, so a cluster-admin attacker can't swap it. The published image ships
+with a demo root key. To trust **your own** root instead of the one minted for
+this demo, swap the embedded key and rebuild — you do this once, offline:
+
+1. Generate a root keypair (the private key stays OFFLINE — it never touches the
+   cluster):
+
+```
+./sign-object generate-keypair --output root.pem   # writes root.pem + root.pem.pub
+```
+
+2. Replace `DefaultRootPublicKeyPEM` in the node-agent source
+   (`pkg/signature/bundle/root.go`) with the contents of `root.pem.pub`, and
+   rebuild the node-agent image. The image now trusts only your root.
+
+3. Sign your trust policy with the root **private** key:
+
+```
+./sign-object sign-policy --policy trust-policy.json --key root.pem --output trust-policy.signed.json
+```
+
+4. Ship `trust-policy.signed.json` as the `nodeAgent.bundleSigning.trustPolicy`
+   value (it becomes the mounted `/etc/bundle/trust-policy.json`). node-agent
+   verifies it against your embedded root at boot and refuses to enable bundles
+   if the signature or the root pin fails (fail closed).
+
+5. **Destroy the root private key.** node-agent only verifies; nothing on the
+   cluster ever needs it again. If a fragment signer key is later added/rotated,
+   you re-sign the policy — which needs the root key again, so keep it offline in
+   escrow if you expect to change signers, or regenerate a new root (new image)
+   to rotate the anchor itself.
 
 ## 8. Robustness — the adversarial cases
 
