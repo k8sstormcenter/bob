@@ -320,14 +320,14 @@ kubectl -n redis exec sts/redis-master -- id
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "REDIS TIER CRITICAL"
 ```
 
-The redis client from §5 runs in the **same namespace** but is not bound to the redis bundle, so its own alerts still carry the default `Unexpected process launched` message at severity 1:
+The `REDIS TIER CRITICAL` message is attributed only to the container bound to the redis bundle, never to the redis client that runs in the same namespace but is bound to its own profile:
 
 ```
 kubectl -n redis exec deploy/redis-client -- id
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep '"RuleID":"R0001"'
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "REDIS TIER CRITICAL" | grep -o '"containerName":"[^"]*"' | sort | uniq -c
 ```
 
-One rule ID, two definitions, selected by the bundle a workload opted into rather than by where it happens to run.
+The override reaches exactly the workloads that opted into the bundle, not everything sharing their namespace.
 
 ### (d) The adversarial cases
 
