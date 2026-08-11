@@ -37,7 +37,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 
 ## 1. Install kubescape with the right images
 
-`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.182` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
+`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.183` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
 
 From the repo root:
 
@@ -361,3 +361,24 @@ kubectl apply -f rules/rules-redis.yaml    # the UNSIGNED source
 **An overlay must declare a bundle**, so a rules overlay with no `bundle` label is rejected rather than applying everywhere.
 
 **Re-targeting is not possible**, because the bundle label is part of the signed content, so pointing a signed overlay at another bundle breaks its signature.
+
+## 10. The same signed artifact, any namespace
+
+A vendor signs a fragment once and cannot know the customer's namespace, so the namespace is not part of the signed content.
+
+The base fragment the vendor signed in §3 re-applies into a second namespace with only the namespace changed:
+
+```
+kubectl create ns redis-staging
+sed 's/^  namespace: redis$/  namespace: redis-staging/' fragments/frag-base-redis-signed.yaml | kubectl create -f -
+```
+
+The signature still verifies there, because nothing it covers changed:
+
+```
+export CP=containerprofiles.spdx.softwarecomposition.kubescape.io
+kubectl -n redis-staging get $CP redis-base -o yaml > /tmp/moved.yaml
+./sign-object verify --file /tmp/moved.yaml --strict=false && echo "verified in redis-staging"
+```
+
+Rules follow the same rule: an overlay signed for `bundle: redis` protects redis workloads wherever they run, selected by the bundle a workload is bound to rather than by where the fragment was signed.
