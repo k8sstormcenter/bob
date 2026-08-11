@@ -29,7 +29,7 @@ All keys under `keys/` are throwaway demo material.
 - the `sign-object` CLI (linux; pick your arch):
 
 ```
-curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.1/sign-object-linux-amd64 && chmod +x sign-object
+curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.2/sign-object-linux-amd64 && chmod +x sign-object
 ```
 
 (or build from source: `git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
@@ -37,7 +37,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 ## 1. Install kubescape with the right images
 
 `kubescape/values.yaml` in this repo pins the images that carry the feature
-(`ghcr.io/k8sstormcenter/{node-agent,storage}:v0.3.176`, built from the
+(`ghcr.io/k8sstormcenter/{node-agent,storage}:v0.3.177`, built from the
 `signature-overlays` branch). From the repo root:
 
 ```
@@ -228,3 +228,36 @@ writes `my.pem` + `my.pem.pub`), derive the fingerprint from the public key:
 ```
 echo "key:$(openssl pkey -pubin -in my.pem.pub -outform DER | sha256sum | cut -d' ' -f1)"
 ```
+
+## 8. Robustness — the adversarial cases
+
+These are the properties an attacker with `kubectl` on the ContainerProfiles
+faces. Each is enforced by node-agent and observable.
+
+**Editing the stored spec is inert** (the composite binds the *signed* embedded
+content, not the mutable stored object):
+
+```
+kubectl -n redis patch $CP redis-ops-overlay --type json \
+  -p '[{"op":"add","path":"/spec/execs/-","value":{"path":"/bin/backdoor"}}]'
+# → no R1016, composite root unchanged; df -h still the ONLY overlay exec enforced
+```
+
+**Editing the signed content is caught** (R1016, fail closed) — see §7(d).
+
+**An unsigned fragment is rejected:**
+
+```
+kubectl -n redis apply -f fragments/frag-overlay-ops.yaml   # the UNSIGNED source
+# → bundle overlay failed: "fragment is not signed"; composite drops until re-signed
+```
+
+**A fragment signed by an untrusted key is rejected** — sign with a key whose
+fingerprint is not in `trust-policy.json` for that class → `signer not permitted
+for this fragment class`. **A class-confined violation is rejected** — an
+`admission`-class fragment that sets `execs` → `class may not set spec.execs`.
+Both fail the whole bundle closed (no partial trust).
+
+The signer identity is the **public-key fingerprint** the signature verified
+against — not the (unsigned, spoofable) OIDC identity annotations — so a trusted
+signer cannot be impersonated by copying annotation strings.
