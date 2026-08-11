@@ -1,4 +1,12 @@
-# Demo key material — throwaway keys for the signed-bundle walkthrough only.
+# Demo trust policy for signed-bundle overlays (upstream-chart installs only;
+# the fork chart renders this from nodeAgent.bundleSigning).
+#
+# The policy is ROOT-SIGNED: node-agent verifies it against the root public key
+# compiled into its image and refuses to enable bundles if the signature or the
+# root pin fails. There is NO signing key here and none anywhere on the cluster
+# — node-agent only verifies. Re-sign with:
+#   sign-object sign-policy --policy trust-policy.json --key keys/root.pem \
+#     --output trust-policy.signed.json
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -12,37 +20,52 @@ metadata:
 data:
   trust-policy.json: |
     {
-      "classes": {
-        "base": {
-          "signers": ["key:1b962159c04a8b6dd5825b971d8417a144a1358d9e2f8c14368d14e1ebc67fbd"],
-          "allowedSpecPaths": ["architectures", "capabilities", "execs", "opens", "syscalls", "seccompProfile", "endpoints", "imageID", "imageTag", "rulePolicies", "identifiedCallStacks", "labelSelector"]
-        },
-        "admission": {
-          "signers": ["key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"],
-          "allowedSpecPaths": ["ingress", "egress"]
-        },
-        "overlay": {
-          "signers": ["key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"],
-          "allowedSpecPaths": ["execs", "opens"]
+      "policy": {
+        "classes": {
+          "admission": {
+            "signers": [
+              "key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"
+            ],
+            "allowedSpecPaths": [
+              "ingress",
+              "egress"
+            ]
+          },
+          "base": {
+            "signers": [
+              "key:1b962159c04a8b6dd5825b971d8417a144a1358d9e2f8c14368d14e1ebc67fbd"
+            ],
+            "allowedSpecPaths": [
+              "architectures",
+              "capabilities",
+              "execs",
+              "opens",
+              "syscalls",
+              "seccompProfile",
+              "endpoints",
+              "imageID",
+              "imageTag",
+              "rulePolicies",
+              "identifiedCallStacks",
+              "labelSelector"
+            ]
+          },
+          "overlay": {
+            "signers": [
+              "key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"
+            ],
+            "allowedSpecPaths": [
+              "execs",
+              "opens"
+            ]
+          }
         }
+      },
+      "annotations": {
+        "signature.kubescape.io/certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJXakNDQVFHZ0F3SUJBZ0lRQlRpY0tQVlREL042cExMVVl1TGs5REFLQmdncWhrak9QUVFEQWpBVU1SSXcKRUFZRFZRUURFd2xzYjJOaGJDMXJaWGt3SGhjTk1qWXdPREV4TVRNeU16TXpXaGNOTWpjd09ERXhNVE15TXpNegpXakFVTVJJd0VBWURWUVFERXdsc2IyTmhiQzFyWlhrd1dUQVRCZ2NxaGtqT1BRSUJCZ2dxaGtqT1BRTUJCd05DCkFBVEFnaVE5TVBtc1k4Lzl0aWFORWZGNThDZ0lqV2JBaUpBeEVEdnpGMUxtdE5QZk9YVHJLQ2xqMFBnRFhOR3QKQ09yWUtRWGx5TEE3YVJJa1o3ZUhyaU1Ub3pVd016QU9CZ05WSFE4QkFmOEVCQU1DQjRBd0V3WURWUjBsQkF3dwpDZ1lJS3dZQkJRVUhBd013REFZRFZSMFRBUUgvQkFJd0FEQUtCZ2dxaGtqT1BRUURBZ05IQURCRUFpQmhTN1NXClQzVENKZGFndlVzeTBDRUxLK1dtZGNBNWtmdXlPQllycUo2UGNBSWdad0g0akpLaEh4d3E0cDk4T1k1Ukg2YmIKWkZBWjlkc0VZTkwwbTZrb1V0WT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
+        "signature.kubescape.io/identity": "local-key",
+        "signature.kubescape.io/issuer": "local",
+        "signature.kubescape.io/signature": "MEYCIQDsFdmvZmhPmg4JwbtKaIsfq8OoGJ2I2a6zECt5WeiaLQIhALybplCCXUjLQ14n/u86nnqp5I6I6miQkXmCl9ZGjcaZ",
+        "signature.kubescape.io/timestamp": "1786454613"
       }
     }
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: node-agent-bundle-key
-  namespace: honey
-  labels:
-    app.kubernetes.io/managed-by: Helm
-  annotations:
-    meta.helm.sh/release-name: kubescape
-    meta.helm.sh/release-namespace: honey
-type: Opaque
-stringData:
-  signing-key.pem: |
-    -----BEGIN EC PRIVATE KEY-----
-    MHcCAQEEIOZGo0BefIYHsIuBcqW1QT9mIKbNvwnbRfUo54YhZMwPoAoGCCqGSM49
-    AwEHoUQDQgAE2ZMjWaL3fElcSuQcAtkn+aHs4RdcJF4rpoHZEBRjDieYM4eZNfWz
-    8AqctspZD7WLYtjUsIsJgMBphB/wtcn1hw==
-    -----END EC PRIVATE KEY-----

@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Enable signed-bundle overlays on an installed kubescape (ns honey):
-#  1. apply the trust-policy ConfigMap + cluster signing-key Secret
-#  2. add bundleTrustPolicyPath/bundleSigningKeyPath to node-agent's config.json
-#  3. mount both at /etc/bundle in the node-agent DaemonSet
+#  1. apply the root-signed trust-policy ConfigMap
+#  2. add bundleTrustPolicyPath to node-agent's config.json
+#  3. mount the policy at /etc/bundle in the node-agent DaemonSet
 #  4. restart node-agent so it picks the config up
+#
+# No signing key is deployed: node-agent only verifies. It checks the policy
+# against the root public key compiled into its image, so a policy that is
+# unsigned or signed by another key leaves bundles disabled (fail closed).
 #
 # Run this BEFORE deploying workloads: the restart discards any learning in
 # progress. Requires: kubectl, python3.
@@ -19,7 +23,7 @@ import json, sys
 cm = json.load(sys.stdin)
 cfg = json.loads(cm["data"]["config.json"])
 cfg["bundleTrustPolicyPath"] = "/etc/bundle/trust-policy.json"
-cfg["bundleSigningKeyPath"] = "/etc/bundle/signing-key.pem"
+cfg.pop("bundleSigningKeyPath", None)  # removed: node-agent no longer signs
 cm["data"]["config.json"] = json.dumps(cfg, indent=4)
 json.dump(cm, sys.stdout)
 ' | kubectl apply -f -
@@ -28,14 +32,12 @@ json.dump(cm, sys.stdout)
 kubectl -n "$NS" patch daemonset node-agent --type strategic -p '{
   "spec": {"template": {"spec": {
     "volumes": [
-      {"name": "bundle-policy", "configMap": {"name": "node-agent-bundle-policy"}},
-      {"name": "bundle-key", "secret": {"secretName": "node-agent-bundle-key"}}
+      {"name": "bundle-policy", "configMap": {"name": "node-agent-bundle-policy"}}
     ],
     "containers": [{
       "name": "node-agent",
       "volumeMounts": [
-        {"name": "bundle-policy", "mountPath": "/etc/bundle/trust-policy.json", "subPath": "trust-policy.json", "readOnly": true},
-        {"name": "bundle-key", "mountPath": "/etc/bundle/signing-key.pem", "subPath": "signing-key.pem", "readOnly": true}
+        {"name": "bundle-policy", "mountPath": "/etc/bundle/trust-policy.json", "subPath": "trust-policy.json", "readOnly": true}
       ]
     }]
   }}}
