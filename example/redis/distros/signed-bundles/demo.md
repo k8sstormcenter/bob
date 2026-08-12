@@ -208,27 +208,27 @@ What confines a fragment is therefore the signed `bundle` and `fragment-class` l
 
 ## Bring your own root key (rotating the trust anchor)
 
-The trust policy is only trustworthy because node-agent verifies it against a root public key **compiled into the image**, with no cluster-side override, so the anchor cannot be swapped on a running cluster.
+node-agent verifies the trust policy against a root public key, and the published image ships a demo root key you are meant to replace with your own.
 
-The published image ships a demo root key, so to trust your own root instead, swap the embedded key and rebuild — once, offline:
-
-1. Generate a root keypair, whose private half never touches the cluster:
+Generate a root keypair whose private half never touches the cluster:
 
 ```
 ./sign-object generate-keypair --output root.pem   # writes root.pem + root.pem.pub
 ```
 
-2. Replace `DefaultRootPublicKeyPEM` in `pkg/signature/bundle/root.go` with `root.pem.pub` and rebuild the node-agent image.
-
-3. Sign your trust policy with the root private key:
+Sign your trust policy with the root private key, and keep that key offline in escrow since adding or rotating a fragment signer later means re-signing:
 
 ```
 ./sign-object sign-policy --policy trust-policy.json --key root.pem --output trust-policy.signed.json
 ```
 
-4. Ship `trust-policy.signed.json` as the `nodeAgent.bundleSigning.trustPolicy` value, which becomes the mounted `/etc/bundle/trust-policy.json`.
+There are two ways to make node-agent trust your root, trading rebuild cost against anchor strength.
 
-5. Keep the root key offline in escrow, since adding or rotating a fragment signer later means re-signing the policy with it.
+**Mounted (no rebuild):** set `nodeAgent.bundleSigning.rootPublicKey` to `root.pem.pub` alongside the signed `trustPolicy`, and node-agent verifies the policy against the mounted key at `/etc/bundle/root.pub`.
+
+This anchor lives in a cluster ConfigMap, so an attacker who can edit it can swap both the root key and the policy, and its integrity must come from an immutable ConfigMap and tight RBAC — node-agent logs a warning when a mounted anchor is in use.
+
+**Embedded (rebuild):** replace `DefaultRootPublicKeyPEM` in `pkg/signature/bundle/root.go` with `root.pem.pub` and rebuild the node-agent image, so the anchor cannot be swapped on a running cluster at all.
 
 ## 8. Robustness — the adversarial cases
 
