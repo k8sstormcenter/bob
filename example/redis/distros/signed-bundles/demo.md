@@ -92,6 +92,40 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "assemble
 # → bundle=redis fragments=2 root=<merkle-root-A>
 ```
 
+## 4b. Functional suite, then attacks — the contrast still holds
+
+A signed profile must behave like the learned one it replaces: benign traffic stays quiet and attacks alert.
+
+Run the benign suite against the workload the signed bundle now governs, and expect no detections:
+
+```
+(cd .. && bobctl test --functional-tests functional/redis-oss.yaml -n redis)
+```
+
+Take a timestamp, then run the attack suite, which must alert:
+
+```
+export T0=$(date -u +%Y-%m-%dT%H:%M:%SZ) NS=redis
+(cd .. && bobctl attack --attack-suite attacks/redis-oss.yaml -n redis)
+```
+
+Split the alerts either side of `$T0` to separate functional false positives from attack detections:
+
+```
+kubectl -n honey port-forward svc/alertmanager 9093:9093 &
+curl -s localhost:9093/api/v2/alerts | python3 -c '
+import json,sys,os
+from collections import Counter
+a=json.load(sys.stdin); ns=os.environ["NS"]; t0=os.environ.get("T0","")
+al=[x for x in a if x["labels"].get("namespace")==ns]
+fp=[x for x in al if x.get("startsAt","")<t0]
+tp=sorted({x["labels"].get("rule_id") for x in al if x.get("startsAt","")>=t0})
+print("functional FPs:", len(fp), dict(Counter(x["labels"].get("rule_id") for x in fp)) or "CLEAN")
+print("attack TPs (distinct rules):", len(tp), tp)'
+```
+
+A signed bundle that alerts on the functional suite is a bad profile, not a working signature.
+
 ## 5. A client appears — unexpected ingress fires
 
 Deploy the client with its own SBoB, so its own redis-cli/egress stay quiet:
