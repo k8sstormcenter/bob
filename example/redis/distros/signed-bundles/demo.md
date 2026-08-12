@@ -37,7 +37,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 
 ## 1. Install kubescape with the right images
 
-`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.184` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
+`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.188` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
 
 From the repo root:
 
@@ -384,3 +384,52 @@ kubectl -n redis-staging get $CP redis-base -o yaml > /tmp/moved.yaml
 ```
 
 Rules follow the same rule: an overlay signed for `bundle: redis` protects redis workloads wherever they run, selected by the bundle a workload is bound to rather than by where the fragment was signed.
+
+## 11. The trust anchor itself is checked
+
+A policy that is not signed by the root key is refused, so an attacker who can edit the policy ConfigMap still cannot name their own signer.
+
+Sign the same policy with a key that is not the root, and apply it:
+
+```
+./sign-object sign-policy --policy trust-policy.json --key keys/operator.pem --output /tmp/policy-badsigner.json
+kubectl -n honey create cm node-agent-bundle-policy --from-file=trust-policy.json=/tmp/policy-badsigner.json --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n honey rollout restart daemonset node-agent
+kubectl -n honey rollout status daemonset node-agent --timeout=300s
+```
+
+node-agent refuses it and leaves bundles disabled rather than trusting a policy it cannot anchor:
+
+```
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "trust policy signature invalid"
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep -c "signed bundle overlays enabled"
+```
+
+Restore the root-signed policy and the bundle assembles again:
+
+```
+kubectl -n honey create cm node-agent-bundle-policy --from-file=trust-policy.json=trust-policy.signed.json --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n honey rollout restart daemonset node-agent
+kubectl -n honey rollout status daemonset node-agent --timeout=300s
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "signed bundle overlays enabled"
+```
+
+## 12. Require signatures on user-supplied profiles
+
+By default an unsigned user-defined profile still loads, so signing is opt-in per object.
+
+Set `nodeAgent.bundleSigning.requireSignedObjects: true` in `kubescape/values.yaml` and re-run `make kubescape` to refuse them instead:
+
+```
+kubectl -n honey get cm node-agent -o jsonpath='{.data.config\.json}' | grep enableSignatureVerification
+```
+
+An unsigned user-defined profile is then refused and reported, while the workload keeps whatever it was already enforcing:
+
+```
+kubectl -n redis delete $CP redis-ops-overlay
+kubectl -n redis apply -f fragments/frag-overlay-ops.yaml
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "is unsigned"
+```
+
+Learned profiles are unaffected, because node-agent generates them in-cluster and they never take this path.
