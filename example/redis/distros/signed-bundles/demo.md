@@ -8,7 +8,7 @@ node-agent only **verifies** — it holds no signing key, and no private key exi
 
 The composite is re-derived from the signed fragments every reconcile tick, so it cannot drift from them.
 
-Tampering with any fragment fires **R1016** and drops the whole bundle (fail closed).
+Tampering with any fragment fires **R1016** and refuses that change, leaving the workload on the last verified composite.
 
 The cast:
 
@@ -158,7 +158,7 @@ Alerts go to the stdout exporter, so observe them by rule id:
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=5m | grep -oE '"RuleID":"R[0-9]+"' | sort | uniq -c
 ```
 
-**(d) Tamper the signed content → the bundle fails closed + R1016.**
+**(d) Tamper the signed content → the change is refused + R1016.**
 
 Editing the stored spec is inert because enforcement binds the embedded signed content, so an attacker must attack that content — which breaks the signature without the operator key:
 
@@ -168,7 +168,9 @@ kubectl -n redis get $CP redis-ops-overlay -o jsonpath='{.metadata.annotations.s
   | xargs -I{} kubectl -n redis annotate $CP redis-ops-overlay --overwrite signature.kubescape.io/content={}
 ```
 
-Within a reconcile interval the embedded content no longer matches its signature, R1016 "Signed profile tampered" fires, and the composite is dropped rather than half-trusted.
+Within a reconcile interval the embedded content no longer matches its signature, R1016 "Signed profile tampered" fires, and the tampered fragment is refused.
+
+The workload keeps running under the last verified composite rather than losing its profile, so a tamper reports and is rejected without turning every exec into an alert.
 
 Recover by re-shipping the vendor artifact:
 
