@@ -385,6 +385,19 @@ kubectl -n redis-staging get $CP redis-base -o yaml > /tmp/moved.yaml
 
 Rules follow the same rule: an overlay signed for `bundle: redis` protects redis workloads wherever they run, selected by the bundle a workload is bound to rather than by where the fragment was signed.
 
+## 10b. A single signed profile, without a bundle
+
+A workload that needs one profile rather than a set can reference a plain signed ContainerProfile, with no bundle or fragment-class labels.
+
+The same verification applies: the signature is checked on every load, and a tampered profile raises R1016 and is refused.
+
+```
+kubectl -n redis get $CP redis -o yaml > /tmp/flat.yaml
+./sign-object verify --file /tmp/flat.yaml --strict=false
+```
+
+Bundles exist for the multi-party case; a single signed profile stays the simpler path when one party owns the whole profile.
+
 ## 11. The trust anchor itself is checked
 
 A policy that is not signed by the root key is refused, so an attacker who can edit the policy ConfigMap still cannot name their own signer.
