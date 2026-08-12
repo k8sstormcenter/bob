@@ -37,7 +37,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 
 ## 1. Install kubescape with the right images
 
-`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.183` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
+`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.184` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
 
 From the repo root:
 
