@@ -387,16 +387,38 @@ Rules follow the same rule: an overlay signed for `bundle: redis` protects redis
 
 ## 10b. A single signed profile, without a bundle
 
-A workload that needs one profile rather than a set can reference a plain signed ContainerProfile, with no bundle or fragment-class labels.
+One party owning a whole profile can sign it directly, with no bundle or fragment-class labels.
 
-The same verification applies: the signature is checked on every load, and a tampered profile raises R1016 and is refused.
+Write the profile and sign it with the same script the fragments use:
 
 ```
-kubectl -n redis get $CP redis -o yaml > /tmp/flat.yaml
-./sign-object verify --file /tmp/flat.yaml --strict=false
+cat > /tmp/flat-cp.yaml <<'YAML'
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: redis-solo
+  namespace: redis
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  architectures: ["amd64"]
+  execs:
+    - path: /opt/bitnami/redis/bin/redis-server
+      args: ["redis-server"]
+YAML
+./sign-fragment.sh /tmp/flat-cp.yaml keys/vendor.pem
 ```
 
-Bundles exist for the multi-party case; a single signed profile stays the simpler path when one party owns the whole profile.
+It verifies as it stands in the cluster, and a workload can reference it by name through the same user-defined-profile label:
+
+```
+kubectl -n redis get $CP redis-solo -o yaml > /tmp/solo.yaml
+./sign-object verify --file /tmp/solo.yaml --strict=false
+```
+
+The learned profile the cluster generates is a different object and carries no signature, so verifying that one reports it as unsigned.
+
+Bundles exist for the multi-party case; a single signed profile stays the simpler path.
 
 ## 11. The trust anchor itself is checked
 
