@@ -11,8 +11,8 @@ read this directory.
 | Key | Role in the demo |
 |---|---|
 | `root.pem` | Signs the trust policy. Its public half is compiled into the demo `node-agent` image as the root of trust. |
-| `vendor.pem` | Signs `base`-class fragments: the vendor's learned profile and the baseline ruleset. |
-| `operator.pem` | Signs `admission`- and `overlay`-class fragments, for profiles and for rules. |
+| `vendor.pem` | Profiles: signs the `base`-class learned profile. Rules: signs `overlay`-class bundle rules. |
+| `operator.pem` | Profiles: signs `admission`- and `overlay`-class fragments. Rules: signs the `base`-class user baseline. |
 
 ## Never do this in a real cluster
 

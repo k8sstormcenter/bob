@@ -25,7 +25,13 @@ All keys under `keys/` are published demo material and authenticate nothing — 
 ## 0. Prerequisites
 
 - a cluster + `kubectl`, `helm` (3 or 4 — the Makefile auto-adds `--force-conflicts` on helm 4), `python3`
-- **working directory:** `make kubescape` (§1) runs from the repo root; everything else runs from `example/redis/distros/signed-bundles/`
+- **working directory:** the `make` targets (§1) run from the repo root; everything else runs from `example/redis/distros/signed-bundles/`
+- the `bobctl` CLI, used by the functional and attack suites in §4b, fetched into the repo root:
+
+```
+curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64 && chmod +x bobctl
+```
+
 - the `sign-object` CLI (linux; pick your arch), fetched into that directory:
 
 ```
@@ -43,7 +49,10 @@ From the repo root:
 
 ```
 make kubescape
+make alertmanager
 ```
+
+`make alertmanager` is what §4b reads its alerts from; the rest of the demo reports through the node-agent stdout exporter and does not need it.
 
 ## 2. Signed-bundle support boots with the chart
 
@@ -113,6 +122,7 @@ Split the alerts either side of `$T0` to separate functional false positives fro
 
 ```
 kubectl -n honey port-forward svc/alertmanager 9093:9093 &
+sleep 5
 curl -s localhost:9093/api/v2/alerts | python3 -c '
 import json,sys,os
 from collections import Counter
@@ -140,7 +150,7 @@ The server's composite has **no ingress**, so the client's connections are unexp
 ```
 MNODE=$(kubectl -n redis get pod redis-master-0 -o jsonpath='{.spec.nodeName}')
 NA=$(kubectl -n honey get pod -o wide --field-selector spec.nodeName=$MNODE --no-headers | awk '/node-agent/{print $1;exit}')
-kubectl -n honey logs -f $NA | grep "Unexpected ingress network"
+timeout 120 kubectl -n honey logs -f $NA | grep -m3 "Unexpected ingress network"
 ```
 
 ## 6. Allowlist the client LATER — with a signed fragment
@@ -202,7 +212,12 @@ kubectl -n redis get $CP redis-ops-overlay -o jsonpath='{.metadata.annotations.s
   | xargs -I{} kubectl -n redis annotate $CP redis-ops-overlay --overwrite signature.kubescape.io/content={}
 ```
 
-Within a reconcile interval the embedded content no longer matches its signature, R1016 "Signed profile tampered" fires, and the tampered fragment is refused.
+Within a reconcile interval the embedded content no longer matches its signature, R1016 "Signed profile tampered" fires, and the tampered fragment is refused:
+
+```
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep '"RuleID":"R1016"' | tail -1
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep "bundle overlay failed" | tail -1
+```
 
 The workload keeps running under the last verified composite rather than losing its profile, so a tamper reports and is rejected without turning every exec into an alert.
 
@@ -218,7 +233,8 @@ The proof that enforcement is live again, rather than an empty profile, is behav
 
 ```
 kubectl -n redis exec sts/redis-master -- uname -a
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=1m | grep '"RuleID":"R0001"'
+sleep 30
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep '"RuleID":"R0001"' | tail -1
 ```
 
 ## How admissibility is decided (reference)
@@ -276,6 +292,11 @@ kubectl -n redis patch $CP redis-ops-overlay --type json \
 # → no R1016, composite root unchanged; df -h still the ONLY overlay exec enforced
 ```
 
+```
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep -c '"RuleID":"R1016"'
+# → 0
+```
+
 **Editing the signed content is caught** — R1016, fail closed, as in §7(d).
 
 **An unsigned fragment is rejected:**
@@ -286,7 +307,17 @@ kubectl -n redis apply  -f fragments/frag-overlay-ops.yaml  # re-create from the
 # → bundle overlay failed: "fragment is not signed"; composite drops until re-signed
 ```
 
+```
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "is not signed" | tail -1
+```
+
 `apply` alone would not do it, because a 3-way merge keeps the existing signature annotations.
+
+Re-ship the signed artifact before continuing, so the rest of the demo runs on a complete bundle:
+
+```
+./sign-fragment.sh fragments/frag-overlay-ops.yaml keys/operator.pem
+```
 
 **A fragment signed by an untrusted key is rejected** with `signer not permitted for this fragment class`, and **a class-confined violation is rejected** with `class may not set spec.execs` — both failing the whole bundle closed.
 
@@ -312,12 +343,12 @@ An overlay applies to exactly the workloads bound to its bundle, **in whatever n
 
 The bundle and the class are inside the signed content, so a fragment cannot be re-classed or re-targeted at another bundle; the namespace is not signed, so the same vendor artifact installs anywhere.
 
-`trust-policy.json` names who may sign each class and which rule IDs they may set, and here the operator may only touch `R0001` and `R0002`:
+Rule classes invert the profile roles: the `base` ruleset is the cluster-wide baseline the **user** owns, and an `overlay` is bundle-scoped rules the **vendor** ships. `trust-policy.json` names who may sign each class and which rule IDs they may set, and here the vendor overlay may only touch `R0001` and `R0002` while the user baseline may set any rule:
 
 ```
 "ruleClasses": {
-  "base":    {"signers": ["key:<vendor>"],   "allowedRuleIDs": ["*"]},
-  "overlay": {"signers": ["key:<operator>"], "allowedRuleIDs": ["R0001","R0002"]}
+  "base":    {"signers": ["key:<user>"],   "allowedRuleIDs": ["*"]},
+  "overlay": {"signers": ["key:<vendor>"], "allowedRuleIDs": ["R0001","R0002"]}
 }
 ```
 
@@ -332,10 +363,10 @@ The bundle and the class are inside the signed content, so a fragment cannot be 
 kubectl -n honey create cm node-agent-bundle-policy --from-file=trust-policy.json=trust-policy.signed.json --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Rule signing is now on, which means every `Rules` object must verify or its rules are dropped, so the vendor signs the chart's unsigned baseline ruleset as a `base` fragment first — otherwise you correctly end up with no rules at all:
+Rule signing is now on, which means every `Rules` object must verify or its rules are dropped, so the user signs the chart's unsigned baseline ruleset as a `base` fragment first — otherwise you correctly end up with no rules at all:
 
 ```
-./sign-rules.sh rules/baseline-rules.yaml keys/vendor.pem
+./sign-rules.sh rules/baseline-rules.yaml keys/operator.pem
 kubectl -n honey rollout restart daemonset node-agent
 kubectl -n honey rollout status daemonset node-agent --timeout=300s
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "signed rule fragments enabled"
@@ -344,7 +375,7 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "signed r
 ### (b) The vendor ships the bundle's rules
 
 ```
-./sign-rules.sh rules/rules-redis.yaml keys/operator.pem
+./sign-rules.sh rules/rules-redis.yaml keys/vendor.pem
 ```
 
 `rules/rules-redis.yaml` is a `Rules` object labelled `bundle: redis` + `fragment-class: overlay`, carrying `R0001` at severity 10 with the message `REDIS TIER CRITICAL: ...`.
@@ -353,14 +384,16 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "signed r
 
 ```
 kubectl -n redis exec sts/redis-master -- id
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "REDIS TIER CRITICAL"
+sleep 30
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "REDIS TIER CRITICAL" | tail -1
 ```
 
 The `REDIS TIER CRITICAL` message is attributed only to the container bound to the redis bundle, never to the redis client that runs in the same namespace but is bound to its own profile:
 
 ```
 kubectl -n redis exec deploy/redis-client -- id
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "REDIS TIER CRITICAL" | grep -o '"containerName":"[^"]*"' | sort | uniq -c
+sleep 30
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep "REDIS TIER CRITICAL" | grep -o '"containerName":"[^"]*"' | sort | uniq -c
 ```
 
 The override reaches exactly the workloads that opted into the bundle, not everything sharing their namespace.
@@ -392,7 +425,7 @@ kubectl apply -f rules/rules-redis.yaml    # the UNSIGNED source
 # → rules fragment rejected: fragment is not signed
 ```
 
-**A trusted signer may not touch any rule they like**, so an operator fragment setting `R0007` is rejected with `rule ID not allowed for this class` — the same confinement idea as `allowedSpecPaths` for profiles.
+**A trusted signer may not touch any rule they like**, so a vendor overlay fragment setting `R0007` is rejected with `rule ID not allowed for this class` — the same confinement idea as `allowedSpecPaths` for profiles.
 
 **An overlay must declare a bundle**, so a rules overlay with no `bundle` label is rejected rather than applying everywhere.
 
@@ -490,6 +523,8 @@ By default an unsigned user-defined profile still loads, so signing is opt-in pe
 Set `nodeAgent.bundleSigning.requireSignedObjects: true` in `kubescape/values.yaml` and re-run `make kubescape` to refuse them instead:
 
 ```
+(cd ../../../.. && { grep -q requireSignedObjects kubescape/values.yaml || sed -i '/^  bundleSigning:/a\    requireSignedObjects: true' kubescape/values.yaml; } && make kubescape)
+kubectl -n honey rollout status daemonset node-agent --timeout=300s
 kubectl -n honey get cm node-agent -o jsonpath='{.data.config\.json}' | grep enableSignatureVerification
 ```
 
@@ -498,7 +533,8 @@ An unsigned user-defined profile is then refused and reported, while the workloa
 ```
 kubectl -n redis delete $CP redis-ops-overlay
 kubectl -n redis apply -f fragments/frag-overlay-ops.yaml
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "is unsigned"
+sleep 60
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep "is unsigned" | tail -1
 ```
 
 Learned profiles are unaffected, because node-agent generates them in-cluster and they never take this path.

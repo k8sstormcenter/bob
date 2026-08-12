@@ -5,9 +5,10 @@
 # fragment carries the same bundle and fragment-class labels as a profile
 # fragment, and both are part of the signed content.
 #
-#   base    class -> the rules apply cluster-wide (the vendor baseline)
+#   base    class -> the rules apply cluster-wide (the user baseline)
 #   overlay class -> the rules belong to a bundle and apply to the workloads
 #                    bound to it, overriding the base rule with the same ID
+#                    (rule classes invert profiles: base=user, overlay=vendor)
 #
 # The namespace is NOT signed, so the same signed artifact installs into
 # whichever namespace the customer chooses.

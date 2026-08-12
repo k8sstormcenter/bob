@@ -1,12 +1,3 @@
-# Demo trust policy for signed-bundle overlays (upstream-chart installs only;
-# the fork chart renders this from nodeAgent.bundleSigning).
-#
-# The policy is ROOT-SIGNED: node-agent verifies it against the root public key
-# compiled into its image and refuses to enable bundles if the signature or the
-# root pin fails. There is NO signing key here and none anywhere on the cluster
-# — node-agent only verifies. Re-sign with:
-#   sign-object sign-policy --policy trust-policy.json --key keys/root.pem \
-#     --output trust-policy.signed.json
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -63,7 +54,7 @@ data:
         "ruleClasses": {
           "base": {
             "signers": [
-              "key:1b962159c04a8b6dd5825b971d8417a144a1358d9e2f8c14368d14e1ebc67fbd"
+              "key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"
             ],
             "allowedRuleIDs": [
               "*"
@@ -71,7 +62,7 @@ data:
           },
           "overlay": {
             "signers": [
-              "key:2c6bd5e1e52cd5721c986bde87e84c382984d8d3263ddde7fc89d2e9c90c3fb3"
+              "key:1b962159c04a8b6dd5825b971d8417a144a1358d9e2f8c14368d14e1ebc67fbd"
             ],
             "allowedRuleIDs": [
               "R0001",
@@ -81,10 +72,10 @@ data:
         }
       },
       "annotations": {
-        "signature.kubescape.io/certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJYVENDQVFLZ0F3SUJBZ0lSQUp0M0NlZkF5TThyRGNBcmRJSWNsNDB3Q2dZSUtvWkl6ajBFQXdJd0ZERVMKTUJBR0ExVUVBeE1KYkc5allXd3RhMlY1TUI0WERUSTJNRGd4TVRFM05URXlOMW9YRFRJM01EZ3hNVEUzTlRFeQpOMW93RkRFU01CQUdBMVVFQXhNSmJHOWpZV3d0YTJWNU1Ga3dFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEClFnQUV3SUlrUFRENXJHUFAvYlltalJIeGVmQW9DSTFtd0lpUU1SQTc4eGRTNXJUVDN6bDA2eWdwWTlENEExelIKclFqcTJDa0Y1Y2l3TzJrU0pHZTNoNjRqRTZNMU1ETXdEZ1lEVlIwUEFRSC9CQVFEQWdlQU1CTUdBMVVkSlFRTQpNQW9HQ0NzR0FRVUZCd01ETUF3R0ExVWRFd0VCL3dRQ01BQXdDZ1lJS29aSXpqMEVBd0lEU1FBd1JnSWhBTklXCk9IVmVJWG5KSG1XWWdza3dFK1E0djgreGFvdGZRamVwOFp1aWxPdDhBaUVBNkIxYjVsRE1Wem54WGluRUYzQVEKM2lIQXVoZXVJMnU2Q3daTGNEek9uSVU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K",
+        "signature.kubescape.io/certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJXekNDQVFHZ0F3SUJBZ0lRQlo1MEZlZW9zYXNvRXB5WlNSZUtWREFLQmdncWhrak9QUVFEQWpBVU1SSXcKRUFZRFZRUURFd2xzYjJOaGJDMXJaWGt3SGhjTk1qWXdPREV5TVRJME16STNXaGNOTWpjd09ERXlNVEkwTXpJMwpXakFVTVJJd0VBWURWUVFERXdsc2IyTmhiQzFyWlhrd1dUQVRCZ2NxaGtqT1BRSUJCZ2dxaGtqT1BRTUJCd05DCkFBVEFnaVE5TVBtc1k4Lzl0aWFORWZGNThDZ0lqV2JBaUpBeEVEdnpGMUxtdE5QZk9YVHJLQ2xqMFBnRFhOR3QKQ09yWUtRWGx5TEE3YVJJa1o3ZUhyaU1Ub3pVd016QU9CZ05WSFE4QkFmOEVCQU1DQjRBd0V3WURWUjBsQkF3dwpDZ1lJS3dZQkJRVUhBd013REFZRFZSMFRBUUgvQkFJd0FEQUtCZ2dxaGtqT1BRUURBZ05JQURCRkFpQnNEaE8vCmFKVTN4TzlSL2FkVld5M2VBZVVVaHk2SG5pUzVjeFhkeGdicGtRSWhBUFlGeVNxekxJQVJMclB3QmhvKzRNaEgKVmJPdElYalc4aEZaS0x1UGNQVTgKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
         "signature.kubescape.io/identity": "local-key",
         "signature.kubescape.io/issuer": "local",
-        "signature.kubescape.io/signature": "MEYCIQCM1lOcA3JOLM42IQ5Mn+xPFGXV3g1NXy5D8se1RYkejQIhANwIIIL23jxABCqdDJo7ZNkG4IZkH0ik2s2ysKN8x6G1",
-        "signature.kubescape.io/timestamp": "1786470687"
+        "signature.kubescape.io/signature": "MEUCIQCHeCTAQ9IyIw6jzPV7Dsn1oZoCqfrMHHlyf7kk4L5bFAIge3p9mclx+k2+NgSTMMXnWmCnz2XoALCcxyzz4MThIUE=",
+        "signature.kubescape.io/timestamp": "1786538607"
       }
     }
