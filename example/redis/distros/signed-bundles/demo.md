@@ -43,7 +43,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 
 ## 1. Install kubescape with the right images
 
-`kubescape/values.yaml` pins `ghcr.io/k8sstormcenter/node-agent:v0.3.191` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the `signature-overlays` branch.
+The demo installs chart `1.40.3-sign-rc1` (helm-charts `signature-overlays`), which pins `ghcr.io/k8sstormcenter/node-agent:v0.3.191` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the node-agent `signature-overlays` branch.
 
 From the repo root:
 
@@ -53,6 +53,27 @@ make alertmanager
 ```
 
 `make alertmanager` is what §4b reads its alerts from; the rest of the demo reports through the node-agent stdout exporter and does not need it.
+
+### Two ways to install the trust bundle
+
+The trust policy is a root-signed artifact — about 2.5KB of JSON carrying a certificate and a signature. There are two ways to get it onto the cluster, and the demo works identically with either.
+
+**A. Inline in values (what `make kubescape` does).** `kubescape/values.yaml` holds the artifact under `nodeAgent.bundleSigning.trustPolicy`, and the chart renders the ConfigMap. The chart owns the object, so the policy is whatever the values say — a `helm upgrade` re-asserts it, which is what you want when the values are your source of truth. To avoid pasting the artifact by hand you can pass it at install time instead:
+
+```
+helm upgrade --install kubescape <chart> -n honey \
+  --set-file nodeAgent.bundleSigning.trustPolicy=example/redis/distros/signed-bundles/trust-policy.signed.json
+```
+
+**B. Mounted from a ConfigMap you own.**
+
+```
+make kubescape-mounted
+```
+
+This creates `kubescape-trust-bundle` from `trust-policy.signed.json` and installs with `nodeAgent.bundleSigning.existingConfigMap=kubescape-trust-bundle`. The chart mounts that ConfigMap and renders none, so the policy comes straight from your signing process and is rotated with `kubectl apply` on the ConfigMap — no `helm upgrade`, no re-pasting.
+
+Either way node-agent reads `/etc/bundle/trust-policy.json`. The ConfigMap is mounted as a **directory**, so kubelet propagates updates and node-agent applies a rotated policy on its own, within a reconcile interval — see §9(a). A replacement that does not verify against the root is refused and the policy already in force is kept, so neither path lets an unsigned policy take effect.
 
 ## 2. Signed-bundle support boots with the chart
 
@@ -385,10 +406,26 @@ Rule classes invert the profile roles: the `base` ruleset is the cluster-wide ba
 > ./sign-object sign-policy --policy trust-policy.json --key keys/root.pem --output trust-policy.signed.json
 > # paste trust-policy.signed.json into nodeAgent.bundleSigning.trustPolicy in kubescape/values.yaml, then:
 > (cd ../../../.. && make kubescape)
-> kubectl -n honey rollout restart daemonset node-agent   # the policy is a subPath mount: it is read at startup
 > ```
 >
-> The restart is required, not cosmetic: the policy is mounted with `subPath`, so kubelet never propagates a ConfigMap change into a running pod, and node-agent reads the policy once at startup. Without it the agent keeps enforcing the previous policy while `kubectl get cm` shows the new one.
+> No restart is needed. The ConfigMap is mounted as a directory, so kubelet propagates the change, and node-agent re-reads the policy and applies it within a reconcile interval:
+>
+> ```
+> kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "trust policy reloaded"
+> ```
+>
+> A replacement that does not verify against the root is refused and the policy already in force is kept, so a swapped-in policy cannot downgrade or disable enforcement:
+>
+> ```
+> kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "trust policy reload REFUSED"
+> ```
+>
+> If you installed with `make kubescape-mounted`, rotate the ConfigMap directly instead — same effect, no helm involved:
+>
+> ```
+> kubectl -n honey create configmap kubescape-trust-bundle \
+>   --from-file=trust-policy.json=trust-policy.signed.json --dry-run=client -o yaml | kubectl apply -f -
+> ```
 
 Every `Rules` object must now verify or its rules are dropped, so the user signs the chart's unsigned baseline ruleset as a `base` fragment first — otherwise you correctly end up with no rules at all:
 

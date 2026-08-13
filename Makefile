@@ -4,7 +4,7 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.40.3-v0.3.188
+KUBESCAPE_CHART_VER ?= 1.40.3-sign-rc1
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
@@ -374,6 +374,24 @@ KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" 
 
 kubescape:
 	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	kubectl apply -f kubescape/default-rules.yaml
+	kubectl apply -f kubescape/default-rule-binding.yaml
+
+# Same install, but the trust policy comes from a ConfigMap YOU own instead of
+# being inlined in values.yaml. The chart mounts it and renders none, so the
+# policy can be rotated (kubectl apply on the ConfigMap) without a helm upgrade
+# and without pasting the signed artifact into values.
+SIGNED_BUNDLES_DIR ?= example/redis/distros/signed-bundles
+KUBESCAPE_TRUST_CM ?= kubescape-trust-bundle
+
+trust-bundle:
+	kubectl create namespace honey --dry-run=client -o yaml | kubectl apply -f -
+	kubectl -n honey create configmap $(KUBESCAPE_TRUST_CM) \
+	  --from-file=trust-policy.json=$(SIGNED_BUNDLES_DIR)/trust-policy.signed.json \
+	  --dry-run=client -o yaml | kubectl apply -f -
+
+kubescape-mounted: trust-bundle
+	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set nodeAgent.bundleSigning.existingConfigMap=$(KUBESCAPE_TRUST_CM) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f kubescape/default-rules.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
 
