@@ -43,7 +43,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 
 ## 1. Install kubescape with the right images
 
-The demo installs chart `1.40.3-sign-rc1` (helm-charts `signature-overlays`), which pins `ghcr.io/k8sstormcenter/node-agent:v0.3.191` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the node-agent `signature-overlays` branch.
+The demo installs chart `1.40.3-sign-rc2` (helm-charts `signature-overlays`), which pins `ghcr.io/k8sstormcenter/node-agent:v0.3.192` and `ghcr.io/k8sstormcenter/storage:v0.3.177`, built from the node-agent `signature-overlays` branch.
 
 From the repo root:
 
