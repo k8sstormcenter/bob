@@ -375,16 +375,19 @@ Rule classes invert the profile roles: the `base` ruleset is the cluster-wide ba
 
 **The scenario:** redis is the cache tier, where an unexpected process is a possible compromise rather than routine drift, so the redis vendor ships `R0001` at severity 10 with a redis-specific message as part of the redis bundle.
 
-### (a) Turn rule signing on
+### (a) Rule signing is already on
 
-`trust-policy.json` already carries the `ruleClasses` above, and because the policy is root-signed, changing it means re-signing it:
+`kubescape/values.yaml` ships the **full** root-signed policy — the `ruleClasses` above included — so rule signing is on from §1 and nothing needs patching here.
 
-```
-./sign-object sign-policy --policy trust-policy.json --key keys/root.pem --output trust-policy.signed.json
-kubectl -n honey create cm node-agent-bundle-policy --from-file=trust-policy.json=trust-policy.signed.json --dry-run=client -o yaml | kubectl apply -f -
-```
+> **Change the policy in `values.yaml`, never with `kubectl` on the ConfigMap.** The chart owns `node-agent-bundle-policy`, so a ConfigMap edit survives only until the next `helm upgrade`: the following `make kubescape` silently restores the chart's policy. If that policy were missing `ruleClasses`, rule signing would switch off with no error and unsigned `Rules` objects would start loading again. To change the policy, edit `trust-policy.json`, re-sign it, paste the artifact into `values.yaml`, and re-run `make kubescape`:
+>
+> ```
+> ./sign-object sign-policy --policy trust-policy.json --key keys/root.pem --output trust-policy.signed.json
+> # paste trust-policy.signed.json into nodeAgent.bundleSigning.trustPolicy in kubescape/values.yaml, then:
+> (cd ../../../.. && make kubescape)
+> ```
 
-Rule signing is now on, which means every `Rules` object must verify or its rules are dropped, so the user signs the chart's unsigned baseline ruleset as a `base` fragment first — otherwise you correctly end up with no rules at all:
+Every `Rules` object must now verify or its rules are dropped, so the user signs the chart's unsigned baseline ruleset as a `base` fragment first — otherwise you correctly end up with no rules at all:
 
 ```
 ./sign-rules.sh rules/baseline-rules.yaml keys/operator.pem
