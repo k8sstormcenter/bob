@@ -385,7 +385,10 @@ Rule classes invert the profile roles: the `base` ruleset is the cluster-wide ba
 > ./sign-object sign-policy --policy trust-policy.json --key keys/root.pem --output trust-policy.signed.json
 > # paste trust-policy.signed.json into nodeAgent.bundleSigning.trustPolicy in kubescape/values.yaml, then:
 > (cd ../../../.. && make kubescape)
+> kubectl -n honey rollout restart daemonset node-agent   # the policy is a subPath mount: it is read at startup
 > ```
+>
+> The restart is required, not cosmetic: the policy is mounted with `subPath`, so kubelet never propagates a ConfigMap change into a running pod, and node-agent reads the policy once at startup. Without it the agent keeps enforcing the previous policy while `kubectl get cm` shows the new one.
 
 Every `Rules` object must now verify or its rules are dropped, so the user signs the chart's unsigned baseline ruleset as a `base` fragment first — otherwise you correctly end up with no rules at all:
 
@@ -552,13 +555,19 @@ kubectl -n honey rollout status daemonset node-agent --timeout=300s
 kubectl -n honey get cm node-agent -o jsonpath='{.data.config\.json}' | grep enableSignatureVerification
 ```
 
-An unsigned user-defined profile is then refused and reported, while the workload keeps whatever it was already enforcing:
+An unsigned user-defined profile is then refused and reported, while the workload keeps whatever it was already enforcing. The client's SBoB from §5 (`../sbobs/cp-redis-client.yaml`) is exactly that — a flat, unsigned, user-defined profile — so it is refused as soon as this is on:
 
 ```
-kubectl -n redis delete $CP redis-ops-overlay
-kubectl -n redis apply -f fragments/frag-overlay-ops.yaml
-sleep 60
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep "is unsigned" | tail -1
+# → user-defined ContainerProfile refused: signature verification is required and the profile is unsigned … profile: redis-client
 ```
+
+Sign it to get it back:
+
+```
+./sign-fragment.sh ../sbobs/cp-redis-client.yaml keys/operator.pem
+```
+
+This is the **flat** single-profile path, not the bundle path: a bundle fragment that stops verifying is reported as `a verified member no longer verifies` (§8) and the bundle keeps its last verified composite, whereas an unsigned flat profile is refused outright here.
 
 Learned profiles are unaffected, because node-agent generates them in-cluster and they never take this path.
