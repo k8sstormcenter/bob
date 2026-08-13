@@ -64,7 +64,18 @@ Confirm:
 
 ```
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "signed bundle overlays enabled"
+# → signed bundle overlays enabled in alert mode
 ```
+
+Signing has one global state, carried in the (root-signed) trust policy: `alert` reports unsigned or unverifiable objects, `enforce` refuses them. A mounted policy is never silent — a policy with no explicit mode runs in `alert`.
+
+The same startup also warns that the anchor is the **published demo root key**, which is expected here and is the one thing you must change for real use:
+
+```
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "DEMO root key"
+```
+
+See "Bring your own root key" below; under `enforce`, node-agent refuses to run on the demo root unless you mount your own.
 
 (`enable-bundle-signing.sh` remains only for installs of the upstream chart, which has no bundleSigning values.)
 
@@ -304,12 +315,14 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | gre
 ```
 kubectl -n redis delete $CP redis-ops-overlay               # drop the signed object
 kubectl -n redis apply  -f fragments/frag-overlay-ops.yaml  # re-create from the UNSIGNED source
-# → bundle overlay failed: "fragment is not signed"; composite drops until re-signed
+# → refused: "fragment is not signed"; the workload KEEPS its last verified composite
 ```
 
 ```
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "is not signed" | tail -1
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "no longer verifies" | tail -1
 ```
+
+`redis-ops-overlay` was a verified member, so replacing it with an unsigned object is a member that stopped verifying, not a stranger: the change is refused and the workload stays on the last verified composite rather than losing its profile. An object that never verified in the first place is a different case — see the non-member paragraph below.
 
 `apply` alone would not do it, because a 3-way merge keeps the existing signature annotations.
 
@@ -319,7 +332,15 @@ Re-ship the signed artifact before continuing, so the rest of the demo runs on a
 ./sign-fragment.sh fragments/frag-overlay-ops.yaml keys/operator.pem
 ```
 
-**A fragment signed by an untrusted key is rejected** with `signer not permitted for this fragment class`, and **a class-confined violation is rejected** with `class may not set spec.execs` — both failing the whole bundle closed.
+**An object that never verified is a non-member, not a bundle failure.** Bundle membership is authenticated: only fragments signed by a signer the policy trusts for their class count as members. Anyone who can create a ContainerProfile in the namespace can put the `bundle` and `fragment-class` labels on an object, so a labelled object that is unsigned, signed by an untrusted key, or class-confined-violating is **dropped** and the bundle assembles from its genuine members:
+
+```
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "dropped non-member"
+```
+
+Without this, one injected object would fail the whole bundle closed and take the profile away from every workload bound to it — a denial of service available to any namespace writer. The alert is deduplicated per bundle, not per object, so spraying objects cannot flood the log.
+
+**A signed fragment cannot be rolled back.** Fragments carry a monotonic `signature.kubescape.io/version` inside the signed content; node-agent refuses any fragment whose version is below the highest it has already accepted for that bundle/class/name, so re-applying an older but still validly signed fragment cannot widen the profile. The high-water marks are in-memory and reset when node-agent restarts.
 
 The signer identity is the public-key fingerprint the signature verified against, never the spoofable OIDC identity annotations, so a trusted signer cannot be impersonated by copying strings.
 
