@@ -61,7 +61,9 @@ The trust policy is a root-signed artifact — about 2.5KB of JSON carrying a ce
 **A. Inline in values (what `make kubescape` does).** `kubescape/values.yaml` holds the artifact under `nodeAgent.bundleSigning.trustPolicy`, and the chart renders the ConfigMap. The chart owns the object, so the policy is whatever the values say — a `helm upgrade` re-asserts it, which is what you want when the values are your source of truth. To avoid pasting the artifact by hand you can pass it at install time instead:
 
 ```
-helm upgrade --install kubescape <chart> -n honey \
+helm upgrade --install kubescape \
+  https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-sign-rc2/kubescape-operator-1.40.3-sign-rc2.tgz \
+  -n honey --create-namespace --values kubescape/values.yaml \
   --set-file nodeAgent.bundleSigning.trustPolicy=example/redis/distros/signed-bundles/trust-policy.signed.json
 ```
 
