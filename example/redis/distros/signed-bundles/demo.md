@@ -100,6 +100,16 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "DEMO roo
 
 See "Bring your own root key" below; under `enforce`, node-agent refuses to run on the demo root unless you mount your own.
 
+The shipped policy also carries `ruleClasses`, so **rule signing is on from the first boot**: every `Rules` object must verify against the policy or its rules are dropped whole. An unsigned baseline would leave the install with **no runtime detections at all** — node-agent says so on every sync (`grep "detection is effectively OFF"`). That is why `make kubescape` ships `rules/baseline-rules-signed.yaml`, the 31-rule baseline pre-signed as a `base` fragment with the demo operator key, both to the chart (`nodeAgent.bundleSigning.signedDefaultRules`) and as a direct apply. Confirm detections are live before deploying anything:
+
+```
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "signed rule fragments enabled"
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep -c "detection is effectively OFF"
+# → signed rule fragments enabled, and the count must be 0
+```
+
+If you run the functional suite (§4b) before rules are admitted, expect zero alerts and no attack detections.
+
 (`enable-bundle-signing.sh` remains only for installs of the upstream chart, which has no bundleSigning values.)
 
 ## 3. The vendor ships SIGNED fragments — before any workload exists
@@ -429,7 +439,7 @@ Rule classes invert the profile roles: the `base` ruleset is the cluster-wide ba
 >   --from-file=trust-policy.json=trust-policy.signed.json --dry-run=client -o yaml | kubectl apply -f -
 > ```
 
-Every `Rules` object must now verify or its rules are dropped, so the user signs the chart's unsigned baseline ruleset as a `base` fragment first — otherwise you correctly end up with no rules at all:
+Every `Rules` object must verify or its rules are dropped whole. The install already ships the pre-signed baseline (§2), so rules are live from the first boot; sign the baseline yourself only when it is yours to sign — after rotating the policy to your own keys, or after editing the ruleset:
 
 ```
 ./sign-rules.sh rules/baseline-rules.yaml keys/operator.pem

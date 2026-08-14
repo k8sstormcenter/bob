@@ -373,8 +373,8 @@ show-runc:
 KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" && echo "--server-side=true --force-conflicts")
 
 kubescape:
-	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
-	kubectl apply -f kubescape/default-rules.yaml
+	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
 
 # Same install, but the trust policy comes from a ConfigMap YOU own instead of
@@ -391,8 +391,8 @@ trust-bundle:
 	  --dry-run=client -o yaml | kubectl apply -f -
 
 kubescape-mounted: trust-bundle
-	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set nodeAgent.bundleSigning.existingConfigMap=$(KUBESCAPE_TRUST_CM) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
-	kubectl apply -f kubescape/default-rules.yaml
+	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set nodeAgent.bundleSigning.existingConfigMap=$(KUBESCAPE_TRUST_CM) --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
