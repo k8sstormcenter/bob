@@ -123,7 +123,60 @@ Tamper drill per mode — same §7(d) content-tamper against `redis-ops-overlay`
 - **ALERT:** `"RuleID":"R1016"` + `bundle overlay failed` within a reconcile interval; `df -h` still governed by the LAST VERIFIED overlay.
 - **ENFORCE:** same R1016 + refusal; additionally every unsigned/unverifiable object was already inadmissible, so there is no unsigned fallback surface at all.
 
-(Log lines above are the source strings for image v0.3.192; re-record when bumping images.)
+Recorded on a clean k3s v1.36 cluster, 2026-08-14, images node-agent v0.3.192 / storage v0.3.177. `$NA` = `kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1`; timestamps trimmed.
+
+**OFF** — zero signing plumbing, tamper is silent:
+
+```
+$NA | grep -c "signed bundle"                       # → 0
+$NA | grep "RulesWatcher - synced rules" | tail -1
+# → "enabledRules":28,"totalRules":1     (unsigned baseline loads)
+# after the §7d content tamper:
+$NA --since=5m | grep -cE "R1016|verif|bundle"      # → 0
+```
+
+**ALERT** (shipped defaults) — healthy boot:
+
+```
+{"level":"info","msg":"signed bundle overlays enabled in alert mode"}
+{"level":"warn","msg":"signed bundle overlays anchored to the PUBLISHED DEMO root key: this authenticates nothing, mount a real root before relying on signatures"}
+{"level":"info","msg":"signed rule fragments enabled"}
+{"level":"info","msg":"RulesWatcher - signed rule fragments","admitted":1,"rejected":0}
+{"level":"info","msg":"assembled signed bundle overlay","bundle":"redis","fragments":2,"root":"97df8151…"}
+```
+
+**ALERT** — the detection outage and its recovery (delete the signed baseline, apply the unsigned one):
+
+```
+{"level":"warn","msg":"rules fragment rejected","name":"default-rules","error":"fragment is not signed: \"default-rules\""}
+{"level":"info","msg":"RulesWatcher - signed rule fragments","admitted":0,"rejected":1}
+{"level":"error","msg":"RulesWatcher - signing enabled but NO rule fragment admitted while rules objects exist: detection is effectively OFF; sign the baseline ruleset as a base-class fragment or correct the trust policy","rulesObjects":1,"rejected":1}
+{"level":"info","msg":"RulesWatcher - synced rules from cluster","enabledRules":0,"totalRules":1}
+# exec `id` in redis-master during the outage → 0 R0001 alerts. Re-apply
+# rules/baseline-rules-signed.yaml → admitted:1 on the watch event, the same
+# exec fires R0001 again — no agent restart (restartCount stayed 0).
+```
+
+**ALERT and ENFORCE** — content tamper (§7d), identical in both modes:
+
+```
+R1016 "Signed profile tampered", severity 10
+{"level":"warn","msg":"signed bundle overlay refused: a verified member no longer verifies; keeping the last verified composite","bundle":"redis","members":"redis-ops-overlay","error":"fragment signature does not verify (tampered): …"}
+```
+
+**ENFORCE** (mounted root) — boot + unsigned flat profile refused:
+
+```
+{"level":"info","msg":"signed bundle overlays enabled in ENFORCE mode: unsigned and unverifiable artifacts are refused"}
+{"level":"warn","msg":"signed bundle overlays anchored to a MOUNTED root public key: the trust anchor is cluster-mutable, protect it with an immutable ConfigMap and tight RBAC","fingerprint":"key:d0cc7f2e…"}
+{"level":"warn","msg":"user-defined ContainerProfile refused: signature verification is required and the profile is unsigned","profile":"redis-client"}
+```
+
+**ENFORCE without a mounted root** (compiled-in demo anchor) — refused outright, signing stays off:
+
+```
+{"level":"warn","msg":"signed bundle overlays disabled: trust policy signature invalid","error":"enforce mode refuses the published demo root key: mount a real root at /etc/bundle/root.pub"}
+```
 
 ## 3. The vendor ships SIGNED fragments — before any workload exists
 
@@ -253,7 +306,7 @@ kubectl -n redis get $CP redis-ops-overlay -o jsonpath='{.metadata.annotations.s
 
 ```
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep '"RuleID":"R1016"' | tail -1
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep "bundle overlay failed" | tail -1
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep "bundle overlay refused" | tail -1
 ```
 
 Workload keeps the last verified composite — tamper reports and is rejected without turning every exec into an alert.
