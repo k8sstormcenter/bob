@@ -344,6 +344,14 @@ Public keys are never stored on the cluster — each artifact carries its certif
 
 `metadata.namespace` is NOT signed: a vendor cannot know the install namespace, and per-customer re-signing would defeat offline signing. Confinement = the signed `bundle` + `fragment-class` labels; namespace placement is ordinary RBAC.
 
+**How `kubescape.io/user-defined-profile` resolves.** Under a trust policy, `kubescape.io/user-defined-profile` resolves as a bundle name first; a verifying bundle shadows the identically named ContainerProfile; a failing bundle never falls back to it. The three outcomes, each with its own log line:
+
+1. No fragment carries the name → the ContainerProfile of that name is fetched as before (pre-bundle profiles keep working unchanged).
+2. Verifying fragments exist → the composite is enforced, the same-named profile is never read: `signed bundle overlay shadows a ContainerProfile of the same name: the bundle is enforced, the named profile is not` (once per root transition).
+3. Fragments exist but fail verification → NO fallback: `signed bundle failed verification and there is NO fallback to a ContainerProfile of the same name: container runs with no user-defined profile until the bundle verifies`. Falling back would let anyone who can corrupt one fragment downgrade a signed bundle to an unsigned profile.
+
+RBAC consequence: once bundles are enabled, `create` on `containerprofiles` in a workload's namespace is security-relevant — an object labelled into a bundle cannot forge a profile, but outcome 3 means it can deny one. Restrict that verb where the profile matters.
+
 ## Bring your own root key (rotating the trust anchor)
 
 The published image ships a demo root key you are meant to replace.
@@ -376,6 +384,8 @@ kubectl -n redis patch $CP redis-ops-overlay --type json \
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep -c '"RuleID":"R1016"'
 # → 0
 ```
+
+The inert edit is not silent: node-agent warns `signed fragment stored spec diverges from the signed content: the stored spec is display-only and is NOT enforced` naming the diverging paths — once per distinct stored content. It cuts both ways: an exec added by patching is NOT allowed until re-signed. To see what IS enforced, decode the signed content (the §7d jsonpath + gzip one-liner, minus the tamper step).
 
 **Signed-content edit is caught** — R1016, fail closed (§7d).
 
@@ -433,6 +443,8 @@ Rule classes invert profile roles: `base` = the user's cluster-wide baseline, `o
 ```
 
 Scenario: redis is the cache tier — an unexpected process there is possible compromise, not drift — so the vendor ships `R0001` at severity 10 with a redis-specific message.
+
+If the policy in force has no `ruleClasses` at all, rule signing is off and node-agent says so at startup and on every reload — `grep "rule signing DISABLED"`. After a refused reload, the enforced policy is identified by digest: `grep "inForceDigest"` against `sha256sum trust-policy.signed.json`, or `curl :7888/policyz`.
 
 ### (a) Rule signing is already on
 
