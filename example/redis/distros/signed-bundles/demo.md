@@ -216,12 +216,12 @@ A signed profile must behave like the learned one it replaces: benign quiet, att
 Capture `TSTART` BEFORE the suite — anything alerting before it is deployment noise, not a functional FP:
 
 ```
-export TSTART=$(date -u +%Y-%m-%dT%H:%M:%SZ) NS=redis
+export TSTART=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ) NS=redis
 (cd .. && bobctl test --functional-tests functional/redis-oss.yaml -n redis)
 ```
 
 ```
-export T0=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+sleep 2; export T0=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
 (cd .. && bobctl attack --attack-suite attacks/redis-oss.yaml -n redis)
 ```
 
