@@ -105,23 +105,29 @@ Running §4b before rules admit = zero alerts, zero attack detections.
 
 ## 2b. Signing modes — OFF / ALERT / ENFORCE
 
-One switch, in the root-signed policy (`"mode"`), plus the master values toggle. What each mode does, and what tampering a signed object looks like in each:
+One switch, in the root-signed policy (`"mode"`), plus the master values toggle. The full contract, per mode:
 
 | | OFF (`bundleSigning.enabled: false`) | ALERT (default) | ENFORCE (`"mode": "enforce"`) |
 |---|---|---|---|
 | boot log | none (no bundle lines) | `signed bundle overlays enabled in alert mode` | `signed bundle overlays enabled in ENFORCE mode: unsigned and unverifiable artifacts are refused` |
-| demo root | n/a | warning, keeps running | **refused** — agent will not enable signing on the published demo root; mount your own root |
+| demo root (compiled anchor) | n/a | warning, keeps running | **refused** — mount your own root |
+| invalid policy at boot | n/a | `trust policy invalid at startup: signed bundle overlays DISABLED …` — agent runs, keeps polling; first valid mount enables signing, no restart | same |
+| policy without `ruleClasses` | n/a | `rule signing DISABLED: … ANY Rules object in ANY namespace will load without a signature check` | same |
+| policy reload (valid change) | n/a | applied within ~1 min, `trust policy reloaded without restart` + `inForceDigest`; Rules admission re-evaluated immediately, no watch event | same |
+| policy reload (unverifiable) | n/a | `reload REFUSED` naming BOTH digests (`sha256sum` on the mounted file matches); in-force policy kept | same |
+| policy reload (older `policyVersion`) | n/a | refused as rollback, in-force kept | same |
+| reload that narrows scope | n/a | `trust policy reloaded with REDUCED scope` | same |
 | unsigned user profile | loads | loads (refused only with `requireSignedObjects`, §12) | refused |
-| tampered signed fragment | change takes effect silently — nothing verifies anything | R1016 + fragment refused, last verified composite kept (§7d) | R1016 + refused, same keep-last-verified |
-| unsigned `Rules` object | loads | rejected when `ruleClasses` present (fail closed + backstop) | rejected, same |
+| unsigned `Rules` object | loads | rejected when `ruleClasses` present; zero admitted → `detection is effectively OFF` every sync | rejected, same |
+| tampered signed content | takes effect silently — nothing verifies anything | R1016 + `bundle overlay refused … keeping the last verified composite` | same |
+| stored-spec edit on a signed object | takes effect (it IS the spec) | inert + warning `stored spec is display-only and is NOT enforced`, once per distinct edit | inert + same warning + alert `R1017 Signed profile drift` (never R1016) |
+| bundle shadows a same-named profile | n/a | `shadows a ContainerProfile of the same name: the bundle is enforced, the named profile is not`, once per root change | same |
+| bundle fails, no prior projection | n/a | `NO fallback to a ContainerProfile of the same name: container runs with no user-defined profile` | same |
+| what is enforced? | the objects themselves | `curl :7888/policyz` → digest, mode, root anchor, rules admitted/rejected; or `grep inForceDigest` | same |
 
-Switching modes = edit `"mode"` in `trust-policy.json`, re-sign with the root key, re-install (§9a shows the no-restart rotation). ENFORCE on this demo requires the mounted-root path ("Bring your own root key") because the compiled-in anchor is the demo root.
+Switching modes = edit `"mode"` in `trust-policy.json`, re-sign with the root key, rotate (§9a — no restart). ENFORCE on this demo requires the mounted-root path ("Bring your own root key") because the compiled-in anchor is the demo root.
 
-Tamper drill per mode — same §7(d) content-tamper against `redis-ops-overlay`:
-
-- **OFF:** the annotation edit lands, no log line of any kind, the stored object simply lies. That silence is the argument for turning signing on.
-- **ALERT:** `"RuleID":"R1016"` + `bundle overlay failed` within a reconcile interval; `df -h` still governed by the LAST VERIFIED overlay.
-- **ENFORCE:** same R1016 + refusal; additionally every unsigned/unverifiable object was already inadmissible, so there is no unsigned fallback surface at all.
+Rows above the recorded block that mention reload digests, `policyVersion`, `DISABLED`, divergence, `R1017`, shadowing, no-fallback wording, and `/policyz` are the source strings of the current branch — they ship with the next image; re-record then.
 
 Recorded on a clean k3s v1.36 cluster, 2026-08-14, images node-agent v0.3.192 / storage v0.3.177. `$NA` = `kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1`; timestamps trimmed.
 
@@ -207,32 +213,38 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "assemble
 
 A signed profile must behave like the learned one it replaces: benign quiet, attacks alert.
 
+Capture `TSTART` BEFORE the suite — anything alerting before it is deployment noise, not a functional FP:
+
 ```
+export TSTART=$(date -u +%Y-%m-%dT%H:%M:%SZ) NS=redis
 (cd .. && bobctl test --functional-tests functional/redis-oss.yaml -n redis)
 ```
 
 ```
-export T0=$(date -u +%Y-%m-%dT%H:%M:%SZ) NS=redis
+export T0=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 (cd .. && bobctl attack --attack-suite attacks/redis-oss.yaml -n redis)
 ```
 
-Split alerts at `$T0`:
+Split alerts into pre-suite / functional / attack, with DETAILS on every functional FP — the printed `comm` + `startsAt` decide whether an FP is a missing startup exec in the base fragment, a `runc:[2:INIT]` runtime-init attribution, or a timestamp artifact:
 
 ```
 kubectl -n honey port-forward svc/alertmanager 9093:9093 &
 sleep 5
 curl -s localhost:9093/api/v2/alerts | python3 -c '
 import json,sys,os
-from collections import Counter
-a=json.load(sys.stdin); ns=os.environ["NS"]; t0=os.environ.get("T0","")
+a=json.load(sys.stdin); ns=os.environ["NS"]
+t0=os.environ.get("T0",""); ts=os.environ.get("TSTART","")
 al=[x for x in a if x["labels"].get("namespace")==ns]
-fp=[x for x in al if x.get("startsAt","")<t0]
+pre=[x for x in al if x.get("startsAt","")<ts]
+fp=[x for x in al if ts<=x.get("startsAt","")<t0]
 tp=sorted({x["labels"].get("rule_id") for x in al if x.get("startsAt","")>=t0})
-print("functional FPs:", len(fp), dict(Counter(x["labels"].get("rule_id") for x in fp)) or "CLEAN")
+print("pre-suite noise:", len(pre))
+print("functional FPs:", len(fp) or "CLEAN")
+for x in fp: L=x["labels"]; print("  FP", L.get("rule_id"), "comm="+str(L.get("comm")), "container="+str(L.get("container_name")), "startsAt="+x.get("startsAt",""), x.get("annotations",{}).get("message","")[:80])
 print("attack TPs (distinct rules):", len(tp), tp)'
 ```
 
-FPs on the functional suite = a bad profile, not a working signature.
+A non-empty FP line means the base fragment does not cover workload startup — regenerate it from a learned profile taken across a full cold start — or the split timestamps are wrong; the printed `startsAt` decides which.
 
 ## 5. A client appears — unexpected ingress fires
 
