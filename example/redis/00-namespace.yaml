@@ -2,3 +2,12 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: redis-demo
+---
+# The redis-client (client.yaml) runs in its own `redis` namespace with its own
+# user-defined SBoB (kubescape.io/user-defined-profile: redis-client). The skaffold
+# applies client.yaml, so this namespace must exist or the deploy fails with
+# `namespaces "redis" not found`.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redis
