@@ -246,6 +246,15 @@ print("attack TPs (distinct rules):", len(tp), tp)'
 
 A non-empty FP line means the base fragment does not cover workload startup — regenerate it from a learned profile taken across a full cold start — or the split timestamps are wrong; the printed `startsAt` decides which.
 
+Expected (recorded 2026-08-14 on a clean cluster, current fragments):
+
+```
+functional FPs: CLEAN
+attack TPs (distinct rules): 12 ['R0001', 'R0002', 'R0005', 'R0006', 'R0008', 'R0010', 'R0011', 'R0040', 'R1004', 'R1008', 'R1010', 'R1012']
+```
+
+`kubectl exec` into either workload alerts as the exec'd process, never as `runc:[2:INIT]` — the profiles cover container-runtime setup (the client SBoB carries the exec-session init opens/caps and `runc` rulePolicies).
+
 ## 5. A client appears — unexpected ingress fires
 
 Client with its own SBoB (its redis-cli/egress stay quiet):
