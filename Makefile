@@ -4,7 +4,7 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.40.3-sign-rc2
+KUBESCAPE_CHART_VER ?= 1.40.3-sign-rc3
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)

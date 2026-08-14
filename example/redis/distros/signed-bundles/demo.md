@@ -38,7 +38,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 
 ## 1. Install kubescape
 
-Chart `1.40.3-sign-rc2` (helm-charts `signature-overlays`) pins `ghcr.io/k8sstormcenter/node-agent:v0.3.192` + `ghcr.io/k8sstormcenter/storage:v0.3.177`.
+Chart `1.40.3-sign-rc3` (helm-charts `signature-overlays`) pins `ghcr.io/k8sstormcenter/node-agent:v0.3.193` + `ghcr.io/k8sstormcenter/storage:v0.3.177`.
 
 From the repo root:
 
@@ -57,7 +57,7 @@ The trust policy is a root-signed artifact (~2.5KB JSON: certificate + signature
 
 ```
 helm upgrade --install kubescape \
-  https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-sign-rc2/kubescape-operator-1.40.3-sign-rc2.tgz \
+  https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-sign-rc3/kubescape-operator-1.40.3-sign-rc3.tgz \
   -n honey --create-namespace --values kubescape/values.yaml \
   --set-file nodeAgent.bundleSigning.trustPolicy=example/redis/distros/signed-bundles/trust-policy.signed.json
 ```
@@ -129,7 +129,7 @@ Switching modes = edit `"mode"` in `trust-policy.json`, re-sign with the root ke
 
 Rows above the recorded block that mention reload digests, `policyVersion`, `DISABLED`, divergence, `R1017`, shadowing, no-fallback wording, and `/policyz` are the source strings of the current branch — they ship with the next image; re-record then.
 
-Recorded on a clean k3s v1.36 cluster, 2026-08-14, images node-agent v0.3.192 / storage v0.3.177. `$NA` = `kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1`; timestamps trimmed.
+Recorded on a clean k3s v1.36 cluster, 2026-08-14, images node-agent v0.3.193 (2b recorded block: v0.3.192) / storage v0.3.177. `$NA` = `kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1`; timestamps trimmed.
 
 **OFF** — zero signing plumbing, tamper is silent:
 
