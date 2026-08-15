@@ -24,7 +24,7 @@ All keys under `keys/` are published demo material and authenticate nothing — 
 - `bobctl` (§4b), into the repo root:
 
 ```
-curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64 && chmod +x bobctl
+curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64 && echo "cae72fd03666ed9fb98b2474c1793b3cd9f005db663425e9065a6abec03da0d5  bobctl" | sha256sum -c && chmod +x bobctl
 ```
 
 - `sign-object` (linux; pick your arch), into this directory:
@@ -38,7 +38,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 
 ## 1. Install kubescape
 
-Chart `1.40.3-sign-rc3` (helm-charts `signature-overlays`) pins `ghcr.io/k8sstormcenter/node-agent:v0.3.193` + `ghcr.io/k8sstormcenter/storage:v0.3.177`.
+Chart `1.40.3-sign-rc4` (helm-charts `signature-overlays`) pins `ghcr.io/k8sstormcenter/node-agent:v0.3.193` + `ghcr.io/k8sstormcenter/storage:v0.3.177`.
 
 From the repo root:
 
@@ -57,7 +57,7 @@ The trust policy is a root-signed artifact (~2.5KB JSON: certificate + signature
 
 ```
 helm upgrade --install kubescape \
-  https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-sign-rc3/kubescape-operator-1.40.3-sign-rc3.tgz \
+  https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-sign-rc4/kubescape-operator-1.40.3-sign-rc4.tgz \
   -n honey --create-namespace --values kubescape/values.yaml \
   --set-file nodeAgent.bundleSigning.trustPolicy=example/redis/distros/signed-bundles/trust-policy.signed.json
 ```
@@ -102,6 +102,34 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep -c "detec
 Running §4b before rules admit = zero alerts, zero attack detections.
 
 (`enable-bundle-signing.sh` is only for the upstream chart, which has no bundleSigning values.)
+
+## 2c. Verify the entire setup — one checklist
+
+Run before any workload. Every line must hold, or stop here.
+
+```
+NA() { kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1; }
+NA | grep -m1 "signed bundle overlays enabled"
+NA | grep "RulesWatcher - signed rule fragments" | tail -1
+NA | grep -c "detection is effectively OFF"
+NA | grep -m1 "trust policy in force"
+sha256sum trust-policy.signed.json
+kubectl -n honey port-forward ds/node-agent 7888:7888 & sleep 3; curl -s localhost:7888/policyz; kill %1
+```
+
+Expected: the mode line; `"admitted":1,"rejected":0`; count `0`; `inForceDigest` equal to the `sha256sum` output; `/policyz` returning the same digest with `rulesAdmitted`/`rulesRejected`.
+
+**Sign your config.** The clusterData the agent runs on is chart-rendered — sign the rendered form so the mutable ConfigMap copy stops being the source of truth:
+
+```
+kubectl -n honey get cm ks-cloud-config -o jsonpath='{.data.clusterData}' > clusterData.json
+./sign-object sign-config --file clusterData.json --key keys/root.pem --output clusterData.signed.json
+(cd ../../../.. && make kubescape KS_SIGNED_CLUSTERDATA=example/redis/distros/signed-bundles/clusterData.signed.json)
+kubectl -n honey rollout status ds node-agent --timeout=300s
+NA | grep "loaded root-signed clusterData"
+```
+
+From here node-agent uses the VERIFIED clusterData; a tampered artifact refuses to load. Fragment signatures are verified continuously once ingested (§3) and can be spot-checked leaf by leaf (§7b). Expected suite outcome is pinned in `fixtures/redis-alerts.json` and diffed automatically in §4b.
 
 ## 2b. Signing modes — OFF / ALERT / ENFORCE
 
@@ -238,10 +266,13 @@ al=[x for x in a if x["labels"].get("namespace")==ns]
 pre=[x for x in al if x.get("startsAt","")<ts]
 fp=[x for x in al if ts<=x.get("startsAt","")<t0]
 tp=sorted({x["labels"].get("rule_id") for x in al if x.get("startsAt","")>=t0})
+fx=json.load(open("signed-bundles/fixtures/redis-alerts.json"))
 print("pre-suite noise:", len(pre))
 print("functional FPs:", len(fp) or "CLEAN")
-for x in fp: L=x["labels"]; print("  FP", L.get("rule_id"), "comm="+str(L.get("comm")), "container="+str(L.get("container_name")), "startsAt="+x.get("startsAt",""), x.get("annotations",{}).get("message","")[:80])
-print("attack TPs (distinct rules):", len(tp), tp)'
+for x in fp: L=x["labels"]; print("  FP", L.get("rule_id"), "comm="+str(L.get("comm")), "container="+str(L.get("container_name")), "startsAt="+x.get("startsAt",""))
+missing=sorted(set(fx["attack"])-set(tp)); extra=sorted(set(tp)-set(fx["attack"]))
+print("attack TPs (distinct rules):", len(tp), tp)
+print("FIXTURE DIFF:", "PASS" if not fp and not missing and not extra else f"FAIL functional={len(fp)} missing={missing} extra={extra}")'
 ```
 
 A non-empty FP line means the base fragment does not cover workload startup — regenerate it from a learned profile taken across a full cold start — or the split timestamps are wrong; the printed `startsAt` decides which.

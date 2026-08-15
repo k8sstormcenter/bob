@@ -4,7 +4,7 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.40.3-sign-rc3
+KUBESCAPE_CHART_VER ?= 1.40.3-sign-rc4
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
@@ -371,9 +371,10 @@ show-runc:
 # client-side from a release previously upgraded by helm 3, and helm 4 rejects
 # --force-conflicts without server-side apply. helm 3 has neither flag.
 KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" && echo "--server-side=true --force-conflicts")
+KS_CD_FLAGS := $(if $(KS_SIGNED_CLUSTERDATA),--set-file nodeAgent.bundleSigning.signedClusterData=$(KS_SIGNED_CLUSTERDATA))
 
 kubescape:
-	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_CD_FLAGS) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
 
@@ -391,7 +392,7 @@ trust-bundle:
 	  --dry-run=client -o yaml | kubectl apply -f -
 
 kubescape-mounted: trust-bundle
-	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set nodeAgent.bundleSigning.existingConfigMap=$(KUBESCAPE_TRUST_CM) --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set nodeAgent.bundleSigning.existingConfigMap=$(KUBESCAPE_TRUST_CM) --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_CD_FLAGS) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
 
