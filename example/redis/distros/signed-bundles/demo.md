@@ -31,7 +31,7 @@ curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.
 
 ```
 cd example/redis/distros/signed-bundles
-curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.5/sign-object-linux-amd64 && chmod +x sign-object
+curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.6/sign-object-linux-amd64 && chmod +x sign-object
 ```
 
 (or from source: `git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
@@ -113,11 +113,11 @@ NA | grep -m1 "signed bundle overlays enabled"
 NA | grep "RulesWatcher - signed rule fragments" | tail -1
 NA | grep -c "detection is effectively OFF"
 NA | grep -m1 "trust policy in force"
-sha256sum trust-policy.signed.json
+kubectl -n honey get cm node-agent-bundle-policy -o jsonpath='{.data.trust-policy\.json}' | sha256sum
 kubectl -n honey port-forward ds/node-agent 7888:7888 & sleep 3; curl -s localhost:7888/policyz; kill %1
 ```
 
-Expected: the mode line; `"admitted":1,"rejected":0`; count `0`; `inForceDigest` equal to the `sha256sum` output; `/policyz` returning the same digest with `rulesAdmitted`/`rulesRejected`.
+Expected: the mode line; `"admitted":1,"rejected":0`; count `0`; `inForceDigest` equal to the ConfigMap hash (the digest is over the MOUNTED artifact — the repo file differs by values-inlining whitespace; with `make kubescape-mounted` the repo file hashes identically); `/policyz` returning the same digest with `rootAnchor`, `rulesAdmitted`/`rulesRejected` and `effectiveRules`.
 
 **Sign your config.** The clusterData the agent runs on is chart-rendered — sign the rendered form so the mutable ConfigMap copy stops being the source of truth:
 
@@ -155,9 +155,8 @@ One switch, in the root-signed policy (`"mode"`), plus the master values toggle.
 
 Switching modes = edit `"mode"` in `trust-policy.json`, re-sign with the root key, rotate (§9a — no restart). ENFORCE on this demo requires the mounted-root path ("Bring your own root key") because the compiled-in anchor is the demo root.
 
-Rows above the recorded block that mention reload digests, `policyVersion`, `DISABLED`, divergence, `R1017`, shadowing, no-fallback wording, and `/policyz` are the source strings of the current branch — they ship with the next image; re-record then.
 
-Recorded on a clean k3s v1.36 cluster, 2026-08-14, images node-agent v0.3.193 (2b recorded block: v0.3.192) / storage v0.3.177. `$NA` = `kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1`; timestamps trimmed.
+Recorded on a clean k3s v1.36 cluster, 2026-08-15, images node-agent v0.3.193 / storage v0.3.177, chart 1.40.3-sign-rc4. `$NA` = `kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1`; timestamps trimmed.
 
 **OFF** — zero signing plumbing, tamper is silent:
 
@@ -176,7 +175,30 @@ $NA --since=5m | grep -cE "R1016|verif|bundle"      # → 0
 {"level":"warn","msg":"signed bundle overlays anchored to the PUBLISHED DEMO root key: this authenticates nothing, mount a real root before relying on signatures"}
 {"level":"info","msg":"signed rule fragments enabled"}
 {"level":"info","msg":"RulesWatcher - signed rule fragments","admitted":1,"rejected":0}
-{"level":"info","msg":"assembled signed bundle overlay","bundle":"redis","fragments":2,"root":"97df8151…"}
+{"level":"info","msg":"assembled signed bundle overlay","bundle":"redis","fragments":2,"root":"2a91e677…"}
+{"level":"info","msg":"trust policy in force","inForceDigest":"e487d390…","mode":"alert"}
+```
+
+**ALERT** — policy reload, no restart (rotate the mounted ConfigMap; each phase identified by its artifact digest):
+
+```
+# valid change (policyVersion 2):
+{"level":"info","msg":"trust policy reloaded without restart","inForceDigest":"4195e9c1…","mode":"alert","ruleSigning":"on","ruleClasses":2}
+# rollback (re-apply the older version):
+{"level":"error","msg":"trust policy reload REFUSED: keeping the policy already in force","refusedDigest":"f02aed3c…","inForceDigest":"4195e9c1…","error":"policy version is below the version in force (rollback): refused version 0, in force 2"}
+# wrong signer:
+{"level":"error","msg":"trust policy reload REFUSED: keeping the policy already in force","refusedDigest":"d66e318e…","inForceDigest":"4195e9c1…","error":"trust policy not signed by the embedded root key"}
+# narrowed scope (ruleClasses removed):
+{"level":"warn","msg":"rule signing DISABLED: the trust policy in force carries no ruleClasses; ANY Rules object in ANY namespace will load without a signature check"}
+{"level":"warn","msg":"trust policy reloaded with REDUCED scope","ruleSigning":"true->false","mode":"alert->alert"}
+```
+
+Ask what is enforced — the digest matches `sha256sum` of the mounted ConfigMap copy:
+
+```
+kubectl -n honey get cm node-agent-bundle-policy -o jsonpath='{.data.trust-policy\.json}' | sha256sum   # → e487d390…
+curl -s localhost:7888/policyz
+# → {"inForceDigest":"e487d390…","mode":"alert","rootAnchor":"demo","ruleClassCount":2,"rulesAdmitted":1,"rulesRejected":0,"effectiveRules":28}
 ```
 
 **ALERT** — the detection outage and its recovery (delete the signed baseline, apply the unsigned one):
@@ -194,8 +216,21 @@ $NA --since=5m | grep -cE "R1016|verif|bundle"      # → 0
 **ALERT and ENFORCE** — content tamper (§7d), identical in both modes:
 
 ```
-R1016 "Signed profile tampered", severity 10
+{"RuleID":"R1016","alertName":"Signed profile tampered","severity":10, …}
 {"level":"warn","msg":"signed bundle overlay refused: a verified member no longer verifies; keeping the last verified composite","bundle":"redis","members":"redis-ops-overlay","error":"fragment signature does not verify (tampered): …"}
+```
+
+**ALERT/ENFORCE** — stored-spec edit is inert, and said so (patch the stored spec without re-signing):
+
+```
+{"level":"warn","msg":"signed fragment stored spec diverges from the signed content: the stored spec is display-only and is NOT enforced; enforcement uses the signed content","fragment":"redis-ops-overlay","divergingPaths":"execs","pathCount":1}
+# R1016 count during divergence: 0 — this is not a tamper of enforced content
+```
+
+Under **ENFORCE** the same edit additionally raises a distinct low-severity drift alert — never R1016:
+
+```
+{"RuleID":"R1017","alertName":"Signed profile drift","severity":2,"message":"Stored spec of signed profile 'redis-ops-overlay' … diverges from the enforced signed content (paths: execs)"}
 ```
 
 **ENFORCE** (mounted root) — boot + unsigned flat profile refused:
