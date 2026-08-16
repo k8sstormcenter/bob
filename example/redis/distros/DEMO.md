@@ -88,3 +88,20 @@ Allowlist that identity — R0012 stops within ~30s (profile-projection refresh)
 ```
 kubectl -n redis patch $CP redis --type merge -p '{"spec":{"ingress":[{"type":"internal","podSelector":{"matchLabels":{"app":"redis-client"}},"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"redis"}},"ports":[{"name":"TCP-6379","port":6379,"protocol":"TCP"}]}]}}'
 ```
+
+## 6. Egress port allowlist — internal + external (#80)
+
+The client's profile allows the redis pod on TCP/6379 and an external IP on
+TCP/80. The same IPs on any other port fire R0011 — an allowlisted address is
+no longer sufficient.
+
+```
+./port-alerts.sh redis-port
+```
+
+R0011 fires only on the violating ports; `:6379` and `:80` stay silent:
+
+```
+Unexpected egress network communication to: <redis-pod-ip>:6380 using TCP
+Unexpected egress network communication to: 162.0.217.171:443 using TCP
+```
