@@ -38,7 +38,7 @@ curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/
 
 ## 1. Install kubescape
 
-Chart `1.40.3-sign-rc4` (helm-charts `signature-overlays`) pins `ghcr.io/k8sstormcenter/node-agent:v0.3.193` + `ghcr.io/k8sstormcenter/storage:v0.3.177`.
+Chart `1.40.3-node-agent-rc-sofia` (helm-charts `release/node-agent-rc-sofia`) pins `ghcr.io/k8sstormcenter/node-agent:node-agent-rc-sofia` + `ghcr.io/k8sstormcenter/storage:v0.0.303`.
 
 From the repo root:
 
@@ -57,7 +57,7 @@ The trust policy is a root-signed artifact (~2.5KB JSON: certificate + signature
 
 ```
 helm upgrade --install kubescape \
-  https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-sign-rc4/kubescape-operator-1.40.3-sign-rc4.tgz \
+  https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-node-agent-rc-sofia/kubescape-operator-1.40.3-node-agent-rc-sofia.tgz \
   -n honey --create-namespace --values kubescape/values.yaml \
   --set-file nodeAgent.bundleSigning.trustPolicy=example/redis/distros/signed-bundles/trust-policy.signed.json
 ```
