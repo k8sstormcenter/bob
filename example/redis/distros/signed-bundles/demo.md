@@ -472,7 +472,7 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | gre
 # → 0
 ```
 
-The inert edit is not silent: node-agent warns `signed fragment stored spec diverges from the signed content: the stored spec is display-only and is NOT enforced` naming the diverging paths — once per distinct stored content. It cuts both ways: an exec added by patching is NOT allowed until re-signed. To see what IS enforced, decode the signed content (the §7d jsonpath + gzip one-liner, minus the tamper step).
+The inert edit is not silent: node-agent warns `signed fragment stored spec diverges from the signed content: the stored spec is display-only and is NOT enforced` naming the diverging paths — once per distinct stored content. With signing enforced (enforce mode or `requireSignedObjects`, §12) the same edit additionally raises **R1017** — see §8b. It cuts both ways: an exec added by patching is NOT allowed until re-signed. To see what IS enforced, decode the signed content (the §7d jsonpath + gzip one-liner, minus the tamper step).
 
 **Signed-content edit is caught** — R1016, fail closed (§7d).
 
@@ -505,6 +505,28 @@ Otherwise one injected object would fail the bundle closed for every bound workl
 **No rollback.** Fragments carry a monotonic `signature.kubescape.io/version` inside the signed content; anything below the accepted high-water mark for that bundle/class/name is refused. Marks are in-memory, reset on restart.
 
 Signer identity = the fingerprint the signature verified against — never the spoofable OIDC annotations.
+
+## 8b. Tamper alerts — the complete map
+
+Two alert IDs, strictly separated by meaning; every other refusal is a log line that fails safe. All rows live-recorded 2026-08-18 (alert mode + `requireSignedObjects`).
+
+| Alert | Sev | Meaning | How to trigger |
+|---|---|---|---|
+| **R1016** `Signed profile tampered` | 10 | enforced content tampered: a signature that once verified now MISMATCHES | (a) flat signed CP — edit its embedded `signature.kubescape.io/content` (the §7d one-liner against a §12-signed profile) → `Signed ContainerProfile '<name>' … has been tampered with`; (b) bundle member — same edit on a verified fragment (§7d) → alert on the bundle + `signed bundle overlay refused: a verified member no longer verifies; keeping the last verified composite` |
+| **R1017** `Signed profile drift` | 2 | display-only drift: stored spec edited after signing; enforcement unaffected (signed content stays authoritative) | `kubectl patch` the stored spec of a signed fragment (§8) while signing is enforced → alert names the diverging paths (`paths: execs`). In plain alert mode the same edit only warns, no alert |
+
+Dedup: R1016 per (kind, namespace, name, resourceVersion) on flat profiles; edge-triggered per bundle for members, re-armed on clean assembly. R1017 once per distinct stored content.
+
+Refused but deliberately NOT an alert — grep these, all keep the last good state:
+
+```
+signed bundle overlay refused: a verified member no longer verifies   # once-verified member re-created UNSIGNED; not-signed ≠ tampered, R1016 stays 0
+signed bundle overlay: dropped non-member object(s)                   # never-verified object labelled into the bundle (new name); bundle assembles without it
+signed bundle overlay refused: fragment rollback                      # older-but-valid fragment replayed below the version high-water mark
+rules fragment rejected                                               # wrong signer / unsigned Rules object; drops whole (§9d), zero admitted escalates to "detection is effectively OFF"
+signed Rules stored spec diverges from the signed content             # Rules twin of drift; warning only, no R1017
+trust policy invalid at startup / trust policy reload REFUSED         # the anchor itself (§11); policy in force kept, re-checked every reload interval
+```
 
 ## 9. Signed rules — the vendor ships rules with the bundle
 
