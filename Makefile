@@ -4,7 +4,7 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.40.3
+KUBESCAPE_CHART_VER ?= 1.40.3-node-agent-rc-cel
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
@@ -368,7 +368,7 @@ show-runc:
 kubescape:
 	helm repo add kubescape https://kubescape.github.io/helm-charts/
 	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	helm upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f kubescape/default-rules.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
 
