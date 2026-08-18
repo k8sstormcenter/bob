@@ -682,17 +682,19 @@ kubectl -n honey rollout status daemonset node-agent --timeout=300s
 ```
 
 ```
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "trust policy signature invalid"
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 | grep "trust policy invalid at startup"
 kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep -c "signed bundle overlays enabled"
+# → trust policy invalid at startup: signed bundle overlays DISABLED until a valid policy is mounted; re-checking every reload interval
+# → 0
 ```
 
-Restore:
+Restore — no restart needed, the invalid policy is re-checked every reload interval:
 
 ```
 kubectl -n honey create cm node-agent-bundle-policy --from-file=trust-policy.json=trust-policy.signed.json --dry-run=client -o yaml | kubectl apply -f -
-kubectl -n honey rollout restart daemonset node-agent
-kubectl -n honey rollout status daemonset node-agent --timeout=300s
-kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=2m | grep "signed bundle overlays enabled"
+sleep 100
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep "trust policy reloaded without restart"
+kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | grep "signed bundle overlays enabled"
 ```
 
 ## 12. Require signatures on user-supplied profiles
