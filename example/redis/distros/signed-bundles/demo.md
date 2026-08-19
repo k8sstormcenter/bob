@@ -31,20 +31,19 @@ curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.
 
 ```
 cd example/redis/distros/signed-bundles
-curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.6/sign-object-linux-amd64 && chmod +x sign-object
+curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.6/sign-object-linux-amd64 && echo "a5d25f05d893f33a47e95a3acda100aaf62654da7a0f3891ad0c59e0ea38b218  sign-object" | sha256sum -c && chmod +x sign-object
 ```
 
-(or from source: `git clone -b signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
+Every block from here on runs from `example/redis/distros/signed-bundles/` — repo-root commands are wrapped in `(cd ../../../.. && …)` subshells so the working directory never moves.
+
+(or from source: `git clone -b rebase/signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
 
 ## 1. Install kubescape
 
 Chart `1.40.3-node-agent-rc-sofia` (helm-charts `release/node-agent-rc-sofia`) pins `ghcr.io/k8sstormcenter/node-agent:node-agent-rc-sofia` + `ghcr.io/k8sstormcenter/storage:v0.0.303`.
 
-From the repo root:
-
 ```
-make kubescape
-make alertmanager
+(cd ../../../.. && make kubescape && make alertmanager)
 ```
 
 `make alertmanager` feeds §4b; everything else reports via the node-agent stdout exporter.
@@ -56,16 +55,16 @@ The trust policy is a root-signed artifact (~2.5KB JSON: certificate + signature
 **A. Inline in values** (`make kubescape` does this). The chart owns the ConfigMap; `helm upgrade` re-asserts the values' policy. To avoid hand-pasting:
 
 ```
-helm upgrade --install kubescape \
+(cd ../../../.. && helm upgrade --install kubescape \
   https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-node-agent-rc-sofia/kubescape-operator-1.40.3-node-agent-rc-sofia.tgz \
   -n honey --create-namespace --values kubescape/values.yaml \
-  --set-file nodeAgent.bundleSigning.trustPolicy=example/redis/distros/signed-bundles/trust-policy.signed.json
+  --set-file nodeAgent.bundleSigning.trustPolicy=example/redis/distros/signed-bundles/trust-policy.signed.json)
 ```
 
 **B. Mounted from a ConfigMap you own.**
 
 ```
-make kubescape-mounted
+(cd ../../../.. && make kubescape-mounted)
 ```
 
 Creates `kubescape-trust-bundle` from `trust-policy.signed.json`, installs with `existingConfigMap`. Rotation = `kubectl apply` on the ConfigMap, no helm.
@@ -252,7 +251,6 @@ Under **ENFORCE** the same edit additionally raises a distinct low-severity drif
 Offline signing: `sign-object --embed-content` embeds the signed bytes in `signature.kubescape.io/content` — survives storage normalisation. The cluster never sees an unsigned fragment. No admission fragment yet — the client does not exist:
 
 ```
-cd example/redis/distros/signed-bundles   # if you cd'd to the repo root for §1
 ./sign-fragment.sh fragments/frag-base-redis.yaml  keys/vendor.pem
 ./sign-fragment.sh fragments/frag-overlay-ops.yaml keys/operator.pem
 ```
@@ -280,12 +278,12 @@ Capture `TSTART` BEFORE the suite — anything alerting before it is deployment 
 
 ```
 export TSTART=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ) NS=redis
-(cd .. && bobctl test --functional-tests functional/redis-oss.yaml -n redis)
+(cd .. && ../../../bobctl test --functional-tests functional/redis-oss.yaml -n redis)
 ```
 
 ```
 sleep 2; export T0=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
-(cd .. && bobctl attack --attack-suite attacks/redis-oss.yaml -n redis)
+(cd .. && ../../../bobctl attack --attack-suite attacks/redis-oss.yaml -n redis)
 ```
 
 Split alerts into pre-suite / functional / attack, with DETAILS on every functional FP — the printed `comm` + `startsAt` decide whether an FP is a missing startup exec in the base fragment, a `runc:[2:INIT]` runtime-init attribution, or a timestamp artifact:
@@ -301,7 +299,7 @@ al=[x for x in a if x["labels"].get("namespace")==ns]
 pre=[x for x in al if x.get("startsAt","")<ts]
 fp=[x for x in al if ts<=x.get("startsAt","")<t0]
 tp=sorted({x["labels"].get("rule_id") for x in al if x.get("startsAt","")>=t0})
-fx=json.load(open("signed-bundles/fixtures/redis-alerts.json"))
+fx=json.load(open("fixtures/redis-alerts.json"))
 print("pre-suite noise:", len(pre))
 print("functional FPs:", len(fp) or "CLEAN")
 for x in fp: L=x["labels"]; print("  FP", L.get("rule_id"), "comm="+str(L.get("comm")), "container="+str(L.get("container_name")), "startsAt="+x.get("startsAt",""))
