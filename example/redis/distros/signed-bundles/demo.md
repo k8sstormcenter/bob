@@ -40,7 +40,7 @@ Every block from here on runs from `example/redis/distros/signed-bundles/` — r
 
 ## 1. Install kubescape
 
-Chart `1.40.3-node-agent-rc-sofia` (helm-charts `release/node-agent-rc-sofia`) pins `ghcr.io/k8sstormcenter/node-agent:node-agent-rc-sofia` + `ghcr.io/k8sstormcenter/storage:v0.0.303`.
+Chart `1.40.3-node-agent-rc-sofia` (helm-charts `release/node-agent-rc-sofia`); `kubescape/values.yaml` overrides the node-agent image to `ghcr.io/k8sstormcenter/node-agent:rc-sofia-port0fix` (the port-wildcard fix) with `ghcr.io/k8sstormcenter/storage:v0.0.303`.
 
 ```
 (cd ../../../.. && make kubescape && make alertmanager)
