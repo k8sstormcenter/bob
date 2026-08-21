@@ -344,6 +344,17 @@ endif
 endif
 
 KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.maxLearningPeriod=$(KS_LEARN_PERIOD))
+#
+# node-agent ContainerProfile signature verification. bobctl emits UNSIGNED
+# SBoBs; with verification ON, node-agent silently refuses to enforce them and
+# falls back to learning mode (no detection, no error). Default off for this
+# demo repo; production should `bobctl sign` and set KS_SIGNATURES=on. Applied
+# after helm by kubescape/set-signature-verification.sh — the upstream chart
+# does not template this key and post-render is not helm-4 safe.
+KS_SIGNATURES ?= off
+ifneq ($(filter-out on off,$(KS_SIGNATURES)),)
+$(error KS_SIGNATURES must be 'on' or 'off', got "$(KS_SIGNATURES)")
+endif
 
 # One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
 # Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
@@ -371,6 +382,7 @@ kubescape:
 	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f kubescape/default-rules.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
+	./kubescape/set-signature-verification.sh $(KS_SIGNATURES)
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
 # restart: node-agent binds user-supplied profiles and starts its learning
