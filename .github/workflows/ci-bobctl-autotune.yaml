@@ -654,6 +654,37 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+      - name: Render rule-coverage (contrast) GIF
+        if: always()
+        continue-on-error: true
+        run: |
+          pip install --quiet pillow pyyaml 2>/dev/null || true
+          if [ ! -f results/metrics.json ]; then
+            echo "No metrics.json — skipping coverage GIF"
+            exit 0
+          fi
+          OUT=$(python3 -c "import yaml; d=yaml.safe_load(open('kubescape/rule-coverage.yaml')); print(next((a.get('out','') for a in d.get('apps', []) if a.get('name') == '${{ matrix.app }}'), ''))")
+          if [ -z "$OUT" ]; then
+            echo "No rule-coverage.yaml entry for ${{ matrix.app }} — skipping coverage GIF"
+            exit 0
+          fi
+          python3 scripts/render-rule-coverage-gif.py \
+            --config kubescape/rule-coverage.yaml --app "${{ matrix.app }}" \
+            --ruleset kubescape/default-rules.yaml \
+            --metrics results/metrics.json || { echo "coverage GIF render failed (non-fatal)"; exit 0; }
+          cp "$OUT" results/coverage.gif
+          echo "coverage GIF: $(ls -lh results/coverage.gif 2>/dev/null | awk '{print $5}')"
+
+      - name: Upload rule-coverage (contrast) GIF
+        if: always()
+        id: upload-coverage-gif
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-gif-${{ matrix.app }}-${{ matrix.os }}
+          path: results/coverage.gif
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Publish tune chart to step summary
         if: always()
         run: |
@@ -677,6 +708,12 @@ jobs:
                 echo ""
                 echo "**Animated report:** [tune-gif-${{ matrix.app }}-${{ matrix.os }}]($ARTIFACT_URL)"
               } >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          if [ -f results/coverage.gif ]; then
+            COV_URL="${{ steps.upload-coverage-gif.outputs.artifact-url }}"
+            if [ -n "$COV_URL" ]; then
+              echo "**Rule-coverage (contrast):** [coverage-gif-${{ matrix.app }}-${{ matrix.os }}]($COV_URL)" >> $GITHUB_STEP_SUMMARY
             fi
           fi
 
