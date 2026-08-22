@@ -7,26 +7,45 @@ metadata:
 spec:
   architectures: [amd64]
   execs:
-  - {path: /sbin/tini, args: [/sbin/tini, ⋯⋯]}
-  - {path: /usr/local/bin/kustomize-controller, args: [/usr/local/bin/kustomize-controller, ⋯⋯]}
+  - path: /sbin/tini
+    args: [/sbin/tini, "\u22EF\u22EF"]
+  - path: /usr/local/bin/kustomize-controller
+    args: [/usr/local/bin/kustomize-controller, "\u22EF\u22EF"]
   opens:
-  - {path: /.yaml, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /etc/hosts, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /etc/localtime, flags: [O_RDONLY]}
-  - {path: /etc/nsswitch.conf, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /etc/resolv.conf, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /proc/⋯/cgroup, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /proc/⋯/mountinfo, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /proc/⋯/net/core/somaxconn, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /proc/⋯/task/⋯/fd, flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]}
-  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /sys/fs/cgroup/cpu.max, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, flags: [O_RDONLY]}
-  - {path: /tmp, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /tmp/⋯, flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]}
-  - {path: /usr/local/bin/kustomize-controller, flags: [O_CLOEXEC, O_RDONLY]}
+  - path: /.yaml
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/hosts
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/localtime
+    flags: [O_RDONLY]
+  - path: /etc/nsswitch.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/resolv.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/proc/\u22EF/cgroup"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/proc/\u22EF/mountinfo"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/proc/\u22EF/net/core/somaxconn"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/proc/\u22EF/task/\u22EF/fd"
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/ca.crt"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/namespace"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/token"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/fs/cgroup/cpu.max
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    flags: [O_RDONLY]
+  - path: /tmp
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/tmp/\u22EF"
+    flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /usr/local/bin/kustomize-controller
+    flags: [O_CLOEXEC, O_RDONLY]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   endpoints:
   - direction: inbound
@@ -143,6 +162,14 @@ spec:
       processAllowed: [tini, kustomize-contr]
   matchLabels: {app: kustomize-controller}
   egress:
+  - identifier: cluster-service-ranges
+    type: internal
+    ipAddresses: [10.43.0.0/16]
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    - {name: TCP-443, port: 443, protocol: TCP}
+    - {name: TCP-5000, port: 5000, protocol: TCP}
+    - {name: TCP-9093, port: 9093, protocol: TCP}
   - identifier: ab59749df52a78595af091ff332d12b0887696bd8448dc34b9da2dc926873a50
     namespaceSelector: null
     podSelector:
@@ -175,6 +202,13 @@ spec:
     - {name: TCP-80, port: 80, protocol: TCP}
     type: internal
   ingress:
+  - identifier: node-probes
+    type: internal
+    ipAddresses: [10.42.0.0/16]
+    ports:
+    - {name: TCP-8080, port: 8080, protocol: TCP}
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+    - {name: TCP-9440, port: 9440, protocol: TCP}
   - identifier: kubelet-probes
     type: internal
     ipAddresses: [10.42.0.0/16, 10.244.0.0/16]

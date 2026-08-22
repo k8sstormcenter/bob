@@ -7,19 +7,31 @@ metadata:
 spec:
   architectures: [amd64]
   execs:
-  - {path: /usr/local/bin/image-automation-controller, args: [/usr/local/bin/image-automation-controller, ⋯⋯]}
+  - path: /usr/local/bin/image-automation-controller
+    args: [/usr/local/bin/image-automation-controller, "\u22EF\u22EF"]
   opens:
-  - {path: /etc/localtime, flags: [O_RDONLY]}
-  - {path: /proc/⋯/cgroup, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /proc/⋯/mountinfo, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /proc/⋯/net/core/somaxconn, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /proc/⋯/task/⋯/fd, flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]}
-  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /sys/fs/cgroup/cpu.max, flags: [O_CLOEXEC, O_RDONLY]}
-  - {path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, flags: [O_RDONLY]}
-  - {path: /usr/local/bin/image-automation-controller, flags: [O_CLOEXEC, O_RDONLY]}
+  - path: /etc/localtime
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/cgroup"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/proc/\u22EF/mountinfo"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/proc/\u22EF/net/core/somaxconn"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/proc/\u22EF/task/\u22EF/fd"
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/ca.crt"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/namespace"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/token"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/fs/cgroup/cpu.max
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    flags: [O_RDONLY]
+  - path: /usr/local/bin/image-automation-controller
+    flags: [O_CLOEXEC, O_RDONLY]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   endpoints:
   - direction: inbound
@@ -45,6 +57,19 @@ spec:
       processAllowed: [image-automatio]
   matchLabels: {app: image-automation-controller}
   egress:
+  - identifier: github-cdn-ranges
+    type: external
+    ipAddresses: [140.82.112.0/20, 185.199.108.0/22]
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+  - identifier: cluster-service-ranges
+    type: internal
+    ipAddresses: [10.43.0.0/16]
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    - {name: TCP-443, port: 443, protocol: TCP}
+    - {name: TCP-5000, port: 5000, protocol: TCP}
+    - {name: TCP-9093, port: 9093, protocol: TCP}
   - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: default}
@@ -55,6 +80,13 @@ spec:
     type: internal
     ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
   ingress:
+  - identifier: node-probes
+    type: internal
+    ipAddresses: [10.42.0.0/16]
+    ports:
+    - {name: TCP-8080, port: 8080, protocol: TCP}
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+    - {name: TCP-9440, port: 9440, protocol: TCP}
   - identifier: kubelet-probes
     type: internal
     ipAddresses: [10.42.0.0/16, 10.244.0.0/16]

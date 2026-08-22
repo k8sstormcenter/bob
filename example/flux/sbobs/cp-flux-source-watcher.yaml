@@ -8,7 +8,8 @@ spec:
   imageTag: ghcr.io/fluxcd/source-watcher:v2.2.2
   capabilities: [CAP_NET_ADMIN]
   execs:
-  - args: [/usr/local/bin/source-watcher, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces, --log-level=info, --log-encoding=json, --enable-leader-election, --storage-path=/data, --storage-adv-addr=source-watcher.flux-system.svc.cluster.local.]
+  - args: [/usr/local/bin/source-watcher, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces, --log-level=info, --log-encoding=json, --enable-leader-election,
+      --storage-path=/data, --storage-adv-addr=source-watcher.flux-system.svc.cluster.local.]
     path: /usr/local/bin/source-watcher
   opens:
   - flags: [O_RDONLY, O_CLOEXEC]
@@ -97,6 +98,13 @@ spec:
     internal: true
     methods: [GET]
   ingress:
+  - identifier: node-probes
+    type: internal
+    ipAddresses: [10.42.0.0/16]
+    ports:
+    - {name: TCP-8080, port: 8080, protocol: TCP}
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+    - {name: TCP-9440, port: 9440, protocol: TCP}
   - dns: ''
     dnsNames: null
     identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
@@ -108,6 +116,19 @@ spec:
     - {name: TCP-9090, port: 9090, protocol: TCP}
     type: external
   egress:
+  - identifier: github-cdn-ranges
+    type: external
+    ipAddresses: [140.82.112.0/20, 185.199.108.0/22]
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+  - identifier: cluster-service-ranges
+    type: internal
+    ipAddresses: [10.43.0.0/16]
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    - {name: TCP-443, port: 443, protocol: TCP}
+    - {name: TCP-5000, port: 5000, protocol: TCP}
+    - {name: TCP-9093, port: 9093, protocol: TCP}
   - dns: ''
     dnsNames: null
     identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2

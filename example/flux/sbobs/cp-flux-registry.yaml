@@ -535,6 +535,13 @@ spec:
     internal: false
     methods: [HEAD]
   ingress:
+  - identifier: node-probes
+    type: internal
+    ipAddresses: [10.42.0.0/16]
+    ports:
+    - {name: TCP-8080, port: 8080, protocol: TCP}
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+    - {name: TCP-9440, port: 9440, protocol: TCP}
   - dns: ''
     dnsNames: null
     identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
@@ -556,3 +563,12 @@ spec:
     - {name: TCP-5000, port: 5000, protocol: TCP}
     type: internal
   syscalls: [getgid]
+  egress:
+  - identifier: cluster-service-ranges
+    type: internal
+    ipAddresses: [10.43.0.0/16]
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    - {name: TCP-443, port: 443, protocol: TCP}
+    - {name: TCP-5000, port: 5000, protocol: TCP}
+    - {name: TCP-9093, port: 9093, protocol: TCP}

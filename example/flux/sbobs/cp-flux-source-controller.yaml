@@ -242,6 +242,17 @@ spec:
       processAllowed: [source-controll]
   matchLabels: {app: source-controller}
   egress:
+  - identifier: github-cdn-ranges
+    ipAddresses: [140.82.112.0/20, 185.199.108.0/22]
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: external
+  - identifier: cluster-service-ranges
+    ipAddresses: [10.43.0.0/16]
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: internal
   - identifier: 2ee821381e02f418bd2d439eb54ee718767181b84f66af1d040148ca7f4cbdc3
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: flux-registry}
