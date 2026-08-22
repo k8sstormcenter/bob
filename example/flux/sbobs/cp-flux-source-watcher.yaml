@@ -1,0 +1,122 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata: {name: flux-source-watcher, namespace: flux-system}
+spec:
+  matchLabels: {app: source-watcher}
+  architectures: [amd64]
+  imageID: ghcr.io/fluxcd/source-watcher@sha256:1d59f752ecf520d1dc56ca413749dfab507497dd363639b6fbaf5036850e05c7
+  imageTag: ghcr.io/fluxcd/source-watcher:v2.2.2
+  capabilities: [CAP_NET_ADMIN]
+  execs:
+  - args: [/usr/local/bin/source-watcher, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces, --log-level=info, --log-encoding=json, --enable-leader-election, --storage-path=/data, --storage-adv-addr=source-watcher.flux-system.svc.cluster.local.]
+    path: /usr/local/bin/source-watcher
+  opens:
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /1/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /6_10_26.3292544794/ca.crt
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /6_10_26.3292544794/token
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /87307a
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /ation.k8s.io/v1/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /ation.toolkit.fluxcd.io/v1beta3/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /data
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /data/*
+  - flags: [O_RDONLY]
+    path: /etc/localtime
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /ing.k8s.io/v1/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /k8s.io/api/discovery
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /k8s.io/apimachinery/pkg/runtime/types_proto_go_gen.cue
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /olkit.fluxcd.io/v2/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /onregistration.k8s.io/v1/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /pe.io/v1alpha1/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: "/proc/\u22EF/cgroup"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/proc/\u22EF/mountinfo"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/proc/\u22EF/net/core/somaxconn"
+  - flags: [O_DIRECTORY, O_CLOEXEC, O_RDONLY]
+    path: "/proc/\u22EF/task/1/fd"
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /roups.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /rs.coreos.com/v1alpha1/serverresources.json
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /rs.coreos.com/v2/serverresources.json
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_03_16_23_58.230809076/ca.crt
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_03_16_23_58.230809076/token
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_10_20_03_55.2488999030/ca.crt
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_10_20_03_55.2488999030/namespace
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /run/secrets/kubernetes.io/serviceaccount/..2026_08_10_20_03_55.2488999030/token
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /sys/fs/cgroup/cpu.max
+  - flags: [O_RDONLY]
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /usr/local/bin/source-watcher
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /v1alpha1/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /v2alpha1/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /zation.k8s.io/v1/serverresources.json
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /ze.toolkit.fluxcd.io/v1/serverresources.json
+  endpoints:
+  - direction: inbound
+    endpoint: :9440/healthz
+    headers:
+      Connection: [close]
+      Host: ['10.42.0.254:9440']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :9090/
+    headers:
+      Connection: [close]
+      Host: ['10.42.0.254:9090']
+    internal: true
+    methods: [GET]
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-9440, port: 9440, protocol: TCP}
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+    type: external
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: default}
+    podSelector:
+      matchLabels: {component: apiserver, provider: kubernetes}
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: internal
+  syscalls: [fstat, getdents64]

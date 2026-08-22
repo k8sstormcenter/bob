@@ -1,0 +1,558 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata: {name: flux-registry, namespace: flux-registry}
+spec:
+  matchLabels: {app: flux-registry}
+  architectures: [amd64]
+  imageID: docker.io/library/registry@sha256:a3d8aaa63ed8681a604f1dea0aa03f100d5895b6a58ace528858a7b332415373
+  imageTag: docker.io/library/registry:2
+  capabilities: [CAP_NET_ADMIN]
+  execs:
+  - args: [/entrypoint.sh, /etc/docker/registry/config.yml]
+    path: /bin/busybox
+  - args: [/bin/registry, serve, /etc/docker/registry/config.yml]
+    path: /bin/registry
+  opens:
+  - flags: [O_CLOEXEC, O_RDONLY, O_LARGEFILE]
+    path: /entrypoint.sh
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /etc/docker/registry/config.yml
+  - flags: [O_RDONLY]
+    path: /etc/localtime
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: "/proc/\u22EF"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/proc/\u22EF/net/core/somaxconn"
+  - flags: [O_CLOEXEC, O_RDONLY, O_DIRECTORY]
+    path: "/proc/\u22EF/task/1/fd"
+  - flags: [O_RDONLY]
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/blobs/sha256/1f/1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/blobs/sha256/2d/2dc320ee94f112f33629c5260314e3c06be60242e223be316c092c4becb916c9/data
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/blobs/sha256/7b/7bc93d32bee842c3911adde9cd93dbdfa4c1c19937185e7b49f1138ba6d98212/data
+  - flags: [O_CLOEXEC, O_RDONLY, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/blobs/sha256/82/82dc2d007751d8e623f04ec0ff7a60f7472153f544b97199303f264e15da4b25/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/blobs/sha256/88/88e4da732196f5b2ef40ea40c86708a1709644e929217d96eb8c0175cd6793a1/data
+  - flags: [O_CREAT, O_CLOEXEC, O_RDONLY, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/blobs/sha256/8a/8a00e83e26fe897d3420c0e6c70129d9e83e2bd783f9d4f2cce845ff4f913c3c/data
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/blobs/sha256/c7/c7704fb133a708cd6695d5f9a76b961583edb47656b0d744df865d2a8bd3e9c1/data
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_layers/sha256/2dc320ee94f112f33629c5260314e3c06be60242e223be316c092c4becb916c9/link
+  - flags: [O_WRONLY, O_CREAT, O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_layers/sha256/7bc93d32bee842c3911adde9cd93dbdfa4c1c19937185e7b49f1138ba6d98212/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_manifests/revisions/sha256/82dc2d007751d8e623f04ec0ff7a60f7472153f544b97199303f264e15da4b25/link
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_manifests/tags/6.5.3/current/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_manifests/tags/6.5.3/index/sha256/82dc2d007751d8e623f04ec0ff7a60f7472153f544b97199303f264e15da4b25/link
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/b4fe1176-e15f-4940-a275-9893fb329394
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/b4fe1176-e15f-4940-a275-9893fb329394/data
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/b4fe1176-e15f-4940-a275-9893fb329394/hashstates
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/b4fe1176-e15f-4940-a275-9893fb329394/hashstates/sha256
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/b4fe1176-e15f-4940-a275-9893fb329394/hashstates/sha256/0
+  - flags: [O_CLOEXEC, O_RDONLY, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/b4fe1176-e15f-4940-a275-9893fb329394/hashstates/sha256/14238
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/b4fe1176-e15f-4940-a275-9893fb329394/startedat
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/ffd5d909-9445-4795-9a15-ce78303a2d10
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/ffd5d909-9445-4795-9a15-ce78303a2d10/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/ffd5d909-9445-4795-9a15-ce78303a2d10/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/ffd5d909-9445-4795-9a15-ce78303a2d10/hashstates/sha256
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/ffd5d909-9445-4795-9a15-ce78303a2d10/hashstates/sha256/0
+  - flags: [O_RDONLY, O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/ffd5d909-9445-4795-9a15-ce78303a2d10/hashstates/sha256/348
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/charts/podinfo/_uploads/ffd5d909-9445-4795-9a15-ce78303a2d10/startedat
+  - flags: [O_CREAT, O_RDONLY, O_CLOEXEC, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_layers/sha256/88e4da732196f5b2ef40ea40c86708a1709644e929217d96eb8c0175cd6793a1/link
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_layers/sha256/afe8e8d80d664797c45c8d02a2fbeef03d3ef1870cc8fc47006b53334df8c504/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_manifests/revisions/sha256/1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766/link
+  - flags: [O_CREAT, O_RDONLY, O_CLOEXEC, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_manifests/tags/1.0.0/current/link
+  - flags: [O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_manifests/tags/1.0.0/index/sha256/1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_manifests/tags/latest/current/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_manifests/tags/latest/index/sha256/1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766/link
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/678635b1-56fc-4568-8f33-3952897ce6fb
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/678635b1-56fc-4568-8f33-3952897ce6fb/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/678635b1-56fc-4568-8f33-3952897ce6fb/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/678635b1-56fc-4568-8f33-3952897ce6fb/hashstates/sha256
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/678635b1-56fc-4568-8f33-3952897ce6fb/hashstates/sha256/0
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/678635b1-56fc-4568-8f33-3952897ce6fb/hashstates/sha256/233
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/678635b1-56fc-4568-8f33-3952897ce6fb/startedat
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/ba84e2ac-082d-499d-be93-432a2079fa15
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/ba84e2ac-082d-499d-be93-432a2079fa15/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/ba84e2ac-082d-499d-be93-432a2079fa15/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/ba84e2ac-082d-499d-be93-432a2079fa15/hashstates/sha256
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/ba84e2ac-082d-499d-be93-432a2079fa15/hashstates/sha256/0
+  - flags: [O_CLOEXEC, O_RDONLY, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/ba84e2ac-082d-499d-be93-432a2079fa15/hashstates/sha256/1098
+  - flags: [O_RDONLY, O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/manifests/podinfo/_uploads/ba84e2ac-082d-499d-be93-432a2079fa15/startedat
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_layers/sha256/1637fa144cdfe03a0176a3e5b0909ba2cc33db5df3fdd24d6e902ce58719ed97/link
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_layers/sha256/9996eae935230a44480f772ec16d4128f83486e958f80925dcd9d9e04a6ebb76/link
+  - flags: [O_CLOEXEC, O_WRONLY, O_CREAT, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_layers/sha256/cd6eb51e00ab9d13f92dbbe64764cf420472c2c71a0c4fc9e1905a212880946e/link
+  - flags: [O_RDONLY, O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_manifests/revisions/sha256/c7704fb133a708cd6695d5f9a76b961583edb47656b0d744df865d2a8bd3e9c1/link
+  - flags: [O_WRONLY, O_CREAT, O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_manifests/tags/1.0.0/current/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_manifests/tags/1.0.0/index/sha256/c7704fb133a708cd6695d5f9a76b961583edb47656b0d744df865d2a8bd3e9c1/link
+  - flags: [O_RDONLY, O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_manifests/tags/latest/current/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_manifests/tags/latest/index/sha256/c7704fb133a708cd6695d5f9a76b961583edb47656b0d744df865d2a8bd3e9c1/link
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/3946f6c3-7324-48a0-a93b-7c946f4ebd95
+  - flags: [O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/3946f6c3-7324-48a0-a93b-7c946f4ebd95/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/3946f6c3-7324-48a0-a93b-7c946f4ebd95/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/3946f6c3-7324-48a0-a93b-7c946f4ebd95/hashstates/sha256
+  - flags: [O_CREAT, O_CLOEXEC, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/3946f6c3-7324-48a0-a93b-7c946f4ebd95/hashstates/sha256/0
+  - flags: [O_CREAT, O_CLOEXEC, O_RDONLY, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/3946f6c3-7324-48a0-a93b-7c946f4ebd95/hashstates/sha256/125278
+  - flags: [O_CLOEXEC, O_RDONLY, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/3946f6c3-7324-48a0-a93b-7c946f4ebd95/startedat
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/aa4ca3d2-884f-474b-a5db-d21abd70788c
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/aa4ca3d2-884f-474b-a5db-d21abd70788c/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/aa4ca3d2-884f-474b-a5db-d21abd70788c/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/aa4ca3d2-884f-474b-a5db-d21abd70788c/hashstates/sha256
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/aa4ca3d2-884f-474b-a5db-d21abd70788c/hashstates/sha256/0
+  - flags: [O_CREAT, O_CLOEXEC, O_RDONLY, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/aa4ca3d2-884f-474b-a5db-d21abd70788c/hashstates/sha256/342
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/aa4ca3d2-884f-474b-a5db-d21abd70788c/startedat
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/ba3cc91d-47f8-483d-9b1e-5d8894a5e910
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/ba3cc91d-47f8-483d-9b1e-5d8894a5e910/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/ba3cc91d-47f8-483d-9b1e-5d8894a5e910/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/ba3cc91d-47f8-483d-9b1e-5d8894a5e910/hashstates/sha256
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/ba3cc91d-47f8-483d-9b1e-5d8894a5e910/hashstates/sha256/0
+  - flags: [O_RDONLY, O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/ba3cc91d-47f8-483d-9b1e-5d8894a5e910/hashstates/sha256/2966
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-hr-bench/_uploads/ba3cc91d-47f8-483d-9b1e-5d8894a5e910/startedat
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_layers/sha256/86fe69583201b93017af750125fce7913fdfeca374c5870ecf8614c3c9a20e88/link
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_layers/sha256/997824fda3d0d41be85c3de2b277dfa9237f8effbddac18fbbff551501a63fc5/link
+  - flags: [O_RDONLY, O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_layers/sha256/9dc792a5221be5cc722f55021481b7f32251a5b0c5d383aba9e52634557b9103/link
+  - flags: [O_RDONLY, O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_manifests/revisions/sha256/8a00e83e26fe897d3420c0e6c70129d9e83e2bd783f9d4f2cce845ff4f913c3c/link
+  - flags: [O_CREAT, O_RDONLY, O_CLOEXEC, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_manifests/tags/1.0.0/current/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_manifests/tags/1.0.0/index/sha256/8a00e83e26fe897d3420c0e6c70129d9e83e2bd783f9d4f2cce845ff4f913c3c/link
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_manifests/tags/latest/current/link
+  - flags: [O_CREAT, O_CLOEXEC, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_manifests/tags/latest/index/sha256/8a00e83e26fe897d3420c0e6c70129d9e83e2bd783f9d4f2cce845ff4f913c3c/link
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/7a5f0a57-fcc4-4120-8250-e7f59a8f5e6d
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/7a5f0a57-fcc4-4120-8250-e7f59a8f5e6d/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/7a5f0a57-fcc4-4120-8250-e7f59a8f5e6d/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/7a5f0a57-fcc4-4120-8250-e7f59a8f5e6d/hashstates/sha256
+  - flags: [O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/7a5f0a57-fcc4-4120-8250-e7f59a8f5e6d/hashstates/sha256/0
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/7a5f0a57-fcc4-4120-8250-e7f59a8f5e6d/hashstates/sha256/120188
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/7a5f0a57-fcc4-4120-8250-e7f59a8f5e6d/startedat
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/8a4495a9-d1f2-4e40-9de9-cdc8e4afec6c
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/8a4495a9-d1f2-4e40-9de9-cdc8e4afec6c/data
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/8a4495a9-d1f2-4e40-9de9-cdc8e4afec6c/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/8a4495a9-d1f2-4e40-9de9-cdc8e4afec6c/hashstates/sha256
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/8a4495a9-d1f2-4e40-9de9-cdc8e4afec6c/hashstates/sha256/0
+  - flags: [O_CREAT, O_CLOEXEC, O_RDONLY, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/8a4495a9-d1f2-4e40-9de9-cdc8e4afec6c/hashstates/sha256/342
+  - flags: [O_WRONLY, O_CREAT, O_CLOEXEC, O_RDONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/8a4495a9-d1f2-4e40-9de9-cdc8e4afec6c/startedat
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/ab12ca4c-7f8e-425a-a360-b99b94a8b12a
+  - flags: [O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/ab12ca4c-7f8e-425a-a360-b99b94a8b12a/data
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/ab12ca4c-7f8e-425a-a360-b99b94a8b12a/hashstates
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/ab12ca4c-7f8e-425a-a360-b99b94a8b12a/hashstates/sha256
+  - flags: [O_CLOEXEC, O_WRONLY, O_CREAT]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/ab12ca4c-7f8e-425a-a360-b99b94a8b12a/hashstates/sha256/0
+  - flags: [O_CREAT, O_CLOEXEC, O_RDONLY, O_WRONLY]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/ab12ca4c-7f8e-425a-a360-b99b94a8b12a/hashstates/sha256/3011
+  - flags: [O_RDONLY, O_WRONLY, O_CREAT, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/modules/flux-ks-bench/_uploads/ab12ca4c-7f8e-425a-a360-b99b94a8b12a/startedat
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/stefanprodan/charts/podinfo/_layers/sha256/2dc320ee94f112f33629c5260314e3c06be60242e223be316c092c4becb916c9/link
+  - flags: [O_RDONLY, O_CLOEXEC]
+    path: /var/lib/registry/docker/registry/v2/repositories/stefanprodan/charts/podinfo/_layers/sha256/7bc93d32bee842c3911adde9cd93dbdfa4c1c19937185e7b49f1138ba6d98212/link
+  endpoints:
+  - direction: inbound
+    endpoint: :5555/v2/manifests/podinfo/manifests/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/blobs/uploads/7a5f0a57-fcc4-4120-8250-e7f59a8f5e6d
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/blobs/uploads/8a4495a9-d1f2-4e40-9de9-cdc8e4afec6c
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/manifests/1.0.0
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT, HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/blobs/sha256:cd6eb51e00ab9d13f92dbbe64764cf420472c2c71a0c4fc9e1905a212880946e
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/blobs/uploads
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [POST]
+  - direction: inbound
+    endpoint: :5555/v2
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5555/v2/charts/podinfo/manifests/6.5.3
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT, HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/manifests/latest
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD, PUT, GET]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/blobs/sha256:86fe69583201b93017af750125fce7913fdfeca374c5870ecf8614c3c9a20e88
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/blobs/uploads/ba3cc91d-47f8-483d-9b1e-5d8894a5e910
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/blobs/uploads/3946f6c3-7324-48a0-a93b-7c946f4ebd95
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5555/v2/manifests/podinfo/blobs/uploads/ba84e2ac-082d-499d-be93-432a2079fa15
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5000/v2/manifests/podinfo/blobs/sha256:88e4da732196f5b2ef40ea40c86708a1709644e929217d96eb8c0175cd6793a1
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['flux-registry.flux-registry.svc.cluster.local:5000']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5000/v2/charts/podinfo/blobs/sha256:7bc93d32bee842c3911adde9cd93dbdfa4c1c19937185e7b49f1138ba6d98212
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['flux-registry.flux-registry.svc.cluster.local:5000']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/manifests/latest
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT, GET, HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/manifests/podinfo/blobs/uploads
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [POST]
+  - direction: inbound
+    endpoint: :5555/v2/manifests/podinfo/manifests/1.0.0
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD, PUT]
+  - direction: inbound
+    endpoint: :5555/v2/charts/podinfo/blobs/sha256:7bc93d32bee842c3911adde9cd93dbdfa4c1c19937185e7b49f1138ba6d98212
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/charts/podinfo/blobs/uploads
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [POST]
+  - direction: inbound
+    endpoint: :5000/v2/manifests/podinfo/manifests/latest
+    headers:
+      Host: ['flux-registry.flux-registry.svc.cluster.local:5000']
+    internal: true
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/manifests/sha256:8a00e83e26fe897d3420c0e6c70129d9e83e2bd783f9d4f2cce845ff4f913c3c
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/manifests/1.0.0
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD, PUT]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/blobs/sha256:9996eae935230a44480f772ec16d4128f83486e958f80925dcd9d9e04a6ebb76
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5000/v2/charts/podinfo/manifests/6.5.3
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['flux-registry.flux-registry.svc.cluster.local:5000']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5000/v2
+    headers:
+      Accept-Encoding: [gzip]
+      Connection: [close]
+      Host: ['10.42.0.88:5000', 'flux-registry.flux-registry.svc.cluster.local:5000']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5555/v2/manifests/podinfo/blobs/uploads/678635b1-56fc-4568-8f33-3952897ce6fb
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5555/v2/charts/podinfo/blobs/sha256:2dc320ee94f112f33629c5260314e3c06be60242e223be316c092c4becb916c9
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/charts/podinfo/blobs/uploads/ffd5d909-9445-4795-9a15-ce78303a2d10
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5000/v2/manifests/podinfo/manifests/sha256:1fde96af441fa5f15363d3bba9a16b6e15d960d0e897934cb26308d1eebb5766
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['flux-registry.flux-registry.svc.cluster.local:5000']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/blobs/sha256:997824fda3d0d41be85c3de2b277dfa9237f8effbddac18fbbff551501a63fc5
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/blobs/uploads/ab12ca4c-7f8e-425a-a360-b99b94a8b12a
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/blobs/uploads/aa4ca3d2-884f-474b-a5db-d21abd70788c
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/manifests/sha256:c7704fb133a708cd6695d5f9a76b961583edb47656b0d744df865d2a8bd3e9c1
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5555/v2/charts/podinfo/blobs/uploads/b4fe1176-e15f-4940-a275-9893fb329394
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5000/v2/charts/podinfo/blobs/sha256:2dc320ee94f112f33629c5260314e3c06be60242e223be316c092c4becb916c9
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['flux-registry.flux-registry.svc.cluster.local:5000']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/blobs/sha256:9dc792a5221be5cc722f55021481b7f32251a5b0c5d383aba9e52634557b9103
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-ks-bench/blobs/uploads
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [POST]
+  - direction: inbound
+    endpoint: :5555/v2/manifests/podinfo/blobs/sha256:88e4da732196f5b2ef40ea40c86708a1709644e929217d96eb8c0175cd6793a1
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/manifests/podinfo/manifests/latest
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['localhost:5555']
+    internal: false
+    methods: [PUT]
+  - direction: inbound
+    endpoint: :5555/v2/modules/flux-hr-bench/blobs/sha256:1637fa144cdfe03a0176a3e5b0909ba2cc33db5df3fdd24d6e902ce58719ed97
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  - direction: inbound
+    endpoint: :5555/v2/manifests/podinfo/blobs/sha256:afe8e8d80d664797c45c8d02a2fbeef03d3ef1870cc8fc47006b53334df8c504
+    headers:
+      Host: ['localhost:5555']
+    internal: false
+    methods: [HEAD]
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-5000, port: 5000, protocol: TCP}
+    type: external
+  - dns: ''
+    dnsNames: null
+    identifier: fccdd0574e1c87171cf83b23cdc0cfdb23b09cc6538776b62e5fb93f8cd1db1a
+    ipAddress: ''
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: flux-system}
+    podSelector:
+      matchLabels: {app: source-controller, app.kubernetes.io/component: source-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux, app.kubernetes.io/version: v2.9.3}
+    ports:
+    - {name: TCP-5000, port: 5000, protocol: TCP}
+    type: internal
+  syscalls: [getgid]
