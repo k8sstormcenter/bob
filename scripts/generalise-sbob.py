@@ -72,6 +72,20 @@ VOLATILE = [
     re.compile(r"^pgsql_tmp\d+\.\d+$"),
 ]
 
+# A trailing ".<digits>" is almost always a per-process or per-generation
+# suffix: postgres rewrites pg_internal.init as pg_internal.init.<pid>, so a
+# learn captures .58 .62 .71 .72 .73 and every restart invents new ones.
+#
+# Shared-object sonames look identical (libc.so.6, libicudata.so.76.1) but are
+# STABLE — they are the library ABI version, not a per-run value. Ellipsising
+# them would be wrong and would also lose the library identity, so ".so." is
+# excluded and those are handled by directory collapse instead.
+NUMERIC_SUFFIX = re.compile(r"^.+\.\d+$")
+
+
+def numeric_suffix_volatile(seg):
+    return bool(NUMERIC_SUFFIX.match(seg)) and ".so." not in seg
+
 
 def is_truncated_root(path):
     segs = [s for s in path.split("/") if s]
@@ -84,7 +98,7 @@ def is_truncated_root(path):
 
 
 def volatile(seg):
-    return any(p.match(seg) for p in VOLATILE)
+    return any(p.match(seg) for p in VOLATILE) or numeric_suffix_volatile(seg)
 
 
 def normalise(path):
@@ -128,6 +142,183 @@ def generalise_opens(opens, report):
     for p in sorted(order):
         kept.append(FlowDict(by_path[p]))
     return kept
+
+
+
+# ── directory collapse ──────────────────────────────────────────────────────
+#
+# A learn lists every file it happened to touch. 20 .mo catalogues under
+# /usr/share/locale and 36 sonames under /usr/lib/x86_64-linux-gnu are not
+# behaviour worth discriminating: they are read-only static image content, and
+# an attacker reading one of them has achieved nothing. Collapsing them to
+# <dir>/* keeps the profile legible and portable across image rebuilds, where
+# the exact soname versions change.
+#
+# The danger is collapsing a directory that CAN hold something sensitive: baseline
+# it and the rule that would have caught a read there goes blind. So collapse is
+# allowed only under roots that are read-only static content, and never under the
+# ones an attacker actually targets.
+COLLAPSIBLE_ROOTS = (
+    "/usr/share/", "/usr/lib/", "/lib/", "/usr/local/share/", "/usr/local/lib/",
+)
+
+# Never collapse under these, whatever the sibling count. /etc holds shadow and
+# passwd; the data directory holds the database itself; /run/secrets holds the
+# SA token; procfs and sysfs are how container escapes are staged.
+NEVER_COLLAPSE = (
+    "/etc", "/root", "/home", "/run/secrets", "/proc", "/sys", "/dev",
+    "/var/lib/postgresql/data", "/bitnami/postgresql/data", "/var/lib/kubelet",
+)
+
+READ_ONLY_FLAGS = {"O_RDONLY", "O_CLOEXEC", "O_NOFOLLOW", "O_DIRECTORY", "O_NONBLOCK"}
+
+
+def collapsible(directory, entries, min_siblings):
+    """A directory is collapsible when it is static read-only image content.
+
+    Three conditions, all required:
+      - under a root that holds image content rather than state
+      - not under any path an attacker would target
+      - every observed access is read-only; a single write means the directory
+        is state, not content, and collapsing it would baseline writes too
+    """
+    if any(directory == n or directory.startswith(n + "/") for n in NEVER_COLLAPSE):
+        return False
+    if not any(directory.startswith(r) for r in COLLAPSIBLE_ROOTS):
+        return False
+    if len(entries) < min_siblings:
+        return False
+    return all(set(e.get("flags") or []) <= READ_ONLY_FLAGS for e in entries)
+
+
+def collapse_directories(opens, min_siblings, report):
+    """Replace >= min_siblings read-only leaves in one directory with <dir>/*."""
+    by_dir = {}
+    for o in opens:
+        by_dir.setdefault(os.path.dirname(o["path"]), []).append(o)
+
+    out, collapsed_dirs = [], []
+    for directory in sorted(by_dir):
+        entries = by_dir[directory]
+        if collapsible(directory, entries, min_siblings):
+            flags = sorted({f for e in entries for f in (e.get("flags") or [])})
+            out.append(FlowDict({"path": directory + "/*", "flags": flags}))
+            collapsed_dirs.append((directory, len(entries)))
+        else:
+            out.extend(entries)
+    report["collapsed"] = collapsed_dirs
+    # Drop leaves now covered by a collapsed parent, and the bare directory entry.
+    prefixes = [d + "/" for d, _ in collapsed_dirs]
+    kept = []
+    for o in out:
+        p = o["path"]
+        if p.endswith("/*"):
+            kept.append(o)
+            continue
+        if any(p.startswith(pre) for pre in prefixes) or any(p == d for d, _ in collapsed_dirs):
+            continue
+        kept.append(o)
+    return sorted(kept, key=lambda x: x["path"])
+
+
+
+# ── exec arguments ──────────────────────────────────────────────────────────
+#
+# Collapsing every exec to [path, ⋯⋯] throws away all argument discrimination:
+# a profile that legitimately runs `psql -c "SELECT 1"` then also permits
+# `psql -c "COPY x TO PROGRAM 'sh'"`. It was also wrong about args[0] — dash
+# really runs as /bin/sh, env as docker-entrypoint.sh, perl as psql via
+# pg_wrapper — and matching is anchored, so that only went unnoticed because
+# ⋯⋯ absorbed the mismatch.
+#
+# Binaries whose arguments can encode a command. Their args are never merged:
+# any wildcard in a command position hands back exactly what the profile is
+# supposed to constrain.
+NO_MERGE_BINARIES = {
+    "sh", "bash", "dash", "ash", "zsh", "ksh", "busybox",
+    "perl", "python", "python3", "ruby", "node", "env", "gosu", "su-exec",
+    "psql", "mysql", "mariadb", "redis-cli", "xargs", "nsenter",
+}
+
+# A wildcard immediately after one of these is a command-injection hole.
+COMMAND_FLAGS = {"-c", "-e", "--command", "-exec", "--eval", "-execdir"}
+
+
+def normalise_arg(arg):
+    """Ellipsis volatile segments inside path-shaped arguments only.
+
+    initdb is invoked with --pwfile=/dev/fd/63; the fd number is per-run. The
+    matcher compares ⋯ as a WHOLE path segment, so a partial-segment token would
+    never match at runtime — only whole segments are ever rewritten.
+    """
+    if "/" not in arg:
+        return arg
+    head, sep, path = arg.partition("=")
+    if sep and path.startswith("/"):
+        return head + "=" + normalise(path)
+    if arg.startswith("/"):
+        return normalise(arg)
+    return arg
+
+
+def merge_arg_vectors(vectors):
+    """Position-wise merge of same-arity vectors, or None if unsafe.
+
+    Refuses when too much of the vector would become wildcard, or when a
+    wildcard would land right after a command-introducing flag.
+    """
+    arity = len(vectors[0])
+    merged, wildcarded = [], 0
+    for i in range(arity):
+        values = {v[i] for v in vectors}
+        if len(values) == 1:
+            merged.append(vectors[0][i])
+            continue
+        if i > 0 and merged[i - 1] in COMMAND_FLAGS:
+            return None
+        merged.append(ELLIPSIS)
+        wildcarded += 1
+    if wildcarded > max(1, arity // 3):
+        return None
+    return merged
+
+
+def generalise_execs(execs, report):
+    """Emit the narrowest arg patterns covering what was observed.
+
+    Never merges across arities and never emits a trailing ⋯⋯: that catch-all
+    subsumes every narrower sibling, which is the same failure the opens side
+    guards against with the leading-wildcard check.
+    """
+    by_path = {}
+    for e in execs:
+        args = [normalise_arg(a) for a in (e.get("args") or [])]
+        if not args:
+            args = [e["path"]]
+        by_path.setdefault(e["path"], []).append(tuple(args))
+
+    out = []
+    for path in sorted(by_path):
+        vectors = sorted(set(by_path[path]))
+        binary = os.path.basename(path)
+        if binary in NO_MERGE_BINARIES or len(vectors) == 1:
+            for v in vectors:
+                out.append(FlowDict({"path": path, "args": list(v)}))
+            if binary in NO_MERGE_BINARIES and len(vectors) > 1:
+                report["literal_interpreters"].append((path, len(vectors)))
+            continue
+        by_arity = {}
+        for v in vectors:
+            by_arity.setdefault(len(v), []).append(v)
+        for arity in sorted(by_arity):
+            group = by_arity[arity]
+            merged = merge_arg_vectors(group) if len(group) > 1 else list(group[0])
+            if merged is None:
+                for v in group:
+                    out.append(FlowDict({"path": path, "args": list(v)}))
+            else:
+                out.append(FlowDict({"path": path, "args": merged}))
+    return out
 
 
 def host_entity_ingress(ports):
@@ -210,16 +401,22 @@ def main():
     ap.add_argument("--service-ref", action="append", default=[],
                     help="id=ns/name:port[,port] — emits a serviceRef egress entry")
     ap.add_argument("--strip-syscalls", action="store_true", default=True)
+    ap.add_argument("--collapse-min", type=int, default=4,
+                    help="collapse a read-only static directory once it has this "
+                         "many observed leaves (0 disables)")
     args = ap.parse_args()
 
     rc = 0
     for f in args.files:
         doc = yaml.safe_load(open(f))
         spec = doc.get("spec") or {}
-        report = {"truncated": [], "normalised": 0, "overbroad": [], "cidr_probes": 0}
+        report = {"truncated": [], "normalised": 0, "overbroad": [], "cidr_probes": 0,
+                  "collapsed": [], "literal_interpreters": []}
 
         before = len(spec.get("opens") or [])
         spec["opens"] = generalise_opens(spec.get("opens") or [], report)
+        if args.collapse_min:
+            spec["opens"] = collapse_directories(spec["opens"], args.collapse_min, report)
 
         if args.strip_syscalls:
             spec.pop("syscalls", None)
@@ -228,18 +425,7 @@ def main():
             spec["capabilities"] = sorted(set(spec["capabilities"]))
 
         if spec.get("execs"):
-            # Dedup AFTER arg-collapsing, not before. Entries that differed only
-            # by args become identical once every arg list is [path, ⋯⋯], so
-            # keying on the pre-collapse args leaves duplicates behind — the oss
-            # learn produced dash five times and chmod twice that way.
-            seen, execs = set(), []
-            for e in spec["execs"]:
-                path = e.get("path")
-                if path in seen:
-                    continue
-                seen.add(path)
-                execs.append(FlowDict({"path": path, "args": [path, "⋯⋯"]}))
-            spec["execs"] = sorted(execs, key=lambda x: x["path"])
+            spec["execs"] = generalise_execs(spec["execs"], report)
 
         ingress = list(spec.get("ingress") or [])
         if args.probe_ports:
@@ -285,6 +471,11 @@ def main():
         print("  %-52s opens %d -> %d  (dropped %d truncated, %d normalised)"
               % (os.path.basename(f), before, len(spec["opens"]),
                  len(report["truncated"]), report["normalised"]))
+        for d, n in report["collapsed"]:
+            print("     collapsed %-52s (%d leaves) -> %s/*" % (d, n, d))
+        for path, n in report["literal_interpreters"]:
+            print("     %s kept as %d literal invocation(s) — args can encode a command"
+                  % (path, n))
         if report["cidr_probes"]:
             print("     replaced %d pod-CIDR probe entr(ies) with entity: host" % report["cidr_probes"])
         if report["overbroad"]:
