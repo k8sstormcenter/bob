@@ -20,6 +20,7 @@ Service rather than whatever ClusterIP it had at learn time.
 """
 import argparse
 import glob
+import json
 import os
 import re
 import sys
@@ -149,6 +150,56 @@ def service_ref(identifier, namespace, name, ports):
     }
 
 
+
+
+# Node/pod CIDRs of the common distributions. An ingress entry whose ONLY peer
+# specification is one of these is the blunt pre-storage#42 way of admitting a
+# kubelet probe: it admits every pod on the node as a side effect. entity: host
+# replaces it, so the CIDR entry must be REMOVED, not merely accompanied.
+PROBE_CIDRS = {"10.42.0.0/16", "10.244.0.0/16", "10.43.0.0/16", "10.96.0.0/12",
+               "192.168.0.0/16", "172.16.0.0/12"}
+
+
+def is_cidr_probe_entry(e):
+    if any(e.get(k) for k in ("podSelector", "namespaceSelector", "serviceSelector",
+                              "serviceRefName", "dnsNames", "dns", "entity")):
+        return False
+    addrs = list(e.get("ipAddresses") or [])
+    if e.get("ipAddress"):
+        addrs.append(e["ipAddress"])
+    return bool(addrs) and all(a in PROBE_CIDRS for a in addrs)
+
+
+def dedup_neighbors(entries):
+    """Collapse entries that are identical once generalised.
+
+    Generalisation REWRITES peers — several learned IPs of one Service become a
+    single serviceRef, several pod-CIDR probe entries become one entity: host —
+    so duplicates that did not exist in the learn are created by this pass. The
+    identifier is excluded from the comparison because it is a per-entry hash in
+    a learned profile and says nothing about what the entry admits; ports are
+    unioned so collapsing never narrows what was allowed.
+    """
+    out, index = [], {}
+    for e in entries:
+        sig = json.dumps({k: v for k, v in e.items() if k not in ("identifier", "ports")},
+                         sort_keys=True, default=str)
+        if sig in index:
+            keep = index[sig]
+            seen = {(p.get("port"), p.get("protocol")) for p in (keep.get("ports") or [])}
+            for port in e.get("ports") or []:
+                if (port.get("port"), port.get("protocol")) not in seen:
+                    keep.setdefault("ports", []).append(port)
+                    seen.add((port.get("port"), port.get("protocol")))
+            continue
+        index[sig] = e
+        out.append(e)
+    for e in out:
+        if e.get("ports"):
+            e["ports"] = sorted(e["ports"], key=lambda p: (p.get("port") or 0, p.get("protocol") or ""))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("files", nargs="+")
@@ -165,13 +216,16 @@ def main():
     for f in args.files:
         doc = yaml.safe_load(open(f))
         spec = doc.get("spec") or {}
-        report = {"truncated": [], "normalised": 0, "overbroad": []}
+        report = {"truncated": [], "normalised": 0, "overbroad": [], "cidr_probes": 0}
 
         before = len(spec.get("opens") or [])
         spec["opens"] = generalise_opens(spec.get("opens") or [], report)
 
         if args.strip_syscalls:
             spec.pop("syscalls", None)
+
+        if spec.get("capabilities"):
+            spec["capabilities"] = sorted(set(spec["capabilities"]))
 
         if spec.get("execs"):
             # Dedup AFTER arg-collapsing, not before. Entries that differed only
@@ -188,12 +242,19 @@ def main():
             spec["execs"] = sorted(execs, key=lambda x: x["path"])
 
         ingress = list(spec.get("ingress") or [])
-        # Replace any pod-CIDR probe stanza with the named-entity form.
-        ingress = [e for e in ingress if e.get("identifier") != "kubelet-probes"]
+        if args.probe_ports:
+            # Replace the pod-CIDR probe stanza, in whatever identifier it was
+            # learned under, with the named-entity form. Leaving it in place
+            # would keep admitting every pod on the node.
+            dropped = [e for e in ingress
+                       if e.get("identifier") == "kubelet-probes" or is_cidr_probe_entry(e)]
+            if dropped:
+                report["cidr_probes"] = len(dropped)
+            ingress = [e for e in ingress if e not in dropped]
         if args.probe_ports:
             ports = [int(p) for p in args.probe_ports.split(",") if p.strip()]
             ingress.insert(0, host_entity_ingress(ports))
-        spec["ingress"] = ingress or None
+        spec["ingress"] = dedup_neighbors(ingress) or None
 
         egress = list(spec.get("egress") or [])
         for sr in args.service_ref:
@@ -202,7 +263,7 @@ def main():
             ns, name = nsname.split("/", 1)
             egress = [e for e in egress if e.get("identifier") != ident]
             egress.append(service_ref(ident, ns, name, [int(p) for p in ports.split(",")]))
-        spec["egress"] = egress or None
+        spec["egress"] = dedup_neighbors(egress) or None
 
         meta = doc.setdefault("metadata", {})
         if args.name:
@@ -224,6 +285,8 @@ def main():
         print("  %-52s opens %d -> %d  (dropped %d truncated, %d normalised)"
               % (os.path.basename(f), before, len(spec["opens"]),
                  len(report["truncated"]), report["normalised"]))
+        if report["cidr_probes"]:
+            print("     replaced %d pod-CIDR probe entr(ies) with entity: host" % report["cidr_probes"])
         if report["overbroad"]:
             print("     REFUSED leading-wildcard: %s" % ", ".join(sorted(set(report["overbroad"]))))
             rc = 1
