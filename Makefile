@@ -109,6 +109,14 @@ deploy-argocd:
 	@echo "=== Argo CD subcomponents ==="
 	kubectl get pods -n argocd
 
+.PHONY: deploy-postgres-distro-oss deploy-postgres-distro-bitnami deploy-postgres-distro-cnpg
+deploy-postgres-distro-oss:
+	example/postgres/distros/deploy-distros.sh oss
+deploy-postgres-distro-bitnami:
+	example/postgres/distros/deploy-distros.sh bitnami
+deploy-postgres-distro-cnpg:
+	example/postgres/distros/deploy-distros.sh cnpg
+
 .PHONY: deploy-postgres
 deploy-postgres:
 	@echo "=== Deploying postgres (CloudNativePG) ==="

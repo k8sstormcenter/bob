@@ -63,6 +63,23 @@ case "$APP" in
     APP_PROFILE_MATCH="pg-client"
     APP_SCORE_THRESHOLD=0
     ;;
+  postgres-oss|postgres-bitnami|postgres-cnpg)
+    # One leg per packaging distro. They share the pg-client exec target and the
+    # same 27 expected detections; only the backend differs, which is the whole
+    # point of the contrast. deploy-distros.sh installs each via its native
+    # installer so the learned SBoB is tied to that vendor's image.
+    FORK="${APP#postgres-}"
+    APP_NS="postgres-$FORK"
+    APP_DEPLOY_TARGET="postgres-distro-$FORK"
+    APP_FUNC_TESTS="example/postgres/distros/functional/$FORK.yaml"
+    APP_ATTACKS="example/postgres/distros/attacks/$FORK.yaml"
+    APP_SERVICE=pg-client
+    APP_PORT=5432
+    APP_SCHEME=tcp
+    APP_CONTAINER=pg-client
+    APP_PROFILE_MATCH="pg-client"
+    APP_SCORE_THRESHOLD=0
+    ;;
   postgres-vuln)
     APP_NS=postgres-vuln
     APP_FUNC_TESTS=example/postgres-vuln-functional-tests.yaml
@@ -134,7 +151,7 @@ fi
 # ── deploy and learn app ─────────────────────────────────────────────────────
 if ! $TUNE_ONLY; then
   log "=== Deploy $APP via: make deploy-$APP ==="
-  make deploy-"$APP"
+  make deploy-"${APP_DEPLOY_TARGET:-$APP}"
   log "Deploy complete. Pods in $APP_NS:"
   kubectl get pods -n "$APP_NS" || true
 
@@ -177,7 +194,11 @@ if ! $TUNE_ONLY; then
     ALL_COMPLETED=$(kubectl get containerprofiles -n "$APP_NS" \
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
-    PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    if [[ "$MATCH" == *client* ]]; then
+      PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
+    else
+      PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    fi
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
     if [[ -n "$PROFILE" ]]; then
@@ -206,7 +227,15 @@ else
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
-    PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    # The "client" exclusion stops a SERVER leg from picking up the client's
+    # profile (redis, mariadb). It must not apply when the target genuinely IS
+    # the client — postgres attacks all exec into pg-client — because then it
+    # cancels out the match it just made and leaves PROFILE empty.
+    if [[ "$MATCH" == *client* ]]; then
+      PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1)
+    else
+      PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    fi
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$APP" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | head -1)
@@ -248,6 +277,7 @@ bin/bobctl tune \
   --ks-namespace "$KS_NS" \
   --service "$APP_SERVICE" \
   --service-port "$APP_PORT" \
+  ${APP_CONTAINER:+--container "$APP_CONTAINER"} \
   --alertmanager-service alertmanager \
   --alertmanager-port 9093 \
   --functional-tests "$APP_FUNC_TESTS" \
