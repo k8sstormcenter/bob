@@ -234,6 +234,15 @@ def collapse_directories(opens, min_siblings, report):
 # Binaries whose arguments can encode a command. Their args are never merged:
 # any wildcard in a command position hands back exactly what the profile is
 # supposed to constrain.
+# The workload's OWN main executable. It takes many arguments, several of them
+# node-dependent (postgres probes shared_buffers and emits 16384 here, 1000
+# there), so pinning them literally is a portability false positive waiting to
+# happen. Its identity IS the discriminant: an attacker running the postgres
+# binary with different flags has not achieved anything, whereas an attacker
+# running bash has. So the core binary gets a genuine ⋯⋯ and the utilities do
+# not — which is the opposite of treating them all alike.
+CORE_BINARY_ARGS = ["⋯⋯"]
+
 NO_MERGE_BINARIES = {
     "sh", "bash", "dash", "ash", "zsh", "ksh", "busybox",
     "perl", "python", "python3", "ruby", "node", "env", "gosu", "su-exec",
@@ -283,7 +292,7 @@ def merge_arg_vectors(vectors):
     return merged
 
 
-def generalise_execs(execs, report):
+def generalise_execs(execs, report, core_binaries=()):
     """Emit the narrowest arg patterns covering what was observed.
 
     Never merges across arities and never emits a trailing ⋯⋯: that catch-all
@@ -293,14 +302,26 @@ def generalise_execs(execs, report):
     by_path = {}
     for e in execs:
         args = [normalise_arg(a) for a in (e.get("args") or [])]
+        # Normalise the exec path the same way as its arguments. Leaving the path
+        # literal while args[0] carries ⋯ makes the two fields disagree about the
+        # same binary — the SBoB would be version-portable in one and pinned in
+        # the other.
+        path = normalise(e["path"])
         if not args:
-            args = [e["path"]]
-        by_path.setdefault(e["path"], []).append(tuple(args))
+            args = [path]
+        by_path.setdefault(path, []).append(tuple(args))
 
+    core = set(core_binaries)
     out = []
     for path in sorted(by_path):
         vectors = sorted(set(by_path[path]))
         binary = os.path.basename(path)
+        if path in core or binary in core:
+            argv0 = sorted({v[0] for v in vectors})
+            for a0 in argv0:
+                out.append(FlowDict({"path": path, "args": [a0] + CORE_BINARY_ARGS}))
+            report["core"].append((path, len(vectors), len(argv0)))
+            continue
         if binary in NO_MERGE_BINARIES or len(vectors) == 1:
             for v in vectors:
                 out.append(FlowDict({"path": path, "args": list(v)}))
@@ -401,6 +422,9 @@ def main():
     ap.add_argument("--service-ref", action="append", default=[],
                     help="id=ns/name:port[,port] — emits a serviceRef egress entry")
     ap.add_argument("--strip-syscalls", action="store_true", default=True)
+    ap.add_argument("--core-binary", action="append", default=[],
+                    help="path (or basename) of the workload's own executable; its "
+                         "args collapse to ⋯⋯ because its identity is the discriminant")
     ap.add_argument("--collapse-min", type=int, default=4,
                     help="collapse a read-only static directory once it has this "
                          "many observed leaves (0 disables)")
@@ -411,7 +435,7 @@ def main():
         doc = yaml.safe_load(open(f))
         spec = doc.get("spec") or {}
         report = {"truncated": [], "normalised": 0, "overbroad": [], "cidr_probes": 0,
-                  "collapsed": [], "literal_interpreters": []}
+                  "collapsed": [], "literal_interpreters": [], "core": []}
 
         before = len(spec.get("opens") or [])
         spec["opens"] = generalise_opens(spec.get("opens") or [], report)
@@ -425,7 +449,7 @@ def main():
             spec["capabilities"] = sorted(set(spec["capabilities"]))
 
         if spec.get("execs"):
-            spec["execs"] = generalise_execs(spec["execs"], report)
+            spec["execs"] = generalise_execs(spec["execs"], report, args.core_binary)
 
         ingress = list(spec.get("ingress") or [])
         if args.probe_ports:
@@ -473,6 +497,9 @@ def main():
                  len(report["truncated"]), report["normalised"]))
         for d, n in report["collapsed"]:
             print("     collapsed %-52s (%d leaves) -> %s/*" % (d, n, d))
+        for path, n, a0 in report["core"]:
+            print("     %s is the core binary — %d invocation(s) -> %d entr(ies) with ⋯⋯"
+                  % (path, n, a0))
         for path, n in report["literal_interpreters"]:
             print("     %s kept as %d literal invocation(s) — args can encode a command"
                   % (path, n))

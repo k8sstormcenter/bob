@@ -32,20 +32,12 @@ spec:
   - {path: /usr/bin/perl, args: [/usr/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, app, -f, /docker-entrypoint-initdb.d/10-bobtest.sql]}
   - {path: /usr/bin/perl, args: [/usr/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app]}
   - {path: /usr/bin/perl, args: [/usr/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app, --tuples-only]}
-  - {path: /usr/lib/postgresql/17/bin/initdb, args: [/usr/lib/postgresql/⋯/bin/initdb, --username=app, --pwfile=/dev/fd/⋯]}
-  - {path: /usr/lib/postgresql/17/bin/pg_ctl, args: [/usr/lib/postgresql/⋯/bin/pg_ctl, -D, /var/lib/postgresql/data/pgdata, -m, fast, -w, stop]}
-  - {path: /usr/lib/postgresql/17/bin/pg_ctl, args: [/usr/lib/postgresql/⋯/bin/pg_ctl, -D, /var/lib/postgresql/data/pgdata, -o, '-c listen_addresses= -p 5432 ', -w, start]}
-  - {path: /usr/lib/postgresql/17/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres]}
-  - {path: /usr/lib/postgresql/17/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres, -V]}
-  - {path: /usr/lib/postgresql/17/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres, -C, password_encryption]}
-  - {path: /usr/lib/postgresql/17/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres, --boot, -F, -c, log_checkpoints=false, -X, '16777216']}
-  - {path: /usr/lib/postgresql/17/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres, -D, /var/lib/postgresql/data/pgdata, -c, listen_addresses=, -p, '5432']}
-  - {path: /usr/lib/postgresql/17/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres, --check, -F, -c, log_checkpoints=false, -c, max_connections=100, -c, shared_buffers=1000, -c, dynamic_shared_memory_type=posix]}
-  - {path: /usr/lib/postgresql/17/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres, --check, -F, -c, log_checkpoints=false, -c, max_connections=100, -c, shared_buffers=16384, -c, dynamic_shared_memory_type=posix]}
-  - {path: /usr/lib/postgresql/17/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres, --single, -F, -O, -j, -c, search_path=pg_catalog, -c, exit_on_error=true, -c, log_checkpoints=false, template1]}
-  - {path: /usr/lib/postgresql/17/bin/psql, args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, app, -f, /docker-entrypoint-initdb.d/10-bobtest.sql]}
-  - {path: /usr/lib/postgresql/17/bin/psql, args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app]}
-  - {path: /usr/lib/postgresql/17/bin/psql, args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app, --tuples-only]}
+  - {path: /usr/lib/postgresql/⋯/bin/initdb, args: [/usr/lib/postgresql/⋯/bin/initdb, ⋯⋯]}
+  - {path: /usr/lib/postgresql/⋯/bin/pg_ctl, args: [/usr/lib/postgresql/⋯/bin/pg_ctl, ⋯⋯]}
+  - {path: /usr/lib/postgresql/⋯/bin/postgres, args: [/usr/lib/postgresql/⋯/bin/postgres, ⋯⋯]}
+  - {path: /usr/lib/postgresql/⋯/bin/psql, args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, app, -f, /docker-entrypoint-initdb.d/10-bobtest.sql]}
+  - {path: /usr/lib/postgresql/⋯/bin/psql, args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app]}
+  - {path: /usr/lib/postgresql/⋯/bin/psql, args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app, --tuples-only]}
   - {path: /usr/local/bin/gosu, args: [/usr/local/bin/gosu, postgres, /usr/local/bin/docker-entrypoint.sh, postgres]}
   identifiedCallStacks: null
   imageID: docker.io/library/postgres@sha256:e38411452a464af89e5adadb8d223bf53b898d47d6ef918b2d58c08707350449
