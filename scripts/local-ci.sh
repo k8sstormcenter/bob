@@ -64,20 +64,23 @@ case "$APP" in
     APP_SCORE_THRESHOLD=0
     ;;
   postgres-oss|postgres-bitnami|postgres-cnpg)
-    # One leg per packaging distro. They share the pg-client exec target and the
-    # same 27 expected detections; only the backend differs, which is the whole
-    # point of the contrast. deploy-distros.sh installs each via its native
-    # installer so the learned SBoB is tied to that vendor's image.
+    # One leg per packaging distro. The attacks land on the DATABASE, not on the
+    # client: the client is the same postgres:17 image in all three legs, so
+    # targeting it tuned one identical profile three times and the "contrast"
+    # between the distros was an artefact. Each leg execs into that vendor's
+    # server container, which is the workload the SBoB actually describes.
     FORK="${APP#postgres-}"
     APP_NS="postgres-$FORK"
     APP_DEPLOY_TARGET="postgres-distro-$FORK"
     APP_FUNC_TESTS="example/postgres/distros/functional/$FORK.yaml"
     APP_ATTACKS="example/postgres/distros/attacks/$FORK.yaml"
-    APP_SERVICE=pg-client
+    case "$FORK" in
+      oss)     APP_SERVICE=postgres;              APP_CONTAINER=postgres;   APP_PROFILE_MATCH="postgres" ;;
+      bitnami) APP_SERVICE=pg-bitnami-postgresql; APP_CONTAINER=postgresql; APP_PROFILE_MATCH="bitnami" ;;
+      cnpg)    APP_SERVICE=pg-rw;                 APP_CONTAINER=postgres;   APP_PROFILE_MATCH="pg-1" ;;
+    esac
     APP_PORT=5432
     APP_SCHEME=tcp
-    APP_CONTAINER=pg-client
-    APP_PROFILE_MATCH="pg-client"
     APP_SCORE_THRESHOLD=0
     ;;
   postgres-vuln)
@@ -137,6 +140,12 @@ if $SETUP_ONLY || ! $TUNE_ONLY; then
 
   # ── wait for kubescape components ──────────────────────────────────────────
   log "=== Wait for kubescape components ==="
+  # rollout status FIRST: `kubectl wait pod -l app=node-agent --for=ready` happily
+  # matches the OUTGOING pod when helm has just updated the DaemonSet, so it
+  # returns while the roll has not started. The app then deploys into that gap,
+  # node-agent restarts underneath it, and the container is never hooked — no
+  # ContainerProfile, no learn, and the tune silently scores a stale profile.
+  kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=300s
   kubectl wait --for=condition=ready pod -l app=node-agent   -n "$KS_NS" --timeout=180s
   kubectl wait --for=condition=ready pod -l app=storage      -n "$KS_NS" --timeout=180s
   kubectl wait --for=condition=ready pod -l app=alertmanager -n "$KS_NS" --timeout=120s
@@ -165,6 +174,36 @@ if ! $TUNE_ONLY; then
   log "=== Confirm node-agent is watching before learning $APP ==="
   kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=180s
   kubectl wait --for=condition=ready pod -l app=node-agent -n "$KS_NS" --timeout=180s
+
+  # node-agent hooks a container at that container's START. A re-run applies the
+  # app manifests unchanged, so the pods survive from the previous run and
+  # predate the node-agent that is watching now — they are invisible to it.
+  # Recreating the app pods here (never node-agent) is what makes a re-run learn.
+  # The deploy target is re-applied afterwards because some fixtures are bare
+  # Pods with no controller to bring them back.
+  if [[ -n "${APP_DEPLOY_TARGET:-}" ]]; then
+    # A previous demo-mode run patches kubescape.io/user-defined-profile onto the
+    # workload, and that label persists in the Deployment/StatefulSet/Cluster spec.
+    # While it is set node-agent BINDS the supplied SBoB instead of learning, so no
+    # ContainerProfile is ever produced and the learn poll waits out its timeout.
+    # Learning requires the workload to be unbound; binding is a separate step.
+    log "Unbinding $APP_NS workloads so node-agent learns instead of enforcing..."
+    for k in deployment statefulset daemonset; do
+      for n in $(kubectl -n "$APP_NS" get "$k" -o name 2>/dev/null); do
+        kubectl -n "$APP_NS" patch "$n" --type merge \
+          -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":null}}}}}' >/dev/null 2>&1 || true
+      done
+    done
+    for n in $(kubectl -n "$APP_NS" get cluster.postgresql.cnpg.io -o name 2>/dev/null); do
+      kubectl -n "$APP_NS" patch "$n" --type merge \
+        -p '{"spec":{"inheritedMetadata":{"labels":{"kubescape.io/user-defined-profile":null}}}}' >/dev/null 2>&1 || true
+    done
+
+    log "Recreating $APP_NS pods so they start under the current node-agent..."
+    kubectl delete pods --all -n "$APP_NS" --wait=true --timeout=180s || true
+    make "deploy-$APP_DEPLOY_TARGET" >/dev/null 2>&1 || true
+    kubectl wait --for=condition=ready pod --all -n "$APP_NS" --timeout=300s || true
+  fi
 
   # ── learn: exercise app + poll for completed profile ────────────────────────
   log "=== Learn $APP ==="

@@ -10,7 +10,7 @@ metadata:
     CVE-2023-39417. Covers OWASP A01 (Broken Access Control), A03 (Injection),
     A04 (Insecure Design), A05 (Misconfiguration), A07 (Auth Failures).
 target:
-  service: pg-client
+  service: pg-rw
   namespace: postgres-cnpg
   port: 5432
 
@@ -62,7 +62,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
-        containerName: pg-client
+        containerName: postgres
         command: whoami
 
   # T1059.004 — Unix Shell (exec from /dev/shm)
@@ -76,7 +76,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
-        containerName: pg-client
+        containerName: postgres
         command: malicious_pg
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -100,7 +100,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
-        containerName: pg-client
+        containerName: postgres
         command: unshare
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -116,7 +116,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
-        containerName: pg-client
+        containerName: postgres
         command: drifted_pg
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -140,13 +140,13 @@ attacks:
     successIndicators:
       - responseRegex: ".+"
       - responseContains: "No such file or directory"
-    # R0001 only — the exec of `cat` is the unconditional signal. R0006
-    # depends on the file actually opening, which doesn't happen when the
-    # mount is missing.
+    # cat is in the server image's own baseline, so R0001 never fires here.
+    # The token IS mounted in the server pod and the open is what betrays the
+    # read, so the durable assertion is R0006.
     expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: pg-client
+      - ruleID: R0006
+        ruleName: Unexpected Service Account Token Access
+        containerName: postgres
         command: cat
 
   - name: exec-sa-token-mounted
@@ -164,34 +164,15 @@ attacks:
     # paired exec-sa-token-attempt above.
     expectedDetections: []
 
-  # T1552.001 — Credentials in Files: /etc/shadow
-  - name: exec-etc-shadow
-    type: cmdinject
-    exec:
-      command: ["cat", "/etc/shadow"]
-    # /etc/shadow is mode 0640 root:shadow and pg-client runs as the
-    # `postgres` user (uid 26). The open() syscall returns EACCES BEFORE
-    # the kernel records a successful open event, so R0010 (which hooks
-    # successful opens of sensitive paths) cannot fire. The exec of `cat`
-    # itself is detected reliably (cat is NOT in pg-client's baseline) —
-    # assert on R0001 instead, which captures the attempt without
-    # depending on a successful read.
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: pg-client
-        command: cat
-
   # T1552.001 — Credentials in Files: /etc/passwd
   - name: exec-etc-passwd
     type: cmdinject
     exec:
       command: ["cat", "/etc/passwd"]
-    expectedDetections:
-      - ruleID: R0001
-        ruleName: Unexpected process launched
-        containerName: pg-client
-        command: cat
+    # /etc/passwd is in the server's baseline — the entrypoint reads it for its
+    # own uid lookup — and cat is a baseline binary, so nothing is anomalous.
+    # An honest boundary, kept as a behaviour probe.
+    expectedDetections: []
 
   # T1552 — Symlink to access sensitive file
   - name: exec-symlink
@@ -212,7 +193,7 @@ attacks:
     expectedDetections:
       - ruleID: R0008
         ruleName: Read Environment Variables from procfs
-        containerName: pg-client
+        containerName: postgres
         command: cat
 
   # T1046 — Network Service Discovery: resolv.conf and hosts
@@ -226,7 +207,7 @@ attacks:
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
-        containerName: pg-client
+        containerName: postgres
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 10: COLLECTION (TA0009) — Data staging
@@ -262,7 +243,7 @@ attacks:
     expectedDetections:
       - ruleID: R1008
         ruleName: Crypto Mining Domain Communication
-        containerName: pg-client
+        containerName: postgres
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 13: NETWORK ENDPOINT DETECTION (TA0011 C2 / TA0010 Exfil)
@@ -295,7 +276,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1071.004 — DNS to Google public resolver via bash /dev/tcp
   - name: endpoint-devtcp-google-dns
@@ -307,7 +288,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1571 — Non-Standard Port: HTTPS port hit on a public IP
   - name: endpoint-tcp-public-https
@@ -319,7 +300,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1071.004 — DNS to Quad9 (third-party resolver, different than Cloudflare/Google)
   - name: endpoint-tcp-quad9-dns
@@ -331,7 +312,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1552.005 — Cloud Instance Metadata API (SSRF target)
   # Connect to AWS/GCP/Azure link-local metadata endpoint. The connect()
@@ -348,7 +329,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1071.001 — Application Layer Protocol: Web (HTTPS to a domain that
   # PTR-resolves to a name NOT in pg-client's DNSNames cache).
@@ -361,7 +342,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1090.003 — Multi-hop Proxy: Tor check endpoint. DNS resolution may
   # NXDOMAIN in restricted clusters; try/except keeps the sentinel reliable
@@ -376,7 +357,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1571 — Non-Standard Port (Perl socket connect to public DNS over TCP).
   # The connect() syscall fires (R0005's trigger) regardless of whether the
@@ -391,7 +372,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1048.003 — Exfiltration Over Unencrypted Non-C2 Protocol: HTTP to public
   - name: endpoint-python-http-out
@@ -403,7 +384,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # T1071.001 — Application Layer Protocol: Web (raw socket to Cloudflare HTTPS port)
   - name: endpoint-python-resolve-connect-public
@@ -415,7 +396,7 @@ attacks:
     expectedDetections:
       - ruleID: R0005
         ruleName: DNS Anomalies in container
-        containerName: pg-client
+        containerName: postgres
 
   # ═══════════════════════════════════════════════════════════════════════════
   # CVE-BASED ATTACKS — Historical PostgreSQL vulnerabilities
@@ -453,24 +434,24 @@ attacks:
     exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(443,inet_aton('10.43.0.1'))); close($s); print qq{k8s_api_probe_done}"] }
     successIndicators: [{ responseContains: "k8s_api_probe_done" }]
     expectedDetections:
-      - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: pg-client }
+      - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: postgres }
   - name: exec-etc-shadow
     type: cmdinject
     exec: { command: ["cat", "/etc/shadow"] }
     expectedDetections:
-      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: pg-client, command: cat }
+      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: postgres, command: cat }
   - name: egress-external-c2
     type: cmdinject
     exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
     successIndicators: [{ responseContains: "egress_attempted" }]
     expectedDetections:
-      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: pg-client }
+      - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: postgres }
   - name: drifted-binary-exec
     type: cmdinject
     exec: { command: ["sh", "-c", "cp /bin/ls /dev/shm/drifted_bob && printf '\\n#bob-drift' >> /dev/shm/drifted_bob && chmod +x /dev/shm/drifted_bob && /dev/shm/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /dev/shm/drifted_bob"] }
     successIndicators: [{ responseContains: "drift_exec_done" }]
     expectedDetections:
-      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: pg-client }
+      - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: postgres }
   - name: exec-from-volume-mount
     type: cmdinject
     exec: { command: ["sh", "-c", "cp /bin/echo /var/lib/postgresql/data/mnt_payload && chmod +x /var/lib/postgresql/data/mnt_payload && /var/lib/postgresql/data/mnt_payload mount_exec_done; rm -f /var/lib/postgresql/data/mnt_payload"] }
@@ -484,16 +465,16 @@ attacks:
     exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
     successIndicators: [{ responseContains: "memfd_exec_done" }]
     expectedDetections:
-      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: pg-client }
+      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: postgres }
   - name: symlink-shadow
     type: cmdinject
     exec: { command: ["ln", "-sf", "/etc/shadow", "/dev/shm/softlink_probe"] }
     successIndicators: [{ responseContains: "" }]
     expectedDetections:
-      - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: pg-client, command: ln }
+      - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: postgres, command: ln }
   - name: hardlink-shadow
     type: cmdinject
     exec: { command: ["sh", "-c", "ln /etc/shadow /dev/shm/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /dev/shm/hl_probe"] }
     successIndicators: [{ responseContains: "hardlink_done" }]
     expectedDetections:
-      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: pg-client, command: ln }
+      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: postgres, command: ln }

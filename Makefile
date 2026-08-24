@@ -339,7 +339,14 @@ endif
 # implies is applied by $(KS_POST_RENDERER), which reads it from the
 # environment — hence the export.
 export KS_RUNC_MNT
-KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC))
+# node-agent's own `host` volume is a NON-recursive bind of "/", so a runc that
+# lives on a separate partition is invisible under /host and the fanotify mark
+# silently fails: no container-start events, no ContainerProfiles, and a learn
+# that reports success off stale profiles. KS_RUNC_MNT hostPath-mounts that
+# filesystem. Expressed as --set rather than through the post-renderer, which is
+# no longer in the critical path.
+KS_RUNC_MNT_FLAGS := $(if $(KS_RUNC_MNT),--set volumes[0].name=ks-runc-mnt --set volumes[0].hostPath.path=$(KS_RUNC_MNT) --set volumes[0].hostPath.type=Directory --set volumeMounts[0].name=ks-runc-mnt --set volumeMounts[0].mountPath=/host$(KS_RUNC_MNT))
+KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC) $(KS_RUNC_MNT_FLAGS))
 
 #
 KS_LEARN_PERIOD ?=
