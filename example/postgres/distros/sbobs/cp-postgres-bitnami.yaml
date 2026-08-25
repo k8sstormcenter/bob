@@ -82,6 +82,22 @@ spec:
     - {name: TCP-5432, port: 5432, protocol: TCP}
   matchLabels: {app.kubernetes.io/component: primary, app.kubernetes.io/instance: pg-bitnami, app.kubernetes.io/name: postgresql}
   opens:
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/Exporter/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/IPC/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/Tie/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/Fcntl/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/POSIX/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/Socket/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/warnings/⋯
+    flags: [O_RDONLY]
   - {path: /.pgpass, flags: [O_RDONLY]}
   - {path: /bitnami/postgresql/data, flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]}
   - {path: /bitnami/postgresql/data/PG_VERSION, flags: [O_CREAT, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]}
