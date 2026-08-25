@@ -1,0 +1,328 @@
+{
+  "namespace": "flashy-product",
+  "window": "alertmanager retention",
+  "workloads": [
+    {
+      "pod": "api-68778468b4-z5sfz",
+      "ip": "10.42.1.21",
+      "tier": "backend"
+    },
+    {
+      "pod": "cache-7fc68fcd4f-7rzmd",
+      "ip": "10.42.1.22",
+      "tier": "database"
+    },
+    {
+      "pod": "db-fbff4859-smsjc",
+      "ip": "10.42.0.17",
+      "tier": "database"
+    },
+    {
+      "pod": "frontend-5d5d669787-bw244",
+      "ip": "10.42.1.20",
+      "tier": "frontend"
+    },
+    {
+      "pod": "worker-6766f5ffb-h9hvv",
+      "ip": "10.42.0.18",
+      "tier": "unclassified"
+    }
+  ],
+  "act_on_these_first": [
+    {
+      "adr": "ADR-0001",
+      "decision_broken": "the presentation tier reached the data tier directly",
+      "fix": "route the query through the service labelled tier=backend on 8080/8000/3000",
+      "source": "runtime",
+      "rule": "R0011",
+      "rule_name": "Unexpected Egress Network Traffic",
+      "evidence_class": "observed",
+      "severity": "8",
+      "workload": "frontend-5d5d669787-bw244",
+      "container": "web",
+      "tier": "frontend",
+      "node": "node-01",
+      "process": "bash",
+      "pid": "18810",
+      "observed": "Unexpected egress network communication to: 10.42.0.17:5432 using TCP from: web",
+      "timestamp": "2026-08-25T16:04:11.305Z",
+      "corroborated_by": {
+        "rule": "R0012",
+        "workload": "db-fbff4859-smsjc",
+        "container": "postgres",
+        "observed": "Unexpected ingress network communication from: 10.42.1.20:5432 using TCP to: postgres",
+        "node": "cplane-01"
+      },
+      "confidence": "both endpoints observed",
+      "flow": "10.42.1.20 -> 10.42.0.17:5432"
+    },
+    {
+      "adr": "ADR-0002",
+      "decision_broken": "the data tier initiated an outbound connection",
+      "fix": "remove the outbound call; if a database genuinely needs egress, it belongs in a sidecar or job labelled tier=backend",
+      "source": "runtime",
+      "rule": "R0011",
+      "rule_name": "Unexpected Egress Network Traffic",
+      "evidence_class": "observed",
+      "severity": "8",
+      "workload": "db-fbff4859-smsjc",
+      "container": "postgres",
+      "tier": "database",
+      "node": "cplane-01",
+      "process": "bash",
+      "pid": "12729",
+      "observed": "Unexpected egress network communication to: 1.1.1.1:443 using TCP from: postgres",
+      "timestamp": "2026-08-25T16:04:05.111Z"
+    },
+    {
+      "adr": "ADR-0003",
+      "decision_broken": "the workload read its Kubernetes ServiceAccount token",
+      "fix": "set automountServiceAccountToken: false on the pod spec",
+      "source": "runtime",
+      "rule": "R0006",
+      "rule_name": "Unexpected service account token access",
+      "evidence_class": "observed",
+      "severity": "5",
+      "workload": "frontend-5d5d669787-bw244",
+      "container": "web",
+      "tier": "frontend",
+      "node": "node-01",
+      "process": "cat",
+      "pid": "18721",
+      "observed": "Unexpected access to service account token: /run/secrets/kubernetes.io/serviceaccount/..2026_08_25_15_58_00.2946443536/token with flags: O_RDONLY",
+      "timestamp": "2026-08-25T16:04:02.807Z"
+    },
+    {
+      "adr": "ADR-0003",
+      "decision_broken": "the workload read its Kubernetes ServiceAccount token",
+      "fix": "set automountServiceAccountToken: false on the pod spec",
+      "source": "runtime",
+      "rule": "R0006",
+      "rule_name": "Unexpected service account token access",
+      "evidence_class": "observed",
+      "severity": "5",
+      "workload": "db-fbff4859-smsjc",
+      "container": "postgres",
+      "tier": "database",
+      "node": "cplane-01",
+      "process": "cat",
+      "pid": "12683",
+      "observed": "Unexpected access to service account token: /run/secrets/kubernetes.io/serviceaccount/..2026_08_25_15_58_00.3384607876/token with flags: O_RDONLY",
+      "timestamp": "2026-08-25T16:04:02.863Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "a process ran that is not part of the image's declared behaviour",
+      "fix": "if it is a package manager or fetch tool, move the work into the image build",
+      "source": "runtime",
+      "rule": "R0001",
+      "rule_name": "Unexpected process launched",
+      "evidence_class": "observed",
+      "severity": "1",
+      "workload": "frontend-5d5d669787-bw244",
+      "container": "web",
+      "tier": "frontend",
+      "node": "node-01",
+      "process": "bash",
+      "pid": "18972",
+      "observed": "Unexpected process launched: bash with PID 18972",
+      "timestamp": "2026-08-25T16:05:07.105Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "a process ran that is not part of the image's declared behaviour",
+      "fix": "if it is a package manager or fetch tool, move the work into the image build",
+      "source": "runtime",
+      "rule": "R0001",
+      "rule_name": "Unexpected process launched",
+      "evidence_class": "observed",
+      "severity": "1",
+      "workload": "db-fbff4859-smsjc",
+      "container": "postgres",
+      "tier": "database",
+      "node": "cplane-01",
+      "process": "bash",
+      "pid": "12465",
+      "observed": "Unexpected process launched: bash with PID 12465",
+      "timestamp": "2026-08-25T15:59:16.210Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "backend reached an endpoint outside the cluster that its profile does not declare",
+      "fix": "declare the dependency in the tier profile egress, or remove the call; an external endpoint reached at runtime that is not in the image's declared behaviour is an undeclared dependency",
+      "source": "runtime",
+      "rule": "R0011",
+      "rule_name": "Unexpected Egress Network Traffic",
+      "evidence_class": "observed",
+      "severity": "8",
+      "workload": "api-68778468b4-z5sfz",
+      "container": "api",
+      "tier": "backend",
+      "node": "node-01",
+      "process": "pip",
+      "pid": "18663",
+      "observed": "Unexpected egress network communication to: 151.101.192.223:443 using TCP from: api",
+      "timestamp": "2026-08-25T16:03:49.515Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "a DNS lookup was made for a name outside the learned set",
+      "fix": "declare the dependency explicitly, or remove it",
+      "source": "runtime",
+      "rule": "R0005",
+      "rule_name": "DNS Anomalies in container",
+      "evidence_class": "observed",
+      "severity": "5",
+      "workload": "api-68778468b4-z5sfz",
+      "container": "api",
+      "tier": "backend",
+      "node": "node-01",
+      "process": "pip",
+      "pid": "18094",
+      "observed": "Unexpected domain communication: pypi.org. from: api",
+      "timestamp": "2026-08-25T15:59:37.507Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "a process ran that is not part of the image's declared behaviour",
+      "fix": "if it is a package manager or fetch tool, move the work into the image build",
+      "source": "runtime",
+      "rule": "R0001",
+      "rule_name": "Unexpected process launched",
+      "evidence_class": "observed",
+      "severity": "1",
+      "workload": "api-68778468b4-z5sfz",
+      "container": "api",
+      "tier": "backend",
+      "node": "node-01",
+      "process": "uname",
+      "pid": "18355",
+      "observed": "Unexpected process launched: uname with PID 18355",
+      "timestamp": "2026-08-25T16:00:59.518Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "frontend reached an endpoint outside the cluster that its profile does not declare",
+      "fix": "declare the dependency in the tier profile egress, or remove the call; an external endpoint reached at runtime that is not in the image's declared behaviour is an undeclared dependency",
+      "source": "runtime",
+      "rule": "R0011",
+      "rule_name": "Unexpected Egress Network Traffic",
+      "evidence_class": "observed",
+      "severity": "8",
+      "workload": "frontend-5d5d669787-bw244",
+      "container": "web",
+      "tier": "frontend",
+      "node": "node-01",
+      "process": "curl",
+      "pid": "18757",
+      "observed": "Unexpected egress network communication to: 1.1.1.1:80 using TCP from: web",
+      "timestamp": "2026-08-25T16:04:02.955Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "backend reached an endpoint outside the cluster that its profile does not declare",
+      "fix": "declare the dependency in the tier profile egress, or remove the call; an external endpoint reached at runtime that is not in the image's declared behaviour is an undeclared dependency",
+      "source": "runtime",
+      "rule": "R0011",
+      "rule_name": "Unexpected Egress Network Traffic",
+      "evidence_class": "observed",
+      "severity": "8",
+      "workload": "api-68778468b4-z5sfz",
+      "container": "api",
+      "tier": "backend",
+      "node": "node-01",
+      "process": "pip",
+      "pid": "17803",
+      "observed": "Unexpected egress network communication to: 151.101.128.223:443 using TCP from: api",
+      "timestamp": "2026-08-25T15:58:44.505Z"
+    }
+  ],
+  "manifest_defects": [
+    {
+      "adr": "ADR-0003",
+      "decision_broken": "automountServiceAccountToken left at its default",
+      "source": "static",
+      "control": "C-0034",
+      "evidence_class": "declared",
+      "observed": "C-0034 (Automatic mapping of service account) fails on 5 workloads: api, cache, db, frontend, worker",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "fix": "Automatic mapping of service account"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "container may run as root",
+      "source": "static",
+      "control": "C-0013",
+      "evidence_class": "declared",
+      "observed": "C-0013 (Non-root containers) fails on 5 workloads: api, cache, db, frontend, worker",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "fix": "Non-root containers"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "privilege escalation is permitted",
+      "source": "static",
+      "control": "C-0016",
+      "evidence_class": "declared",
+      "observed": "C-0016 (Allow privilege escalation) fails on 5 workloads: api, cache, db, frontend, worker",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "fix": "Allow privilege escalation"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "root filesystem is writable",
+      "source": "static",
+      "control": "C-0017",
+      "evidence_class": "declared",
+      "observed": "C-0017 (Immutable container filesystem) fails on 5 workloads: api, cache, db, frontend, worker",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "fix": "Immutable container filesystem"
+    }
+  ],
+  "not_checked_at_runtime": [
+    {
+      "rule": "R0004",
+      "why": "Linux Capabilities Anomalies \u2014 isTriggerAlert:false, never alerts on its own"
+    },
+    {
+      "rule": "R0007",
+      "why": "Workload uses Kubernetes API unexpectedly \u2014 isTriggerAlert:false"
+    },
+    {
+      "rule": "R1009",
+      "why": "Crypto Mining Related Port Communication \u2014 isTriggerAlert:false"
+    },
+    {
+      "rule": "R1016",
+      "why": "Signed profile tampered \u2014 isTriggerAlert:false"
+    }
+  ],
+  "how_to_read_this": {
+    "observed": "the detector saw this happen. The evidence field is the actual event: container, peer address, port, path. Fix these first \u2014 they are proven, and re-running the review proves the fix.",
+    "declared": "nothing was observed. The manifest permits it, which is worth fixing but is not evidence that it occurred. Collapsed to one entry per control."
+  }
+}

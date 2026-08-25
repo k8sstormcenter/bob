@@ -232,7 +232,8 @@ nodes.
 | `R0012` on **database**, peer = frontend | the *same* violation seen from the receiving end | route through the API |
 | `R0011` on **database**, peer = internet | a database initiating outbound traffic — the shape of exfiltration | nothing legitimate needs this |
 | `R0011` on **backend**, peer = unlisted host | an undeclared third-party dependency, or a library phoning home | declare it, or drop it |
-| `R0004` any tier | the container needed a Linux capability, i.e. it starts as root | use the rootless / distroless image |
+| `R0006` any tier but backend | the workload read its cluster credentials | `automountServiceAccountToken: false` |
+| `R0005` name outside the learned set | an undeclared dependency being resolved | declare it, or drop it |
 | `R0001` `apt`/`pip`/`npm` | packages installed at container start — unpinned supply chain | bake it into the image |
 | `R0002` | files touched outside the tier baseline | usually a stock image being chatty; tune or switch image |
 
@@ -242,7 +243,7 @@ both ends is much harder to argue away than a single log line.
 
 ---
 
-## Task 9 — Prove the capability finding
+## Task 9 — Find the limit of what runtime can tell you
 
 Stock images ask for far more privilege than they need. Compare:
 
@@ -258,10 +259,42 @@ crane config cgr.dev/chainguard/nginx:latest | jq '.config.User, .config.Entrypo
 | shell / package manager | present | **absent** |
 | files in image | tens of thousands | **203** |
 
-Stock nginx runs as root and drops privileges, which is why it needs `CHOWN`, `SETUID`,
-`SETGID` — and why `tier-frontend` (`capabilities: []`) alerts on it. Chainguard never becomes
-root, so it needs none. **The `R0004` alert is not a false positive: it is telling you to
-change base image.**
+Stock nginx runs as root and drops privileges, which is why it needs `CHOWN`, `SETUID` and
+`SETGID`. `tier-frontend` declares `capabilities: []`. So you would expect an alert.
+
+**Check whether you got one:**
+
+```bash
+kubectl logs -n honey -l app.kubernetes.io/component=node-agent -c node-agent --since=30m \
+  | grep -c R0004
+```
+
+You will get `0`. Now look at why:
+
+```bash
+kubectl get rules.kubescape.io -n honey default-rules -o json \
+  | jq '.spec.rules[] | select(.id=="R0004") | {id,enabled,isTriggerAlert}'
+```
+
+```json
+{ "id": "R0004", "enabled": true, "isTriggerAlert": false }
+```
+
+`R0004` is enabled and evaluated — and it never raises an alert by itself. The profile's
+`capabilities` list documents intent and enriches other findings, but it produces no feedback.
+`R0007 Workload uses Kubernetes API unexpectedly` is the same.
+
+**This is the most useful thing in the lab.** A control you believe is running, that is switched
+on, that quietly reports nothing, is worse than one you know you do not have — because you will
+write a policy that depends on it. Capability posture must be checked *statically*
+(`kubescape scan framework NSA` → `C-0013`, `C-0016`, `C-0017`, `C-0046`).
+
+```bash
+kubectl get rules.kubescape.io -n honey default-rules -o json \
+  | jq -r '.spec.rules[] | select(.enabled and (.isTriggerAlert|not)) | .id + "  " + .name'
+```
+
+Everything that command lists is a blind spot. Know them before you rely on them.
 
 ---
 

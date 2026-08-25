@@ -71,8 +71,7 @@ demo produces nothing and looks broken.
 | **R0011** egress, frontend → 5432/3306/27017/6379 | frontend talks straight to the DB; the middle tier was skipped and the browser-facing process holds DB credentials | route through the backend |
 | **R0011** egress, database → anywhere but DNS/replicas | a DB initiating outbound is the shape of exfiltration | nothing legitimate needs this; investigate |
 | **R0011** egress, backend → unlisted external host | an undeclared third-party dependency, or a library phoning home | add it explicitly, or drop the dependency |
-| **R0004** capability on frontend/backend | container runs as root and drops privileges | use the `-unprivileged` / rootless / distroless variant, bind a port >1024 |
-| **R0004** `CAP_SYS_ADMIN`/`NET_ADMIN` on database | stock DB image running root-entrypoint | switch to the non-root image variant |
+| **R0005** DNS for a name outside the learned set | an undeclared dependency being resolved; usually pairs with the R0011 that follows it | declare it, or remove the call |
 | **R0001** exec of `apt`/`apk`/`pip`/`npm` | installing packages at container start | bake into the image; runtime installs are unpinned supply chain |
 | **R0001** exec of `curl`/`wget`/`nc` in the DB tier | classic ingress-tool-transfer / exfil step | remove the tool from the image |
 | **R0001** exec of `psql`/`mysql` in the backend | debug workflow left in production | apps talk over the wire, not via vendor CLIs |
@@ -90,13 +89,32 @@ Measured from **real recordings**, not assumption:
 | `redis`, `valkey` (bitnami) | `CHOWN, DAC_OVERRIDE, DAC_READ_SEARCH, NET_ADMIN, SETGID, SETPCAP, SETUID, SYS_ADMIN` |
 | `keydb` | `NET_ADMIN, SETGID, SETPCAP, SETUID, SYS_ADMIN` |
 
-So stock images **will** trip `R0004` against these profiles. That is intended: the alert says
-*"this image needs root to start"*, and the fix is the non-root variant. The database tier keeps
-only the privilege-drop set (`CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETGID`, `SETUID`) plus `IPC_LOCK`
-for Redis-family memory locking — without those, mainstream images cannot start at all.
+The database tier keeps only the privilege-drop set (`CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETGID`,
+`SETUID`) plus `IPC_LOCK` for Redis-family memory locking — without those, mainstream images cannot
+start at all. Frontend and backend are `capabilities: []`.
 
-Frontend and backend are `capabilities: []`. A web server or app server that needs a capability is
-telling you something.
+### But do not expect a capability alert
+
+`R0004 Linux Capabilities Anomalies` ships with **`isTriggerAlert: false`**. It is enabled and
+evaluated, and it enriches other findings, but it **never raises an alert on its own**.
+
+Verified, not assumed: across a 60-minute window on a cluster running stock `nginx`, `postgres`,
+`redis`, `busybox`, kyverno and kubescape's own components — every one a root-entrypoint image,
+against profiles declaring `capabilities: []` — R0004 fired **zero** times. The only runtime rule
+that fired at all in that window was R0002.
+
+```bash
+# check for yourself
+kubectl get rules.kubescape.io -n honey default-rules -o json \
+  | jq '.spec.rules[] | select(.id=="R0004") | {id,enabled,isTriggerAlert}'
+```
+
+So the `capabilities` list documents intent and enriches other alerts, but it produces no feedback
+of its own. Capability posture is checked **statically** instead — kubescape controls `C-0013`,
+`C-0016`, `C-0017`, `C-0046` — and [`adr/0006`](adr/0006-workloads-run-as-non-root.md) states that
+verification gap rather than implying runtime coverage that does not exist.
+
+`R0007 Workload uses Kubernetes API unexpectedly` is `isTriggerAlert: false` for the same reason.
 
 ## One design decision worth knowing
 
