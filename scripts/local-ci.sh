@@ -63,26 +63,6 @@ case "$APP" in
     APP_PROFILE_MATCH="pg-client"
     APP_SCORE_THRESHOLD=0
     ;;
-  postgres-oss|postgres-bitnami|postgres-cnpg)
-    # One leg per packaging distro. The attacks land on the DATABASE, not on the
-    # client: the client is the same postgres:17 image in all three legs, so
-    # targeting it tuned one identical profile three times and the "contrast"
-    # between the distros was an artefact. Each leg execs into that vendor's
-    # server container, which is the workload the SBoB actually describes.
-    FORK="${APP#postgres-}"
-    APP_NS="postgres-$FORK"
-    APP_DEPLOY_TARGET="postgres-distro-$FORK"
-    APP_FUNC_TESTS="example/postgres/distros/functional/$FORK.yaml"
-    APP_ATTACKS="example/postgres/distros/attacks/$FORK.yaml"
-    case "$FORK" in
-      oss)     APP_SERVICE=postgres;              APP_CONTAINER=postgres;   APP_PROFILE_MATCH="postgres" ;;
-      bitnami) APP_SERVICE=pg-bitnami-postgresql; APP_CONTAINER=postgresql; APP_PROFILE_MATCH="bitnami" ;;
-      cnpg)    APP_SERVICE=pg-rw;                 APP_CONTAINER=postgres;   APP_PROFILE_MATCH="cluster-pg-postgres" ;;
-    esac
-    APP_PORT=5432
-    APP_SCHEME=tcp
-    APP_SCORE_THRESHOLD=0
-    ;;
   postgres-vuln)
     APP_NS=postgres-vuln
     APP_FUNC_TESTS=example/postgres-vuln-functional-tests.yaml
@@ -112,8 +92,39 @@ case "$APP" in
     APP_PROFILE_MATCH="replicaset-mariadb-client"
     APP_SCORE_THRESHOLD=0
     ;;
+  flux-*)
+    # All six Flux controller legs share one deployment and one namespace; only
+    # the target service, the suites and the profile match differ.
+    FLUX_COMPONENT="${APP#flux-}"
+    APP_NS=flux-system
+    APP_DEPLOY_TARGET=flux
+    APP_FUNC_TESTS="example/flux-${FLUX_COMPONENT}-functional-tests.yaml"
+    APP_ATTACKS="example/flux-${FLUX_COMPONENT}-attacks.yaml"
+    APP_SERVICE="$FLUX_COMPONENT"
+    APP_PROFILE_MATCH="${FLUX_COMPONENT}-.*-manager"
+    APP_SCORE_THRESHOLD=0
+    case "$FLUX_COMPONENT" in
+      source-controller|notification-controller) APP_PORT=80 ;;
+      *)                                         APP_PORT=8080 ;;
+    esac
+    # Upstream fluxcd/flux-benchmark drives the reconcile load. Registry and
+    # artifact pushes happen before the pods exist so they cost none of the
+    # learning window; --load then runs only the four benchmark phases.
+    # The four benchmark phases take ~2.5m and `make deploy-flux` consumes the
+    # first ~40s of the window waiting on six rollouts, so the default 2m window
+    # would capture only the first phase. Widened here, at setup time, so the
+    # node-agent config change lands before any Flux container starts.
+    export KS_LEARN_PERIOD="${KS_LEARN_PERIOD:-8m}"
+    # `make deploy-flux` is an idempotent apply, so on a re-run the controllers
+    # keep their old pods and their learning windows are long closed. Restarting
+    # the APP (never node-agent) gives each controller a new ReplicaSet identity,
+    # which is what a fresh ContainerProfile is keyed on.
+    APP_ROLLOUT_RESTART="source-controller kustomize-controller helm-controller notification-controller image-reflector-controller image-automation-controller"
+    APP_LOAD_PREPARE="example/flux/benchmark/run-flux-benchmark.sh --prepare"
+    APP_LOAD_DRIVER="KS=${FLUX_BENCH_KS:-10} HR=${FLUX_BENCH_HR:-5} TIMEOUT=6m example/flux/benchmark/run-flux-benchmark.sh --load"
+    ;;
   *)
-    die "Unknown app: $APP (use webapp, redis, postgres, postgres-vuln, or mariadb)"
+    die "Unknown app: $APP (use webapp, redis, postgres, postgres-vuln, mariadb, or flux-<controller>)"
     ;;
 esac
 
@@ -140,12 +151,6 @@ if $SETUP_ONLY || ! $TUNE_ONLY; then
 
   # ── wait for kubescape components ──────────────────────────────────────────
   log "=== Wait for kubescape components ==="
-  # rollout status FIRST: `kubectl wait pod -l app=node-agent --for=ready` happily
-  # matches the OUTGOING pod when helm has just updated the DaemonSet, so it
-  # returns while the roll has not started. The app then deploys into that gap,
-  # node-agent restarts underneath it, and the container is never hooked — no
-  # ContainerProfile, no learn, and the tune silently scores a stale profile.
-  kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=300s
   kubectl wait --for=condition=ready pod -l app=node-agent   -n "$KS_NS" --timeout=180s
   kubectl wait --for=condition=ready pod -l app=storage      -n "$KS_NS" --timeout=180s
   kubectl wait --for=condition=ready pod -l app=alertmanager -n "$KS_NS" --timeout=120s
@@ -159,14 +164,38 @@ fi
 
 # ── deploy and learn app ─────────────────────────────────────────────────────
 if ! $TUNE_ONLY; then
+  APP_DEPLOY_TARGET="${APP_DEPLOY_TARGET:-$APP}"
+
+  # Snapshot the profiles that already exist. If node-agent fails to observe the
+  # new containers starting (the usual cause is an unset KS_RUNC on k3s, so
+  # fanotify marks the wrong runc), no new profile is written and the poll below
+  # would otherwise fall back to a stale profile from an earlier run and report a
+  # score that has nothing to do with this learn.
+  PRE_PROFILES=$(kubectl get containerprofiles -n "$APP_NS" \
+    -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+  log "Profiles present before learning: $(echo "$PRE_PROFILES" | grep -c . || true)"
+  if [[ -n "${APP_LOAD_PREPARE:-}" ]]; then
+    log "=== Prepare load driver (outside the learning window) ==="
+    bash -c "$APP_LOAD_PREPARE" 2>&1 | tail -5
+  fi
+
   # A pod left Failed/Evicted by an earlier run is not restarted by kubectl
-  # apply, so the deploy target's readiness wait times out on a corpse. Bare
-  # Pods (pg-client) have no controller to replace them either.
+  # apply, so the deploy target's readiness wait times out on a corpse.
   kubectl delete pod -n "$APP_NS" --field-selector status.phase=Failed --ignore-not-found >/dev/null 2>&1 || true
   kubectl delete pod -n "$APP_NS" --field-selector status.phase=Succeeded --ignore-not-found >/dev/null 2>&1 || true
 
-  log "=== Deploy $APP via: make deploy-$APP ==="
-  make deploy-"${APP_DEPLOY_TARGET:-$APP}"
+  log "=== Deploy $APP via: make deploy-$APP_DEPLOY_TARGET ==="
+  make deploy-"$APP_DEPLOY_TARGET"
+  if [[ -n "${APP_ROLLOUT_RESTART:-}" ]]; then
+    log "=== Restart app workloads for a fresh learning window ==="
+    for d in $APP_ROLLOUT_RESTART; do
+      kubectl -n "$APP_NS" rollout restart "deploy/$d" >/dev/null 2>&1 || true
+    done
+    for d in $APP_ROLLOUT_RESTART; do
+      kubectl -n "$APP_NS" rollout status "deploy/$d" --timeout=300s || true
+    done
+  fi
+
   log "Deploy complete. Pods in $APP_NS:"
   kubectl get pods -n "$APP_NS" || true
 
@@ -181,39 +210,40 @@ if ! $TUNE_ONLY; then
   kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=180s
   kubectl wait --for=condition=ready pod -l app=node-agent -n "$KS_NS" --timeout=180s
 
-  # node-agent hooks a container at that container's START. A re-run applies the
-  # app manifests unchanged, so the pods survive from the previous run and
-  # predate the node-agent that is watching now — they are invisible to it.
-  # Recreating the app pods here (never node-agent) is what makes a re-run learn.
-  # The deploy target is re-applied afterwards because some fixtures are bare
-  # Pods with no controller to bring them back.
-  if [[ -n "${APP_DEPLOY_TARGET:-}" ]]; then
-    # A previous demo-mode run patches kubescape.io/user-defined-profile onto the
-    # workload, and that label persists in the Deployment/StatefulSet/Cluster spec.
-    # While it is set node-agent BINDS the supplied SBoB instead of learning, so no
-    # ContainerProfile is ever produced and the learn poll waits out its timeout.
-    # Learning requires the workload to be unbound; binding is a separate step.
-    log "Unbinding $APP_NS workloads so node-agent learns instead of enforcing..."
-    for k in deployment statefulset daemonset; do
-      for n in $(kubectl -n "$APP_NS" get "$k" -o name 2>/dev/null); do
-        kubectl -n "$APP_NS" patch "$n" --type merge \
-          -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":null}}}}}' >/dev/null 2>&1 || true
-      done
-    done
-    for n in $(kubectl -n "$APP_NS" get cluster.postgresql.cnpg.io -o name 2>/dev/null); do
+  # node-agent hooks a container at that container's START, and a workload
+  # carrying kubescape.io/user-defined-profile is ENFORCED rather than learned.
+  # A re-run inherits both: pods predating the current node-agent, and a bind
+  # label left by an earlier demo. Drop the label and recreate the pods (never
+  # node-agent) so the learn records something.
+  for k in deployment statefulset daemonset; do
+    for n in $(kubectl -n "$APP_NS" get "$k" -o name 2>/dev/null); do
       kubectl -n "$APP_NS" patch "$n" --type merge \
-        -p '{"spec":{"inheritedMetadata":{"labels":{"kubescape.io/user-defined-profile":null}}}}' >/dev/null 2>&1 || true
+        -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":null}}}}}' >/dev/null 2>&1 || true
     done
-
-    log "Recreating $APP_NS pods so they start under the current node-agent..."
-    kubectl delete pods --all -n "$APP_NS" --wait=true --timeout=180s || true
-    make "deploy-$APP_DEPLOY_TARGET" >/dev/null 2>&1 || true
-    kubectl wait --for=condition=ready pod --all -n "$APP_NS" --timeout=300s || true
-  fi
+  done
+  log "Recreating $APP_NS pods so they start under the current node-agent..."
+  kubectl delete pods --all -n "$APP_NS" --wait=true --timeout=180s || true
+  make deploy-"${APP_DEPLOY_TARGET:-$APP}" >/dev/null 2>&1 || true
+  kubectl wait --for=condition=ready pod --all -n "$APP_NS" --timeout=300s || true
 
   # ── learn: exercise app + poll for completed profile ────────────────────────
   log "=== Learn $APP ==="
   MATCH="${APP_PROFILE_MATCH:-$APP}"
+
+  # A ContainerProfile is keyed on the ReplicaSet that owns the container, so the
+  # only profile describing what we just ran is the one named after the CURRENT
+  # ReplicaSet. Pin to it. Snapshot-diffing alone is not enough: a profile from a
+  # previous restart can be written after the snapshot is taken and then looks new.
+  if [[ -n "${APP_SERVICE:-}" ]]; then
+    CURRENT_RS=$(kubectl get pods -n "$APP_NS" \
+      -l "app=$APP_SERVICE" -o jsonpath='{.items[0].metadata.ownerReferences[0].name}' 2>/dev/null || true)
+    if [[ -n "$CURRENT_RS" ]]; then
+      MATCH="replicaset-${CURRENT_RS}-"
+      log "Pinning profile match to current ReplicaSet: $MATCH"
+    else
+      log "WARNING: could not resolve current ReplicaSet for $APP_SERVICE; falling back to '$MATCH'"
+    fi
+  fi
 
   # Run functional tests to exercise the app while node-agent learns.
   # --timeout must comfortably exceed the time it takes to run all functional
@@ -222,6 +252,17 @@ if ! $TUNE_ONLY; then
   # "client rate limiter Wait returned an error: context deadline exceeded"
   # (the bobctl ctx, not a real throttle — the request was waiting in the
   # rate limiter when ctx expired). 180s leaves ample headroom.
+  # Start the app's own load driver alongside the functional tests. For Flux
+  # this is upstream's benchmark; the functional tests alone only exercise the
+  # HTTP surface, not the reconcile path that dominates a controller's syscalls.
+  LOAD_PID=""
+  if [[ -n "${APP_LOAD_DRIVER:-}" ]]; then
+    log "Starting load driver: $APP_LOAD_DRIVER"
+    bash -c "$APP_LOAD_DRIVER" > "/tmp/load-driver-$APP.log" 2>&1 &
+    LOAD_PID=$!
+    trap '[[ -n "$LOAD_PID" ]] && kill "$LOAD_PID" 2>/dev/null || true' EXIT
+  fi
+
   log "Running functional tests during learning period..."
   for i in $(seq 1 8); do
     bin/bobctl learn \
@@ -229,6 +270,14 @@ if ! $TUNE_ONLY; then
       -n "$APP_NS" --timeout 180s --interval 15s -v 2>&1 | tail -5 || true
     sleep 5
   done
+
+  if [[ -n "$LOAD_PID" ]]; then
+    log "Waiting for load driver to finish..."
+    wait "$LOAD_PID" 2>/dev/null || true
+    LOAD_PID=""
+    trap - EXIT
+    tail -5 "/tmp/load-driver-$APP.log" 2>/dev/null | sed 's/^/    /' || true
+  fi
 
   # Poll for completed, non-user-generated profile
   log "Waiting for completed profile (match: '$MATCH')..."
@@ -239,11 +288,12 @@ if ! $TUNE_ONLY; then
     ALL_COMPLETED=$(kubectl get containerprofiles -n "$APP_NS" \
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
-    if [[ "$MATCH" == *client* ]]; then
-      PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
-    else
-      PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
+    # Only profiles that did not exist before this learn count. Without this a
+    # failed learn silently reuses an earlier run's profile and reports its score.
+    if [[ -n "$PRE_PROFILES" ]]; then
+      ALL_COMPLETED=$(comm -13 <(echo "$PRE_PROFILES" | sort -u) <(echo "$ALL_COMPLETED" | sort -u) || true)
     fi
+    PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
     if [[ -n "$PROFILE" ]]; then
@@ -260,6 +310,22 @@ if ! $TUNE_ONLY; then
 
   log "Learned profile: $PROFILE"
   echo "$PROFILE" > /tmp/bobctl-last-profile-$APP
+
+  # Keep the profile EXACTLY as learned, before the tuner touches it. This is the
+  # only copy of the real observed behaviour; everything downstream is derived and
+  # can be regenerated from it, but a collapsed path can never be recovered.
+  mkdir -p results
+  RAW_PROFILE="results/learned-profile-raw-$APP.yaml"
+  kubectl get containerprofiles -n "$APP_NS" "$PROFILE" -o yaml > "$RAW_PROFILE" 2>/dev/null || true
+  if [[ -s "$RAW_PROFILE" ]]; then
+    log "Kept raw learned profile: $RAW_PROFILE ($(grep -c 'path:' "$RAW_PROFILE" || echo 0) paths)"
+    # A leading wildcard here means node-agent collapsed during LEARNING, so the
+    # raw profile is already destroyed and there is nothing to substitute back.
+    # Raise the collapse thresholds rather than tuning around it.
+    if ! python3 "$SCRIPT_DIR/check-no-overbroad.py" "$RAW_PROFILE"; then
+      die "the LEARNED profile already contains a leading-wildcard open — collapse happened during learning. Raise openDynamicThreshold in the applied CollapseConfiguration; do not proceed."
+    fi
+  fi
 else
   # Re-use last learned profile
   if [[ -f /tmp/bobctl-last-profile-$APP ]]; then
@@ -272,15 +338,7 @@ else
       -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
       2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
-    # The "client" exclusion stops a SERVER leg from picking up the client's
-    # profile (redis, mariadb). It must not apply when the target genuinely IS
-    # the client — postgres attacks all exec into pg-client — because then it
-    # cancels out the match it just made and leaves PROFILE empty.
-    if [[ "$MATCH" == *client* ]]; then
-      PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1)
-    else
-      PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
-    fi
+    PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$APP" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | head -1)
@@ -322,7 +380,6 @@ bin/bobctl tune \
   --ks-namespace "$KS_NS" \
   --service "$APP_SERVICE" \
   --service-port "$APP_PORT" \
-  ${APP_CONTAINER:+--container "$APP_CONTAINER"} \
   --alertmanager-service alertmanager \
   --alertmanager-port 9093 \
   --functional-tests "$APP_FUNC_TESTS" \
@@ -352,6 +409,33 @@ fi
 # CP migration: the network shape (ingress/egress) is now INLINE on the
 # ContainerProfile, so the assertion runs against best-profile.yaml's egress
 # instead of the retired best-nn.yaml.
+# The tuner emits the profile as learned, so cluster-specific literals survive
+# into it: the apiserver ClusterIP, this pod's own IP in an inbound Host header,
+# today's A record for an external peer. Rewrite them to their portable forms
+# before the gate below asserts none are left.
+# The tuner may over-collapse. Put the originally-learned opens back before the
+# profile is normalised or shipped — the raw learn is ground truth, the collapsed
+# form is a lossy summary of it.
+RAW_PROFILE="results/learned-profile-raw-$APP.yaml"
+if [[ -f results/best-profile.yaml && -s "$RAW_PROFILE" ]]; then
+  log "=== Restore over-collapsed opens from the raw learn ==="
+  python3 "$SCRIPT_DIR/restore-overcollapsed.py" --raw "$RAW_PROFILE" \
+    --tuned results/best-profile.yaml 2>&1 | sed 's/^/    /' || \
+    die "restore-overcollapsed.py failed"
+fi
+
+# Nothing with a leading-wildcard open ships, whatever the tuner reported.
+if [[ -f results/best-profile.yaml ]]; then
+  python3 "$SCRIPT_DIR/check-no-overbroad.py" results/best-profile.yaml || \
+    die "best-profile.yaml still has a leading-wildcard open after restore"
+fi
+
+if [[ -f results/best-profile.yaml ]]; then
+  log "=== Normalise cluster-specific values (portable-sbob.py) ==="
+  python3 "$SCRIPT_DIR/portable-sbob.py" results/best-profile.yaml 2>&1 | sed 's/^/    /' || \
+    die "portable-sbob.py failed on results/best-profile.yaml"
+fi
+
 if [[ -f results/best-profile.yaml ]]; then
   log "=== Network portability check (best-profile.yaml egress) ==="
   if grep -nE '(ipAddress: *"?|^[[:space:]]*-[[:space:]]+)(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)' results/best-profile.yaml; then
