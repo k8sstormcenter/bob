@@ -352,6 +352,30 @@ def host_entity_ingress(ports):
     }
 
 
+# A learned exec carries the process environment, and that is where apps put
+# credentials (PGPASSWORD, *_TOKEN, *_KEY). An SBoB is committed to a public
+# repo, so the env never ships: it is dropped here, not redacted.
+SECRET_ENV = re.compile(r"(PASS|PWD|SECRET|TOKEN|KEY|CRED)", re.I)
+
+
+def strip_exec_envs(spec):
+    dropped = 0
+    for e in spec.get("execs") or []:
+        if e.pop("envs", None) is not None:
+            dropped += 1
+    return dropped
+
+
+def secretish_args(spec):
+    out = []
+    for e in spec.get("execs") or []:
+        for a in e.get("args") or []:
+            a = str(a)
+            if "=" in a and SECRET_ENV.search(a.split("=", 1)[0]) and a.split("=", 1)[1]:
+                out.append(a)
+    return out
+
+
 def service_ref(identifier, namespace, name, ports, protocol="TCP"):
     # Ports may be given as 53/UDP; kube-dns is the case that forced this, and a
     # TCP-only entry silently fails to admit it.
@@ -446,6 +470,18 @@ def main():
         spec = doc.get("spec") or {}
         report = {"truncated": [], "normalised": 0, "overbroad": [], "cidr_probes": 0,
                   "collapsed": [], "literal_interpreters": [], "core": []}
+
+        dropped_envs = strip_exec_envs(spec)
+        if dropped_envs:
+            report["envs"] = dropped_envs
+        leaked = secretish_args(spec)
+        if leaked:
+            sys.stderr.write(
+                "REFUSING to emit %s: exec args carry what look like credential "
+                "values, which would be committed in the clear:\n" % f)
+            for a in leaked[:5]:
+                sys.stderr.write("    %s\n" % a)
+            sys.exit(2)
 
         before = len(spec.get("opens") or [])
         spec["opens"] = generalise_opens(spec.get("opens") or [], report)
