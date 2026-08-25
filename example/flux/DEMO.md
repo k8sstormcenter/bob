@@ -165,53 +165,72 @@ peers. Replace that stanza with `0.0.0.0/0` and R0012 turns **Blind**, with
 
 ## 8. Ingress: what R0012 actually needs
 
-Kubelet liveness probes arrive from the **node**, not from a pod, so they carry no
-pod identity and **no `podSelector` can ever match them** — 187's identity
-matching does not help for the dominant inbound class on a controller. They need
-the pod CIDR as a literal peer. Inter-controller traffic does have an identity and
-is declared by selector, which survives rescheduling.
-
-Both shapes are in every Flux SBoB:
+Kubelet probes arrive from the **node**, not from a pod, so they carry no pod
+identity and no `podSelector` can ever match them. They used to be admitted with
+the pod CIDR as a literal peer, which also admits every pod on that node as a
+side effect. `entity: host` replaces that and is what every Flux SBoB now ships:
 
 ```
 ingress:
 - identifier: kubelet-probes
-  ipAddresses: [10.42.0.0/16, 10.244.0.0/16]     # k3s, kubeadm
-  ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}]
-- identifier: from-kustomize-controller
-  podSelector: {matchLabels: {app: kustomize-controller}}
-  namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: flux-system}}
-  ports: [{name: TCP-9090, port: 9090, protocol: TCP}]
+  type: internal
+  entity: host
+  ports:
+  - {name: TCP-9440, port: 9440, protocol: TCP}
+  - {name: TCP-9090, port: 9090, protocol: TCP}
+  - {name: TCP-8080, port: 8080, protocol: TCP}
 ```
 
-Drop the `kubelet-probes` entry and R0012 fires every 10s on healthy probes.
+Inter-controller traffic does carry an identity and is declared by selector, and
+in-cluster Services are declared by `serviceRefNamespace`/`serviceRefName` rather
+than by ClusterIP, so the profile survives being applied to another cluster.
 
 ## Known gaps
 
-- **Flux learns `ingress: null`** even on the celnet agent, while argocd and redis
-  learn it fine. The stanzas above are hand-authored for that reason. Tracked in
-  k8sstormcenter/bob#189, with a minimal nginx reproduction.
-- **R0012 did not fire on Flux** in that investigation despite a null ingress and
-  real inbound, while R0011 fired on the same pods in the same window. Cause not
-  isolated. A plain nginx pod in the same namespace alerts correctly, so it is
-  specific to these controllers.
+- **R0012 has never fired on these controllers.** Zero R0012 alerts in
+  flux-system across every run on `net-v2s-f6fa47d6`, benign and attack alike,
+  while R0011 fires on the same pods in the same window and R0012 fires normally
+  on other workloads. A plain nginx pod in the same namespace alerts correctly,
+  so it is specific to these controllers. Tracked in k8sstormcenter/bob#189.
+
+  The practical consequence: the `entity: host` ingress stanza above is
+  **unverified on Flux**. It is correct by construction and it is the only shape
+  that can admit a probe, but nothing here exercises it, because no ingress rule
+  fires at all. It has been exercised on other workloads.
+
+- **Flux learns `ingress: null`**, which is why that stanza is hand-authored
+  rather than recorded.
+
 - The `drifted-binary-exec` attack in the redis-distro suite asserts **R1000**,
   whose expression is `/dev/shm`-scoped while the attack runs its binary from
   `/data`. It can never fire; the assertion is wrong, not the profile.
 
 ## Results this was validated against
 
-bobctl `v0.1.3-rc1`, node-agent `sbob-rc5s-celnet@sha256:dc4e666`, storage
-`sbob-rc5s`, k3s single node.
+bobctl built from `pkg` at the commit that ships this branch, node-agent and
+storage `net-v2s-f6fa47d6` (the pin on bob `main`), kubescape-operator chart
+1.40.3, `networkEventsStreaming: enable`, k3s single node.
 
-| leg | score |
-|---|---|
-| redis (`example/redis`, 62 attacks / 89 functional tests) | 0 — perfect |
-| flux/source-controller | 0 |
-| flux/kustomize-controller | 0 |
-| flux/helm-controller | 0 |
-| flux/notification-controller | 0 |
-| flux/image-reflector-controller | 0 |
-| flux/image-automation-controller | 0 |
+Every controller bound to its SBoB, benign suite then attack suite:
 
-Zero false positives on every leg.
+| controller | benign FPs | attack alerts | distinct rules |
+|---|---|---|---|
+| source-controller | 0 | 42 | 11 |
+| kustomize-controller | 0 | 43 | 11 |
+| helm-controller | 0 | 41 | 10 |
+| notification-controller | 0 | 42 | 11 |
+| image-reflector-controller | 0 | 43 | 11 |
+| image-automation-controller | 0 | 57 | 11 |
+
+Rules raised: R0001, R0002, R0004, R0005, R0006, R0008, R0010, R0011, R1004,
+R1010, R1012. R0012 is absent for the reason in Known gaps.
+
+Each suite was confirmed to attack its own component: run in sequence they
+produced alerts on six distinct controllers, and a controller left out of a
+round stayed silent.
+
+If a controller reports no detections at all, check for a `Succeeded` pod left
+by a previous ReplicaSet — `bobctl` used to resolve the Service to whichever pod
+listed first and exec into that corpse. Fixed, but the symptom is worth knowing:
+every attack returns code 1 and nothing alerts, which looks exactly like a
+workload the attacks cannot reach.
