@@ -285,9 +285,19 @@ if ! $TUNE_ONLY; then
   ELAPSED=0
   PROFILE=""
   while [ $ELAPSED -lt $TIMEOUT ]; do
+    # Select on completion, not status. The CONSOLIDATED profile — the one we
+    # want — sits at status "ready" (helpers.Learning) until storage finishes
+    # aggregating, while the per-report time-series shards, named
+    # <consolidated>-<32 hex>, reach "completed" first and can take ~20 minutes.
+    # Gating on status therefore either times out or picks a shard holding a
+    # partial view. kubescape.io/completion == complete is the signal that this
+    # profile's learning window is over.
     ALL_COMPLETED=$(kubectl get containerprofiles -n "$APP_NS" \
-      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-      2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
+      -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.metadata.annotations.kubescape\.io/completion}{" "}{.metadata.annotations.kubescape\.io/status}{"\n"}{end}' \
+      2>/dev/null \
+      | awk '$2 == "complete" || $3 == "completed" { print $1 }' \
+      | grep -v "^ug-" | grep -v "^job-" \
+      | grep -vE -- '-[0-9a-f]{32}$' || true)
     # Only profiles that did not exist before this learn count. Without this a
     # failed learn silently reuses an earlier run's profile and reports its score.
     if [[ -n "$PRE_PROFILES" ]]; then
