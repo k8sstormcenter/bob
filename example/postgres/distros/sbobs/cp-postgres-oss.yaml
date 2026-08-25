@@ -39,9 +39,9 @@ spec:
   - path: /usr/bin/perl
     args: [/usr/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, app, -f, /docker-entrypoint-initdb.d/10-bobtest.sql]
   - path: /usr/bin/perl
-    args: [/usr/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app]
-  - path: /usr/bin/perl
     args: [/usr/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app, --tuples-only]
+  - path: /usr/bin/perl
+    args: [/usr/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app]
   - path: /usr/lib/postgresql/⋯/bin/initdb
     args: [/usr/lib/postgresql/⋯/bin/initdb, --username=app, --pwfile=/dev/fd/⋯]
   - path: /usr/lib/postgresql/⋯/bin/pg_ctl
@@ -53,9 +53,9 @@ spec:
   - path: /usr/lib/postgresql/⋯/bin/psql
     args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, app, -f, /docker-entrypoint-initdb.d/10-bobtest.sql]
   - path: /usr/lib/postgresql/⋯/bin/psql
-    args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app]
-  - path: /usr/lib/postgresql/⋯/bin/psql
     args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app, --tuples-only]
+  - path: /usr/lib/postgresql/⋯/bin/psql
+    args: [/usr/lib/postgresql/⋯/bin/psql, -v, ON_ERROR_STOP=1, --username, app, --no-password, --no-psqlrc, --dbname, postgres, --set, db=app]
   - path: /usr/local/bin/gosu
     args: [/usr/local/bin/gosu, postgres, /usr/local/bin/docker-entrypoint.sh, postgres]
   opens:
@@ -111,6 +111,22 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /usr/lib/x86_64-linux-gnu/*
     flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/Exporter/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/IPC/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/Tie/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/Fcntl/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/POSIX/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/Socket/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/warnings/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/⋯
+    flags: [O_RDONLY]
   - path: /usr/lib/x86_64-linux-gnu/⋯
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /usr/local/bin/docker-entrypoint.sh

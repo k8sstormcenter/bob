@@ -10,28 +10,60 @@ spec:
   execs:
   - path: /opt/bitnami/postgresql/bin/initdb
     args: [/opt/bitnami/postgresql/bin/initdb, -E, UTF8, -D, /bitnami/postgresql/data, -U, postgres]
+  - path: /opt/bitnami/postgresql/bin/initdb
+    args: [/opt/bitnami/postgresql/bin/initdb, ⋯⋯]
   - path: /opt/bitnami/postgresql/bin/pg_ctl
     args: [/opt/bitnami/postgresql/bin/pg_ctl, start, -W, -D, /bitnami/postgresql/data, -l, /opt/bitnami/postgresql/logs/postgresql.log, -o, --config-file=/opt/bitnami/postgresql/conf/postgresql.conf --external_pid_file=/opt/bitnami/postgresql/tmp/postgresql.pid --hba_file=/opt/bitnami/postgresql/conf/pg_hba.conf]
   - path: /opt/bitnami/postgresql/bin/pg_ctl
     args: [/opt/bitnami/postgresql/bin/pg_ctl, stop, -w, -D, /bitnami/postgresql/data, -m, fast, -t, '60']
-  - path: /opt/bitnami/postgresql/bin/pg_isready
-    args: [/opt/bitnami/postgresql/bin/pg_isready, -U, postgres, -p, '5432', -h, 127.0.0.1]
+  - path: /opt/bitnami/postgresql/bin/pg_ctl
+    args: [/opt/bitnami/postgresql/bin/pg_ctl, ⋯⋯]
   - path: /opt/bitnami/postgresql/bin/pg_isready
     args: [/opt/bitnami/postgresql/bin/pg_isready, -U, app, -d, dbname=app, -h, 127.0.0.1, -p, '5432']
+  - path: /opt/bitnami/postgresql/bin/pg_isready
+    args: [/opt/bitnami/postgresql/bin/pg_isready, -U, postgres, -p, '5432', -h, 127.0.0.1]
   - path: /opt/bitnami/postgresql/bin/postgres
     args: [/opt/bitnami/postgresql/bin/postgres, ⋯⋯]
   - path: /opt/bitnami/postgresql/bin/psql
     args: [/opt/bitnami/postgresql/bin/psql, --version]
   - path: /opt/bitnami/postgresql/bin/psql
-    args: [/opt/bitnami/postgresql/bin/psql, -U, postgres, -p, '5432', -h, 127.0.0.1]
-  - path: /opt/bitnami/postgresql/bin/psql
     args: [/opt/bitnami/postgresql/bin/psql, -U, postgres, -p, '5432', -h, 127.0.0.1, -d, app]
+  - path: /opt/bitnami/postgresql/bin/psql
+    args: [/opt/bitnami/postgresql/bin/psql, -U, postgres, -p, '5432', -h, 127.0.0.1]
+  - path: /usr/bin/bash
+    args: [/bin/sh, -c, --, '"/opt/bitnami/postgresql/bin/postgres" --boot -F -c log_checkpoints=false  -X 16777216 -k']
+  - path: /usr/bin/bash
+    args: [/bin/sh, -c, --, '"/opt/bitnami/postgresql/bin/postgres" --check -F -c log_checkpoints=false  -c max_connections=100 -c autovacuum_worker_slots=16 -c shared_buffers=1000 -c dynamic_shared_memory_type=posix < "/dev/null" > "/dev/null" 2>&1']
+  - path: /usr/bin/bash
+    args: [/bin/sh, -c, --, '"/opt/bitnami/postgresql/bin/postgres" --check -F -c log_checkpoints=false  -c max_connections=100 -c autovacuum_worker_slots=16 -c shared_buffers=16384 -c dynamic_shared_memory_type=posix < "/dev/null" > "/dev/null" 2>&1']
+  - path: /usr/bin/bash
+    args: [/bin/sh, -c, --, '"/opt/bitnami/postgresql/bin/postgres" --single -F -O -j -c search_path=pg_catalog -c exit_on_error=true -c log_checkpoints=false  template1 >/dev/null']
+  - path: /usr/bin/bash
+    args: [/bin/sh, -c, --, '"/opt/bitnami/postgresql/bin/postgres" -V']
+  - path: /usr/bin/bash
+    args: [/bin/sh, -c, --, locale -a]
   - path: /usr/bin/bash
     args: [/bin/sh, -c, --, ⋯]
+  - path: /usr/bin/bash
+    args: [/bin/sh, -c, exec "/opt/bitnami/postgresql/bin/postgres" -D "/bitnami/postgresql/data" --config-file=/opt/bitnami/postgresql/conf/postgresql.conf --external_pid_file=/opt/bitnami/postgresql/tmp/postgresql.pid --hba_file=/opt/bitnami/postgresql/conf/pg_hba.conf < "/dev]
+  - path: /usr/bin/bash
+    args: [/bin/sh, -ec, 'exec pg_isready -U "app" -d "dbname=app" -h 127.0.0.1 -p 5432
+
+        ']
+  - path: /usr/bin/bash
+    args: [/bin/sh, -ec, 'exec pg_isready -U "app" -d "dbname=app" -h 127.0.0.1 -p 5432
+
+        [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+
+        ']
   - path: /usr/bin/bash
     args: [/bin/sh, ⋯, ⋯]
   - path: /usr/bin/bash
     args: [/opt/bitnami/scripts/postgresql/entrypoint.sh, /opt/bitnami/scripts/postgresql/run.sh]
+  - path: /usr/bin/bash
+    args: [/opt/bitnami/scripts/postgresql/run.sh]
+  - path: /usr/bin/bash
+    args: [/opt/bitnami/scripts/postgresql/setup.sh]
   - path: /usr/bin/bash
     args: [⋯]
   - path: /usr/bin/cat
@@ -69,9 +101,37 @@ spec:
   - path: /usr/bin/realpath
     args: [/usr/bin/realpath, /bitnami/postgresql/data]
   - path: /usr/bin/rm
-    args: [/usr/bin/rm, -f, /opt/bitnami/postgresql/tmp/postgresql.pid]
-  - path: /usr/bin/rm
     args: [/usr/bin/rm, -f, /bitnami/postgresql/data/postgresql.conf, /bitnami/postgresql/data/pg_hba.conf]
+  - path: /usr/bin/rm
+    args: [/usr/bin/rm, -f, /opt/bitnami/postgresql/tmp/postgresql.pid]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*client_min_messages\\s*=.*\x01client_min_messages = 'error'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*fsync\\s*=.*\x01fsync = 'on'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*hot_standby\\s*=.*\x01hot_standby = 'on'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*listen_addresses\\s*=.*\x01listen_addresses = '*'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*log_connections\\s*=.*\x01log_connections = 'false'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*log_disconnections\\s*=.*\x01log_disconnections = 'false'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*log_hostname\\s*=.*\x01log_hostname = 'false'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*max_wal_senders\\s*=.*\x01max_wal_senders = '16'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*max_wal_size\\s*=.*\x01max_wal_size = '400MB'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*port\\s*=.*\x01port = '5432'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*shared_preload_libraries\\s*=.*\x01shared_preload_libraries = 'pgaudit'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*wal_keep_size\\s*=.*\x01wal_keep_size = '128MB'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01^#*\\s*wal_level\\s*=.*\x01wal_level = 'replica'\x01g", /opt/bitnami/postgresql/conf/postgresql.conf]
+  - path: /usr/bin/sed
+    args: [/usr/bin/sed, "s\x01trust\x01md5\x01g", /opt/bitnami/postgresql/conf/pg_hba.conf]
   - path: /usr/bin/sed
     args: [/usr/bin/sed, ⋯, ⋯]
   - path: /usr/bin/sleep
@@ -81,30 +141,122 @@ spec:
   opens:
   - path: /.pgpass
     flags: [O_RDONLY]
+  - path: /bitnami/postgresql/data
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/PG_VERSION
+    flags: [O_CREAT, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/backup_label
+    flags: [O_RDONLY]
+  - path: /bitnami/postgresql/data/base
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /bitnami/postgresql/data/base/*
     flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/base/pgsql_tmp
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /bitnami/postgresql/data/base/⋯
     flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/base/⋯/PG_VERSION
+    flags: [O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_WRONLY]
+  - path: /bitnami/postgresql/data/base/⋯/pg_filenode.map
+    flags: [O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/base/⋯/pg_filenode.map.tmp
+    flags: [O_CREAT, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/base/⋯/pg_internal.init
+    flags: [O_RDONLY]
   - path: /bitnami/postgresql/data/base/⋯/⋯
-    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
+    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/global
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/global/pg_control
+    flags: [O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/global/pg_filenode.map
+    flags: [O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/global/pg_filenode.map.tmp
+    flags: [O_CREAT, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/global/pg_internal.init
+    flags: [O_RDONLY]
   - path: /bitnami/postgresql/data/global/⋯
-    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
+    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/pg_commit_ts
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_dynshmem
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_hba.conf
+    flags: [O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/pg_ident.conf
+    flags: [O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/pg_logical
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_logical/mappings
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_logical/replorigin_checkpoint
+    flags: [O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/pg_logical/replorigin_checkpoint.tmp
+    flags: [O_CREAT, O_EXCL, O_RDWR, O_WRONLY]
+  - path: /bitnami/postgresql/data/pg_logical/snapshots
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_multixact
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_multixact/members
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /bitnami/postgresql/data/pg_multixact/members/⋯
     flags: [O_CREAT, O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/pg_multixact/offsets
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /bitnami/postgresql/data/pg_multixact/offsets/⋯
     flags: [O_CREAT, O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/pg_notify
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_replslot
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_serial
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_snapshots
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_stat
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_stat/pgstat.stat
+    flags: [O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/pg_stat/pgstat.tmp
+    flags: [O_CREAT, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/pg_stat_tmp
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_subtrans
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /bitnami/postgresql/data/pg_subtrans/⋯
     flags: [O_CREAT, O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/pg_tblspc
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_twophase
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_wal
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_wal/archive_status
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /bitnami/postgresql/data/pg_wal/summaries
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /bitnami/postgresql/data/pg_wal/⋯
-    flags: [O_CLOEXEC, O_RDONLY, O_RDWR]
+    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/pg_xact
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /bitnami/postgresql/data/pg_xact/⋯
     flags: [O_CREAT, O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/postgresql.auto.conf
+    flags: [O_RDONLY, O_RDWR]
+  - path: /bitnami/postgresql/data/postgresql.conf
+    flags: [O_CREAT, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/postmaster.opts
+    flags: [O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /bitnami/postgresql/data/postmaster.pid
+    flags: [O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
   - path: /dev/null
     flags: [O_APPEND, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY]
   - path: /dev/shm/⋯
     flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR]
   - path: /dev/tty
     flags: [O_NONBLOCK, O_RDWR]
+  - path: /docker-entrypoint-initdb.d
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY]
   - path: /etc/gai.conf
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /etc/host.conf
@@ -269,6 +421,10 @@ spec:
     flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /opt/bitnami/postgresql/share/timezone/*
     flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /opt/bitnami/postgresql/share/timezone/*/Louisville
+    flags: [O_RDONLY]
+  - path: /opt/bitnami/postgresql/share/timezone/*/Monticello
+    flags: [O_RDONLY]
   - path: /opt/bitnami/postgresql/share/timezone/⋯
     flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /opt/bitnami/postgresql/share/timezonesets/Default
@@ -309,7 +465,11 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /proc/⋯/crypto/*
     flags: [O_RDONLY]
+  - path: /proc/⋯/crypto/fips_enabled
+    flags: [O_RDONLY]
   - path: /proc/⋯/kernel/*
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/kernel/cap_last_cap
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /proc/⋯/maps
     flags: [O_RDONLY]
@@ -319,13 +479,23 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /proc/⋯/task/*
     flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY, O_WRONLY]
+  - path: /proc/⋯/task/⋯/attr/apparmor/exec
+    flags: [O_CLOEXEC, O_WRONLY]
+  - path: /proc/⋯/task/⋯/fd
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
   - path: /sys/fs/cgroup/*
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/fs/cgroup/cpu.max
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     flags: [O_RDONLY]
   - path: /tmp/.s.PGSQL.5432.lock
     flags: [O_CREAT, O_EXCL, O_RDWR]
   - path: /tmp/tmp.d4JTUq4HPY
+    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /tmp/tmp.gUmh03vhNa
+    flags: [O_CREAT, O_EXCL, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /tmp/tmp.hMkQNOgbpd
     flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
   - path: /tmp/tmp.kb0oW5sRKE
     flags: [O_CREAT, O_EXCL, O_RDWR, O_TRUNC, O_WRONLY]
@@ -353,6 +523,60 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /usr/lib/libicuuc.so.76.1
     flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/liblber.so.2.0.200
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libldap.so.2.0.200
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/liblz4.so.1.10.0
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libm.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libncursesw.so.6.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libpcre2-8.so.0.11.0
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libreadline.so.8.3
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libresolv.so.2
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libsasl2.so.3.0.0
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libselinux.so.1
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libssl.so.3
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libstdc++.so.6.0.30
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libtinfo.so.6.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libxml2.so.16.1.3
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/libz.so.1.3.2
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/locale
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /usr/lib/locale/locale-archive
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/ossl-modules/fips.so
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/ossl-modules/jitterentropy.so
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/Exporter/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/IPC/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/Tie/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/Fcntl/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/POSIX/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/auto/Socket/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/warnings/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/⋯
+    flags: [O_RDONLY]
   - path: /usr/lib/⋯
     flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
   - path: /usr/lib/⋯/fips.so

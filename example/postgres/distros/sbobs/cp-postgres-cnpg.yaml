@@ -9,9 +9,13 @@ spec:
   matchLabels: {cnpg.io/cluster: pg}
   execs:
   - path: /bin/dash
+    args: [/bin/dash]
+  - path: /bin/dash
     args: [⋯⋯]
   - path: /controller/manager
     args: [/controller/manager, instance, run, --status-port-tls, --log-level=info]
+  - path: /controller/manager
+    args: [/controller/manager, ⋯⋯]
   - path: /usr/bin/perl
     args: [/usr/bin/pg_isready, -U, postgres, -d, postgres, -q]
   - path: /usr/lib/postgresql/⋯/bin/pg_controldata
@@ -21,10 +25,40 @@ spec:
   - path: /usr/lib/postgresql/⋯/bin/postgres
     args: [/usr/lib/postgresql/⋯/bin/postgres, ⋯⋯]
   opens:
+  - path: /controller/certificates/client-ca.crt
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /controller/certificates/client-ca.crt_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /controller/certificates/server-ca.crt
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /controller/certificates/server-ca.crt_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /controller/certificates/server.crt
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /controller/certificates/server.crt_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /controller/certificates/server.key
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /controller/certificates/server.key_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /controller/certificates/streaming_replica.crt
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /controller/certificates/streaming_replica.crt_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /controller/certificates/streaming_replica.key
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /controller/certificates/streaming_replica.key_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /controller/log/postgres
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY]
+  - path: /controller/log/postgres.csv
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY]
   - path: /controller/log/postgres.json
-    flags: [O_RDWR, O_CREAT, O_APPEND]
+    flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR]
   - path: /controller/manager
-    flags: [O_RDONLY]
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /controller/run/.s.PGSQL.5432.lock
+    flags: [O_CREAT, O_EXCL, O_RDWR]
   - path: /dev/null
     flags: [O_CLOEXEC, O_RDONLY, O_WRONLY]
   - path: /dev/shm/⋯
@@ -57,7 +91,11 @@ spec:
     flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
   - path: /proc/⋯/net/*
     flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/net/core/somaxconn
+    flags: [O_CLOEXEC, O_RDONLY]
   - path: /proc/⋯/task/*
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - path: /proc/⋯/task/⋯/fd
     flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
   - path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
     flags: [O_CLOEXEC, O_RDONLY]
@@ -82,7 +120,7 @@ spec:
   - path: /usr/lib/x86_64-linux-gnu/*/Socket.so
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /usr/lib/x86_64-linux-gnu/perl-base/*
-    flags: [O_RDONLY]
+    flags: [O_CLOEXEC, O_RDONLY]
   - path: /usr/lib/x86_64-linux-gnu/perl-base/⋯/*
     flags: [O_RDONLY]
   - path: /usr/lib/x86_64-linux-gnu/perl-base/⋯/⋯/*
@@ -113,6 +151,80 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /var/lib/postgresql/data/pgdata/*
     flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /var/lib/postgresql/data/pgdata/PG_VERSION
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/backup_label
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/base
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/base/pgsql_tmp
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/base/⋯
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/base/⋯/PG_VERSION
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/base/⋯/pg_filenode.map
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/base/⋯/pg_internal.init
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/base/⋯/⋯
+    flags: [O_CLOEXEC, O_CREAT, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /var/lib/postgresql/data/pgdata/current_logfiles.tmp
+    flags: [O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /var/lib/postgresql/data/pgdata/custom.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/custom.conf_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /var/lib/postgresql/data/pgdata/global/pg_control
+    flags: [O_RDONLY, O_RDWR]
+  - path: /var/lib/postgresql/data/pgdata/global/pg_filenode.map
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/global/pg_internal.init
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/global/⋯
+    flags: [O_CLOEXEC, O_CREAT, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /var/lib/postgresql/data/pgdata/override.conf
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_commit_ts
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_hba.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_hba.conf_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_ident.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_ident.conf_1787510827
+    flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_logical/replorigin_checkpoint
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_multixact/offsets/⋯
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_notify
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_replslot
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_stat/pgstat.stat
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_tblspc
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_twophase
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_wal/_cnpg_probe_tnEc
+    flags: [O_CLOEXEC, O_CREAT, O_RDWR]
+  - path: /var/lib/postgresql/data/pgdata/pg_wal/archive_status
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/pg_wal/⋯
+    flags: [O_CLOEXEC, O_RDONLY, O_RDWR]
+  - path: /var/lib/postgresql/data/pgdata/pg_xact/⋯
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/postgresql.auto.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/postgresql.conf
+    flags: [O_RDONLY]
+  - path: /var/lib/postgresql/data/pgdata/postmaster.opts
+    flags: [O_CREAT, O_TRUNC, O_WRONLY]
+  - path: /var/lib/postgresql/data/pgdata/postmaster.pid
+    flags: [O_CREAT, O_EXCL, O_RDWR]
   - path: /var/lib/postgresql/data/pgdata/⋯
     flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
