@@ -1,0 +1,207 @@
+# SBoB for vizier-cloud-connector/app — generalised from a recorded ContainerProfile.
+# opens 35 -> 31 after collapse+portability.
+# NOTE: kube-apiserver ClusterIP 10.43.0.1 dropped — differs per distro (k3s 10.43/16 vs kubeadm 10.96/12)
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: sbob-vizier-cloud-connector-app
+spec:
+  matchLabels:
+    name: vizier-cloud-connector
+  execs:
+  - path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+  opens:
+  - path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/bazel-out/k8-opt/bin/external/io_bazel_rules_go/stdlib_/lib/time/zoneinfo.zip
+  - path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+  - path: /certs/..2026_08_22_07_21_40.3665827503/ca.crt
+  - path: /certs/..2026_08_22_07_21_40.3665827503/client.crt
+  - path: /certs/..2026_08_22_07_21_40.3665827503/client.key
+  - path: /certs/..2026_08_22_07_21_40.3665827503/server.crt
+  - path: /certs/..2026_08_22_07_21_40.3665827503/server.key
+  - path: /etc/⋯
+  - path: /etc/⋯/certs
+  - path: /etc/⋯/certs/ca-certificates.crt
+  - path: /etc/⋯/tls/certs
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v2/libm.so.6
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v3/libm.so.6
+  - path: /lib/⋯/libc.so.6
+  - path: /lib/⋯/libm.so.6
+  - path: /lib/⋯/libresolv.so.2
+  - path: /lib/⋯/tls/libm.so.6
+  - path: /lib/⋯/tls/x86_64/libm.so.6
+  - path: /lib/⋯/tls/x86_64/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/x86_64/libm.so.6
+  - path: /proc/⋯/1/fd
+  - path: /proc/⋯/core/somaxconn
+  - path: /proc/⋯/⋯
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_40.37260400/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_40.37260400/token
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_10_12.2326290468/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_10_12.2326290468/token
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_58_46.825657694/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_58_46.825657694/token
+  syscalls:
+  - accept4
+  - access
+  - bind
+  - brk
+  - chdir
+  - clone
+  - close
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - fchown
+  - fcntl
+  - fstat
+  - futex
+  - getcwd
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getsockname
+  - getsockopt
+  - gettid
+  - ioctl
+  - listen
+  - madvise
+  - mmap
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - pread64
+  - prlimit64
+  - read
+  - recvfrom
+  - rseq
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - set_robust_list
+  - setgid
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - socket
+  - tgkill
+  - uname
+  - write
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  egress:
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      protocol: UDP
+      port: 53
+  - identifier: ceb1bd1c4e29911ce508482bd2e727fce6fe7e157ae0d62e4b5cce145343ff16
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+    ports:
+    - name: TCP-50300
+      protocol: TCP
+      port: 50300
+  - identifier: 284d617ca3e493147f79f2c7f185037100a9c2636930eec7995122394206e7fe
+    ipAddress: 100.103.139.51
+    ports:
+    - name: TCP-443
+      protocol: TCP
+      port: 443
+  - identifier: a08590764670db9042dbda79f3deaa0eee333ec6950ccadc5dd0262fcd994e42
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        name: pl-nats
+    ports:
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+  - identifier: e23b35d90d5eaf9f53654dc4ce085c87b57a167a44f9567c1448423131aeb405
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-50300
+      protocol: TCP
+      port: 50300
+  - identifier: be971f99ebb4711c4b6e7c0c841a69031c22bcf1b3a3c0195b23f7cefc76a653
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-metadata
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400
+  ingress:
+  - identifier: 209567a3863579abd33381b8530e8ba80051db1f3ed6c9cf0672c6b27ab4e936
+    ipAddress: 10.42.1.1
+    ports:
+    - name: TCP-50800
+      protocol: TCP
+      port: 50800
+  - identifier: e23b35d90d5eaf9f53654dc4ce085c87b57a167a44f9567c1448423131aeb405
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-50800
+      protocol: TCP
+      port: 50800
+  - identifier: 62ee591d43b945c22a6b4d20155af717cb843a2b85b56ded1939857603480152
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: kelvin
+        plane: data
+        vizier-name: pixie
+    ports:
+    - name: TCP-50800
+      protocol: TCP
+      port: 50800
+  - identifier: 45d5ad2344012200296b36dd59abfae78c961c8a703540a298ae24ecc2fad58d
+    podSelector:
+      matchLabels:
+        app: pixie-operator
+        component: pixie-operator
+        name: vizier-operator
+        plane: control
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: px-operator
+    ports:
+    - name: TCP-50800
+      protocol: TCP
+      port: 50800

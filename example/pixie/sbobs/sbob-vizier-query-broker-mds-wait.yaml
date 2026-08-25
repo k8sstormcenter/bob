@@ -1,0 +1,73 @@
+# SBoB for vizier-query-broker/mds-wait — generalised from a recorded ContainerProfile.
+# opens 63 -> 9 after collapse+portability.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: sbob-vizier-query-broker-mds-wait
+spec:
+  matchLabels:
+    name: vizier-query-broker
+  execs:
+  - path: /bin/busybox
+  - path: /usr/bin/curl
+  opens:
+  - path: /.config/curlrc
+  - path: /.curlrc
+  - path: /dev/null
+  - path: /etc/⋯
+  - path: /etc/⋯/openssl.cnf
+  - path: /lib/⋯
+  - path: /proc/⋯/1/fd
+  - path: /usr/lib/⋯
+  - path: /usr/local/lib/⋯
+  syscalls:
+  - capget
+  - capset
+  - chdir
+  - exit
+  - exit_group
+  - fchown
+  - fstatfs
+  - getcwd
+  - getdents64
+  - getegid
+  - geteuid
+  - getppid
+  - gettid
+  - membarrier
+  - newfstatat
+  - prctl
+  - recvfrom
+  - sendto
+  - set_tid_address
+  - setgroups
+  - sigaltstack
+  - tkill
+  - wait4
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_SETGID
+  - CAP_SETUID
+  egress:
+  - identifier: d9bcc711b1fbffffc6fe9bdacd6057f0b6c5d58863f85bded6d7fb18c18bd077
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-metadata
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      protocol: UDP
+      port: 53

@@ -1,0 +1,100 @@
+# SBoB for vizier-query-broker/cc-wait — generalised from a recorded ContainerProfile.
+# opens 63 -> 9 after collapse+portability.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: sbob-vizier-query-broker-cc-wait
+spec:
+  matchLabels:
+    name: vizier-query-broker
+  execs:
+  - path: /bin/busybox
+  - path: /usr/bin/curl
+  opens:
+  - path: /.config/curlrc
+  - path: /.curlrc
+  - path: /dev/null
+  - path: /etc/⋯
+  - path: /etc/⋯/openssl.cnf
+  - path: /lib/⋯
+  - path: /proc/⋯/1/fd
+  - path: /usr/lib/⋯
+  - path: /usr/local/lib/⋯
+  syscalls:
+  - brk
+  - close
+  - close_range
+  - connect
+  - dup2
+  - epoll_ctl
+  - epoll_pwait
+  - eventfd2
+  - exit_group
+  - faccessat2
+  - fork
+  - fstat
+  - fstatfs
+  - getegid
+  - geteuid
+  - getgid
+  - getpid
+  - getsockopt
+  - gettid
+  - getuid
+  - ioctl
+  - membarrier
+  - mmap
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - open
+  - openat
+  - openat2
+  - pipe
+  - pipe2
+  - poll
+  - prctl
+  - read
+  - recvmsg
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_yield
+  - set_tid_address
+  - socket
+  - stat
+  - statx
+  - tgkill
+  - unknown
+  - wait4
+  - write
+  - writev
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_SETGID
+  - CAP_SETUID
+  egress:
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      protocol: UDP
+      port: 53
+  - identifier: 1d2583e844b97eb29d04a65d1cb93e01802876106b2633e8a2426a53bfd75f77
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-cloud-connector
+        vizier-bootstrap: 'true'
+    ports:
+    - name: TCP-50800
+      protocol: TCP
+      port: 50800

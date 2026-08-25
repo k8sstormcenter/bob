@@ -1,0 +1,27 @@
+# SBoB for vizier-pem/qb-wait — generalised from a recorded ContainerProfile.
+# opens 63 -> 9 after collapse+portability.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: sbob-vizier-pem-qb-wait
+spec:
+  matchLabels:
+    name: vizier-pem
+  execs:
+  - path: /bin/busybox
+  - path: /usr/bin/curl
+  opens:
+  - path: /dev/null
+  - path: /etc/⋯
+  - path: /etc/⋯/openssl.cnf
+  - path: /home/curl_user/.config/curlrc
+  - path: /home/curl_user/.curlrc
+  - path: /lib/⋯
+  - path: /proc/⋯/79458/fd
+  - path: /usr/lib/⋯
+  - path: /usr/local/lib/⋯
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_SETGID
+  - CAP_SETUID
