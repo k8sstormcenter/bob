@@ -1,11 +1,11 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: net-v2-rc1
+    tag: net-v2s-f6fa47d6
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: net-v2-rc1
+    tag: net-v2s-f6fa47d6
     pullPolicy: Always
   config:
     alertManagerExporterUrls:
@@ -26,7 +26,7 @@ capabilities:
   vulnerabilityScan: disable
   relevancy: disable
   admissionController: disable
-  networkEventsStreaming: disable
+  networkEventsStreaming: enable
 alertCRD:
   installDefault: true
   scopeClustered: true

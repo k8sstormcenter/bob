@@ -96,18 +96,15 @@ spec:
     serviceRefName: kube-dns
     ports:
     - {name: UDP-53, port: 53, protocol: UDP}
-    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
   - identifier: source-controller
     type: internal
     serviceRefNamespace: flux-system
     serviceRefName: source-controller
     ports:
     - {name: TCP-80, port: 80, protocol: TCP}
-    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
   - identifier: notification-controller
     type: internal
     serviceRefNamespace: flux-system
     serviceRefName: notification-controller
     ports:
     - {name: TCP-80, port: 80, protocol: TCP}
-    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
