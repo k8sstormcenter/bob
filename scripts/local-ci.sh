@@ -159,6 +159,12 @@ fi
 
 # ── deploy and learn app ─────────────────────────────────────────────────────
 if ! $TUNE_ONLY; then
+  # A pod left Failed/Evicted by an earlier run is not restarted by kubectl
+  # apply, so the deploy target's readiness wait times out on a corpse. Bare
+  # Pods (pg-client) have no controller to replace them either.
+  kubectl delete pod -n "$APP_NS" --field-selector status.phase=Failed --ignore-not-found >/dev/null 2>&1 || true
+  kubectl delete pod -n "$APP_NS" --field-selector status.phase=Succeeded --ignore-not-found >/dev/null 2>&1 || true
+
   log "=== Deploy $APP via: make deploy-$APP ==="
   make deploy-"${APP_DEPLOY_TARGET:-$APP}"
   log "Deploy complete. Pods in $APP_NS:"
