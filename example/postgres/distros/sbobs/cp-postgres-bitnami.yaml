@@ -561,6 +561,8 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /usr/lib/ossl-modules/jitterentropy.so
     flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/*
+    flags: [O_RDONLY]
   - path: /usr/lib/x86_64-linux-gnu/perl-base/Exporter/⋯
     flags: [O_RDONLY]
   - path: /usr/lib/x86_64-linux-gnu/perl-base/IPC/⋯
@@ -576,6 +578,10 @@ spec:
   - path: /usr/lib/x86_64-linux-gnu/perl-base/warnings/⋯
     flags: [O_RDONLY]
   - path: /usr/lib/x86_64-linux-gnu/perl-base/⋯
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/⋯/*
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/perl-base/⋯/⋯/*
     flags: [O_RDONLY]
   - path: /usr/lib/⋯
     flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]

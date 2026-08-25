@@ -352,13 +352,23 @@ def host_entity_ingress(ports):
     }
 
 
-def service_ref(identifier, namespace, name, ports):
+def service_ref(identifier, namespace, name, ports, protocol="TCP"):
+    # Ports may be given as 53/UDP; kube-dns is the case that forced this, and a
+    # TCP-only entry silently fails to admit it.
+    out = []
+    for p in sorted(ports):
+        proto = protocol
+        if isinstance(p, str) and "/" in p:
+            p, proto = p.split("/", 1)
+        p = int(p)
+        proto = proto.upper()
+        out.append({"name": "%s-%d" % (proto, p), "port": p, "protocol": proto})
     return {
         "identifier": identifier,
         "type": "internal",
         "serviceRefNamespace": namespace,
         "serviceRefName": name,
-        "ports": [{"name": "TCP-%d" % p, "port": p, "protocol": "TCP"} for p in sorted(ports)],
+        "ports": out,
     }
 
 
