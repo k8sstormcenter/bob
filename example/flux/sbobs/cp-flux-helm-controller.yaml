@@ -6,9 +6,10 @@ metadata:
   annotations: {kubescape.io/managed-by: User}
 spec:
   architectures: [amd64]
+  matchLabels: {app: helm-controller}
   execs:
   - path: /usr/local/bin/helm-controller
-    args: [/usr/local/bin/helm-controller, "\u22EF\u22EF"]
+    args: [/usr/local/bin/helm-controller, ⋯⋯]
   opens:
   - path: /.kube/config
     flags: [O_CLOEXEC, O_RDONLY]
@@ -20,19 +21,19 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /etc/resolv.conf
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/proc/\u22EF/cgroup"
+  - path: /proc/⋯/cgroup
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/proc/\u22EF/mountinfo"
+  - path: /proc/⋯/mountinfo
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/proc/\u22EF/net/core/somaxconn"
+  - path: /proc/⋯/net/core/somaxconn
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/proc/\u22EF/task/\u22EF/fd"
+  - path: /proc/⋯/task/⋯/fd
     flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/ca.crt"
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/namespace"
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/token"
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /sys/fs/cgroup/cpu.max
     flags: [O_CLOEXEC, O_RDONLY]
@@ -43,12 +44,31 @@ spec:
   - path: /usr/local/bin/helm-controller
     flags: [O_CLOEXEC, O_RDONLY]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
+  rulePolicies:
+    R0002:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0004:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
   endpoints:
   - direction: outbound
-    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-0/podinfo-6.5.3.tgz
+    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-3/podinfo-6.5.3.tgz
     headers:
       Accept-Encoding: [gzip]
       Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :9440/readyz
+    headers:
+      Connection: [close]
+      Host: ['10.42.0.234:9440']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :9440/healthz
+    headers:
+      Connection: [close]
+      Host: ['10.42.0.234:9440']
     internal: true
     methods: [GET]
   - direction: outbound
@@ -59,35 +79,14 @@ spec:
     internal: true
     methods: [GET]
   - direction: outbound
+    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-0/podinfo-6.5.3.tgz
+    headers:
+      Accept-Encoding: [gzip]
+      Host: [source-controller.flux-system.svc.cluster.local.]
+    internal: true
+    methods: [GET]
+  - direction: outbound
     endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-2/podinfo-6.5.3.tgz
-    headers:
-      Accept-Encoding: [gzip]
-      Host: [source-controller.flux-system.svc.cluster.local.]
-    internal: true
-    methods: [GET]
-  - direction: outbound
-    endpoint: :80/helmchart/helm-benchmark/helm-benchmark-podinfo-hr-3/podinfo-6.5.3.tgz
-    headers:
-      Accept-Encoding: [gzip]
-      Host: [source-controller.flux-system.svc.cluster.local.]
-    internal: true
-    methods: [GET]
-  - direction: inbound
-    endpoint: :9440/healthz
-    headers:
-      Connection: [close]
-      Host: ['*:9440']
-    internal: true
-    methods: [GET]
-  - direction: outbound
-    endpoint: :80/helmchart/flux-system/flux-system-podinfo-oci-release/podinfo-6.14.1.tgz
-    headers:
-      Accept-Encoding: [gzip]
-      Host: [source-controller.flux-system.svc.cluster.local.]
-    internal: true
-    methods: [GET]
-  - direction: outbound
-    endpoint: :80/helmchart/flux-system/flux-system-podinfo-http/podinfo-6.14.1.tgz
     headers:
       Accept-Encoding: [gzip]
       Host: [source-controller.flux-system.svc.cluster.local.]
@@ -107,36 +106,19 @@ spec:
       Host: [notification-controller.flux-system.svc.cluster.local.]
     internal: true
     methods: [POST]
-  - direction: inbound
-    endpoint: :9440/readyz
-    headers:
-      Connection: [close]
-      Host: ['*:9440']
-    internal: true
-    methods: [GET]
-  rulePolicies:
-    R0002:
-      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
-    R0004:
-      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
-    R0006:
-      processAllowed: [helm-controller]
-  matchLabels: {app: helm-controller}
-  egress:
-  - identifier: github-cdn-ranges
-    type: external
-    ipAddresses: [140.82.112.0/20, 185.199.108.0/22]
-    ports:
-    - {name: TCP-443, port: 443, protocol: TCP}
-  - identifier: cluster-service-ranges
+  ingress:
+  - identifier: kubelet-probes
     type: internal
-    ipAddresses: [10.43.0.0/16]
+    entity: host
     ports:
-    - {name: TCP-80, port: 80, protocol: TCP}
-    - {name: TCP-443, port: 443, protocol: TCP}
-    - {name: TCP-5000, port: 5000, protocol: TCP}
-    - {name: TCP-9093, port: 9093, protocol: TCP}
-  - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    - {name: TCP-9440, port: 9440, protocol: TCP}
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+    - {name: TCP-8080, port: 8080, protocol: TCP}
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: default}
     podSelector:
@@ -144,15 +126,10 @@ spec:
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: internal
-    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
-  - identifier: fe58df7a963551c0c6867f7e656900c1f1ee38c7a31a4e4da6aca7bb1e4be988
-    namespaceSelector: null
-    podSelector:
-      matchLabels: {app: source-controller}
-    ports:
-    - {name: TCP-80, port: 80, protocol: TCP}
-    type: internal
-  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+  - dns: ''
+    dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    ipAddress: ''
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: kube-system}
     podSelector:
@@ -160,24 +137,23 @@ spec:
     ports:
     - {name: UDP-53, port: 53, protocol: UDP}
     type: internal
-  - identifier: ab59749df52a78595af091ff332d12b0887696bd8448dc34b9da2dc926873a50
+  - dns: ''
+    dnsNames: null
+    identifier: fe58df7a963551c0c6867f7e656900c1f1ee38c7a31a4e4da6aca7bb1e4be988
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels: {app: source-controller}
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: ab59749df52a78595af091ff332d12b0887696bd8448dc34b9da2dc926873a50
+    ipAddress: ''
     namespaceSelector: null
     podSelector:
       matchLabels: {app: notification-controller}
     ports:
     - {name: TCP-80, port: 80, protocol: TCP}
     type: internal
-  ingress:
-  - identifier: node-probes
-    type: internal
-    ipAddresses: [10.42.0.0/16]
-    ports:
-    - {name: TCP-8080, port: 8080, protocol: TCP}
-    - {name: TCP-9090, port: 9090, protocol: TCP}
-    - {name: TCP-9440, port: 9440, protocol: TCP}
-  - identifier: kubelet-probes
-    type: internal
-    ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
-    ports:
-    - {name: TCP-9440, port: 9440, protocol: TCP}
-    - {name: TCP-8080, port: 8080, protocol: TCP}

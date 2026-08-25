@@ -120,7 +120,13 @@ case "$APP" in
     # the APP (never node-agent) gives each controller a new ReplicaSet identity,
     # which is what a fresh ContainerProfile is keyed on.
     APP_ROLLOUT_RESTART="source-controller kustomize-controller helm-controller notification-controller image-reflector-controller image-automation-controller"
-    APP_LOAD_PREPARE="example/flux/benchmark/run-flux-benchmark.sh --prepare"
+    # The benchmark drives reconcile load from an IN-CLUSTER OCI registry only.
+    # The functional tests assert on GitRepository and HelmRepository artifacts,
+    # which nothing else creates, so learning on the benchmark alone produced a
+    # profile with no upstream egress at all: binding it then fired R0011 and
+    # R0005 on every github.com, ghcr.io and GitHub-Pages fetch the benign suite
+    # makes. The learn window has to exercise what the functional suite asserts.
+    APP_LOAD_PREPARE="example/flux/benchmark/run-flux-benchmark.sh --prepare && example/flux/drive-gitops-workload.sh 120"
     APP_LOAD_DRIVER="KS=${FLUX_BENCH_KS:-10} HR=${FLUX_BENCH_HR:-5} TIMEOUT=6m example/flux/benchmark/run-flux-benchmark.sh --load"
     ;;
   *)

@@ -6,31 +6,26 @@ metadata:
   annotations: {kubescape.io/managed-by: User}
 spec:
   architectures: [amd64]
+  matchLabels: {app: notification-controller}
   execs:
   - path: /usr/local/bin/notification-controller
-    args: [/usr/local/bin/notification-controller, "\u22EF\u22EF"]
+    args: [/usr/local/bin/notification-controller, ⋯⋯]
   opens:
-  - path: /etc/hosts
-    flags: [O_CLOEXEC, O_RDONLY]
   - path: /etc/localtime
     flags: [O_RDONLY]
-  - path: /etc/nsswitch.conf
+  - path: /proc/⋯/cgroup
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: /etc/resolv.conf
+  - path: /proc/⋯/mountinfo
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/proc/\u22EF/cgroup"
+  - path: /proc/⋯/net/core/somaxconn
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/proc/\u22EF/mountinfo"
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/proc/\u22EF/net/core/somaxconn"
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/proc/\u22EF/task/\u22EF/fd"
+  - path: /proc/⋯/task/⋯/fd
     flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/ca.crt"
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/namespace"
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: "/run/secrets/kubernetes.io/serviceaccount/\u22EF/token"
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /sys/fs/cgroup/cpu.max
     flags: [O_CLOEXEC, O_RDONLY]
@@ -39,19 +34,24 @@ spec:
   - path: /usr/local/bin/notification-controller
     flags: [O_CLOEXEC, O_RDONLY]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
+  rulePolicies:
+    R0002:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0004:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
   endpoints:
   - direction: inbound
     endpoint: :9440/readyz
     headers:
       Connection: [close]
-      Host: ['*:9440']
+      Host: ['10.42.0.235:9440']
     internal: true
     methods: [GET]
   - direction: inbound
     endpoint: :9440/healthz
     headers:
       Connection: [close]
-      Host: ['*:9440']
+      Host: ['10.42.0.235:9440']
     internal: true
     methods: [GET]
   - direction: inbound
@@ -61,47 +61,19 @@ spec:
       Host: [notification-controller.flux-system.svc.cluster.local.]
     internal: true
     methods: [POST]
-  - direction: outbound
-    endpoint: :9093/api/v2/alerts
-    headers:
-      Accept-Encoding: [gzip]
-      Host: ['alertmanager.honey.svc.cluster.local:9093']
-    internal: true
-    methods: [POST]
-  rulePolicies:
-    R0002:
-      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
-    R0004:
-      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
-    R0006:
-      processAllowed: [notification-co]
-  matchLabels: {app: notification-controller}
+  ingress:
+  - identifier: kubelet-probes
+    type: internal
+    entity: host
+    ports:
+    - {name: TCP-9440, port: 9440, protocol: TCP}
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+    - {name: TCP-8080, port: 8080, protocol: TCP}
   egress:
-  - identifier: cluster-service-ranges
-    type: internal
-    ipAddresses: [10.43.0.0/16]
-    ports:
-    - {name: TCP-80, port: 80, protocol: TCP}
-    - {name: TCP-443, port: 443, protocol: TCP}
-    - {name: TCP-5000, port: 5000, protocol: TCP}
-    - {name: TCP-9093, port: 9093, protocol: TCP}
-  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: kube-system}
-    podSelector:
-      matchLabels: {k8s-app: kube-dns}
-    ports:
-    - {name: UDP-53, port: 53, protocol: UDP}
-    type: internal
-  - identifier: b7c835a2fe0ca3366d748a90f28db25fbc2ad8d2e010b7bbaecef77ef37a7ecd
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: honey}
-    podSelector:
-      matchLabels: {app: alertmanager}
-    ports:
-    - {name: TCP-9093, port: 9093, protocol: TCP}
-    type: internal
-  - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+  - dns: ''
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: default}
     podSelector:
@@ -109,58 +81,3 @@ spec:
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: internal
-    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
-  ingress:
-  - identifier: node-probes
-    type: internal
-    ipAddresses: [10.42.0.0/16]
-    ports:
-    - {name: TCP-8080, port: 8080, protocol: TCP}
-    - {name: TCP-9090, port: 9090, protocol: TCP}
-    - {name: TCP-9440, port: 9440, protocol: TCP}
-  - identifier: kubelet-probes
-    type: internal
-    ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
-    ports:
-    - {name: TCP-9440, port: 9440, protocol: TCP}
-    - {name: TCP-8080, port: 8080, protocol: TCP}
-  - identifier: from-source-controller
-    type: internal
-    podSelector:
-      matchLabels: {app: source-controller}
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: flux-system}
-    ports:
-    - {name: TCP-9090, port: 9090, protocol: TCP}
-  - identifier: from-kustomize-controller
-    type: internal
-    podSelector:
-      matchLabels: {app: kustomize-controller}
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: flux-system}
-    ports:
-    - {name: TCP-9090, port: 9090, protocol: TCP}
-  - identifier: from-helm-controller
-    type: internal
-    podSelector:
-      matchLabels: {app: helm-controller}
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: flux-system}
-    ports:
-    - {name: TCP-9090, port: 9090, protocol: TCP}
-  - identifier: from-image-reflector-controller
-    type: internal
-    podSelector:
-      matchLabels: {app: image-reflector-controller}
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: flux-system}
-    ports:
-    - {name: TCP-9090, port: 9090, protocol: TCP}
-  - identifier: from-image-automation-controller
-    type: internal
-    podSelector:
-      matchLabels: {app: image-automation-controller}
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: flux-system}
-    ports:
-    - {name: TCP-9090, port: 9090, protocol: TCP}

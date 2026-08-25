@@ -376,6 +376,32 @@ def secretish_args(spec):
     return out
 
 
+# An ingress/egress entry with ports but NO peer — no dnsNames, ipAddresses,
+# podSelector, serviceRef or entity — matches every destination on that port.
+# It is the network form of a leading wildcard: a learned egress of TCP-443 with
+# no peer makes R0011 blind to any C2 on 443, and UDP-53 with no peer does the
+# same to R0005. The tuner produces these when its normaliser drops a
+# cluster-internal address and no DNS discriminant was observed to replace it.
+def peerless(entry):
+    for k in ("dnsNames", "ipAddresses", "podSelector", "serviceRefName", "entity"):
+        if entry.get(k):
+            return False
+    return not (entry.get("dns") or "").strip()
+
+
+def drop_peerless(spec, report):
+    for direction in ("ingress", "egress"):
+        entries = spec.get(direction)
+        if not entries:
+            continue
+        kept = [e for e in entries if not peerless(e)]
+        for e in entries:
+            if peerless(e):
+                report.setdefault("peerless", []).append(
+                    "%s %s" % (direction, [p.get("name") for p in (e.get("ports") or [])]))
+        spec[direction] = kept or None
+
+
 def service_ref(identifier, namespace, name, ports, protocol="TCP"):
     # Ports may be given as 53/UDP; kube-dns is the case that forced this, and a
     # TCP-only entry silently fails to admit it.
@@ -471,6 +497,7 @@ def main():
         report = {"truncated": [], "normalised": 0, "overbroad": [], "cidr_probes": 0,
                   "collapsed": [], "literal_interpreters": [], "core": []}
 
+        drop_peerless(spec, report)
         dropped_envs = strip_exec_envs(spec)
         if dropped_envs:
             report["envs"] = dropped_envs
