@@ -4,10 +4,11 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: sbob-vizier-cloud-connector-app
+  name: vizier-cloud-connector
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
 spec:
-  matchLabels:
-    name: vizier-cloud-connector
   execs:
   - path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
   opens:

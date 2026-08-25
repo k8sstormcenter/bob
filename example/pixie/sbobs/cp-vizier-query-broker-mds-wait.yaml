@@ -1,12 +1,13 @@
-# SBoB for vizier-metadata/nats-wait — generalised from a recorded ContainerProfile.
+# SBoB for vizier-query-broker/mds-wait — generalised from a recorded ContainerProfile.
 # opens 63 -> 9 after collapse+portability.
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: sbob-vizier-metadata-nats-wait
+  name: vizier-query-broker-mds-wait
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
 spec:
-  matchLabels:
-    name: vizier-metadata
   execs:
   - path: /bin/busybox
   - path: /usr/bin/curl
@@ -20,12 +21,46 @@ spec:
   - path: /proc/⋯/1/fd
   - path: /usr/lib/⋯
   - path: /usr/local/lib/⋯
+  syscalls:
+  - capget
+  - capset
+  - chdir
+  - exit
+  - exit_group
+  - fchown
+  - fstatfs
+  - getcwd
+  - getdents64
+  - getegid
+  - geteuid
+  - getppid
+  - gettid
+  - membarrier
+  - newfstatat
+  - prctl
+  - recvfrom
+  - sendto
+  - set_tid_address
+  - setgroups
+  - sigaltstack
+  - tkill
+  - wait4
   capabilities:
   - CAP_DAC_OVERRIDE
   - CAP_DAC_READ_SEARCH
   - CAP_SETGID
   - CAP_SETUID
   egress:
+  - identifier: d9bcc711b1fbffffc6fe9bdacd6057f0b6c5d58863f85bded6d7fb18c18bd077
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-metadata
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400
   - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
     podSelector:
       matchLabels:
@@ -37,14 +72,3 @@ spec:
     - name: UDP-53
       protocol: UDP
       port: 53
-  - identifier: 63f25e9f7fe5fae0febfbde38ab9003eaeaedafbf0403e6ffa8e6ed956b62c4c
-    podSelector:
-      matchLabels:
-        app: pl-monitoring
-        name: pl-nats
-        plane: control
-        vizier-name: pixie
-    ports:
-    - name: TCP-8222
-      protocol: TCP
-      port: 8222

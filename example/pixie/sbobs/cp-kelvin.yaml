@@ -3,10 +3,11 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: sbob-kelvin-app
+  name: kelvin
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
 spec:
-  matchLabels:
-    name: kelvin
   execs:
   - path: /app/src/vizier/services/agent/kelvin/kelvin.runfiles/px/src/vizier/services/agent/kelvin/kelvin
   opens:

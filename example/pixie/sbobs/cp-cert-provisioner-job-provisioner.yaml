@@ -4,10 +4,11 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: sbob-cert-provisioner-job-provisioner
+  name: cert-provisioner-job-provisioner
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
 spec:
-  matchLabels:
-    name: cert-provisioner-job
   execs:
   - path: /app/src/utils/cert_provisioner/cert_provisioner.runfiles/px/src/utils/cert_provisioner/cert_provisioner_/cert_provisioner
   opens:

@@ -3,10 +3,11 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: sbob-pl-nats-pl-nats
+  name: pl-nats-pl-nats
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
 spec:
-  matchLabels:
-    name: pl-nats
   execs:
   - path: /nats-server
   opens:

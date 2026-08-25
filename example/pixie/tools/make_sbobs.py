@@ -115,11 +115,16 @@ def main(indir, outdir, ns=None, thr=10):
         eg = clean_net(spec.get('egress'), notes)
         ing = clean_net(spec.get('ingress'), notes)
 
+        # bob convention: cp-<profile>.yaml, namespace stamped, managed-by User.
+        # Binding is by pod label kubescape.io/user-defined-profile: <metadata.name>.
+        prof = f'{name}-{cont}' if cont and cont != 'app' else name
+        ns_target = os.environ.get('SBOB_NS', 'pl')
         sbob = {
             'apiVersion': 'spdx.softwarecomposition.kubescape.io/v1beta1',
             'kind': 'ContainerProfile',
-            'metadata': {'name': f'sbob-{name}-{cont}' if cont else f'sbob-{name}'},
-            'spec': {'matchLabels': {'name': name}},
+            'metadata': {'name': prof, 'namespace': ns_target,
+                         'annotations': {'kubescape.io/managed-by': 'User'}},
+            'spec': {},
         }
         s = sbob['spec']
         if execs:
@@ -135,7 +140,7 @@ def main(indir, outdir, ns=None, thr=10):
         if ing:
             s['ingress'] = ing
 
-        out = os.path.join(outdir, f"{sbob['metadata']['name']}.yaml")
+        out = os.path.join(outdir, f"cp-{prof}.yaml")
         with open(out, 'w') as fh:
             fh.write(f'# SBoB for {name}/{cont} — generalised from a recorded ContainerProfile.\n')
             fh.write(f'# opens {len(raw)} -> {len(opens)} after collapse+portability.\n')

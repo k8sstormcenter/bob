@@ -4,10 +4,11 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: sbob-vizier-pem-pem
+  name: vizier-pem-pem
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
 spec:
-  matchLabels:
-    name: vizier-pem
   execs:
   - path: /app/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem/pem
   opens:

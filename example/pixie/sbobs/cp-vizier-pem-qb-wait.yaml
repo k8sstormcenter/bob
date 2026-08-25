@@ -3,10 +3,11 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: sbob-vizier-pem-qb-wait
+  name: vizier-pem-qb-wait
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
 spec:
-  matchLabels:
-    name: vizier-pem
   execs:
   - path: /bin/busybox
   - path: /usr/bin/curl

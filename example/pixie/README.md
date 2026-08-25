@@ -55,6 +55,37 @@ Network policy survives generalisation well because pixie's own egress is largel
 **selector-based** (`podSelector` on `name: vizier-metadata`, `name: pl-nats`, `k8s-app: kube-dns`),
 which is portable as-is; only the API-server ClusterIP needed removing.
 
+## Deploying
+
+`distros.sh` installs **upstream** Pixie (OLM → px-operator → Vizier CR) and binds the SBoBs.
+Pixie Cloud and the `px` CLI are not involved; without a `PX_DEPLOY_KEY` the vizier still comes
+up and is profiled, it just does not register with the cloud.
+
+```bash
+./distros.sh deploy    # olm + px-operator + Vizier CR, wait for the mesh
+./distros.sh sbob      # apply sbobs/ and label the workloads
+./distros.sh all       # both, then status
+./distros.sh status    # which pod is bound to which profile
+```
+
+Binding is per component. `Vizier.spec.pod.labels` applies **one shared** label map to every
+vizier pod, which cannot express a different profile per component, so `distros.sh` patches each
+workload's pod template with its own `kubescape.io/user-defined-profile` and then rolls it —
+node-agent binds a user-defined profile at **container start**, so the label has to be present
+before the pod is created.
+
+| workload | kind | profile |
+|---|---|---|
+| `vizier-pem` | DaemonSet | `vizier-pem-pem` |
+| `kelvin` | Deployment | `kelvin` |
+| `vizier-query-broker` | Deployment | `vizier-query-broker` |
+| `vizier-cloud-connector` | Deployment | `vizier-cloud-connector` |
+| `vizier-metadata` | StatefulSet | `vizier-metadata` |
+| `pl-nats` | StatefulSet | `pl-nats-pl-nats` |
+
+px-operator reconciles the Vizier CR, so a vizier upgrade or operator resync can drop these
+pod-template labels — re-run `./distros.sh sbob` afterwards and confirm with `status`.
+
 ## Regenerating
 
 ```bash
