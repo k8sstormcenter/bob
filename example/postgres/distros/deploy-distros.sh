@@ -26,7 +26,7 @@ deploy_oss() {
 }
 
 deploy_bitnami() {
-  helm install pg-bitnami oci://registry-1.docker.io/bitnamicharts/postgresql \
+  helm upgrade --install pg-bitnami oci://registry-1.docker.io/bitnamicharts/postgresql \
     --set auth.database=app --set auth.username=app \
     --set auth.password=bobtest --set auth.postgresPassword=bobtest \
     --set primary.persistence.enabled=false \

@@ -77,7 +77,7 @@ case "$APP" in
     case "$FORK" in
       oss)     APP_SERVICE=postgres;              APP_CONTAINER=postgres;   APP_PROFILE_MATCH="postgres" ;;
       bitnami) APP_SERVICE=pg-bitnami-postgresql; APP_CONTAINER=postgresql; APP_PROFILE_MATCH="bitnami" ;;
-      cnpg)    APP_SERVICE=pg-rw;                 APP_CONTAINER=postgres;   APP_PROFILE_MATCH="pg-1" ;;
+      cnpg)    APP_SERVICE=pg-rw;                 APP_CONTAINER=postgres;   APP_PROFILE_MATCH="cluster-pg-postgres" ;;
     esac
     APP_PORT=5432
     APP_SCHEME=tcp

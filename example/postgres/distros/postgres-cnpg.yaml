@@ -1,5 +1,5 @@
 # Fork 3: CloudNativePG (operator-managed `Cluster`, image cnpg/postgresql:17.5).
-# The operator owns the server pod; the pg-client pod (SAME postgres:17 image as
+# The operator owns the server pod; the pg-client pod (SAME postgres:18 image as
 # every other fork, so ONE portable client SBoB covers all three) is where the
 # functional suite and attacks exec. Requires the CNPG operator (installed by
 # deploy-distros.sh). pg-client connects to the operator's `pg-rw` service and
@@ -32,6 +32,10 @@ spec:
             value TEXT,
             created_at TIMESTAMPTZ DEFAULT NOW()
           );
+        # postInitApplicationSQL runs as the superuser, so bobtest would be owned
+        # by postgres and pg_dump as app cannot lock it. The other two distros let
+        # app own its own tables; match that.
+        - ALTER TABLE bobtest OWNER TO app;
         - INSERT INTO bobtest (key, value) VALUES ('init', 'baseline');
   storage:
     size: 2Gi
@@ -58,7 +62,7 @@ metadata:
 spec:
   containers:
     - name: pg-client
-      image: postgres:17
+      image: postgres:18
       command: ["sleep", "infinity"]
       env:
         - name: PGHOST

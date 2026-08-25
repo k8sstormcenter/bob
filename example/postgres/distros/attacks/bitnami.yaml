@@ -431,7 +431,9 @@ attacks:
     expectedDetections: []
   - name: k8s-api-unexpected-call
     type: cmdinject
-    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(443,inet_aton('10.43.0.1'))); close($s); print qq{k8s_api_probe_done}"] }
+    # The bitnami image ships no perl; curl reaches the API server the same
+    # way, and the && keeps the sentinel off a failed connect.
+    exec: { command: ["sh", "-c", "curl -sk -o /dev/null --max-time 5 https://10.43.0.1:443/version && echo k8s_api_probe_done"] }
     successIndicators: [{ responseContains: "k8s_api_probe_done" }]
     expectedDetections:
       - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: postgresql }
@@ -464,8 +466,11 @@ attacks:
     type: fileless
     exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
     successIndicators: [{ responseContains: "memfd_exec_done" }]
-    expectedDetections:
-      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: postgresql }
+    # memfd_create(2) needs perl, python or a compiler to issue the raw syscall
+    # and the bitnami image ships none of them, so this attack cannot execute
+    # here at all. That is a real difference in the packaging's attack surface,
+    # not a gap in the SBoB — the attack stays in the suite and reports FAILED.
+    expectedDetections: []
   - name: symlink-shadow
     type: cmdinject
     exec: { command: ["ln", "-sf", "/etc/shadow", "/dev/shm/softlink_probe"] }

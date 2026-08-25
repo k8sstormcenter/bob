@@ -152,7 +152,9 @@ spec:
   capabilities: [CAP_CHOWN, CAP_FOWNER, CAP_FSETID, CAP_SETGID, CAP_SETUID]
   rulePolicies:
     R0002:
-      processAllowed: [postgres]
+      processAllowed: [postgres, 'runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
+    R0004:
+      processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
   endpoints: null
   ingress:
   - identifier: pg-client
