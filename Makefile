@@ -272,7 +272,12 @@ kubescape-orig:
 #
 KS_POST_RENDER ?=
 KS_POST_RENDERER := ./kubescape/post-render.sh
-KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER)$(KS_RUNC_MNT),--post-renderer $(KS_POST_RENDERER))
+# KS_RUNC_MNT no longer implies the post-renderer — the mount is expressed as
+# --set above. The post-renderer stays available behind an explicit
+# KS_POST_RENDER opt-in and is off the critical path, where it kept breaking
+# across helm 3/4 (and currently cannot exec at all: post-render.sh has no
+# shebang).
+KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER),--post-renderer $(KS_POST_RENDERER))
 
 # node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
 # (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths
