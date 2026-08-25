@@ -13,6 +13,10 @@ spec:
   opens:
   - path: /etc/localtime
     flags: [O_RDONLY]
+  - path: /proc/⋯
+    flags: [O_RDONLY]
+  - path: /proc/⋯/*
+    flags: [O_RDONLY]
   - path: /proc/⋯/cgroup
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /proc/⋯/mountinfo
@@ -31,6 +35,8 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
     flags: [O_RDONLY]
+  - path: /tmp/⋯/*
+    flags: [O_RDONLY, O_RDWR, O_CREAT]
   - path: /usr/local/bin/notification-controller
     flags: [O_CLOEXEC, O_RDONLY]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
@@ -81,3 +87,31 @@ spec:
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: internal
+  - identifier: kube-dns
+    type: internal
+    serviceRefNamespace: kube-system
+    serviceRefName: kube-dns
+    ports:
+    - {name: UDP-53, port: 53, protocol: UDP}
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
+  - identifier: source-controller
+    type: internal
+    serviceRefNamespace: flux-system
+    serviceRefName: source-controller
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
+  - identifier: notification-controller
+    type: internal
+    serviceRefNamespace: flux-system
+    serviceRefName: notification-controller
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
+  - identifier: alertmanager
+    type: internal
+    serviceRefNamespace: honey
+    serviceRefName: alertmanager
+    ports:
+    - {name: TCP-9093, port: 9093, protocol: TCP}
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]

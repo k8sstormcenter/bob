@@ -41,6 +41,10 @@ spec:
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /etc/resolv.conf
     flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯
+    flags: [O_RDONLY]
+  - path: /proc/⋯/*
+    flags: [O_RDONLY]
   - path: /proc/⋯/cgroup
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /proc/⋯/cpuset
@@ -67,28 +71,10 @@ spec:
     flags: [O_RDONLY]
   - path: /tmp
     flags: [O_CLOEXEC, O_RDONLY]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-0-a9b59677deeff64c551f8dd1883c5e2c.tgz
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-0-a9b59677deeff64c551f8dd1883c5e2c.tgz3864616022
-    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-1-f793f5198f41ad2958aa1497ec69a754.tgz
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-1-f793f5198f41ad2958aa1497ec69a754.tgz1983198367
-    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-2-ce8127ac0cf1d979b456bd796d923914.tgz
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-2-ce8127ac0cf1d979b456bd796d923914.tgz976279083
-    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-3-3ac0f947f154b31e0a02a8e121bb7480.tgz
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-3-3ac0f947f154b31e0a02a8e121bb7480.tgz4241169422
-    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-4-f61e2ef7c987df4d4e9d856ec8f01711.tgz
-    flags: [O_CLOEXEC, O_RDONLY]
-  - path: /tmp/helmchart-helm-benchmark-helm-benchmark-podinfo-hr-4-f61e2ef7c987df4d4e9d856ec8f01711.tgz3178397254
-    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
   - path: /tmp/⋯
     flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY]
+  - path: /tmp/⋯/*
+    flags: [O_RDONLY, O_RDWR, O_CREAT]
   - path: /tmp/⋯/.sourceignore
     flags: [O_CLOEXEC, O_RDONLY]
   - path: /tmp/⋯/podinfo.yaml
@@ -408,3 +394,24 @@ spec:
     ipAddresses: [140.82.112.0/20, 185.199.108.0/22]
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
+  - identifier: kube-dns
+    type: internal
+    serviceRefNamespace: kube-system
+    serviceRefName: kube-dns
+    ports:
+    - {name: UDP-53, port: 53, protocol: UDP}
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
+  - identifier: source-controller
+    type: internal
+    serviceRefNamespace: flux-system
+    serviceRefName: source-controller
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
+  - identifier: notification-controller
+    type: internal
+    serviceRefNamespace: flux-system
+    serviceRefName: notification-controller
+    ports:
+    - {name: TCP-80, port: 80, protocol: TCP}
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]

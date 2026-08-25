@@ -382,6 +382,46 @@ def secretish_args(spec):
 # no peer makes R0011 blind to any C2 on 443, and UDP-53 with no peer does the
 # same to R0005. The tuner produces these when its normaliser drops a
 # cluster-internal address and no DNS discriminant was observed to replace it.
+# A leaf can carry the volatile token INSIDE its name rather than as its own
+# segment: source-controller writes /tmp/helmchart-<release>-<md5>.tgz and then
+# /tmp/<same>.tgz<random>. Those never recur, so shipping them literally
+# guarantees an R0002 on every helm fetch. normalise() only ever considered whole
+# segments, so it left all ten in place.
+#
+# storage's "*" matches zero-or-more whole SEGMENTS (glob **), not a prefix, so
+# /tmp/helmchart-* cannot be expressed. The tightest form available is one
+# wildcard segment. Confirmed no flux attack asserts R0002/R0010 on a /tmp path,
+# so this costs no detection the suites rely on.
+EMBEDDED_VOLATILE = re.compile(r"(?:^|[-_.])[0-9a-f]{16,}(?:[-_.]|$)|\.tgz\d{4,}$|\.\w+\d{6,}$")
+
+
+def collapse_embedded_volatile_leaves(opens, report):
+    out, seen = [], {}
+    for o in opens:
+        path = o.get("path", "")
+        head, _, leaf = path.rpartition("/")
+        if head and EMBEDDED_VOLATILE.search(leaf):
+            path = head + "/" + ELLIPSIS
+            report.setdefault("embedded_volatile", []).append(o.get("path"))
+        # Dedup on the path ALONE and union the flags. Keying on (path, flags)
+        # let two collapsed entries with different flags both survive, and the
+        # CRD rejects the object outright: duplicate entries for key [path=...].
+        if path in seen:
+            tgt = seen[path]
+            for fl in o.get("flags") or []:
+                if fl not in tgt["flags"]:
+                    tgt["flags"].append(fl)
+            continue
+        e = dict(o)
+        e["path"] = path
+        e["flags"] = sorted(set(o.get("flags") or []))
+        seen[path] = e
+        out.append(e)
+    for e in out:
+        e["flags"] = sorted(set(e.get("flags") or []))
+    return out
+
+
 def peerless(entry):
     for k in ("dnsNames", "ipAddresses", "podSelector", "serviceRefName", "entity"):
         if entry.get(k):
@@ -512,6 +552,7 @@ def main():
 
         before = len(spec.get("opens") or [])
         spec["opens"] = generalise_opens(spec.get("opens") or [], report)
+        spec["opens"] = collapse_embedded_volatile_leaves(spec["opens"], report)
         if args.collapse_min:
             spec["opens"] = collapse_directories(spec["opens"], args.collapse_min, report)
 
