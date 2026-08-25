@@ -1,11 +1,12 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: sbob-rc5s
+    tag: net-v2s-f6fa47d6
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: sbob-rc5s-fpo
+    tag: net-v2s-f6fa47d6
+    pullPolicy: Always
   config:
     alertManagerExporterUrls:
       - alertmanager.honey.svc.cluster.local:9093
@@ -19,11 +20,6 @@ nodeAgent:
       ruleCooldownMaxSize: 20000
 capabilities:
   runtimeDetection: enable
-  # The SBoB demo is runtime-detection only. Disable every scanning capability
-  # the chart enables by default so those components are never installed — this
-  # is both a big install-time speedup (no kubescape config-scanner, no kubevuln,
-  # no host node-scanner, no SBOM generation, no schedulers) and removes work the
-  # demo does not use. Only storage + node-agent + the alert wiring remain.
   configurationScan: disable
   nodeScan: disable
   nodeSbomGeneration: disable

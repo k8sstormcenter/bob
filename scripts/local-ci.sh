@@ -120,6 +120,10 @@ if $SETUP_ONLY || ! $TUNE_ONLY; then
 
   # ── wait for kubescape components ──────────────────────────────────────────
   log "=== Wait for kubescape components ==="
+  # rollout status FIRST: waiting on a ready node-agent pod matches the OUTGOING
+  # one while helm rolls the DaemonSet, so the app deploys into the gap and is
+  # never hooked.
+  kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=300s
   kubectl wait --for=condition=ready pod -l app=node-agent   -n "$KS_NS" --timeout=180s
   kubectl wait --for=condition=ready pod -l app=storage      -n "$KS_NS" --timeout=180s
   kubectl wait --for=condition=ready pod -l app=alertmanager -n "$KS_NS" --timeout=120s
@@ -133,6 +137,10 @@ fi
 
 # ── deploy and learn app ─────────────────────────────────────────────────────
 if ! $TUNE_ONLY; then
+  # kubectl apply does not restart a pod left Failed by an eviction, so the
+  # readiness wait would time out on a corpse.
+  kubectl delete pod -n "$APP_NS" --field-selector status.phase=Failed --ignore-not-found >/dev/null 2>&1 || true
+  kubectl delete pod -n "$APP_NS" --field-selector status.phase=Succeeded --ignore-not-found >/dev/null 2>&1 || true
   log "=== Deploy $APP via: make deploy-$APP ==="
   make deploy-"$APP"
   log "Deploy complete. Pods in $APP_NS:"
@@ -174,9 +182,15 @@ if ! $TUNE_ONLY; then
   ELAPSED=0
   PROFILE=""
   while [ $ELAPSED -lt $TIMEOUT ]; do
+    # Gate on completion, not status: the consolidated profile sits at "ready"
+    # until aggregation finishes, while the per-report shards named
+    # <name>-<32 hex> reach "completed" first and hold a partial view.
     ALL_COMPLETED=$(kubectl get containerprofiles -n "$APP_NS" \
-      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-      2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
+      -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.metadata.annotations.kubescape\.io/completion}{" "}{.metadata.annotations.kubescape\.io/status}{"\n"}{end}' \
+      2>/dev/null \
+      | awk '$2 == "complete" || $3 == "completed" { print $1 }' \
+      | grep -v "^ug-" | grep -v "^job-" \
+      | grep -vE -- '-[0-9a-f]{32}$' || true)
     PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)

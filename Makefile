@@ -331,7 +331,12 @@ endif
 # implies is applied by $(KS_POST_RENDERER), which reads it from the
 # environment — hence the export.
 export KS_RUNC_MNT
-KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC))
+# node-agent's `host` volume is a NON-recursive bind of "/", so a runc on a
+# separate partition is invisible under /host, the fanotify mark fails, and the
+# agent sees no container starts at all. KS_RUNC_MNT hostPath-mounts it, as
+# --set rather than through the post-renderer.
+KS_RUNC_MNT_FLAGS := $(if $(KS_RUNC_MNT),--set volumes[0].name=ks-runc-mnt --set volumes[0].hostPath.path=$(KS_RUNC_MNT) --set volumes[0].hostPath.type=Directory --set volumeMounts[0].name=ks-runc-mnt --set volumeMounts[0].mountPath=/host$(KS_RUNC_MNT))
+KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC) $(KS_RUNC_MNT_FLAGS))
 
 #
 KS_LEARN_PERIOD ?=
@@ -344,6 +349,17 @@ endif
 endif
 
 KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.maxLearningPeriod=$(KS_LEARN_PERIOD))
+#
+# node-agent ContainerProfile signature verification. bobctl emits UNSIGNED
+# SBoBs; with verification ON, node-agent silently refuses to enforce them and
+# falls back to learning mode (no detection, no error). Default off for this
+# demo repo; production should `bobctl sign` and set KS_SIGNATURES=on. Applied
+# after helm by kubescape/set-signature-verification.sh — the upstream chart
+# does not template this key and post-render is not helm-4 safe.
+KS_SIGNATURES ?= off
+ifneq ($(filter-out on off,$(KS_SIGNATURES)),)
+$(error KS_SIGNATURES must be 'on' or 'off', got "$(KS_SIGNATURES)")
+endif
 
 # One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
 # Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
@@ -370,6 +386,8 @@ kubescape:
 	helm repo update
 	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f kubescape/default-rules.yaml
+	kubectl apply -f kubescape/default-rule-binding.yaml
+	./kubescape/set-signature-verification.sh $(KS_SIGNATURES)
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
 # restart: node-agent binds user-supplied profiles and starts its learning
