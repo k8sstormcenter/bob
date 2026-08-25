@@ -16,11 +16,16 @@
 #   ...plus the *-wait init containers, see sbobs/
 #
 # Usage:
-#   ./distros.sh [deploy|sbob|all|status]
-#     deploy  - install olm + px-operator + Vizier CR, wait for the mesh
-#     sbob    - apply sbobs/ and label the workloads (requires an existing deploy)
-#     all     - deploy, then sbob
-#     status  - show vizier pods and which profile each is bound to
+#   ./distros.sh [deploy|sbob|sbob-operator|all|status]
+#     deploy        - install olm + px-operator + Vizier CR, wait for the mesh
+#     sbob          - apply sbobs/ (vizier, ns pl) and label those workloads
+#     sbob-operator - apply sbobs-operator/ (px-operator + olm namespaces)
+#     all           - deploy, then sbob + sbob-operator
+#     status        - show pods in all three namespaces and their bound profile
+#
+# Pixie occupies THREE namespaces: pl (vizier data/control plane), px-operator
+# (vizier-operator + the CatalogSource pod) and olm (olm-operator, catalog-operator).
+# All three must be out of excludeNamespaces for node-agent to profile them.
 #
 # Env:
 #   PL_NS            vizier namespace                 (default: pl)
@@ -173,24 +178,53 @@ bind_sbobs() {
   echo   "      any vizier upgrade, and re-check with './distros.sh status'."
 }
 
+bind_operator_sbobs() {
+  log "applying operator SBoBs (px-operator + olm)"
+  # These carry their own namespace, so apply them verbatim.
+  for f in sbobs-operator/cp-*.yaml; do
+    kubectl apply -f "$f"
+  done
+
+  log "labelling operator workloads"
+  kubectl -n "${OPERATOR_NS}" patch deployment vizier-operator --type merge \
+    -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"vizier-operator"}}}}}'
+  kubectl -n olm patch deployment olm-operator --type merge \
+    -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"olm-operator"}}}}}'
+  kubectl -n olm patch deployment catalog-operator --type merge \
+    -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"catalog-operator"}}}}}'
+
+  if [ "${RECREATE}" = "1" ]; then
+    kubectl -n "${OPERATOR_NS}" rollout restart deployment/vizier-operator
+    kubectl -n olm rollout restart deployment/olm-operator deployment/catalog-operator
+    kubectl -n "${OPERATOR_NS}" rollout status deployment/vizier-operator --timeout=300s
+  fi
+
+  echo "NOTE: the OLM bundle-unpack Jobs in ${OPERATOR_NS} are deliberately NOT profiled —"
+  echo "      their names contain the bundle digest and change on every install, so a"
+  echo "      user-defined profile could never bind to them. Same for the CatalogSource pod,"
+  echo "      whose name carries a random suffix. Their raw recordings are in recorded/."
+}
+
 # ---------------------------------------------------------------- status ----
 
 status() {
-  log "vizier pods and bound profiles (${PL_NS})"
-  kubectl -n "${PL_NS}" get pods \
-    -o custom-columns='POD:.metadata.name,NODE:.spec.nodeName,PROFILE:.metadata.labels.kubescape\.io/user-defined-profile,STATUS:.status.phase'
-  log "user-defined ContainerProfiles"
-  kubectl -n "${PL_NS}" get containerprofiles \
-    -o custom-columns='NAME:.metadata.name,MANAGED-BY:.metadata.annotations.kubescape\.io/managed-by' 2>/dev/null || true
+  for ns in "${PL_NS}" "${OPERATOR_NS}" olm; do
+    log "pods and bound profiles (${ns})"
+    kubectl -n "${ns}" get pods \
+      -o custom-columns='POD:.metadata.name,NODE:.spec.nodeName,PROFILE:.metadata.labels.kubescape\.io/user-defined-profile,STATUS:.status.phase' 2>/dev/null || true
+    kubectl -n "${ns}" get containerprofiles \
+      -o custom-columns='PROFILE:.metadata.name,MANAGED-BY:.metadata.annotations.kubescape\.io/managed-by' 2>/dev/null || true
+  done
 }
 
 case "${1:-all}" in
-  deploy) deploy_olm; deploy_operator; deploy_vizier ;;
-  sbob)   bind_sbobs ;;
-  all)    deploy_olm; deploy_operator; deploy_vizier; bind_sbobs; status ;;
-  status) status ;;
+  deploy)        deploy_olm; deploy_operator; deploy_vizier ;;
+  sbob)          bind_sbobs ;;
+  sbob-operator) bind_operator_sbobs ;;
+  all)           deploy_olm; deploy_operator; deploy_vizier; bind_sbobs; bind_operator_sbobs; status ;;
+  status)        status ;;
   *)
-    echo "usage: $0 [deploy|sbob|all|status]" >&2
+    echo "usage: $0 [deploy|sbob|sbob-operator|all|status]" >&2
     exit 2
     ;;
 esac

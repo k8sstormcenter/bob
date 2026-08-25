@@ -1,0 +1,304 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-px-operator/kind-ReplicaSet/name-vizier-operator-798f6c96d5/containerName-app
+    kubescape.io/otel-span-id: ""
+    kubescape.io/otel-traceparent: ""
+    kubescape.io/resource-size: "80"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: 4e5ac1fa16ac0b4d9a555eab6353e4e8c3a1f17b109e4890949a6d75097b0424
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-px-operator/deployment-vizier-operator
+    kubescape.io/workload-container-type: containers
+  creationTimestamp: "2026-08-22T07:23:45Z"
+  labels:
+    kubescape.io/instance-template-hash: 798f6c96d5
+    kubescape.io/learning-period: 2h
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-container-name: app
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: vizier-operator
+    kubescape.io/workload-namespace: px-operator
+    kubescape.io/workload-resource-version: "24968"
+  name: replicaset-vizier-operator-798f6c96d5-app-7761-514d
+  namespace: px-operator
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_NET_ADMIN
+  egress:
+  - dns: ""
+    dnsNames: null
+    identifier: da8e219b26f6e8ddd6c74e3e35355a97a0528bf150772dbbe21aa771733fe958
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: pl
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        cluster-id: 6a59ca82-ebaa-4bcd-88b2-41ae2678d72f
+        component: vizier
+        name: vizier-cloud-connector
+        plane: control
+        vizier-bootstrap: "true"
+        vizier-name: pixie
+    ports:
+    - name: TCP-50800
+      port: 50800
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: default
+    podSelector:
+      matchLabels:
+        component: apiserver
+        provider: kubernetes
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  - dns: work.test.austrianopencloudcommunity.org.
+    dnsNames:
+    - work.test.austrianopencloudcommunity.org.
+    identifier: 284d617ca3e493147f79f2c7f185037100a9c2636930eec7995122394206e7fe
+    ipAddress: 100.103.139.51
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: external
+  - dns: ""
+    dnsNames: null
+    identifier: 2ecd1f4c02e1461f6029b18d649c33cf593473ef52be42e8826414c52906b784
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: pl
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        apps.kubernetes.io/pod-index: "0"
+        name: pl-nats
+        plane: control
+        statefulset.kubernetes.io/pod-name: pl-nats-0
+        vizier-name: pixie
+    ports:
+    - name: TCP-8222
+      port: 8222
+      protocol: TCP
+    type: internal
+  endpoints:
+  - direction: outbound
+    endpoint: :8222/
+    headers:
+      Accept-Encoding:
+      - gzip
+      Host:
+      - 10-42-0-18.pl.pod.cluster.local:8222
+    internal: true
+    methods:
+    - GET
+  execs:
+  - args:
+    - /app/src/operator/operator
+    path: /app/src/operator/operator.runfiles/px/src/operator/operator_/operator
+  identifiedCallStacks: null
+  imageID: gcr.io/pixie-oss/pixie-prod/operator-operator_image@sha256:f596c0293ca825c22beb316a10ac6999ee28abfef260609bdb2909bd470095d7
+  imageTag: gcr.io/pixie-oss/pixie-prod/operator-operator_image:0.1.7
+  ingress: null
+  matchLabels:
+    app: pixie-operator
+    component: pixie-operator
+    name: vizier-operator
+  opens:
+  - flags:
+    - O_RDONLY
+    path: /app/src/operator/operator.runfiles/px/GOROOT/lib/time/zoneinfo.zip
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /app/src/operator/operator.runfiles/px/src/operator/operator_/operator
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/host.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/ld.so.cache
+  - flags:
+    - O_RDONLY
+    path: /etc/localtime
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/pki/tls/certs
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/resolv.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/ssl/certs
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/ssl/certs/ca-certificates.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libc.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libresolv.so.2
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/x86_64/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/x86_64/x86_64/libm.so.6
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/⋯/net/core/somaxconn
+  - flags:
+    - O_RDONLY
+    - O_DIRECTORY
+    - O_CLOEXEC
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /system/etc/security/cacerts
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_27.331718744/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_27.331718744/token
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_09_31.611390655/token
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_58_10.819696579/token
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls:
+  - access
+  - clone3
+  - close
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - fcntl
+  - fstat
+  - futex
+  - getdents64
+  - getpeername
+  - getpid
+  - getrandom
+  - getrlimit
+  - getsockname
+  - getsockopt
+  - ioctl
+  - listen
+  - lseek
+  - madvise
+  - mmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - poll
+  - pread64
+  - prlimit64
+  - read
+  - readlinkat
+  - recvfrom
+  - rseq
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - sendmmsg
+  - set_robust_list
+  - set_tid_address
+  - setsockopt
+  - socket
+  - tgkill
+  - uname
+  - write
+status: {}

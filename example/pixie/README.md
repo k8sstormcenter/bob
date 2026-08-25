@@ -55,6 +55,32 @@ Network policy survives generalisation well because pixie's own egress is largel
 **selector-based** (`podSelector` on `name: vizier-metadata`, `name: pl-nats`, `k8s-app: kube-dns`),
 which is portable as-is; only the API-server ClusterIP needed removing.
 
+## Namespaces
+
+Pixie occupies **three** namespaces, and all three must be out of `excludeNamespaces` for
+node-agent to profile them (bob's default excludes all three):
+
+| namespace | contents | SBoBs |
+|---|---|---|
+| `pl` | vizier data/control plane — pem, kelvin, query-broker, metadata, cloud-connector, nats | `sbobs/` (14) |
+| `px-operator` | `vizier-operator`, the CatalogSource pod, OLM bundle-unpack Jobs | `sbobs-operator/` (1) |
+| `olm` | `olm-operator`, `catalog-operator` | `sbobs-operator/` (2) |
+
+Two workloads in `px-operator` are deliberately **not** profiled:
+
+- the **OLM bundle-unpack Jobs** (`23864b92…-pull/-extract/-util`) — their names carry the bundle
+  digest and change on every install, so a user-defined profile can never bind to them;
+- the **CatalogSource pod** (`pixie-operator-index-<random>`) — bare pod with a generated suffix.
+
+Both are short-lived and their raw recordings are kept under `recorded/px-operator/` for reference.
+
+## Raw recordings
+
+`recorded/{pl,px-operator,olm}/` holds the **unmodified** ContainerProfiles these SBoBs were
+generalised from — exactly as dumped by a per-object `kubectl get <cp> -o yaml`. Keep them: they are
+the evidence behind every allowlist entry, and re-generalising with a different threshold only needs
+`tools/`, not another recording run.
+
 ## Deploying
 
 `distros.sh` installs **upstream** Pixie (OLM → px-operator → Vizier CR) and binds the SBoBs.

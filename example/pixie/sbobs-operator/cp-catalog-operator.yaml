@@ -1,0 +1,85 @@
+# SBoB for catalog-operator/catalog-operator — generalised from a recorded ContainerProfile.
+# opens 15 -> 15 after collapse+portability.
+# NOTE: kube-apiserver ClusterIP 10.43.0.1 dropped — differs per distro (k3s 10.43/16 vs kubeadm 10.96/12)
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: catalog-operator
+  namespace: olm
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  execs:
+  - path: /bin/catalog
+  opens:
+  - path: /bin/catalog
+  - path: /etc/hosts
+  - path: /etc/localtime
+  - path: /etc/nsswitch.conf
+  - path: /etc/passwd
+  - path: /etc/resolv.conf
+  - path: /opt/hostedtoolcache/go/1.21.7/x64/lib/time/zoneinfo.zip
+  - path: /proc/⋯/kernel/cap_last_cap
+  - path: /proc/⋯/net/core/somaxconn
+  - path: /proc/⋯/task/1/fd
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_20_45.4223131352/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_20_45.4223131352/token
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_09_48.758221121/token
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_58_19.3381694492/token
+  syscalls:
+  - accept4
+  - close
+  - epoll_ctl
+  - epoll_pwait
+  - fcntl
+  - fstat
+  - futex
+  - getpid
+  - getrandom
+  - getsockname
+  - ioctl
+  - madvise
+  - nanosleep
+  - openat
+  - read
+  - rt_sigreturn
+  - sched_yield
+  - setsockopt
+  - tgkill
+  - write
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  egress:
+  - identifier: 2297897752f7953edd031ddd6f824a44163c479b649d3db6fef80eff7303dcd2
+    podSelector:
+      matchLabels:
+        olm.catalogSource: pixie-operator-index
+        olm.managed: 'true'
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: px-operator
+    ports:
+    - name: TCP-50051
+      protocol: TCP
+      port: 50051
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      protocol: UDP
+      port: 53
+  ingress:
+  - identifier: 209567a3863579abd33381b8530e8ba80051db1f3ed6c9cf0672c6b27ab4e936
+    ipAddress: 10.42.1.1
+    ports:
+    - name: TCP-8080
+      protocol: TCP
+      port: 8080

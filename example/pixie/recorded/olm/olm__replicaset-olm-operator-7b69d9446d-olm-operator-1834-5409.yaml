@@ -1,0 +1,213 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-olm/kind-ReplicaSet/name-olm-operator-7b69d9446d/containerName-olm-operator
+    kubescape.io/otel-span-id: ""
+    kubescape.io/otel-traceparent: ""
+    kubescape.io/resource-size: "87"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: 027f913507e54818673041473a2abb0e35f3fec360e20343e5fc77564fe0a66c
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-olm/deployment-olm-operator
+    kubescape.io/workload-container-type: containers
+  creationTimestamp: "2026-08-22T07:23:15Z"
+  labels:
+    kubescape.io/instance-template-hash: 7b69d9446d
+    kubescape.io/learning-period: 2h
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-container-name: olm-operator
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: olm-operator
+    kubescape.io/workload-namespace: olm
+    kubescape.io/workload-resource-version: "24713"
+  name: replicaset-olm-operator-7b69d9446d-olm-operator-1834-5409
+  namespace: olm
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  egress:
+  - dns: ""
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: default
+    podSelector:
+      matchLabels:
+        component: apiserver
+        provider: kubernetes
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: internal
+  endpoints:
+  - direction: inbound
+    endpoint: :8080/healthz
+    headers:
+      Connection:
+      - close
+      Host:
+      - 10.42.0.17:8080
+    internal: true
+    methods:
+    - GET
+  execs:
+  - args:
+    - /bin/olm
+    - --namespace
+    - olm
+    - --writeStatusName
+    path: /bin/olm
+  identifiedCallStacks: null
+  imageID: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+  imageTag: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+  ingress:
+  - dns: ""
+    dnsNames: null
+    identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-8080
+      port: 8080
+      protocol: TCP
+    type: external
+  matchLabels:
+    app: olm-operator
+  opens:
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /bin/olm
+  - flags:
+    - O_RDONLY
+    path: /etc/localtime
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/passwd
+  - flags:
+    - O_RDONLY
+    path: /opt/hostedtoolcache/go/1.21.7/x64/lib/time/zoneinfo.zip
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/kernel/cap_last_cap
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/net/core/somaxconn
+  - flags:
+    - O_DIRECTORY
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_20_46.3429272234/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_20_46.3429272234/token
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_08_48.2819246926/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_08_48.2819246926/token
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_56_54.867160750/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_56_54.867160750/token
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls:
+  - accept4
+  - arch_prctl
+  - bind
+  - capget
+  - capset
+  - chdir
+  - clone
+  - close
+  - close_range
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - exit
+  - faccessat2
+  - fchown
+  - fcntl
+  - fstat
+  - fstatfs
+  - futex
+  - getcwd
+  - getdents64
+  - getgid
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getrlimit
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - ioctl
+  - listen
+  - madvise
+  - mmap
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - openat2
+  - pipe2
+  - prctl
+  - pread64
+  - read
+  - readlinkat
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - setgid
+  - setgroups
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - socket
+  - statfs
+  - statx
+  - tgkill
+  - tkill
+  - uname
+  - unknown
+  - write
+status: {}

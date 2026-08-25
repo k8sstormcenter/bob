@@ -1,0 +1,106 @@
+# SBoB for olm-operator/olm-operator — generalised from a recorded ContainerProfile.
+# opens 14 -> 14 after collapse+portability.
+# NOTE: kube-apiserver ClusterIP 10.43.0.1 dropped — differs per distro (k3s 10.43/16 vs kubeadm 10.96/12)
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: olm-operator
+  namespace: olm
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  execs:
+  - path: /bin/olm
+  opens:
+  - path: /bin/olm
+  - path: /etc/localtime
+  - path: /etc/passwd
+  - path: /opt/hostedtoolcache/go/1.21.7/x64/lib/time/zoneinfo.zip
+  - path: /proc/⋯/kernel/cap_last_cap
+  - path: /proc/⋯/net/core/somaxconn
+  - path: /proc/⋯/task/1/fd
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_20_46.3429272234/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_20_46.3429272234/token
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_08_48.2819246926/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_08_48.2819246926/token
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_56_54.867160750/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_56_54.867160750/token
+  syscalls:
+  - accept4
+  - arch_prctl
+  - bind
+  - capget
+  - capset
+  - chdir
+  - clone
+  - close
+  - close_range
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - exit
+  - faccessat2
+  - fchown
+  - fcntl
+  - fstat
+  - fstatfs
+  - futex
+  - getcwd
+  - getdents64
+  - getgid
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getrlimit
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - ioctl
+  - listen
+  - madvise
+  - mmap
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - openat2
+  - pipe2
+  - prctl
+  - pread64
+  - read
+  - readlinkat
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - setgid
+  - setgroups
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - socket
+  - statfs
+  - statx
+  - tgkill
+  - tkill
+  - uname
+  - unknown
+  - write
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  ingress:
+  - identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    ports:
+    - name: TCP-8080
+      protocol: TCP
+      port: 8080
