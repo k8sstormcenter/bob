@@ -9,6 +9,12 @@
 #   ./demo.sh attack [ns]
 #                       drive the anti-patterns: frontend->database directly
 #                       (R0011 + R0012) and database->internet
+#   ./demo.sh scan [ns]
+#                       conformance half: kubescape CLI scan of the cluster,
+#                       written to JSON for review.py to consume
+#   ./demo.sh review [ns]
+#                       the verdict: runtime evidence + the scan, grouped into
+#                       actions a coding agent can apply
 #   ./demo.sh alerts [ns]
 #                       the review: alerts grouped by tier, each mapped to the
 #                       architectural finding it represents
@@ -140,6 +146,26 @@ show() {
 'POD:.metadata.name,TIER:.metadata.labels.app\.kubernetes\.io/tier,PROFILE:.metadata.labels.kubescape\.io/user-defined-profile,IMAGE:.spec.containers[0].image,STATUS:.status.phase'
 }
 
+scan() {
+  local ns="${1:-vibe-app}"
+  ./scan.sh "$ns" "${FRAMEWORK:-AllControls}"
+}
+
+# The verdict. Needs BOTH halves: alertmanager for what was observed, the scan for
+# what the manifests permit. Runs the port-forward itself so one command produces
+# the report. Run it soon after exercising the app — alertmanager expires alerts,
+# and expired runtime evidence silently shrinks the observed section.
+review() {
+  local ns="${1:-vibe-app}"
+  local scan_file="${2:-/tmp/AllControls-${ns}.json}"
+  [ -f "$scan_file" ] || { echo "no scan at $scan_file — run: ./demo.sh scan $ns"; return 1; }
+  kubectl -n "$KS_NS" port-forward svc/alertmanager 9093:9093 >/dev/null 2>&1 &
+  local pf=$!
+  sleep 3
+  ./review.py "$ns" --scan "$scan_file" --json "verdict-${ns}.json" || true
+  kill $pf 2>/dev/null || true
+}
+
 alerts() {
   local ns="${1:-vibe-app}"
   log "architecture review for $ns"
@@ -196,6 +222,8 @@ case "${1:-}" in
   setup)  setup ;;
   deploy) shift; deploy "$@" ;;
   attack) shift; attack "${1:-vibe-app}" ;;
+  scan)   shift; scan "${1:-vibe-app}" ;;
+  review) shift; review "$@" ;;
   alerts) shift; alerts "${1:-vibe-app}" ;;
   show)   shift; show "${1:-vibe-app}" ;;
   reset)  shift; reset "${1:-vibe-app}" ;;

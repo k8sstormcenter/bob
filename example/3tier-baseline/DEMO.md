@@ -17,7 +17,21 @@ cd example/3tier-baseline
 ./demo.sh deploy app.yaml  # kyverno classifies each pod and binds a profile at admission
 ./demo.sh attack           # frontend talks straight to the database
 sleep 90
-./demo.sh alerts           # the review
+./demo.sh scan             # kubescape CLI conformance scan of the cluster
+./demo.sh review           # both halves, as actions an agent can apply
+```
+
+`review` reads runtime evidence from alertmanager and manifest defects from the scan, and
+writes `verdict-<namespace>.json`. Run it **soon after** `attack` — alertmanager expires
+alerts, and expired runtime evidence quietly shrinks the observed section.
+
+Two smaller entry points if you want the pieces on their own:
+
+```bash
+./scan.sh flashy-product AllControls   # install the CLI if needed, scan, summarise
+./scan-failures.py /tmp/AllControls-flashy-product.json --summary
+./scan-failures.py /tmp/AllControls-flashy-product.json --control C-0012
+./review.py flashy-product --scan /tmp/AllControls-flashy-product.json --json verdict.json
 ```
 
 `app.yaml` is a stand-in for whatever an AI hands you. Replace it with a generated manifest and do
@@ -41,10 +55,15 @@ exclude all pod-to-pod traffic and this alert pair could never fire.
 ## Layout
 
 ```
-sbobs/            the five tier profiles
-kyverno/          00 RBAC · 01 clone profiles into every namespace · 02 classify pods into tiers
-app.yaml          sample three-tier app (nginx / python / postgres / redis / busybox)
-demo.sh           setup | deploy | attack | show | alerts | reset
+sbobs/              the five tier profiles
+kyverno/            00 RBAC · 01 clone profiles into every namespace · 02 classify pods into tiers
+adr/                the decisions the profiles encode, each with how it is verified
+app.yaml            sample three-tier app (nginx / python / postgres / redis / busybox)
+demo.sh             setup | deploy | attack | scan | review | show | alerts | reset
+scan.sh             install the kubescape CLI, scan the cluster, write JSON
+scan-failures.py    explore a raw scan: --summary, --sev, --control, --resource
+review.py           the verdict: runtime evidence + scan, as agent-applicable actions
+verdict.sample.json a real verdict from the run described above
 ```
 
 ## Bind
