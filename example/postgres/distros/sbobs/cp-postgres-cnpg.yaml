@@ -160,6 +160,8 @@ spec:
   - {path: /var/lib/postgresql/data/pgdata/postgresql.conf, flags: [O_RDONLY]}
   - {path: /var/lib/postgresql/data/pgdata/postmaster.opts, flags: [O_CREAT, O_TRUNC, O_WRONLY]}
   - {path: /var/lib/postgresql/data/pgdata/postmaster.pid, flags: [O_CREAT, O_EXCL, O_RDWR]}
-  rulePolicies: {}
+  rulePolicies:
+    R0002:
+      processAllowed: [postgres, 'runc:[1:INIT]', 'runc:[2:INIT]']
   seccompProfile:
     spec: {defaultAction: ''}

@@ -285,6 +285,8 @@ spec:
   - {path: /usr/share/locale/en/LC_MESSAGES/*, flags: [O_RDONLY]}
   - {path: /usr/share/locale/en_US/LC_MESSAGES/*, flags: [O_RDONLY]}
   - {path: /usr/share/locale/locale.alias, flags: [O_CLOEXEC, O_RDONLY]}
-  rulePolicies: {}
+  rulePolicies:
+    R0002:
+      processAllowed: [postgres, 'runc:[1:INIT]', 'runc:[2:INIT]']
   seccompProfile:
     spec: {defaultAction: ''}
