@@ -1,11 +1,11 @@
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: sbob-rc5s
+    tag: net-v2-rc1
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: sbob-rc5s-celnet@sha256:dc4e66680df35dfb4d747544358b7fca906434a78f40ad3b573855935788b6f2
+    tag: net-v2-rc1
     pullPolicy: Always
   config:
     alertManagerExporterUrls:
@@ -26,7 +26,7 @@ capabilities:
   vulnerabilityScan: disable
   relevancy: disable
   admissionController: disable
-  networkEventsStreaming: enable
+  networkEventsStreaming: disable
 alertCRD:
   installDefault: true
   scopeClustered: true

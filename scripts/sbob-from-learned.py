@@ -43,17 +43,6 @@ class NoAliasDumper(yaml.SafeDumper):
         return True
 
 
-class FlowDict(dict):
-    """A mapping that always serialises inline, as {path: ..., flags: [...]}."""
-
-
-NoAliasDumper.add_representer(
-    FlowDict,
-    lambda dumper, data: dumper.represent_mapping(
-        "tag:yaml.org,2002:map", data, flow_style=True),
-)
-
-
 WILDCARD_SEGMENTS = {"*", "**", "⋯", "⋯⋯"}
 
 # Kubernetes projected volumes (ServiceAccount tokens, ConfigMaps, Secrets) write
@@ -64,67 +53,10 @@ WILDCARD_SEGMENTS = {"*", "**", "⋯", "⋯⋯"}
 # the rest of the path literal, so a read of some other secret is still anomalous.
 ATOMIC_SWAP_DIR = re.compile(r"^\.\.\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}\.\d+$")
 
-# Everything else that is true of exactly one run and nothing else. A literal
-# here does not merely fail to help, it is a guaranteed false positive on every
-# other cluster and on the next reconcile of this one. There is no intra-segment
-# globbing in the spec, so a segment containing a volatile part becomes ⋯ whole —
-# /tmp/chart-index-1513639422.yaml is /tmp/⋯, not /tmp/chart-index-⋯.yaml.
-VOLATILE_SEGMENTS = (
-    ATOMIC_SWAP_DIR,
-    re.compile(r"^\d+$"),                                   # PIDs, /proc/<pid>
-    re.compile(r"^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", re.I),   # UUID
-    re.compile(r"^[0-9a-f]{40}(\.[A-Za-z0-9.]+)?$", re.I),  # git SHA-1, bare or <sha>.tar.gz
-    re.compile(r"^[0-9a-f]{64}(\.[A-Za-z0-9.]+)?$", re.I),  # sha256 digest
-    re.compile(r"^sha256[:-][0-9a-f]{64}$", re.I),
-    re.compile(r".*[-.]\d{6,}(\.[A-Za-z0-9]+)*$"),          # foo-4064072570[.tmp]
-    re.compile(r"^\.\.\d"),                                 # any other ..<digits> generation dir
-)
-
-
-def volatile(segment: str) -> bool:
-    return any(p.match(segment) for p in VOLATILE_SEGMENTS)
-
 
 def normalise_rotating(path: str) -> str:
-    """Replace volatile segments with ⋯, except the first.
-
-    The first segment is never rewritten. A path whose leading segment is a
-    wildcard matches everything including /etc/shadow, which makes
-    cp.was_path_opened() true and silently disables R0010, R1010 and R1012 — the
-    same annihilation a collapsed learn produces. A truncated root that looks
-    volatile is dropped by is_truncated_root() instead of being widened into one.
-    """
     segs = path.split("/")
-    first = next((i for i, s in enumerate(segs) if s), None)
-    return "/".join(
-        s if i == first else ("⋯" if volatile(s) else s)
-        for i, s in enumerate(segs)
-    )
-
-
-# node-agent truncates the head of long paths (a known bug, see
-# project_cp_migration): "/pe.io/v1beta1/serverresources.json" is the tail of
-# ".../discovery/<host>/<group>.io/v1beta1/serverresources.json". The fragment
-# cannot match anything at runtime, so shipping it is dead weight that also hides
-# how much of the real surface was never captured. Keep only paths rooted at a
-# real filesystem entry.
-REAL_ROOTS = {
-    "bin", "boot", "data", "dev", "etc", "home", "lib", "lib32", "lib64",
-    "media", "mnt", "opt", "proc", "root", "run", "sbin", "srv", "sys", "tmp",
-    "usr", "var",
-}
-
-
-def is_truncated_root(path: str) -> bool:
-    segs = [s for s in path.split("/") if s]
-    if not segs:
-        return True
-    head = segs[0]
-    # Dotfiles directly under / are real when the process runs with HOME=/
-    # (source-controller reads /.docker/config.json for registry auth).
-    if head.startswith("."):
-        return False
-    return head not in REAL_ROOTS
+    return "/".join("⋯" if ATOMIC_SWAP_DIR.match(s) else s for s in segs)
 
 
 # The container-runtime init phase touches files and capabilities that no
@@ -237,8 +169,6 @@ def main():
     spec = json.loads(Path(args.src).read_text())["spec"]
 
     opens = spec.get("opens") or []
-    truncated = [o for o in opens if is_truncated_root(o.get("path", ""))]
-    opens = [o for o in opens if not is_truncated_root(o.get("path", ""))]
     for o in opens:
         o["path"] = normalise_rotating(o.get("path", ""))
     bad = [o for o in opens if is_over_broad(o.get("path", ""))]
@@ -257,20 +187,6 @@ def main():
             kept = [o for o in kept if not o["path"].startswith(pfx)]
             kept.append({"path": pfx + "⋯",
                          "flags": sorted({f for o in under for f in (o.get("flags") or [])})})
-
-    # Deduplicate opens by path, unioning flags. Normalising volatile segments
-    # maps many learned paths onto one — /tmp/kustomization-<n>/x is the same
-    # /tmp/⋯/x for every n — and a learned profile also repeats a path once per
-    # distinct flag set. Merging them is lossless: the surviving entry allows
-    # exactly the union of what was observed.
-    by_path = {}
-    for o in kept:
-        p = o["path"]
-        if p in by_path:
-            by_path[p]["flags"] = sorted(set(by_path[p].get("flags") or []) | set(o.get("flags") or []))
-        else:
-            by_path[p] = {"path": p, "flags": sorted(set(o.get("flags") or []))}
-    kept = [by_path[p] for p in sorted(by_path)]
 
     # Deduplicate execs by (path, args) — a learned profile repeats an exec once
     # per distinct invocation, which is noise in a shipped artifact.
@@ -320,23 +236,12 @@ def main():
     # Compact flow form — one entry per line. An SBoB is read as a policy
     # document; block style turns 50 entries into 200+ lines and buries the
     # paths among their flags.
-    # default_flow_style=None is not enough: it only flows collections with no
-    # nested collection, and every open carries a flags LIST. Force flow style on
-    # the entries themselves so one open is one line.
-    for key in ("opens", "execs"):
-        if out["spec"].get(key):
-            out["spec"][key] = [FlowDict(e) for e in out["spec"][key]]
-
     Path(args.out).write_text(yaml.dump(
         out, sort_keys=False, width=4096, allow_unicode=True,
         default_flow_style=None, Dumper=NoAliasDumper))
 
     print(f"{args.out}: execs={len(execs)} opens={len(kept)} "
           f"egress={len(spec.get('egress') or [])}")
-    if truncated:
-        print(f"  dropped {len(truncated)} head-truncated open(s) (node-agent path truncation; "
-              f"they cannot match at runtime), e.g. "
-              f"{', '.join(sorted({o['path'] for o in truncated})[:3])}")
     if dropped:
         print(f"  dropped {len(dropped)} over-broad open(s): {', '.join(sorted(set(dropped)))}",
               file=sys.stderr)

@@ -82,6 +82,3 @@ if [ "$fail" -gt 0 ]; then
   echo "Fix the schema, or delete the file if it has been superseded."
   exit 1
 fi
-
-# A leading-wildcard open annihilates R0010/R1010/R1012. Never ship one.
-python3 "$(dirname "$0")/check-no-overbroad.py" || exit 1

@@ -1,67 +1,101 @@
+# Evidence that a learn window actually exercised the workload's primary
+# function, checked by scripts/check-representativeness.py.
+#
+# This exists because of bob#170. The argocd SBoBs were learned from an Argo CD
+# with zero Applications: nothing ever synced, so the profiles encoded Argo CD
+# idling. repo-server learned 5 execs instead of 10, 51 opens instead of 517,
+# and null egress instead of reaching github.com. The SBoBs then flagged the
+# GitOps toolchain itself as attack, and every existing gate passed:
+#
+#   tune score 0        measures detections against the functional tests you
+#                       supply — supply idle traffic, get an idle verdict
+#   contrast 0 Blind    compares the profile to an app-TYPE envelope, never
+#                       asks whether the baseline is representative
+#   rule-coverage card  counts rules the attacks lit — orthogonal
+#
+# So the question this file answers is the one nothing else asked: what does
+# this workload DO, and did the learn window make it do that?
+#
+# Assertions are deliberately behavioural, not size-based. "opens > 100" would
+# have passed the idle argocd-server (21 opens is correct for it); what
+# distinguishes working from idle is WHICH peers it talked to and WHICH binaries
+# it ran. Thresholds are floors observed on a representative learn, not targets.
+
 argocd-repo-server:
   function: clone git repositories and render manifests with helm/kustomize
-  execs_include: [/usr/bin/git, /usr/local/bin/helm, /usr/local/bin/kustomize]
-  egress_public_ip: true
+  # The strongest signal in the whole set: an idle repo-server never forks a
+  # renderer and never dials a public host. Both were absent in the #170 SBoB.
+  execs_include:
+    - /usr/bin/git
+    - /usr/local/bin/helm
+    - /usr/local/bin/kustomize
+  egress_public_ip: true      # a real clone leaves the cluster
   egress_include_dns: [github.com, charts.helm.sh]
   egress_ports: [TCP-443]
+  # No opens_min, and this is the clearest case for why counts are useless here.
+  # The correctly-anchored profile has 47 opens; the idle #170 profile had 51.
+  # The good one is SMALLER, because /tmp/* and the CA bundle are pre-collapsed
+  # to the form storage would produce anyway. Anything that discriminated on
+  # count would pass the broken profile and fail the correct one. The execs and
+  # public-egress assertions above are what actually separate them.
+
 argocd-server:
   function: serve the API, and fan out to redis, repo-server and the apiserver
+  # TCP-8081 is repo-server: the API server only dials it when something asked
+  # for a manifest render. Idle, that peer never appears.
   egress_ports: [TCP-443, TCP-6379, TCP-8081]
-  egress_include_ips: [10.43.0.1]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 15
+
 argocd-application-controller:
   function: reconcile Applications — compare live vs desired and sync
+  # Same reasoning: reconciling means asking repo-server (8081) for the desired
+  # state and caching it in redis (6379). Zero Applications means neither.
   egress_ports: [TCP-443, TCP-6379, TCP-8081]
-  egress_include_ips: [10.43.0.1]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
+  # No opens_min, same reason as repo-server. The kube discovery cache writes a
+  # new atomic-write temp file per refresh, so a long representative run makes
+  # node-agent collapse that whole subtree; the CORRECT profile is then a
+  # handful of anchored roots, while a short unrepresentative run leaves dozens
+  # of literals. Count rewards the wrong one.
+
 argocd-notifications-controller:
   function: watch Application state and evaluate notification triggers
   egress_ports: [TCP-443, TCP-8081]
-  egress_include_ips: [10.43.0.1]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 15
+
 argocd-applicationset-controller:
   function: generate Applications from generators
+  # HONEST LIMITATION: this component polls the apiserver whether or not any
+  # ApplicationSet exists, so TCP-443 does NOT discriminate working from idle
+  # and this gate is weak. Making it meaningful needs an ApplicationSet whose
+  # generator reaches something observable (a git generator -> public egress).
+  # Left explicit rather than dressed up as coverage.
   egress_ports: [TCP-443]
-  egress_include_ips: [10.43.0.1]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 15
   weak: true
+
 argocd-dex-server:
   function: serve OIDC/SSO and watch its config from the apiserver
-  execs_include: [/shared/argocd-dex]
+  # dex is launched from /shared by the copyutil init container, not from a path
+  # in its own image — asserting that catches a broken init handoff too.
+  execs_include:
+    - /shared/argocd-dex
   egress_ports: [TCP-443]
-  egress_include_ips: [10.43.0.1]
+  egress_include_ips: ["10.43.0.1"]   # satisfied by any CIDR containing it
   opens_min: 10
+
 argocd-redis:
   function: cache manifests and app state for the server and controller
-  execs_include: [/usr/local/bin/redis-server]
+  # HONEST LIMITATION: redis is a server. It accepts connections and initiates
+  # none, so it has NO egress at all and there is nothing here that separates a
+  # busy redis from an idle one. Only the exec set is asserted. Making this
+  # meaningful needs a client-side check (server/controller reaching TCP-6379),
+  # which the argocd-server and argocd-application-controller entries above
+  # already carry — that is where redis traffic is actually observable.
+  execs_include:
+    - /usr/local/bin/redis-server
   opens_min: 10
   weak: true
-flux-helm-controller:
-  function: reconcile helm-controller resources against the apiserver
-  execs_include: [/usr/local/bin/helm-controller]
-  egress_ports: [TCP-443]
-  opens_min: 9
-flux-image-automation-controller:
-  function: reconcile image-automation-controller resources against the apiserver
-  execs_include: [/usr/local/bin/image-automation-controller]
-  egress_ports: [TCP-443]
-  opens_min: 8
-flux-image-reflector-controller:
-  function: reconcile image-reflector-controller resources against the apiserver
-  execs_include: [/usr/local/bin/image-reflector-controller]
-  egress_ports: [TCP-443]
-  opens_min: 8
-flux-kustomize-controller:
-  function: reconcile kustomize-controller resources against the apiserver
-  execs_include: [/usr/local/bin/kustomize-controller]
-  egress_ports: [TCP-443]
-  opens_min: 9
-flux-notification-controller:
-  function: reconcile notification-controller resources against the apiserver
-  execs_include: [/usr/local/bin/notification-controller]
-  egress_ports: [TCP-443]
-  opens_min: 8
-flux-source-controller:
-  function: reconcile source-controller resources against the apiserver
-  execs_include: [/usr/local/bin/source-controller]
-  egress_ports: [TCP-443]
-  opens_min: 14
