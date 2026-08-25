@@ -4,7 +4,7 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.40.3
+KUBESCAPE_CHART_VER ?= 1.40.3-node-agent-rc-sofia
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
@@ -376,11 +376,35 @@ show-runc:
 	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS)$(KS_LEARN_FLAGS),$(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS),(none))"
 
 .PHONY: kubescape
+# helm 4 applies server-side and refuses fields owned by the kubectl applies
+# below (default-rules / rule-binding); --force-conflicts overrides that.
+# --server-side=true is pinned with it because "auto" (the default) inherits
+# client-side from a release previously upgraded by helm 3, and helm 4 rejects
+# --force-conflicts without server-side apply. helm 3 has neither flag.
+KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" && echo "--server-side=true --force-conflicts")
+KS_CD_FLAGS := $(if $(KS_SIGNED_CLUSTERDATA),--set-file nodeAgent.bundleSigning.signedClusterData=$(KS_SIGNED_CLUSTERDATA))
+
 kubescape:
-	helm repo add kubescape https://kubescape.github.io/helm-charts/
-	helm repo update
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
-	kubectl apply -f kubescape/default-rules.yaml
+	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_CD_FLAGS) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
+	kubectl apply -f kubescape/default-rule-binding.yaml
+
+# Same install, but the trust policy comes from a ConfigMap YOU own instead of
+# being inlined in values.yaml. The chart mounts it and renders none, so the
+# policy can be rotated (kubectl apply on the ConfigMap) without a helm upgrade
+# and without pasting the signed artifact into values.
+SIGNED_BUNDLES_DIR ?= example/redis/distros/signed-bundles
+KUBESCAPE_TRUST_CM ?= kubescape-trust-bundle
+
+trust-bundle:
+	kubectl create namespace honey --dry-run=client -o yaml | kubectl apply -f -
+	kubectl -n honey create configmap $(KUBESCAPE_TRUST_CM) \
+	  --from-file=trust-policy.json=$(SIGNED_BUNDLES_DIR)/trust-policy.signed.json \
+	  --dry-run=client -o yaml | kubectl apply -f -
+
+kubescape-mounted: trust-bundle
+	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set nodeAgent.bundleSigning.existingConfigMap=$(KUBESCAPE_TRUST_CM) --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_CD_FLAGS) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
 	./kubescape/set-signature-verification.sh $(KS_SIGNATURES)
 
