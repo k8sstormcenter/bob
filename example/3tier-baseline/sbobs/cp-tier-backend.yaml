@@ -1,0 +1,313 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# TIER 2 — BACKEND  (API / application server: Spring, FastAPI, Express, Rails,
+#                    Go/Rust service, .NET, Django, Laravel …)
+#
+# The only tier allowed to reach the database. Broad on language runtimes,
+# strict on the moves that mean the architecture is drifting.
+#
+# Bind it with:  kubescape.io/user-defined-profile: tier-backend
+#
+# WHAT THIS TIER SAYS **NO** TO
+#   • ANY Linux capability            → an app server needs none. If R0004 fires
+#                                       you are running as root; use a non-root
+#                                       base image and bind a port >1024.
+#   • arbitrary internet egress       → only DNS + the DB tier are allowed. A call
+#                                       to an unlisted external endpoint trips
+#                                       R0011, which is your prompt to DECLARE the
+#                                       third-party dependency rather than let a
+#                                       library phone home unnoticed.
+#   • package managers at runtime     → pip/npm/gem/mvn are absent from execs.
+#                                       Installing at boot = unpinned supply chain
+#                                       and a different artifact every restart.
+#   • shelling out to curl/wget/nc    → the classic post-exploitation download step.
+#   • DB *admin* CLIs (psql/mysql/…)  → an app talks to its DB over the wire, it
+#                                       does not run the vendor shell. Seeing one
+#                                       usually means a debug workflow left in prod.
+#   • /etc/⋯ wildcard                 → named entries only, so /etc/shadow reads
+#                                       still trip R0010 instead of being absorbed.
+#   • being reachable from the DB     → ingress is frontend-only; a DB connecting
+#                                       *to* the backend is inverted and suspicious.
+#
+# DELIBERATELY ALLOWED (not an oversight)
+#   • the serviceaccount token — many backends legitimately call the K8s API.
+#     If yours does not, delete that opens entry and let R0006 guard it.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: tier-backend
+  namespace: CHANGEME
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  capabilities: []
+
+  execs:
+    - path: /bin/sh
+    - path: /bin/dash
+    - path: /usr/bin/dash
+    - path: /bin/bash
+    - path: /usr/bin/env
+    - path: /usr/bin/cat
+    - path: /usr/bin/grep
+    - path: /usr/bin/sed
+    - path: /usr/bin/awk
+    - path: /usr/bin/id
+    - path: /usr/bin/mkdir
+    # language runtimes — the broad part
+    - path: /usr/bin/java
+    - path: /opt/java/⋯
+    - path: /usr/local/openjdk-⋯/bin/java
+    - path: /usr/local/bin/python
+    - path: /usr/local/bin/python3
+    - path: /usr/bin/python3
+    - path: /usr/local/bin/node
+    - path: /usr/bin/node
+    - path: /usr/local/bin/ruby
+    - path: /usr/local/bin/php
+    - path: /usr/bin/php
+    - path: /usr/bin/dotnet
+    - path: /usr/local/bin/uvicorn
+    - path: /usr/local/bin/gunicorn
+    # compiled single-binary services
+    - path: /app/⋯
+    - path: /usr/local/bin/⋯
+    - path: /srv/⋯
+
+  opens:
+    - path: /app/⋯
+    - path: /srv/⋯
+    - path: /opt/⋯
+    - path: /var/run/⋯
+    - path: /var/log/⋯
+    - path: /var/cache/⋯
+    - path: /tmp/⋯
+    - path: /dev/null
+    - path: /dev/urandom
+    - path: /dev/random
+    # named /etc only
+    - path: /etc/passwd
+    - path: /etc/group
+    - path: /etc/hosts
+    - path: /etc/hostname
+    - path: /etc/resolv.conf
+    - path: /etc/nsswitch.conf
+    - path: /etc/localtime
+    - path: /etc/ssl/⋯
+    - path: /etc/pki/⋯
+    - path: /etc/ca-certificates/⋯
+    # runtimes and libraries
+    - path: /lib/⋯
+    - path: /lib64/⋯
+    - path: /usr/lib/⋯
+    - path: /usr/local/lib/⋯
+    - path: /usr/share/zoneinfo/⋯
+    - path: /usr/share/ca-certificates/⋯
+    - path: /proc/⋯
+    - path: /sys/⋯
+    # mounted config + secrets (env-style config, TLS material)
+    - path: /config/⋯
+    - path: /etc/config/⋯
+    - path: /var/run/secrets/kubernetes.io/serviceaccount/⋯
+
+  syscalls:
+    - accept
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - chdir
+    - clock_nanosleep
+    - clone
+    - clone3
+    - close
+    - close_range
+    - connect
+    - dup2
+    - dup3
+    - epoll_create
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - epoll_wait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat
+    - faccessat2
+    - fadvise64
+    - fallocate
+    - fchdir
+    - fcntl
+    - fdatasync
+    - fstat
+    - fstatfs
+    - fsync
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getgroups
+    - getpeername
+    - getpid
+    - getppid
+    - getrandom
+    - getrlimit
+    - getsockname
+    - getsockopt
+    - gettid
+    - getuid
+    - io_setup
+    - ioctl
+    - listen
+    - lseek
+    - madvise
+    - membarrier
+    - mincore
+    - mkdir
+    - mkdirat
+    - mmap
+    - mprotect
+    - mremap
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open
+    - openat
+    - openat2
+    - pipe
+    - pipe2
+    - poll
+    - prctl
+    - pread64
+    - prlimit64
+    - pwrite64
+    - read
+    - readlink
+    - readlinkat
+    - recvfrom
+    - recvmsg
+    - rename
+    - renameat
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_getparam
+    - sched_getscheduler
+    - sched_yield
+    - sendfile
+    - sendmmsg
+    - sendmsg
+    - sendto
+    - set_robust_list
+    - set_tid_address
+    - setsockopt
+    - shutdown
+    - sigaltstack
+    - socket
+    - socketpair
+    - stat
+    - statfs
+    - statx
+    - sysinfo
+    - tgkill
+    - umask
+    - uname
+    - unlink
+    - unlinkat
+    - utimensat
+    - wait4
+    - write
+    - writev
+
+  egress:
+    - identifier: dns
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      ports:
+        - name: UDP-53
+          protocol: UDP
+          port: 53
+        - name: TCP-53
+          protocol: TCP
+          port: 53
+    # the database tier — every well-known engine port, so the SBoB is
+    # engine-agnostic without ever allowing "anywhere"
+    - identifier: database-tier
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/tier: database
+      ports:
+        - name: TCP-5432        # PostgreSQL / CockroachDB SQL
+          protocol: TCP
+          port: 5432
+        - name: TCP-3306        # MySQL / MariaDB
+          protocol: TCP
+          port: 3306
+        - name: TCP-27017       # MongoDB
+          protocol: TCP
+          port: 27017
+        - name: TCP-6379        # Redis / Valkey / KeyDB / Dragonfly
+          protocol: TCP
+          port: 6379
+        - name: TCP-9042        # Cassandra / ScyllaDB
+          protocol: TCP
+          port: 9042
+        - name: TCP-9200        # Elasticsearch / OpenSearch
+          protocol: TCP
+          port: 9200
+        - name: TCP-8123        # ClickHouse HTTP
+          protocol: TCP
+          port: 8123
+        - name: TCP-9000        # ClickHouse native / MinIO
+          protocol: TCP
+          port: 9000
+        - name: TCP-5984        # CouchDB
+          protocol: TCP
+          port: 5984
+        - name: TCP-8086        # InfluxDB
+          protocol: TCP
+          port: 8086
+        - name: TCP-7687        # Neo4j Bolt
+          protocol: TCP
+          port: 7687
+        - name: TCP-26257       # CockroachDB
+          protocol: TCP
+          port: 26257
+        - name: TCP-5672        # RabbitMQ (AMQP)
+          protocol: TCP
+          port: 5672
+        - name: TCP-9092        # Kafka / Redpanda
+          protocol: TCP
+          port: 9092
+        - name: TCP-2379        # etcd
+          protocol: TCP
+          port: 2379
+
+  ingress:
+    # only the frontend calls the backend
+    - identifier: frontend-tier
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/tier: frontend
+      ports:
+        - name: TCP-8080
+          protocol: TCP
+          port: 8080
+        - name: TCP-8000
+          protocol: TCP
+          port: 8000
+        - name: TCP-3000
+          protocol: TCP
+          port: 3000

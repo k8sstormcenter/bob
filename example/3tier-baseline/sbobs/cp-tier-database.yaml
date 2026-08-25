@@ -1,0 +1,348 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# TIER 3 — DATABASE  (PostgreSQL, MySQL/MariaDB, MongoDB, Redis/Valkey/KeyDB,
+#                     Cassandra, ClickHouse, Elasticsearch, CouchDB, InfluxDB,
+#                     Neo4j, CockroachDB, etcd, Kafka/RabbitMQ …)
+#
+# The most locked-down tier: a database receives connections and writes to disk.
+# It should almost never initiate anything outward.
+#
+# Bind it with:  kubescape.io/user-defined-profile: tier-database
+#
+# WHAT THIS TIER SAYS **NO** TO
+#   • ANY EGRESS EXCEPT DNS + REPLICAS → a database dialling out is the shape of
+#                                        data exfiltration. This is the highest-
+#                                        value alert in the whole set (R0011,
+#                                        raised to severity 8 in this fork).
+#   • curl / wget / nc / ssh           → absent from execs. A DB container has no
+#                                        legitimate use for a network client; it
+#                                        is the exfil/ingress-tool-transfer step.
+#   • INGRESS FROM THE FRONTEND        → ingress allows the backend tier only.
+#                                        Frontend→DB means the middle tier was
+#                                        skipped: the browser-facing process holds
+#                                        DB credentials. Architectural hard NO.
+#   • CAP_SYS_ADMIN / NET_ADMIN /
+#     SYS_PTRACE / BPF / NET_RAW       → NOT granted, even though stock redis,
+#                                        valkey and keydb images request
+#                                        SYS_ADMIN + NET_ADMIN (verified from real
+#                                        recordings). If R0004 fires, move to the
+#                                        non-root/rootless image variant.
+#   • package managers at runtime      → apt/apk/yum absent. A DB that installs
+#                                        software at boot is not reproducible.
+#   • /etc/⋯ wildcard                  → named entries only, so /etc/shadow reads
+#                                        still trip R0010 rather than being
+#                                        absorbed by an over-broad allowlist.
+#
+# DELIBERATELY ALLOWED (privilege-drop only)
+#   CAP_CHOWN, CAP_DAC_OVERRIDE, CAP_SETGID, CAP_SETUID, CAP_FOWNER — nearly every
+#   stock DB entrypoint chowns the data dir then drops to a service user. Removing
+#   these would make the tier unusable with mainstream images. CAP_IPC_LOCK is
+#   included because Redis-family engines lock memory to avoid swapping secrets.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: tier-database
+  namespace: CHANGEME
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  capabilities:
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_FOWNER
+    - CAP_IPC_LOCK
+    - CAP_SETGID
+    - CAP_SETUID
+
+  execs:
+    # entrypoint / init
+    - path: /bin/sh
+    - path: /bin/dash
+    - path: /usr/bin/dash
+    - path: /bin/bash
+    - path: /usr/bin/env
+    - path: /usr/bin/id
+    - path: /usr/bin/chown
+    - path: /usr/bin/mkdir
+    - path: /usr/bin/gosu
+    - path: /usr/bin/su-exec
+    - path: /usr/local/bin/docker-entrypoint.sh
+    - path: /docker-entrypoint.sh
+    # engine binaries — broad across the common DBs
+    - path: /usr/lib/postgresql/⋯
+    - path: /usr/local/bin/postgres
+    - path: /usr/local/bin/initdb
+    - path: /usr/sbin/mysqld
+    - path: /usr/sbin/mariadbd
+    - path: /usr/bin/mongod
+    - path: /usr/local/bin/redis-server
+    - path: /usr/local/bin/valkey-server
+    - path: /usr/bin/keydb-server
+    - path: /usr/local/bin/dragonfly
+    - path: /opt/cassandra/⋯
+    - path: /usr/bin/clickhouse
+    - path: /usr/share/elasticsearch/⋯
+    - path: /opt/couchdb/⋯
+    - path: /usr/bin/influxd
+    - path: /var/lib/neo4j/⋯
+    - path: /cockroach/⋯
+    - path: /usr/local/bin/etcd
+    - path: /opt/kafka/⋯
+    - path: /opt/rabbitmq/⋯
+
+  opens:
+    # data + config + sockets
+    - path: /var/lib/⋯
+    - path: /data/⋯
+    - path: /bitnami/⋯
+    - path: /etc/postgresql/⋯
+    - path: /etc/mysql/⋯
+    - path: /etc/redis/⋯
+    - path: /etc/mongod.conf
+    - path: /etc/clickhouse-server/⋯
+    - path: /etc/cassandra/⋯
+    - path: /var/run/⋯
+    - path: /var/log/⋯
+    - path: /tmp/⋯
+    - path: /dev/null
+    - path: /dev/urandom
+    - path: /dev/random
+    - path: /dev/shm/⋯
+    - path: /docker-entrypoint-initdb.d/⋯
+    # named /etc only
+    - path: /etc/passwd
+    - path: /etc/group
+    - path: /etc/hosts
+    - path: /etc/hostname
+    - path: /etc/resolv.conf
+    - path: /etc/nsswitch.conf
+    - path: /etc/localtime
+    - path: /etc/ssl/⋯
+    - path: /etc/pki/⋯
+    - path: /etc/ca-certificates/⋯
+    # runtime libs
+    - path: /lib/⋯
+    - path: /lib64/⋯
+    - path: /usr/lib/⋯
+    - path: /usr/local/lib/⋯
+    - path: /usr/share/⋯
+    - path: /opt/⋯
+    - path: /proc/⋯
+    - path: /sys/⋯
+
+  syscalls:
+    - accept
+    - accept4
+    - access
+    - alarm
+    - arch_prctl
+    - bind
+    - brk
+    - capget
+    - capset
+    - chdir
+    - chown
+    - clock_nanosleep
+    - clone
+    - clone3
+    - close
+    - close_range
+    - connect
+    - copy_file_range
+    - dup2
+    - dup3
+    - epoll_create
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - epoll_wait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat
+    - faccessat2
+    - fadvise64
+    - fallocate
+    - fchdir
+    - fchmodat
+    - fchown
+    - fchownat
+    - fcntl
+    - fdatasync
+    - fgetxattr
+    - fsetxattr
+    - fstat
+    - fstatfs
+    - fsync
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getgroups
+    - getpeername
+    - getpid
+    - getppid
+    - getrandom
+    - getrlimit
+    - getsockname
+    - getsockopt
+    - gettid
+    - getuid
+    - io_setup
+    - ioctl
+    - listen
+    - lseek
+    - madvise
+    - membarrier
+    - mincore
+    - mkdir
+    - mkdirat
+    - mmap
+    - mprotect
+    - mremap
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open
+    - openat
+    - openat2
+    - pipe
+    - pipe2
+    - poll
+    - prctl
+    - pread64
+    - prlimit64
+    - pwrite64
+    - read
+    - readlink
+    - readlinkat
+    - recvfrom
+    - recvmsg
+    - rename
+    - renameat
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_getparam
+    - sched_getscheduler
+    - sched_yield
+    - sendfile
+    - sendmsg
+    - sendto
+    - set_robust_list
+    - set_tid_address
+    - setgid
+    - setgroups
+    - setsockopt
+    - setuid
+    - shutdown
+    - sigaltstack
+    - socket
+    - socketpair
+    - stat
+    - statfs
+    - statx
+    - symlink
+    - symlinkat
+    - sync_file_range
+    - sysinfo
+    - tgkill
+    - umask
+    - uname
+    - unlink
+    - unlinkat
+    - utimensat
+    - wait4
+    - write
+    - writev
+
+  egress:
+    # DNS only. No internet. No backend callbacks.
+    - identifier: dns
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      ports:
+        - name: UDP-53
+          protocol: UDP
+          port: 53
+        - name: TCP-53
+          protocol: TCP
+          port: 53
+    # peer replicas of the SAME tier (clustering / replication).
+    # Delete this entry entirely for a single-instance database.
+    - identifier: database-replicas
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/tier: database
+      ports:
+        - name: TCP-5432
+          protocol: TCP
+          port: 5432
+        - name: TCP-6379
+          protocol: TCP
+          port: 6379
+        - name: TCP-16379      # redis cluster bus
+          protocol: TCP
+          port: 16379
+        - name: TCP-27017
+          protocol: TCP
+          port: 27017
+        - name: TCP-7000       # cassandra internode
+          protocol: TCP
+          port: 7000
+        - name: TCP-9300       # elasticsearch transport
+          protocol: TCP
+          port: 9300
+        - name: TCP-2380       # etcd peer
+          protocol: TCP
+          port: 2380
+
+  ingress:
+    # ONLY the backend tier. Frontend→DB is an architecture violation by design.
+    - identifier: backend-tier
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/tier: backend
+      ports:
+        - name: TCP-5432
+          protocol: TCP
+          port: 5432
+        - name: TCP-3306
+          protocol: TCP
+          port: 3306
+        - name: TCP-27017
+          protocol: TCP
+          port: 27017
+        - name: TCP-6379
+          protocol: TCP
+          port: 6379
+        - name: TCP-9042
+          protocol: TCP
+          port: 9042
+        - name: TCP-9200
+          protocol: TCP
+          port: 9200
+        - name: TCP-8123
+          protocol: TCP
+          port: 8123
+        - name: TCP-5984
+          protocol: TCP
+          port: 5984
+        - name: TCP-8086
+          protocol: TCP
+          port: 8086
+        - name: TCP-7687
+          protocol: TCP
+          port: 7687
+        - name: TCP-26257
+          protocol: TCP
+          port: 26257

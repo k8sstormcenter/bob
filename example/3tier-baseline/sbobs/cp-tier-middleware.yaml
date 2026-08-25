@@ -1,0 +1,322 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# TIER 2b — MIDDLEWARE  (Kafka, RabbitMQ, NATS, Zookeeper, Envoy, HAProxy,
+#                        Redis-as-cache, Pulsar)
+#
+# Sits between backend and database: accepts from the backend, may reach the
+# database and its own cluster peers, and nothing else.
+#
+# SAYS **NO** TO
+#   • egress to anywhere but DNS / database / its own peers — a broker reaching
+#     the internet is exfiltration or an unpinned plugin download
+#   • ingress from the frontend — the frontend must not publish to a queue directly
+#   • CAP_SYS_ADMIN / NET_ADMIN / SYS_PTRACE / BPF — brokers need none.
+#     NOTE: a service-mesh sidecar (Envoy under Istio) DOES need NET_ADMIN to
+#     program iptables; do not bind this profile to mesh-injected pods.
+#   • curl / wget / package managers at runtime
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: tier-middleware
+  namespace: CHANGEME
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  capabilities:
+  - CAP_CHOWN
+  - CAP_DAC_OVERRIDE
+  - CAP_FOWNER
+  - CAP_SETGID
+  - CAP_SETUID
+  execs:
+  - path: /bin/sh
+  - path: /bin/dash
+  - path: /usr/bin/dash
+  - path: /bin/bash
+  - path: /usr/bin/env
+  - path: /usr/bin/id
+  - path: /usr/bin/chown
+  - path: /usr/bin/mkdir
+  - path: /usr/bin/gosu
+  - path: /usr/bin/su-exec
+  - path: /usr/bin/java
+  - path: /opt/java/⋯
+  - path: /opt/kafka/⋯
+  - path: /opt/bitnami/kafka/⋯
+  - path: /usr/lib/rabbitmq/⋯
+  - path: /opt/rabbitmq/⋯
+  - path: /usr/lib/erlang/⋯
+  - path: /usr/local/bin/epmd
+  - path: /usr/local/bin/nats-server
+  - path: /nats-server
+  - path: /usr/local/bin/envoy
+  - path: /usr/bin/envoy
+  - path: /usr/local/bin/redis-server
+  - path: /usr/bin/haproxy
+  - path: /usr/sbin/haproxy
+  - path: /app/⋯
+  - path: /usr/local/bin/⋯
+  opens:
+  - path: /var/lib/⋯
+  - path: /data/⋯
+  - path: /bitnami/⋯
+  - path: /opt/⋯
+  - path: /etc/kafka/⋯
+  - path: /etc/rabbitmq/⋯
+  - path: /etc/envoy/⋯
+  - path: /etc/haproxy/⋯
+  - path: /etc/nats/⋯
+  - path: /var/run/⋯
+  - path: /var/log/⋯
+  - path: /tmp/⋯
+  - path: /dev/null
+  - path: /dev/urandom
+  - path: /dev/random
+  - path: /dev/shm/⋯
+  - path: /etc/passwd
+  - path: /etc/group
+  - path: /etc/hosts
+  - path: /etc/hostname
+  - path: /etc/resolv.conf
+  - path: /etc/nsswitch.conf
+  - path: /etc/localtime
+  - path: /etc/ssl/⋯
+  - path: /etc/pki/⋯
+  - path: /etc/ca-certificates/⋯
+  - path: /lib/⋯
+  - path: /lib64/⋯
+  - path: /usr/lib/⋯
+  - path: /usr/local/lib/⋯
+  - path: /usr/share/⋯
+  - path: /proc/⋯
+  - path: /sys/⋯
+  syscalls:
+  - accept
+  - accept4
+  - access
+  - arch_prctl
+  - bind
+  - brk
+  - capget
+  - chdir
+  - clock_nanosleep
+  - clone
+  - clone3
+  - close
+  - close_range
+  - connect
+  - dup2
+  - dup3
+  - epoll_create
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - epoll_wait
+  - eventfd2
+  - execve
+  - exit
+  - exit_group
+  - faccessat
+  - faccessat2
+  - fadvise64
+  - fallocate
+  - fchdir
+  - fcntl
+  - fdatasync
+  - fstat
+  - fstatfs
+  - fsync
+  - futex
+  - getcwd
+  - getdents64
+  - getegid
+  - geteuid
+  - getgid
+  - getgroups
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getrlimit
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - io_setup
+  - ioctl
+  - listen
+  - lseek
+  - madvise
+  - membarrier
+  - mincore
+  - mkdir
+  - mkdirat
+  - mmap
+  - mprotect
+  - mremap
+  - munmap
+  - nanosleep
+  - newfstatat
+  - open
+  - openat
+  - openat2
+  - pipe
+  - pipe2
+  - poll
+  - prctl
+  - pread64
+  - prlimit64
+  - pwrite64
+  - read
+  - readlink
+  - readlinkat
+  - recvfrom
+  - recvmsg
+  - rename
+  - renameat
+  - rseq
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_getparam
+  - sched_getscheduler
+  - sched_yield
+  - sendfile
+  - sendmmsg
+  - sendmsg
+  - sendto
+  - set_robust_list
+  - set_tid_address
+  - setsockopt
+  - shutdown
+  - sigaltstack
+  - socket
+  - socketpair
+  - stat
+  - statfs
+  - statx
+  - sysinfo
+  - tgkill
+  - umask
+  - uname
+  - unlink
+  - unlinkat
+  - utimensat
+  - wait4
+  - write
+  - writev
+  egress:
+  - identifier: dns
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      protocol: UDP
+      port: 53
+    - name: TCP-53
+      protocol: TCP
+      port: 53
+  - identifier: database-tier
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/tier: database
+    ports:
+    - name: TCP-5432
+      protocol: TCP
+      port: 5432
+    - name: TCP-3306
+      protocol: TCP
+      port: 3306
+    - name: TCP-27017
+      protocol: TCP
+      port: 27017
+    - name: TCP-6379
+      protocol: TCP
+      port: 6379
+  - identifier: middleware-peers
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/tier: middleware
+    ports:
+    - name: TCP-9092
+      protocol: TCP
+      port: 9092
+    - name: TCP-9093
+      protocol: TCP
+      port: 9093
+    - name: TCP-2181
+      protocol: TCP
+      port: 2181
+    - name: TCP-2888
+      protocol: TCP
+      port: 2888
+    - name: TCP-3888
+      protocol: TCP
+      port: 3888
+    - name: TCP-5672
+      protocol: TCP
+      port: 5672
+    - name: TCP-25672
+      protocol: TCP
+      port: 25672
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+    - name: TCP-6222
+      protocol: TCP
+      port: 6222
+    - name: TCP-8222
+      protocol: TCP
+      port: 8222
+  ingress:
+  - identifier: backend-tier
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/tier: backend
+    ports:
+    - name: TCP-9092
+      protocol: TCP
+      port: 9092
+    - name: TCP-5672
+      protocol: TCP
+      port: 5672
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+    - name: TCP-6379
+      protocol: TCP
+      port: 6379
+    - name: TCP-15672
+      protocol: TCP
+      port: 15672
+    - name: TCP-8080
+      protocol: TCP
+      port: 8080
+  - identifier: middleware-peers
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/tier: middleware
+    ports:
+    - name: TCP-9092
+      protocol: TCP
+      port: 9092
+    - name: TCP-2181
+      protocol: TCP
+      port: 2181
+    - name: TCP-2888
+      protocol: TCP
+      port: 2888
+    - name: TCP-3888
+      protocol: TCP
+      port: 3888
+    - name: TCP-25672
+      protocol: TCP
+      port: 25672
+    - name: TCP-6222
+      protocol: TCP
+      port: 6222

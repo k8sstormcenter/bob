@@ -1,0 +1,261 @@
+# Classify every pod into a tier and bind the matching SBoB.
+#
+# Order of evidence:
+#   1. IMAGE NAME  — reliable for off-the-shelf components (postgres, redis, nginx…)
+#   2. CONTAINER PORT — the fallback for custom images, which is what a vibe-coded
+#      app actually pushes ("myapp:latest" tells you nothing, ":5432" tells you a lot)
+#   3. NEITHER     — tier-unclassified, which is strict on purpose so the gap is loud
+#
+# Two labels are written:
+#   app.kubernetes.io/tier              -> drives the podSelector in every SBoB's
+#                                          egress/ingress, so the tiers can refer to
+#                                          each other without knowing app names
+#   kubescape.io/user-defined-profile   -> binds the SBoB itself
+#
+# CAVEAT (multi-container pods): node-agent first looks for "<label>-<containerName>"
+# and only falls back to the bare "<label>" for single-container pods. A generated
+# app is nearly always single-container; if yours is not, publish per-container
+# copies named e.g. tier-backend-app.
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: assign-workload-tier
+  annotations:
+    policies.kyverno.io/title: Classify pods into frontend/backend/middleware/database
+spec:
+  # MUTATE ONLY. Never blocks the AI's deployment — the whole point is to let it
+  # deploy whatever it wants and then observe the consequences.
+  background: false
+  rules:
+
+    # ── 1. by image ─────────────────────────────────────────────────────────
+    - name: tier-by-image-database
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(postgres|postgis|mysql|mariadb|percona|mongo|redis|valkey|keydb|dragonfly|cassandra|scylla|clickhouse|elasticsearch|opensearch|couchdb|couchbase|influxdb|neo4j|cockroach|timescale|etcd|memcached).*', imgs) }}"
+            operator: Equals
+            value: true
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: database
+              kubescape.io/user-defined-profile: tier-database
+
+    - name: tier-by-image-middleware
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(kafka|rabbitmq|nats|pulsar|zookeeper|envoy|haproxy|activemq|nsq).*', imgs) }}"
+            operator: Equals
+            value: true
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: middleware
+              kubescape.io/user-defined-profile: tier-middleware
+
+    - name: tier-by-image-frontend
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(nginx|caddy|httpd|apache|traefik|lighttpd|static-web).*', imgs) }}"
+            operator: Equals
+            value: true
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: frontend
+              kubescape.io/user-defined-profile: tier-frontend
+
+    - name: tier-by-image-backend
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(node|python|openjdk|eclipse-temurin|golang|ruby|php|dotnet|fastapi|django|flask|express|spring).*', imgs) }}"
+            operator: Equals
+            value: true
+          # do not re-label something already matched as a DB (e.g. "mongo-express")
+          - key: "{{ regex_match('(?i).*(postgres|mysql|mongo|redis|kafka|rabbitmq|nginx).*', imgs) }}"
+            operator: Equals
+            value: false
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: backend
+              kubescape.io/user-defined-profile: tier-backend
+
+    # ── 2. by container port (only when no image matched) ───────────────────
+    - name: tier-by-port-database
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(postgres|mysql|mariadb|mongo|redis|valkey|keydb|cassandra|clickhouse|elasticsearch|couchdb|influxdb|neo4j|cockroach|etcd|memcached|kafka|rabbitmq|nats|zookeeper|envoy|haproxy|nginx|caddy|httpd|node|python|openjdk|golang|ruby|php|dotnet).*', imgs) }}"
+            operator: Equals
+            value: false
+          - key: "{{ ports }}"
+            operator: AnyIn
+            value: [5432, 3306, 27017, 6379, 9042, 9200, 8123, 5984, 8086, 7687, 26257, 11211]
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: database
+              kubescape.io/user-defined-profile: tier-database
+
+    - name: tier-by-port-middleware
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(postgres|mysql|mongo|redis|kafka|rabbitmq|nats|zookeeper|envoy|haproxy|nginx|caddy|httpd|node|python|openjdk|golang|ruby|php|dotnet).*', imgs) }}"
+            operator: Equals
+            value: false
+          - key: "{{ ports }}"
+            operator: AnyIn
+            value: [9092, 9093, 5672, 15672, 4222, 2181, 6222, 8222]
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: middleware
+              kubescape.io/user-defined-profile: tier-middleware
+
+    - name: tier-by-port-frontend
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(postgres|mysql|mongo|redis|kafka|rabbitmq|nats|zookeeper|envoy|haproxy|nginx|caddy|httpd|node|python|openjdk|golang|ruby|php|dotnet).*', imgs) }}"
+            operator: Equals
+            value: false
+          - key: "{{ ports }}"
+            operator: AnyIn
+            value: [80, 443, 8081]
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: frontend
+              kubescape.io/user-defined-profile: tier-frontend
+
+    - name: tier-by-port-backend
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(postgres|mysql|mongo|redis|kafka|rabbitmq|nats|zookeeper|envoy|haproxy|nginx|caddy|httpd|node|python|openjdk|golang|ruby|php|dotnet).*', imgs) }}"
+            operator: Equals
+            value: false
+          - key: "{{ ports }}"
+            operator: AnyIn
+            value: [8080, 8000, 3000, 5000, 8443, 9000, 4000]
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: backend
+              kubescape.io/user-defined-profile: tier-backend
+
+    # ── 3. nothing matched ─────────────────────────────────────────────────
+    - name: tier-unclassified
+      match: {any: [{resources: {kinds: [Pod]}}]}
+      context:
+        - name: imgs
+          variable:
+            jmesPath: "join(',', request.object.spec.containers[].image)"
+            default: ""
+        - name: ports
+          variable:
+            jmesPath: "request.object.spec.containers[].ports[].containerPort"
+            default: []
+      preconditions:
+        all:
+          - key: "{{ regex_match('(?i).*(postgres|mysql|mariadb|mongo|redis|valkey|keydb|cassandra|clickhouse|elasticsearch|couchdb|influxdb|neo4j|cockroach|etcd|memcached|kafka|rabbitmq|nats|pulsar|zookeeper|envoy|haproxy|nginx|caddy|httpd|apache|traefik|node|python|openjdk|eclipse-temurin|golang|ruby|php|dotnet).*', imgs) }}"
+            operator: Equals
+            value: false
+          - key: "{{ ports }}"
+            operator: AllNotIn
+            value: [5432, 3306, 27017, 6379, 9042, 9200, 8123, 5984, 8086, 7687, 26257, 11211,
+                    9092, 9093, 5672, 15672, 4222, 2181, 6222, 8222,
+                    80, 443, 8081, 8080, 8000, 3000, 5000, 8443, 9000, 4000]
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/tier: unclassified
+              kubescape.io/user-defined-profile: tier-unclassified

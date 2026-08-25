@@ -1,0 +1,277 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# TIER 1 — FRONTEND  (static site, SPA server, reverse proxy, BFF)
+#
+# Broad enough for any stack (nginx / Caddy / Node / Deno / httpd / Go binary),
+# deliberately tight on the things that mean "you built this wrong".
+#
+# Bind it with:  kubescape.io/user-defined-profile: tier-frontend
+#
+# WHAT THIS TIER SAYS **NO** TO  (each omission is a deliberate signal)
+#   • ANY Linux capability            → a frontend never needs one. Stock images
+#                                       (nginx:latest) ask for CAP_SYS_ADMIN +
+#                                       CAP_SETUID because their entrypoint runs
+#                                       as root and drops privileges. If R0004
+#                                       fires, switch to the *-unprivileged /
+#                                       rootless / distroless variant.
+#   • DIRECT DATABASE EGRESS          → 5432/3306/27017/6379/9042/... are NOT in
+#                                       the egress list. A frontend reaching a DB
+#                                       skips the backend tier entirely. This is
+#                                       the single most valuable alert here.
+#   • package managers at runtime     → npm/pip/apk/apt are not in execs. Installing
+#                                       at container start = unpinned supply chain.
+#   • curl / wget / nc                → a frontend serves, it does not fetch.
+#   • /etc/⋯ wildcard                 → only named /etc files are allowed, so a
+#                                       read of /etc/shadow still trips R0010.
+#                                       (A wildcard here would SUPPRESS that rule.)
+#   • serviceaccount token            → a frontend has no business calling the
+#                                       Kubernetes API (trips R0006).
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: tier-frontend
+  namespace: CHANGEME
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  # No capabilities. Intentional. See header.
+  capabilities: []
+
+  execs:
+    # container entrypoint / init shell — unavoidable in most stock images
+    - path: /bin/sh
+    - path: /bin/dash
+    - path: /usr/bin/dash
+    - path: /bin/bash
+    # coreutils used by entrypoint scripts (envsubst templating, perms, greps)
+    - path: /usr/bin/env
+    - path: /usr/bin/cat
+    - path: /usr/bin/grep
+    - path: /usr/bin/sed
+    - path: /usr/bin/awk
+    - path: /usr/bin/mawk
+    - path: /usr/bin/cut
+    - path: /usr/bin/sort
+    - path: /usr/bin/find
+    - path: /usr/bin/touch
+    - path: /usr/bin/envsubst
+    - path: /usr/bin/id
+    - path: /usr/bin/mkdir
+    - path: /usr/bin/chmod
+    # the actual servers people use
+    - path: /usr/sbin/nginx
+    - path: /usr/local/bin/nginx
+    - path: /usr/bin/caddy
+    - path: /usr/sbin/httpd
+    - path: /usr/local/bin/node
+    - path: /usr/bin/node
+    - path: /usr/local/bin/deno
+    - path: /usr/bin/bun
+    # a compiled single-binary frontend (Go/Rust) usually lives here
+    - path: /app/⋯
+    - path: /usr/local/bin/⋯
+
+  opens:
+    # app + static assets
+    - path: /app/⋯
+    - path: /srv/⋯
+    - path: /usr/share/nginx/⋯
+    - path: /usr/share/caddy/⋯
+    - path: /var/www/⋯
+    # config + runtime state
+    - path: /etc/nginx/⋯
+    - path: /etc/caddy/⋯
+    - path: /etc/apache2/⋯
+    - path: /docker-entrypoint.d/⋯
+    - path: /docker-entrypoint.sh
+    - path: /var/run/⋯
+    - path: /var/cache/⋯
+    - path: /var/log/⋯
+    - path: /tmp/⋯
+    - path: /dev/null
+    - path: /dev/urandom
+    - path: /dev/random
+    # NAMED /etc entries only — never a wildcard, so R0010/R0006 stay effective
+    - path: /etc/passwd
+    - path: /etc/group
+    - path: /etc/hosts
+    - path: /etc/hostname
+    - path: /etc/resolv.conf
+    - path: /etc/nsswitch.conf
+    - path: /etc/localtime
+    - path: /etc/ssl/⋯
+    - path: /etc/pki/⋯
+    - path: /etc/ca-certificates/⋯
+    - path: /etc/mime.types
+    # runtime linker / libs / language runtimes
+    - path: /lib/⋯
+    - path: /lib64/⋯
+    - path: /usr/lib/⋯
+    - path: /usr/local/lib/⋯
+    - path: /usr/share/zoneinfo/⋯
+    - path: /usr/share/ca-certificates/⋯
+    - path: /proc/⋯
+    - path: /sys/⋯
+
+  syscalls:
+    - accept
+    - accept4
+    - access
+    - arch_prctl
+    - bind
+    - brk
+    - chdir
+    - clock_nanosleep
+    - clone
+    - clone3
+    - close
+    - close_range
+    - connect
+    - dup2
+    - dup3
+    - epoll_create
+    - epoll_create1
+    - epoll_ctl
+    - epoll_pwait
+    - epoll_wait
+    - eventfd2
+    - execve
+    - exit
+    - exit_group
+    - faccessat
+    - faccessat2
+    - fadvise64
+    - fchdir
+    - fcntl
+    - fdatasync
+    - fstat
+    - fstatfs
+    - fsync
+    - futex
+    - getcwd
+    - getdents64
+    - getegid
+    - geteuid
+    - getgid
+    - getpeername
+    - getpid
+    - getppid
+    - getrandom
+    - getrlimit
+    - getsockname
+    - getsockopt
+    - gettid
+    - getuid
+    - ioctl
+    - listen
+    - lseek
+    - madvise
+    - membarrier
+    - mkdir
+    - mkdirat
+    - mmap
+    - mprotect
+    - mremap
+    - munmap
+    - nanosleep
+    - newfstatat
+    - open
+    - openat
+    - openat2
+    - pipe
+    - pipe2
+    - poll
+    - prctl
+    - pread64
+    - prlimit64
+    - pwrite64
+    - read
+    - readlink
+    - readlinkat
+    - recvfrom
+    - recvmsg
+    - rename
+    - renameat
+    - rseq
+    - rt_sigaction
+    - rt_sigprocmask
+    - rt_sigreturn
+    - sched_getaffinity
+    - sched_yield
+    - sendfile
+    - sendmmsg
+    - sendmsg
+    - sendto
+    - set_robust_list
+    - set_tid_address
+    - setsockopt
+    - shutdown
+    - sigaltstack
+    - socket
+    - socketpair
+    - stat
+    - statfs
+    - statx
+    - sysinfo
+    - tgkill
+    - umask
+    - uname
+    - unlink
+    - unlinkat
+    - utimensat
+    - wait4
+    - write
+    - writev
+
+  egress:
+    # cluster DNS — every tier needs it
+    - identifier: dns
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      ports:
+        - name: UDP-53
+          protocol: UDP
+          port: 53
+        - name: TCP-53
+          protocol: TCP
+          port: 53
+    # the ONLY app peer a frontend may talk to: the backend tier.
+    # NOTE: no database ports here. That omission is the point.
+    - identifier: backend-tier
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/tier: backend
+      ports:
+        - name: TCP-8080
+          protocol: TCP
+          port: 8080
+        - name: TCP-8000
+          protocol: TCP
+          port: 8000
+        - name: TCP-3000
+          protocol: TCP
+          port: 3000
+        - name: TCP-5000
+          protocol: TCP
+          port: 5000
+        - name: TCP-8443
+          protocol: TCP
+          port: 8443
+
+  ingress:
+    # traffic arrives from the ingress controller, not from the internet directly
+    - identifier: ingress-controller
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+      ports:
+        - name: TCP-8080
+          protocol: TCP
+          port: 8080
+        - name: TCP-80
+          protocol: TCP
+          port: 80
