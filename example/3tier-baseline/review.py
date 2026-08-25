@@ -223,46 +223,127 @@ def dedupe(findings):
     return out
 
 
-def compliance_findings(path, ns):
-    """Static controls, COLLAPSED to one entry per control.
+SEV_RANK = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
 
-    A control that fails on all five workloads is one defect with five instances, not
-    five findings. Emitting it per-workload is how a report turns into the generic
-    checklist nobody acts on — the same three rows repeated until the observed
-    violations are off the top of the screen.
+# A manifest field and the runtime rule that fires when the thing it permits actually
+# happens. When both agree, the finding stops being "the YAML allows this" and becomes
+# "the YAML allows this AND we watched it occur" — which is the strongest evidence the
+# two halves of the scan can produce together, and the first thing an agent should fix.
+PATH_CONFIRMS = {
+    "automountServiceAccountToken": "R0006",
+    "readOnlyRootFilesystem": "R0002",
+}
+
+
+def cross_link(static, runtime):
+    """Mark manifest actions that runtime evidence independently confirms."""
+    by_rule = collections.defaultdict(list)
+    for f in runtime:
+        by_rule[f.get("rule")].append(f)
+    for s in static:
+        for frag, rule in PATH_CONFIRMS.items():
+            if frag not in s["path"] or rule not in by_rule:
+                continue
+            hits = by_rule[rule]
+            s["confirmed_at_runtime"] = {
+                "rule": rule,
+                "containers": sorted({h.get("container") for h in hits if h.get("container")}),
+                "evidence": hits[0]["observed"],
+            }
+            s["evidence_class"] = "declared+observed"
+    return static
+
+
+def compliance_findings(path, ns, app_resources=None):
+    """Every failed control from a kubescape scan, grouped by THE FIX, not by control.
+
+    Running `kubescape scan framework AllControls` on this namespace returns 139 failed
+    control instances across 5 workloads. Reported one-per-control-per-workload that is
+    a wall nobody reads — and five separate controls (C-0004, C-0009, C-0050, C-0268,
+    C-0269) all resolve to the same edit: put `resources` on the container.
+
+    So the grouping key is the fixPath, not the controlID. Twenty-five findings about
+    memory limits collapse into one instruction naming the five workloads, and the
+    control IDs that demanded it ride along as provenance.
+
+    Each action is then classified by whether an agent can actually apply it:
+
+      apply    kubescape supplied a concrete value (runAsNonRoot = true) — patchable
+      decide   kubescape supplied YOUR_VALUE — needs a number only a human/agent
+               who knows the workload can choose
+      remove   the field must go away (a credential sitting in the manifest)
+
+    That distinction is the whole point of this function. An agent handed 139 rows
+    stalls; handed 3 patchable edits and 2 decisions, it moves.
     """
     try:
         data = json.load(open(path))
     except Exception:
         return [], "scan file not readable — compliance section skipped"
-    grouped = collections.defaultdict(lambda: {"resources": set()})
+
     results = data if isinstance(data, list) else data.get("results", [])
+    grouped = {}
     for r in results:
         rid = r.get("resourceID", "")
-        if f"/{ns}/" not in rid and ns not in rid:
+        short = rid.split("/")[-1]
+        # Keep the namespace's own resources plus the workloads in it. Cluster-scoped
+        # objects (webhooks, roles) fail too but are not this app's to fix.
+        if app_resources and short not in app_resources:
             continue
         for c in r.get("controls", []):
-            cid = c.get("controlID")
             if c.get("status", {}).get("status") != "failed":
                 continue
-            m = CONTROL_MAP.get(cid)
-            if not m:
-                continue
-            g = grouped[cid]
-            g["adr"], g["decision_broken"] = m[0], m[1]
-            g["control_name"] = c.get("name", "")
-            g["resources"].add(rid.split("/")[-1])
+            cid, cname = c.get("controlID"), c.get("name", "")
+            sev = c.get("severity", "Low")
+            for rule in c.get("rules", []):
+                for p in (rule.get("paths") or []):
+                    fp = p.get("fixPath") or {}
+                    fpath, fval = fp.get("path"), fp.get("value")
+                    if not fpath:
+                        fpath, fval = p.get("failedPath"), "<remove>"
+                    if not fpath:
+                        continue
+                    # normalise containers[N] so one instruction covers every container
+                    key = re.sub(r"\[\d+\]", "[*]", fpath)
+                    g = grouped.setdefault(key, {
+                        "path": key, "values": set(), "resources": set(),
+                        "controls": set(), "names": set(), "sev": sev,
+                    })
+                    g["values"].add(str(fval))
+                    g["resources"].add(short)
+                    g["controls"].add(cid)
+                    g["names"].add(cname)
+                    if SEV_RANK.get(sev, 9) < SEV_RANK.get(g["sev"], 9):
+                        g["sev"] = sev
+
     out = []
-    for cid, g in grouped.items():
+    for key, g in grouped.items():
+        vals = {v for v in g["values"] if v not in ("None", "")}
+        if vals == {"<remove>"}:
+            action, value, can_apply = "remove", None, False
+        elif vals and "YOUR_VALUE" not in vals:
+            action, value, can_apply = "set", sorted(vals)[0], True
+        else:
+            action, value, can_apply = "set", None, False
         res = sorted(g["resources"])
+        adr = next((CONTROL_MAP[c][0] for c in sorted(g["controls"]) if c in CONTROL_MAP), None)
         out.append({
-            "adr": g["adr"], "decision_broken": g["decision_broken"],
-            "source": "static", "control": cid,
-            "evidence_class": "declared",
-            "observed": f"{cid} ({g['control_name']}) fails on {len(res)} workloads: {', '.join(res)}",
+            "adr": adr or "—",
+            "decision_broken": sorted(g["names"])[0],
+            "source": "static", "evidence_class": "declared",
+            "severity": g["sev"],
+            "action": action, "path": key, "value": value,
+            "agent_can_apply": can_apply,
+            "needs_decision": (action == "set" and not can_apply),
+            "control": ", ".join(sorted(g["controls"])),
             "affected": res,
-            "fix": g["control_name"],
+            "observed": f"{', '.join(sorted(g['controls']))} failed on {len(res)} "
+                        f"resource(s): {', '.join(res)}",
+            "fix": (f"set {key} = {value}" if can_apply else
+                    f"remove {key}" if action == "remove" else
+                    f"set {key} = <choose a value>"),
         })
+    out.sort(key=lambda f: (SEV_RANK.get(f["severity"], 9), not f["agent_can_apply"], f["path"]))
     return out, None
 
 
@@ -277,7 +358,19 @@ def main():
 
     rt, pods = runtime_findings(a.namespace, get_alerts(a.port))
     rt = dedupe(corroborate(rt, pods))
-    st, scan_note = compliance_findings(a.scan, a.namespace)
+    # Scope the scan to this app: its workloads plus the namespace object itself.
+    # A cluster scan also fails on webhooks and cluster roles, which are the
+    # platform's problem, not the app author's.
+    owners = {a.namespace} | {
+        w for w in sh(f"kubectl -n {a.namespace} get deploy,sts,ds "
+                      "-o jsonpath='{range .items[*]}{.metadata.name}{\"\\n\"}{end}'").split()
+    }
+    st, scan_note = compliance_findings(a.scan, a.namespace, owners)
+    st = cross_link(st, rt)
+    # confirmed-by-runtime outranks everything else in the manifest set
+    st.sort(key=lambda f: (0 if f.get("confirmed_at_runtime") else 1,
+                           SEV_RANK.get(f["severity"], 9),
+                           not f["agent_can_apply"], f["path"]))
 
     # Rank by what the evidence actually is. An agent should spend its first edit on
     # something that demonstrably happened, not on a field the manifest left at default.
@@ -288,7 +381,12 @@ def main():
         "window": a.since,
         "workloads": [{"pod": m["pod"], "ip": ip, "tier": m["tier"]} for ip, m in pods.items()],
         "act_on_these_first": rt,
-        "manifest_defects": sorted(st, key=lambda f: f["adr"]),
+        "manifest_actions": st,
+        "manifest_summary": {
+            "apply_directly": sum(1 for f in st if f["agent_can_apply"]),
+            "needs_a_decision": sum(1 for f in st if f["needs_decision"]),
+            "remove": sum(1 for f in st if f["action"] == "remove"),
+        },
         "not_checked_at_runtime": [
             {"rule": k, "why": v} for k, v in SILENT_RULES.items()
         ],
@@ -331,11 +429,36 @@ def main():
             print(f"     confirmed  [{c['rule']}] {c['workload']}: {c['observed']}")
         print(f"     fix        {f['fix']}")
 
-    print(f"\n\n═══ MANIFEST-ONLY — permitted, but not observed " + "═" * 23)
-    print("   Lower priority: these are properties of the YAML, not events.\n")
-    for f in sorted(st, key=lambda x: x["adr"]):
-        print(f"   {f['adr']}  [{f['control']}] {f['decision_broken']}")
-        print(f"            {len(f['affected'])} workloads: {', '.join(f['affected'])}")
+    patch = [f for f in st if f["agent_can_apply"]]
+    decide = [f for f in st if f["needs_decision"]]
+    drop = [f for f in st if f["action"] == "remove"]
+
+    print(f"\n\n═══ MANIFEST — from the kubescape scan " + "═" * 32)
+    print("   Not observed at runtime; these are properties of the YAML. Grouped by")
+    print("   the edit required, not by control — several controls often want the")
+    print("   same field.\n")
+
+    if patch:
+        print(f"   ── apply directly ({len(patch)}) — kubescape supplied the value\n")
+        for f in patch:
+            mark = "  <<< ALSO OBSERVED AT RUNTIME" if f.get("confirmed_at_runtime") else ""
+            print(f"     [{f['severity']:<6}] {f['path']} = {f['value']}{mark}")
+            print(f"              {', '.join(f['affected'])}   ({f['control']})")
+            if f.get("confirmed_at_runtime"):
+                c = f["confirmed_at_runtime"]
+                print(f"              confirmed [{c['rule']}] {', '.join(c['containers'])}: "
+                      f"{c['evidence'][:88]}")
+    if drop:
+        print(f"\n   ── remove ({len(drop)})\n")
+        for f in drop:
+            print(f"     [{f['severity']:<6}] {f['path']}")
+            print(f"              {', '.join(f['affected'])}   ({f['control']}) "
+                  f"— {f['decision_broken']}")
+    if decide:
+        print(f"\n   ── needs a value you must choose ({len(decide)})\n")
+        for f in decide:
+            print(f"     [{f['severity']:<6}] {f['path']}")
+            print(f"              {', '.join(f['affected'])}   ({f['control']})")
 
     print("\n\n═══ BLIND SPOTS — cannot be observed in this configuration " + "═" * 11)
     for k, v in SILENT_RULES.items():

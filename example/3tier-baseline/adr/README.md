@@ -25,6 +25,63 @@ can act, and can verify its own fix by re-running the check. Every finding this 
 the observed event that produced it. **No observation, no finding.** That rule is what keeps the
 report honest and is why the report is short.
 
+## Producing a verdict
+
+```bash
+# 1. conformance — the whole cluster, every control kubescape ships
+kubescape scan framework AllControls --include-namespaces flashy-product \
+  --format json --output /tmp/all.json
+
+# 2. runtime evidence + the verdict
+kubectl -n honey port-forward svc/alertmanager 9093:9093 &
+./review.py flashy-product --scan /tmp/all.json --json verdict.json
+```
+
+`AllControls` on this one namespace returns **139 failed control instances** across five
+workloads. That is unreadable, and worse, it is *repetitive*: five separate controls
+(`C-0004`, `C-0009`, `C-0050`, `C-0268`, `C-0269`) all resolve to the same edit — put
+`resources` on the container.
+
+So `review.py` groups by **the fix**, not by the control. 139 instances become 26 actions,
+each classified by whether an agent can act on it unaided:
+
+| bucket | count | meaning |
+|---|---|---|
+| `apply_directly` | 10 | kubescape supplied a concrete value — `runAsNonRoot = true` — patchable as-is |
+| `needs_a_decision` | 13 | kubescape supplied `YOUR_VALUE` — how much memory is a judgement only someone who knows the workload can make |
+| `remove` | 3 | a field that must go away, e.g. a password sitting in `env` |
+
+The control IDs ride along as provenance, so nothing is lost — but the agent reads 26 rows
+instead of 139, and knows immediately which ten it can just do.
+
+### The strongest finding is where the two halves agree
+
+When a manifest defect and a runtime observation describe the same thing, the finding is
+promoted to `declared+observed` and sorted to the top:
+
+```json
+"path": "spec.template.spec.automountServiceAccountToken",
+"value": "false",
+"evidence_class": "declared+observed",
+"control": "C-0034, C-0190, C-0261",
+"confirmed_at_runtime": {
+  "rule": "R0006",
+  "containers": ["postgres", "web"],
+  "evidence": "Unexpected access to service account token: /run/secrets/..."
+}
+```
+
+The scan says *the manifest permits this*. The detector says *and it happened, twice*. That
+pairing is far more actionable than either half alone, and it is the first thing the report
+shows.
+
+### One operational constraint
+
+Alertmanager expires alerts. Runtime evidence older than its resolve timeout disappears, and
+the reviewer will silently report fewer observations — during development of this tooling,
+`R0006` and `R0012` vanished from a verdict for exactly that reason. Run the review shortly
+after exercising the app, or persist the alerts elsewhere first.
+
 ## The three enforcement points
 
 | Point | When | Mechanism | Can it be evaded by the app author? |
