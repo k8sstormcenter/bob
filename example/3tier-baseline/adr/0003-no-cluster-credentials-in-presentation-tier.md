@@ -50,9 +50,27 @@ ADR-0003 VIOLATED
 * Removing the mount can break libraries that probe for in-cluster config at startup. That probe
   failing is the intended outcome; the library should fall back.
 
-## Note on scope
+## The backend's exemption must be spelled concretely
 
-This ADR is verifiable at runtime **because** the tier profiles avoid a wildcard above the token
-path. See [ADR-0007](0007-detection-must-not-be-self-disabling.md) — an `opens` entry of
-`/var/run/⋯` in the frontend profile would silently make this ADR uncheckable while appearing to
-change nothing.
+`R0006` is gated on `!cp.was_path_opened_with_suffix(containerId, '/token')`. A suffix question
+can only be answered by a **concrete** path — node-agent explicitly refuses to answer it from
+wildcard patterns. So the backend's allowance is written as two literal paths, and deliberately
+without a `⋯` sibling:
+
+```yaml
+- path: /run/secrets/kubernetes.io/serviceaccount/token
+- path: /var/run/secrets/kubernetes.io/serviceaccount/token
+```
+
+Both spellings, because `/var/run` is a symlink to `/run` and the kernel reports the resolved
+path — the observed event in this repo's run was `/run/secrets/...`.
+
+**This was originally written as `/var/run/secrets/kubernetes.io/serviceaccount/⋯` and did not
+work.** A wildcard contributes nothing to a suffix answer, so the backend alerted `R0006` like
+every other tier and this ADR's exemption existed only on paper. Worse, a `/var/run/⋯` entry
+elsewhere in the same profile *absorbed* the specific entry at write time, so it was not even
+stored. [ADR-0007](0007-detection-must-not-be-self-disabling.md) records the mechanism and the
+check that catches it.
+
+The other four tiers list no serviceaccount path at all, so `R0006` fires for them unconditionally
+— which is the intent.

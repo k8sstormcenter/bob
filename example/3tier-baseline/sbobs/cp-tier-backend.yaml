@@ -44,29 +44,43 @@ spec:
 
   execs:
     - path: /bin/sh
+    - path: /usr/bin/sh
     - path: /bin/dash
     - path: /usr/bin/dash
     - path: /bin/bash
+    - path: /usr/bin/bash
     - path: /usr/bin/env
+    - path: /bin/env
     - path: /usr/bin/cat
+    - path: /bin/cat
     - path: /usr/bin/grep
+    - path: /bin/grep
     - path: /usr/bin/sed
+    - path: /bin/sed
     - path: /usr/bin/awk
+    - path: /bin/awk
     - path: /usr/bin/id
+    - path: /bin/id
     - path: /usr/bin/mkdir
+    - path: /bin/mkdir
     # language runtimes — the broad part
     - path: /usr/bin/java
+    - path: /bin/java
     - path: /opt/java/⋯
     - path: /usr/local/openjdk-⋯/bin/java
     - path: /usr/local/bin/python
     - path: /usr/local/bin/python3
     - path: /usr/bin/python3
+    - path: /bin/python3
     - path: /usr/local/bin/node
     - path: /usr/bin/node
+    - path: /bin/node
     - path: /usr/local/bin/ruby
     - path: /usr/local/bin/php
     - path: /usr/bin/php
+    - path: /bin/php
     - path: /usr/bin/dotnet
+    - path: /bin/dotnet
     - path: /usr/local/bin/uvicorn
     - path: /usr/local/bin/gunicorn
     # compiled single-binary services
@@ -75,10 +89,11 @@ spec:
     - path: /srv/⋯
 
   opens:
+    - path: /run/secrets/kubernetes.io/serviceaccount/token
+    - path: /var/run/secrets/kubernetes.io/serviceaccount/token
     - path: /app/⋯
     - path: /srv/⋯
     - path: /opt/⋯
-    - path: /var/run/⋯
     - path: /var/log/⋯
     - path: /var/cache/⋯
     - path: /tmp/⋯
@@ -108,7 +123,6 @@ spec:
     # mounted config + secrets (env-style config, TLS material)
     - path: /config/⋯
     - path: /etc/config/⋯
-    - path: /var/run/secrets/kubernetes.io/serviceaccount/⋯
 
   syscalls:
     - accept

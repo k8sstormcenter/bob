@@ -1,8 +1,15 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # TIER 0 — UNCLASSIFIED  (Kyverno could not infer a tier from image or port)
 #
-# Deliberately minimal: the common runtime baseline, NO capabilities and NO app
-# egress beyond DNS. Any real traffic alerts immediately.
+# Deliberately minimal: shell and coreutils only, NO capabilities, NO app egress
+# beyond DNS, NO ingress at all. Any real traffic alerts immediately.
+#
+# It carries NO language runtimes (java/python/node/php/ruby/dotnet), no /app/⋯ or
+# /srv/⋯ wildcards, and NO ServiceAccount token path — those belong to tier-backend,
+# and a workload nobody could classify is the last one that should hold cluster
+# credentials (see adr/0003). An earlier revision of this file was byte-identical to
+# tier-backend on execs, opens, syscalls and capabilities, differing only in the
+# network sections; it was strict in name only.
 #
 # This exists because an unresolvable profile label is WORSE than a strict one:
 # node-agent leaves such a container with NO profile at all (it does not fall
@@ -23,38 +30,27 @@ spec:
   capabilities: []
   execs:
   - path: /bin/sh
+  - path: /usr/bin/sh
   - path: /bin/dash
   - path: /usr/bin/dash
   - path: /bin/bash
+  - path: /usr/bin/bash
   - path: /usr/bin/env
+  - path: /bin/env
   - path: /usr/bin/cat
+  - path: /bin/cat
   - path: /usr/bin/grep
+  - path: /bin/grep
   - path: /usr/bin/sed
+  - path: /bin/sed
   - path: /usr/bin/awk
+  - path: /bin/awk
   - path: /usr/bin/id
+  - path: /bin/id
   - path: /usr/bin/mkdir
-  - path: /usr/bin/java
-  - path: /opt/java/⋯
-  - path: /usr/local/openjdk-⋯/bin/java
-  - path: /usr/local/bin/python
-  - path: /usr/local/bin/python3
-  - path: /usr/bin/python3
-  - path: /usr/local/bin/node
-  - path: /usr/bin/node
-  - path: /usr/local/bin/ruby
-  - path: /usr/local/bin/php
-  - path: /usr/bin/php
-  - path: /usr/bin/dotnet
-  - path: /usr/local/bin/uvicorn
-  - path: /usr/local/bin/gunicorn
-  - path: /app/⋯
-  - path: /usr/local/bin/⋯
-  - path: /srv/⋯
+  - path: /bin/mkdir
   opens:
-  - path: /app/⋯
-  - path: /srv/⋯
   - path: /opt/⋯
-  - path: /var/run/⋯
   - path: /var/log/⋯
   - path: /var/cache/⋯
   - path: /tmp/⋯
@@ -79,9 +75,6 @@ spec:
   - path: /usr/share/ca-certificates/⋯
   - path: /proc/⋯
   - path: /sys/⋯
-  - path: /config/⋯
-  - path: /etc/config/⋯
-  - path: /var/run/secrets/kubernetes.io/serviceaccount/⋯
   syscalls:
   - accept
   - accept4

@@ -30,16 +30,25 @@ spec:
   - CAP_SETUID
   execs:
   - path: /bin/sh
+  - path: /usr/bin/sh
   - path: /bin/dash
   - path: /usr/bin/dash
   - path: /bin/bash
+  - path: /usr/bin/bash
   - path: /usr/bin/env
+  - path: /bin/env
   - path: /usr/bin/id
+  - path: /bin/id
   - path: /usr/bin/chown
+  - path: /bin/chown
   - path: /usr/bin/mkdir
+  - path: /bin/mkdir
   - path: /usr/bin/gosu
+  - path: /bin/gosu
   - path: /usr/bin/su-exec
+  - path: /bin/su-exec
   - path: /usr/bin/java
+  - path: /bin/java
   - path: /opt/java/⋯
   - path: /opt/kafka/⋯
   - path: /opt/bitnami/kafka/⋯
@@ -51,12 +60,19 @@ spec:
   - path: /nats-server
   - path: /usr/local/bin/envoy
   - path: /usr/bin/envoy
+  - path: /bin/envoy
   - path: /usr/local/bin/redis-server
   - path: /usr/bin/haproxy
+  - path: /bin/haproxy
   - path: /usr/sbin/haproxy
+  - path: /sbin/haproxy
   - path: /app/⋯
   - path: /usr/local/bin/⋯
   opens:
+  - path: /run/rabbitmq/⋯
+  - path: /var/run/rabbitmq/⋯
+  - path: /run/envoy/⋯
+  - path: /var/run/envoy/⋯
   - path: /var/lib/⋯
   - path: /data/⋯
   - path: /bitnami/⋯
@@ -66,7 +82,6 @@ spec:
   - path: /etc/envoy/⋯
   - path: /etc/haproxy/⋯
   - path: /etc/nats/⋯
-  - path: /var/run/⋯
   - path: /var/log/⋯
   - path: /tmp/⋯
   - path: /dev/null

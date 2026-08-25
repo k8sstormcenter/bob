@@ -57,15 +57,23 @@ spec:
   execs:
     # entrypoint / init
     - path: /bin/sh
+    - path: /usr/bin/sh
     - path: /bin/dash
     - path: /usr/bin/dash
     - path: /bin/bash
+    - path: /usr/bin/bash
     - path: /usr/bin/env
+    - path: /bin/env
     - path: /usr/bin/id
+    - path: /bin/id
     - path: /usr/bin/chown
+    - path: /bin/chown
     - path: /usr/bin/mkdir
+    - path: /bin/mkdir
     - path: /usr/bin/gosu
+    - path: /bin/gosu
     - path: /usr/bin/su-exec
+    - path: /bin/su-exec
     - path: /usr/local/bin/docker-entrypoint.sh
     - path: /docker-entrypoint.sh
     # engine binaries — broad across the common DBs
@@ -73,17 +81,23 @@ spec:
     - path: /usr/local/bin/postgres
     - path: /usr/local/bin/initdb
     - path: /usr/sbin/mysqld
+    - path: /sbin/mysqld
     - path: /usr/sbin/mariadbd
+    - path: /sbin/mariadbd
     - path: /usr/bin/mongod
+    - path: /bin/mongod
     - path: /usr/local/bin/redis-server
     - path: /usr/local/bin/valkey-server
     - path: /usr/bin/keydb-server
+    - path: /bin/keydb-server
     - path: /usr/local/bin/dragonfly
     - path: /opt/cassandra/⋯
     - path: /usr/bin/clickhouse
+    - path: /bin/clickhouse
     - path: /usr/share/elasticsearch/⋯
     - path: /opt/couchdb/⋯
     - path: /usr/bin/influxd
+    - path: /bin/influxd
     - path: /var/lib/neo4j/⋯
     - path: /cockroach/⋯
     - path: /usr/local/bin/etcd
@@ -91,6 +105,12 @@ spec:
     - path: /opt/rabbitmq/⋯
 
   opens:
+    - path: /run/postgresql/⋯
+    - path: /var/run/postgresql/⋯
+    - path: /run/mysqld/⋯
+    - path: /var/run/mysqld/⋯
+    - path: /run/redis/⋯
+    - path: /var/run/redis/⋯
     # data + config + sockets
     - path: /var/lib/⋯
     - path: /data/⋯
@@ -101,7 +121,6 @@ spec:
     - path: /etc/mongod.conf
     - path: /etc/clickhouse-server/⋯
     - path: /etc/cassandra/⋯
-    - path: /var/run/⋯
     - path: /var/log/⋯
     - path: /tmp/⋯
     - path: /dev/null

@@ -40,38 +40,63 @@ spec:
   execs:
     # container entrypoint / init shell — unavoidable in most stock images
     - path: /bin/sh
+    - path: /usr/bin/sh
     - path: /bin/dash
     - path: /usr/bin/dash
     - path: /bin/bash
+    - path: /usr/bin/bash
     # coreutils used by entrypoint scripts (envsubst templating, perms, greps)
     - path: /usr/bin/env
+    - path: /bin/env
     - path: /usr/bin/cat
+    - path: /bin/cat
     - path: /usr/bin/grep
+    - path: /bin/grep
     - path: /usr/bin/sed
+    - path: /bin/sed
     - path: /usr/bin/awk
+    - path: /bin/awk
     - path: /usr/bin/mawk
+    - path: /bin/mawk
     - path: /usr/bin/cut
+    - path: /bin/cut
     - path: /usr/bin/sort
+    - path: /bin/sort
     - path: /usr/bin/find
+    - path: /bin/find
     - path: /usr/bin/touch
+    - path: /bin/touch
     - path: /usr/bin/envsubst
+    - path: /bin/envsubst
     - path: /usr/bin/id
+    - path: /bin/id
     - path: /usr/bin/mkdir
+    - path: /bin/mkdir
     - path: /usr/bin/chmod
+    - path: /bin/chmod
     # the actual servers people use
     - path: /usr/sbin/nginx
+    - path: /sbin/nginx
     - path: /usr/local/bin/nginx
     - path: /usr/bin/caddy
+    - path: /bin/caddy
     - path: /usr/sbin/httpd
+    - path: /sbin/httpd
     - path: /usr/local/bin/node
     - path: /usr/bin/node
+    - path: /bin/node
     - path: /usr/local/bin/deno
     - path: /usr/bin/bun
+    - path: /bin/bun
     # a compiled single-binary frontend (Go/Rust) usually lives here
     - path: /app/⋯
     - path: /usr/local/bin/⋯
 
   opens:
+    - path: /run/nginx.pid
+    - path: /var/run/nginx.pid
+    - path: /run/httpd/⋯
+    - path: /var/run/httpd/⋯
     # app + static assets
     - path: /app/⋯
     - path: /srv/⋯
@@ -84,7 +109,6 @@ spec:
     - path: /etc/apache2/⋯
     - path: /docker-entrypoint.d/⋯
     - path: /docker-entrypoint.sh
-    - path: /var/run/⋯
     - path: /var/cache/⋯
     - path: /var/log/⋯
     - path: /tmp/⋯
