@@ -272,7 +272,12 @@ kubescape-orig:
 #
 KS_POST_RENDER ?=
 KS_POST_RENDERER := ./kubescape/post-render.sh
-KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER)$(KS_RUNC_MNT),--post-renderer $(KS_POST_RENDERER))
+# KS_RUNC_MNT no longer implies the post-renderer — the mount is expressed as
+# --set above. The post-renderer stays available behind an explicit
+# KS_POST_RENDER opt-in and is off the critical path, where it kept breaking
+# across helm 3/4 (and currently cannot exec at all: post-render.sh has no
+# shebang).
+KS_POST_RENDER_FLAGS := $(if $(KS_POST_RENDER),--post-renderer $(KS_POST_RENDERER))
 
 # node-agent finds NEWLY STARTED containers by fanotify-marking the runc binary
 # (Inspektor Gadget's WithContainerFanotifyEbpf). IG only knows the stock paths
@@ -331,7 +336,12 @@ endif
 # implies is applied by $(KS_POST_RENDERER), which reads it from the
 # environment — hence the export.
 export KS_RUNC_MNT
-KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC))
+# node-agent's `host` volume is a NON-recursive bind of "/", so a runc on a
+# separate partition is invisible under /host, the fanotify mark fails, and the
+# agent sees no container starts at all. KS_RUNC_MNT hostPath-mounts it, as
+# --set rather than through the post-renderer.
+KS_RUNC_MNT_FLAGS := $(if $(KS_RUNC_MNT),--set volumes[0].name=ks-runc-mnt --set volumes[0].hostPath.path=$(KS_RUNC_MNT) --set volumes[0].hostPath.type=Directory --set volumeMounts[0].name=ks-runc-mnt --set volumeMounts[0].mountPath=/host$(KS_RUNC_MNT))
+KS_RUNC_FLAGS := $(if $(KS_RUNC),--set global.overrideRuntimePath=$(KS_RUNC) $(KS_RUNC_MNT_FLAGS))
 
 #
 KS_LEARN_PERIOD ?=

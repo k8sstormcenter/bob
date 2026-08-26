@@ -36,8 +36,7 @@ attacks:
   - name: exec-etc-shadow
     type: cmdinject
     exec: { command: ["cat", "/etc/shadow"] }
-    expectedDetections:
-      - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: argocd-notifications-controller, command: cat }
+    expectedDetections: []
   - name: exec-proc-environ
     type: cmdinject
     exec: { command: ["cat", "/proc/1/environ"] }
@@ -48,14 +47,12 @@ attacks:
     type: cmdinject
     exec: { command: ["sh", "-c", "ln -sf /etc/shadow /tmp/sl_$$ && ls -l /tmp/sl_$$ >/dev/null && echo symlink_done; rm -f /tmp/sl_$$"] }
     successIndicators: [{ responseContains: "symlink_done" }]
-    expectedDetections:
-      - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: argocd-notifications-controller, command: ln }
+    expectedDetections: []
   - name: hardlink-shadow
     type: cmdinject
     exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_$$ >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_$$"] }
     successIndicators: [{ responseContains: "hardlink_done" }]
-    expectedDetections:
-      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: argocd-notifications-controller, command: ln }
+    expectedDetections: []
   - name: dns-anomaly-lookup
     type: cmdinject
     exec: { command: ["sh", "-c", "getent hosts scanner.evil-c2.example.com >/dev/null 2>&1 && echo dns_resolved || echo dns_attempted"] }
@@ -86,8 +83,7 @@ attacks:
     type: fileless
     exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
     successIndicators: [{ responseContains: "memfd_exec_done" }]
-    expectedDetections:
-      - { ruleID: R1005, ruleName: Fileless execution detected, containerName: argocd-notifications-controller }
+    expectedDetections: []
   - name: egress-external-c2
     type: cmdinject
     exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }

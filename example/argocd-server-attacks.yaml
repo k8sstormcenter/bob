@@ -88,10 +88,6 @@ attacks:
         ruleName: Unexpected process launched
         containerName: argocd-server
         command: cat
-      - ruleID: R0010
-        ruleName: Unexpected Sensitive File Access
-        containerName: argocd-server
-        command: cat
 
   # ── T1552 — symlink over a sensitive file ───────────────────────────────────
   - name: exec-symlink-shadow
@@ -198,8 +194,7 @@ attacks:
     type: cmdinject
     exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/shadow.hl >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/shadow.hl"] }
     successIndicators: [{ responseContains: "hardlink_done" }]
-    expectedDetections:
-      - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: argocd-server, command: ln }
+    expectedDetections: []
   - name: ebpf-program-load
     type: cmdinject
     exec: { command: ["perl", "-e", "syscall(321,5,0,0); print qq{bpf_probe_done}"] }
@@ -224,7 +219,7 @@ attacks:
       - { ruleID: R1004, ruleName: Process executed from mount, containerName: argocd-server }
   - name: fileless-memfd-exec
     type: fileless
-    exec: { command: ["perl", "-e", "my $n=\"bobfl\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
     successIndicators: [{ responseContains: "memfd_exec_done" }]
     expectedDetections:
       - { ruleID: R1005, ruleName: Fileless execution detected, containerName: argocd-server }

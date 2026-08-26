@@ -6,126 +6,101 @@ metadata:
   annotations: {kubescape.io/managed-by: User}
 spec:
   architectures: [amd64]
+  matchLabels: {app.kubernetes.io/name: argocd-application-controller}
   execs:
   - path: /usr/bin/tini
-    args: [/usr/bin/tini, ⋯⋯]
+    args: [/usr/bin/tini, --, /usr/local/bin/argocd-application-controller]
   - path: /usr/local/bin/argocd
-    args: [/usr/local/bin/argocd-application-controller, ⋯⋯]
+    args: [/usr/local/bin/argocd-application-controller]
   opens:
-  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
-    path: /dev/shm/⋯
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/apache/mime.types
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/apache2/mime.types
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/hosts
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/httpd/conf/mime.types
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/ld.so.cache
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/mime.types
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/nsswitch.conf
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/passwd
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /etc/resolv.conf
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/FETCH_HEAD
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/HEAD
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/remotes/origin/crenshaw-dev-patch-1
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/remotes/origin/master
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/remotes/origin/wanghong230-patch-1
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags/bg-deploy-v0.1
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags/bg-deploy-v0.2
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags/bg-guestbook-v0.1
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags/bg-guestbook-v0.2
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags/guestbook-v0.1
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags/guestbook-v0.2
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags/pre-post-sync-v0.1
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /git/refs/tags/pre-post-sync-v0.2
-  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
-    path: /home/argocd/.kube/cache/*
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /home/argocd/.kube/config
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯/limits
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯/net/core/somaxconn
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /proc/⋯/stat
-  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
-    path: /proc/⋯/task/1/fd
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
-  - flags: [O_RDONLY]
-    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /usr/lib/x86_64-linux-gnu/libc.so.6
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /usr/local/bin/argocd
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /usr/local/share/mime/globs2
-  - flags: [O_CLOEXEC, O_RDONLY]
-    path: /usr/share/mime/globs2
-  - flags: [O_RDONLY]
-    path: /usr/share/zoneinfo/Etc/UTC
+  - path: /dev/shm/⋯
+    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY]
+  - path: /etc/apache/mime.types
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/apache2/mime.types
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/hosts
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/httpd/conf/mime.types
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/ld.so.cache
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/mime.types
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/nsswitch.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/passwd
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/resolv.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /home/argocd/.kube/cache/*
+    flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR]
+  - path: /home/argocd/.kube/config
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/limits
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/net/core/somaxconn
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/stat
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /proc/⋯/task/⋯/fd
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/*
+    flags: [O_RDONLY]
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libc.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/local/bin/argocd
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/local/share/mime/globs2
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/share/mime/globs2
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/share/zoneinfo/Etc/UTC
+    flags: [O_RDONLY]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
-  endpoints:
-  - direction: inbound
-    endpoint: :8082/healthz
-    headers:
-      Connection: [close]
-      Host: ['*:8082']
-    internal: true
-    methods: [GET]
-  - direction: inbound
-    endpoint: :6443/metrics
-    headers:
-      Accept-Encoding: [gzip]
-      Host: ['*:6443']
-    internal: true
-    methods: [GET]
   rulePolicies:
     R0002:
       processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
     R0004:
       processAllowed: ['runc:[1:INIT]', 'runc:[1:CHILD]', 'runc:[2:INIT]', 'runc:[3:INIT]']
     R0006:
-      processAllowed: [tini, argocd-applicat]
-  matchLabels: {app.kubernetes.io/name: argocd-application-controller}
+      processAllowed: [argocd-applicat]
+  endpoints:
+  - direction: inbound
+    endpoint: :8082/healthz
+    headers:
+      Connection: [close]
+      Host: ['10.42.0.196:8082']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :6443/metrics
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['127.0.0.1:6443']
+    internal: true
+    methods: [GET]
   ingress:
-  - identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
-    namespaceSelector: null
-    podSelector: null
+  - identifier: kubelet-probes
+    type: internal
+    entity: host
     ports:
     - {name: TCP-8082, port: 8082, protocol: TCP}
-    type: external
-    ipAddresses: [10.42.0.0/16, 10.244.0.0/16]
   egress:
-  - identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+  - dns: ''
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: default}
     podSelector:
@@ -133,15 +108,20 @@ spec:
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
     type: internal
-    ipAddresses: [10.43.0.0/16, 10.96.0.0/12]
-  - identifier: 760ff312ee1dc2fb28f74beb6f89fd37143fc11476e33af1541f9426b37945a2
+  - dns: ''
+    dnsNames: null
+    identifier: 760ff312ee1dc2fb28f74beb6f89fd37143fc11476e33af1541f9426b37945a2
+    ipAddress: ''
     namespaceSelector: null
     podSelector:
       matchLabels: {app.kubernetes.io/name: argocd-redis}
     ports:
     - {name: TCP-6379, port: 6379, protocol: TCP}
     type: internal
-  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+  - dns: ''
+    dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    ipAddress: ''
     namespaceSelector:
       matchLabels: {kubernetes.io/metadata.name: kube-system}
     podSelector:
@@ -149,7 +129,10 @@ spec:
     ports:
     - {name: UDP-53, port: 53, protocol: UDP}
     type: internal
-  - identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
+  - dns: ''
+    dnsNames: null
+    identifier: 75c91e0bdb3e8b695c7f2184c070f716e3e511035fa875b25184bd360ca13706
+    ipAddress: ''
     namespaceSelector: null
     podSelector:
       matchLabels: {app.kubernetes.io/name: argocd-repo-server}
