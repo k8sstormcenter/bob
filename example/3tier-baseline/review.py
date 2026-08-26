@@ -22,14 +22,25 @@ KS_NS = "honey"
 # frontend calling some external API — both surface as R0011 on tier=frontend.
 DB_PORTS = {"5432","3306","27017","6379","9042","9200","8123","5984","8086","7687","26257","11211"}
 
-# Runtime rules that can actually raise an alert. Rules with isTriggerAlert:false are
-# evaluated by node-agent but never surface on their own, so an ADR must not depend on
-# them. R0004 (capabilities) and R0007 (unexpected API use) are the notable casualties.
-SILENT_RULES = {
-    "R0004": "Linux Capabilities Anomalies — isTriggerAlert:false, never alerts on its own",
-    "R0007": "Workload uses Kubernetes API unexpectedly — isTriggerAlert:false",
-    "R1009": "Crypto Mining Related Port Communication — isTriggerAlert:false",
-    "R1016": "Signed profile tampered — isTriggerAlert:false",
+# Rules that are evaluated and DO alert, but never appear in node-agent's stdout.
+# They reach alertmanager normally and carry full detail there.
+#
+# This list used to be called "rules that never alert", on the strength of grepping
+# `kubectl logs` and finding zero R0004 across a cluster of root-entrypoint images.
+# That was wrong. R0004 fires: measured 6 events on a stock nginx frontend naming
+# CAP_SETPCAP, CAP_SYS_ADMIN and CAP_SETUID — the privilege-drop set — all present in
+# alertmanager and all absent from stdout (0 by RuleID, 0 by rule name, 0 by message
+# text, while R0002 showed 19 in the same window).
+#
+# The reason stdout omits them is not established here; `IsTriggerAlert` is carried as
+# a field on the exported alert payload (exporters/http_exporter.go) and the stdout
+# exporter applies no filter on it. What matters operationally is the consequence:
+# READ ALERTMANAGER, NOT kubectl logs. A log-based reviewer under-reports silently.
+LOG_INVISIBLE_RULES = {
+    "R0004": "Linux Capabilities Anomalies — alerts, but not via node-agent stdout",
+    "R0007": "Workload uses Kubernetes API unexpectedly — same",
+    "R1009": "Crypto Mining Related Port Communication — same",
+    "R1016": "Signed profile tampered — same",
 }
 
 # (rule, tier) -> ADR. tier None means the mapping holds for any tier.
@@ -387,8 +398,8 @@ def main():
             "needs_a_decision": sum(1 for f in st if f["needs_decision"]),
             "remove": sum(1 for f in st if f["action"] == "remove"),
         },
-        "not_checked_at_runtime": [
-            {"rule": k, "why": v} for k, v in SILENT_RULES.items()
+        "not_visible_in_node_agent_logs": [
+            {"rule": k, "why": v} for k, v in LOG_INVISIBLE_RULES.items()
         ],
         "how_to_read_this": {
             "observed": "the detector saw this happen. The evidence field is the actual "
@@ -460,8 +471,8 @@ def main():
             print(f"     [{f['severity']:<6}] {f['path']}")
             print(f"              {', '.join(f['affected'])}   ({f['control']})")
 
-    print("\n\n═══ BLIND SPOTS — cannot be observed in this configuration " + "═" * 11)
-    for k, v in SILENT_RULES.items():
+    print("\n\n═══ ALERT, BUT NOT VIA kubectl logs — read alertmanager " + "═" * 13)
+    for k, v in LOG_INVISIBLE_RULES.items():
         print(f"   {k}  {v}")
     print()
 

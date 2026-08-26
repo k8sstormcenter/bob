@@ -103,21 +103,22 @@ catches the first, only runtime catches the second.
 | [0003](0003-no-cluster-credentials-in-presentation-tier.md) | the presentation tier holds no cluster credentials | **runtime** R0006 + **static** C-0034 | the token path that was read |
 | [0004](0004-images-are-immutable-at-runtime.md) | no package installation after build | **runtime** R0001 | the binary that was executed |
 | [0005](0005-every-workload-declares-its-tier.md) | an unlabelled workload is quarantined, not trusted | **admission** Kyverno | the tier assigned and on what evidence |
-| [0006](0006-workloads-run-as-non-root.md) | containers do not run as root | **static only** — see the ADR | the manifest field, not a runtime event |
+| [0006](0006-workloads-run-as-non-root.md) | containers do not run as root | **runtime** R0004 + **static** C-0013/16/17/46 | the capability used, and the manifest field |
 | [0007](0007-detection-must-not-be-self-disabling.md) | profiles may not wildcard above sensitive paths | **review** of the profile itself | the offending allowlist entry |
 
 ## One honest limitation, stated up front
 
-ADR-0006 is **static-only**, and not by choice. The runtime rule that would confirm it,
-`R0004 Linux Capabilities Anomalies`, ships with `isTriggerAlert: false` — it is evaluated and
-enriches other findings, but it never raises an alert by itself. Verified empirically: across 60
-minutes on a cluster full of root-entrypoint stock images, R0004 fired **zero** times.
+Four rules — `R0004`, `R0007`, `R1009`, `R1016` — alert normally but never appear in node-agent's
+**stdout**. They are in alertmanager with full detail. Anything built on `kubectl logs` therefore
+under-reports silently: it returns a shorter list, not an error.
 
-So capability usage cannot be part of the runtime feedback loop as configured. Do not write an ADR
-that depends on it and assume runtime will catch the violation — it will not. ADR-0006 is checked
-against the manifest instead, and the report says so rather than implying runtime coverage it does
-not have.
+This cost a wrong conclusion during development. R0004 was recorded here as "never alerts",
+measured by grepping logs across a cluster of root-entrypoint images. It does alert — six events
+on a stock nginx naming `CAP_SETPCAP`, `CAP_SYS_ADMIN`, `CAP_SETUID`. The measurement was real and
+the conclusion was wrong, because the source was incomplete.
 
-The same applies to `R0007 Workload uses Kubernetes API unexpectedly`, which is also
-`isTriggerAlert: false`. Both are listed in the report's `not_checked_at_runtime` section so the
-consuming agent knows exactly what was and was not observed.
+`review.py` reads alertmanager for this reason and lists the four under
+`not_visible_in_node_agent_logs`, so a consuming agent knows which view it is looking at.
+
+The general rule this directory now follows: **a "nothing found" is a claim, and needs a second
+source before it goes in a report.**

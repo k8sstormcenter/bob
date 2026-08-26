@@ -1,6 +1,6 @@
-# ADR-0006 — Workloads run as non-root — and why this one is static-only
+# ADR-0006 — Workloads run as non-root
 
-**Status:** accepted, with a stated verification gap
+**Status:** accepted — verified at runtime and statically
 **Applies to:** every tier
 
 ## Context
@@ -29,27 +29,35 @@ a read-only root filesystem. Where a rootless image variant exists, use it.
 
 ## Verified by
 
-**Static only** — kubescape controls `C-0013` (non-root containers), `C-0016` (privilege
-escalation), `C-0017` (immutable filesystem), `C-0046` (insecure capabilities).
+**Runtime** — `R0004 Linux Capabilities Anomalies`, severity 1. Observed on a stock `nginx`
+frontend bound to a `capabilities: []` profile:
 
-### The gap, stated plainly
+```
+Unexpected capability used: CAP_SETPCAP  in syscall read with PID 135767
+Unexpected capability used: CAP_SYS_ADMIN in syscall read with PID 135767
+Unexpected capability used: CAP_SETUID   in syscall read with PID 135767
+```
 
-The runtime rule that would confirm this decision — `R0004 Linux Capabilities Anomalies` — ships
-with **`isTriggerAlert: false`**. It is enabled and evaluated, and it enriches other findings, but
-it never raises an alert on its own.
+**Static** — kubescape controls `C-0013` (non-root), `C-0016` (privilege escalation),
+`C-0017` (immutable filesystem), `C-0046` (insecure capabilities).
 
-This was verified rather than assumed. Across a 60-minute window on a cluster running stock
-`nginx`, `postgres`, `redis`, `busybox`, kyverno and kubescape's own components — all of them
-root-entrypoint images, against tier profiles declaring `capabilities: []` — **R0004 fired zero
-times.** The only runtime rule that fired at all in that window was R0002.
+### R0004 is invisible in `kubectl logs`
 
-So a tier profile's `capabilities` list does not produce feedback as configured. It still documents
-intent, and it still enriches other alerts, but an ADR must not depend on it for detection.
+The six events above are in alertmanager. In the same window node-agent's stdout contained
+**zero** R0004 — zero by RuleID, zero by rule name, zero by message text — while R0002 appeared
+19 times. `R0007`, `R1009` and `R1016` behave the same way.
 
-There is a second, independent reason not to lean on it even if it did alert: capability use
-happens during container *initialisation*, which is the window where the profile is not yet
-enforcing (see [ADR-0005](0005-every-workload-declares-its-tier.md) on warm-up). The
-drop-privileges pattern would be systematically missed regardless.
+These four carry `isTriggerAlert: false`, but that is a field on the exported alert payload
+(`pkg/exporters/http_exporter.go`), not a switch that suppresses it; the stdout exporter applies
+no filter on it. The cause of the stdout omission is not established here. The consequence is:
+**read alertmanager.** `review.py` does, and lists these four under
+`not_visible_in_node_agent_logs` so a reader knows the log view is short.
+
+> **This ADR previously said capability posture was static-only**, on the strength of grepping
+> `kubectl logs` for R0004 across a cluster of root-entrypoint images and finding nothing. The
+> measurement was real; the conclusion was wrong, because the evidence source was incomplete —
+> the same incompleteness already documented for `R0006` elsewhere in this directory, and not
+> applied here. A control that works, recorded as missing, is the more expensive error of the two.
 
 ## Evidence emitted
 

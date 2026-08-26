@@ -112,28 +112,41 @@ The database tier keeps only the privilege-drop set (`CHOWN`, `DAC_OVERRIDE`, `F
 `SETUID`) plus `IPC_LOCK` for Redis-family memory locking — without those, mainstream images cannot
 start at all. Frontend and backend are `capabilities: []`.
 
-### But do not expect a capability alert
+### The capability alert is real — but you will not see it in `kubectl logs`
 
-`R0004 Linux Capabilities Anomalies` ships with **`isTriggerAlert: false`**. It is enabled and
-evaluated, and it enriches other findings, but it **never raises an alert on its own**.
+Stock `nginx` does trip `R0004` against `capabilities: []`. Measured on the frontend pod:
 
-Verified, not assumed: across a 60-minute window on a cluster running stock `nginx`, `postgres`,
-`redis`, `busybox`, kyverno and kubescape's own components — every one a root-entrypoint image,
-against profiles declaring `capabilities: []` — R0004 fired **zero** times. The only runtime rule
-that fired at all in that window was R0002.
-
-```bash
-# check for yourself
-kubectl get rules.kubescape.io -n honey default-rules -o json \
-  | jq '.spec.rules[] | select(.id=="R0004") | {id,enabled,isTriggerAlert}'
+```
+Unexpected capability used: CAP_SETPCAP in syscall read with PID 135767
+Unexpected capability used: CAP_SYS_ADMIN in syscall read with PID 135767
+Unexpected capability used: CAP_SETUID in syscall read with PID 135767
 ```
 
-So the `capabilities` list documents intent and enriches other alerts, but it produces no feedback
-of its own. Capability posture is checked **statically** instead — kubescape controls `C-0013`,
-`C-0016`, `C-0017`, `C-0046` — and [`adr/0006`](adr/0006-workloads-run-as-non-root.md) states that
-verification gap rather than implying runtime coverage that does not exist.
+Exactly the privilege-drop set the table above predicts, because the image starts as root and
+drops. The fix is the non-root variant, not a wider profile.
 
-`R0007 Workload uses Kubernetes API unexpectedly` is `isTriggerAlert: false` for the same reason.
+**But those six events appear only in alertmanager.** In the same window, node-agent's stdout
+contained zero R0004 — zero by RuleID, zero by rule name, zero by message text — while R0002
+appeared 19 times.
+
+```bash
+# this finds nothing, and proves nothing
+kubectl logs -n honey -l app.kubernetes.io/component=node-agent -c node-agent | grep R0004
+
+# this is the real view
+kubectl -n honey port-forward svc/alertmanager 9093:9093 &
+curl -s localhost:9093/api/v2/alerts | jq -r '.[].labels.rule_id' | sort | uniq -c
+```
+
+`R0004`, `R0007`, `R1009` and `R1016` carry `isTriggerAlert: false`. That flag is a field on the
+exported alert payload, not a switch that stops the alert — the stdout exporter applies no filter
+on it, and why stdout omits these rules is not established here. The operational consequence is
+what matters: **`kubectl logs` is not a complete view of alerts.** `review.py` reads alertmanager
+for exactly this reason, and lists these four under `not_visible_in_node_agent_logs`.
+
+An earlier revision of this file claimed R0004 "never alerts on its own", concluded from grepping
+logs. That was wrong, and it was wrong in the most expensive way: a control that works, reported
+as absent.
 
 ## One design decision worth knowing
 

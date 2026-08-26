@@ -262,39 +262,49 @@ crane config cgr.dev/chainguard/nginx:latest | jq '.config.User, .config.Entrypo
 Stock nginx runs as root and drops privileges, which is why it needs `CHOWN`, `SETUID` and
 `SETGID`. `tier-frontend` declares `capabilities: []`. So you would expect an alert.
 
-**Check whether you got one:**
+**Check whether you got one — the way most people would:**
 
 ```bash
 kubectl logs -n honey -l app.kubernetes.io/component=node-agent -c node-agent --since=30m \
   | grep -c R0004
 ```
 
-You will get `0`. Now look at why:
+You will get `0`. **Do not stop here.** Now ask alertmanager the same question:
 
 ```bash
-kubectl get rules.kubescape.io -n honey default-rules -o json \
-  | jq '.spec.rules[] | select(.id=="R0004") | {id,enabled,isTriggerAlert}'
+kubectl -n honey port-forward svc/alertmanager 9093:9093 &
+curl -s localhost:9093/api/v2/alerts \
+  | jq -r '.[] | select(.labels.rule_id=="R0004") | .annotations.message'
 ```
 
-```json
-{ "id": "R0004", "enabled": true, "isTriggerAlert": false }
+```
+Unexpected capability used: CAP_SETPCAP in syscall read with PID 135767
+Unexpected capability used: CAP_SYS_ADMIN in syscall read with PID 135767
+Unexpected capability used: CAP_SETUID in syscall read with PID 135767
 ```
 
-`R0004` is enabled and evaluated — and it never raises an alert by itself. The profile's
-`capabilities` list documents intent and enriches other findings, but it produces no feedback.
-`R0007 Workload uses Kubernetes API unexpectedly` is the same.
+The alert was there the whole time. `CAP_SETPCAP`, `CAP_SYS_ADMIN`, `CAP_SETUID` — precisely the
+set stock nginx needs *because* it starts as root and drops. The fix is the non-root image.
 
-**This is the most useful thing in the lab.** A control you believe is running, that is switched
-on, that quietly reports nothing, is worse than one you know you do not have — because you will
-write a policy that depends on it. Capability posture must be checked *statically*
-(`kubescape scan framework NSA` → `C-0013`, `C-0016`, `C-0017`, `C-0046`).
+**This is the most useful thing in the lab, and it is not the thing you expected.** Two sources
+that both look authoritative disagree, and the one that is easiest to reach is the one that is
+incomplete. A tool built on `kubectl logs` under-reports and never says so — it returns a shorter
+list, not an error.
 
 ```bash
+# these four alert normally but do not appear in node-agent stdout
 kubectl get rules.kubescape.io -n honey default-rules -o json \
   | jq -r '.spec.rules[] | select(.enabled and (.isTriggerAlert|not)) | .id + "  " + .name'
 ```
 
-Everything that command lists is a blind spot. Know them before you rely on them.
+`isTriggerAlert` is a field carried on the exported alert, not a switch that suppresses it — the
+stdout exporter applies no filter on it. Why stdout omits these rules is left as an open question;
+what you need to take away is the habit: **verify a "nothing found" against a second source before
+believing it.**
+
+> This lab previously taught that R0004 never fires, on the strength of that `grep -c` returning
+> zero. That was wrong, and it is exactly the mistake the task now exists to inoculate you
+> against.
 
 ---
 
