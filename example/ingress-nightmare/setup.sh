@@ -25,14 +25,23 @@ echo "### vulnerable ingress-nginx v1.11.0"
 kubectl apply -f "https://raw.githubusercontent.com/kubernetes/ingress-nginx/$VER/deploy/static/provider/cloud/deploy.yaml"
 kubectl -n "$NS" rollout status deploy/ingress-nginx-controller --timeout=180s
 
-echo "### learn controller profile"
-kubectl -n "$NS" rollout restart deploy/ingress-nginx-controller
-kubectl -n "$NS" rollout status deploy/ingress-nginx-controller --timeout=120s
-until kubectl -n "$NS" get "$CP" -o jsonpath='{.items[0].metadata.annotations.kubescape\.io/status}' 2>/dev/null | grep -q completed; do sleep 10; done
+# The SBoB is authored, not learned. Learning it here signed whatever that one
+# run happened to capture, so the signed contract differed every time and
+# depended on how much traffic the controller had seen. cp-ingress-base.yaml is
+# the recorded-and-generalised profile: 4 execs, 80 opens, network declared.
+# Set LEARN=1 to re-record instead of using it.
+echo "### SBoB: authored (LEARN=1 to record a fresh one instead)"
+if [ "${LEARN:-0}" = "1" ]; then
+  kubectl -n "$NS" rollout restart deploy/ingress-nginx-controller
+  kubectl -n "$NS" rollout status deploy/ingress-nginx-controller --timeout=120s
+  until kubectl -n "$NS" get "$CP" -o jsonpath='{.items[0].metadata.annotations.kubescape\.io/status}' 2>/dev/null | grep -q completed; do sleep 10; done
+  N=$(kubectl -n "$NS" get "$CP" -o jsonpath='{.items[0].metadata.name}')
+  kubectl -n "$NS" get "$CP" "$N" -o json | python3 "$HERE/hack/cp-to-fragment.py" > "$HERE/frag-base-ingress.yaml"
+else
+  python3 "$HERE/hack/cp-to-fragment.py" < "$HERE/cp-ingress-base.yaml" > "$HERE/frag-base-ingress.yaml"
+fi
 
 echo "### sign the SBoB (vendor key)"
-N=$(kubectl -n "$NS" get "$CP" -o jsonpath='{.items[0].metadata.name}')
-kubectl -n "$NS" get "$CP" "$N" -o json | python3 "$HERE/hack/cp-to-fragment.py" > "$HERE/frag-base-ingress.yaml"
 [ -x "$SB/sign-object" ] || { curl -fsSL -o "$SB/sign-object" https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.6/sign-object-linux-amd64 && chmod +x "$SB/sign-object"; }
 SIGN_OBJECT="$SB/sign-object" "$SB/sign-fragment.sh" "$HERE/frag-base-ingress.yaml" "$SB/keys/vendor.pem"
 

@@ -32,19 +32,23 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --prefix=false |
 
 Expect `signed bundle overlays enabled in alert mode`. The chart's `excludeNamespaces` lists `ingress-nginx`; drop it so node-agent watches the controller (setup.sh patches the node-agent ConfigMap and restarts the DaemonSet).
 
-## 3. Vulnerable ingress-nginx + learned profile
+## 3. Vulnerable ingress-nginx
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.0/deploy/static/provider/cloud/deploy.yaml
 kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller --timeout=180s
 ```
 
-Restart the controller so node-agent learns it; wait for the ContainerProfile to reach `completed`.
-
 ## 4. Sign the SBoB and bind it
 
+The SBoB is **authored, not learned**: `cp-ingress-base.yaml` in this directory
+is the profile that gets signed. 4 execs, 80 opens, with ingress and egress
+declared rather than recorded.
+
 ```
-example/ingress-nightmare/hack/cp-to-fragment.py < learned-cp.json > example/ingress-nightmare/frag-base-ingress.yaml
+python3 example/ingress-nightmare/hack/cp-to-fragment.py \
+  < example/ingress-nightmare/cp-ingress-base.yaml \
+  > example/ingress-nightmare/frag-base-ingress.yaml
 example/redis/distros/signed-bundles/sign-fragment.sh example/ingress-nightmare/frag-base-ingress.yaml example/redis/distros/signed-bundles/keys/vendor.pem
 kubectl -n ingress-nginx patch deploy ingress-nginx-controller --type merge -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"ingress-base"}}}}}'
 ```
@@ -55,6 +59,35 @@ node-agent verifies + adopts the signed profile (observed):
 Successfully verified object signature   namespace=ingress-nginx name=ingress-base identity=local-key issuer=local
 adopted user-authored ContainerProfile as authoritative base   namespace=ingress-nginx name=ingress-base
 ```
+
+### Why authored rather than learned
+
+Learning the profile here signed whatever that one run happened to capture, so
+the signed contract changed every time and depended on how much traffic the
+controller had seen before the window closed. A signature over a moving target
+pins nothing. `setup.sh LEARN=1` still records a fresh one if you want to
+compare.
+
+Two things in the authored profile cannot be learned at all:
+
+- **The network shape.** The only ingress peer a recording observes is whatever
+  client happened to send traffic — in the run this was captured from, that was
+  the load generator, so the learned profile admitted `run: ing-load` and
+  nothing else. An ingress controller is reached by ANY client, so 80/443 are
+  declared open deliberately. 8443 is the admission webhook, 10254 the kubelet
+  probe (`entity: host` — the node carries no pod identity, so no selector can
+  match it), and the apiserver and kube-dns are named rather than addressed.
+
+- **`rulePolicies.R0006`.** R0006 is gated on the READING COMM, not on the path:
+  declaring the projected token as an open does not silence it. The controller
+  reads its own token to talk to the apiserver, so `nginx-ingress-c` is allowed
+  — and that is what makes the exploit's `cat` of the same file stand out.
+
+`/proc` and `/run/secrets` are left literal on purpose. nginx's read-only lua
+and vendor trees collapse to wildcards (344 raw opens down to 80), but the paths
+the exploit touches stay visible, which is the whole detection.
+
+Bound and measured: **0 false positives** across a benign traffic run.
 
 ## 5. Attack — IngressNightmare
 
@@ -78,6 +111,13 @@ R0012  Unexpected Ingress Network Traffic ... to: controller
 ```
 
 `R0002` on `nginx -> /proc/<pid>/fd/<n>` is the IngressNightmare signature — the malicious shared library loaded from `/proc` during `nginx -t`. The injected `nginx-cfg` temp files and the out-of-baseline traffic corroborate.
+
+Reproducing the exploit's runtime signature by hand against the authored SBoB
+(reads of `/proc/<pid>/fd`, the projected token and `/etc/shadow`) raised **11
+alerts across 5 rules**: R0006 on the token read, R0010 on `/etc/shadow`, R0002
+on the `/proc` reads, plus R0040 and R0004. The R0006 there is the comm-scoped
+policy doing its job — the controller reading its own token is silent, `cat`
+reading the same file is not.
 
 ## 7. Signature integrity
 
