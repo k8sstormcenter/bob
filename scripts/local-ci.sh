@@ -190,7 +190,7 @@ if ! $TUNE_ONLY; then
       2>/dev/null \
       | awk '$2 == "complete" || $3 == "completed" { print $1 }' \
       | grep -v "^ug-" | grep -v "^job-" \
-      | grep -vE -- '-[0-9a-f]{32}$' || true)
+      | grep -vE -- '-[0-9a-f]{32}(-|$)' || true)
     PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
