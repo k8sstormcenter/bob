@@ -14,7 +14,7 @@ carries the event that produced it — container, peer, path, rule ID. Nothing i
 emitted because it is generally good practice. If the detector did not see it, the
 report does not claim it, and says so explicitly in `not_checked_at_runtime`.
 """
-import argparse, collections, json, re, subprocess, sys
+import argparse, collections, datetime, json, re, subprocess, sys
 
 KS_NS = "honey"
 
@@ -61,6 +61,10 @@ ADR_MAP = {
                                "label the workload with app.kubernetes.io/tier so it gets a real profile"),
     ("R0012", "unclassified"):("ADR-0005", "an unclassified workload accepted a connection",
                                "label the workload with app.kubernetes.io/tier"),
+    ("R0004", None):          ("ADR-0006", "the container used a Linux capability, i.e. it starts as root and drops",
+                               "switch to the rootless/distroless image variant; this is an image choice, not a profile gap"),
+    ("R0001", "unclassified"):("ADR-0005", "an unclassified workload ran a process outside the quarantine baseline",
+                               "label the workload with app.kubernetes.io/tier so it gets a profile that fits it"),
     ("R0006", None):          ("ADR-0003", "the workload read its Kubernetes ServiceAccount token",
                                "set automountServiceAccountToken: false on the pod spec"),
     ("R0001", None):          ("ADR-0004", "a process ran that is not part of the image's declared behaviour",
@@ -83,6 +87,15 @@ CONTROL_MAP = {
 }
 
 
+def _ts(v):
+    """RFC3339 -> epoch seconds. Alertmanager and kubectl both emit Z-suffixed UTC."""
+    try:
+        return datetime.datetime.fromisoformat(
+            (v or "").replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return 0.0
+
+
 def sh(cmd):
     return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
 
@@ -96,15 +109,18 @@ def runtime_findings(ns, alerts):
     version of this function silently missed every R0006 in the namespace while
     alertmanager held three of them.
     """
-    pods = {}
+    pods, pod_start = {}, {}
     for line in sh(
         f"kubectl -n {ns} get pods -o jsonpath="
         "'{range .items[*]}{.status.podIP}{\" \"}{.metadata.name}{\" \"}"
-        "{.metadata.labels.app\\.kubernetes\\.io/tier}{\"\\n\"}{end}'"
+        "{.metadata.labels.app\\.kubernetes\\.io/tier}{\" \"}{.status.startTime}"
+        "{\"\\n\"}{end}'"
     ).splitlines():
         p = line.split()
-        if len(p) == 3:
-            pods[p[0]] = {"pod": p[1], "tier": p[2]}
+        if len(p) == 4:
+            pods[p[0]] = {"pod": p[1], "tier": p[2], "start": p[3]}
+            pod_start[p[1]] = _ts(p[3])
+    live = set(pod_start)
 
     seen, out = set(), []
     for a in alerts:
@@ -113,6 +129,20 @@ def runtime_findings(ns, alerts):
             continue
         rid = l.get("rule_id")
         pod = l.get("pod_name", "")
+
+        # (1) The pod must still exist. Alertmanager outlives the workloads it
+        # describes, so an alert from a deleted pod would otherwise be reported as a
+        # property of the code running now.
+        if pod not in live:
+            continue
+
+        # (2) The alert must postdate the pod it is attributed to. This is what makes
+        # "fix it and re-run" honest: without it, evidence from the previous revision
+        # survives into the next review and the agent is told its fix did not work.
+        started = a.get("startsAt")
+        if started and pod_start.get(pod) and _ts(started) < pod_start[pod]:
+            continue
+
         tier = None
         for meta in pods.values():
             if meta["pod"] == pod:
@@ -156,6 +186,53 @@ def runtime_findings(ns, alerts):
             "timestamp": a.get("startsAt"),
         })
     return out, pods
+
+
+def workload_health(ns):
+    """Containers that are not actually running.
+
+    This goes ABOVE every security finding, because the ordering is the feedback. An
+    agent told "your api container reaches pypi.org" while that container is in
+    CrashLoopBackOff will go and edit egress rules for a process that never stayed up.
+    The crash is the first fact about the workload; everything observed from a
+    container that keeps dying is partial by construction.
+    """
+    out = []
+    raw = sh(f"kubectl -n {ns} get pods -o json")
+    try:
+        items = json.loads(raw).get("items", [])
+    except Exception:
+        return out
+    for pod in items:
+        name = pod["metadata"]["name"]
+        for cs in pod.get("status", {}).get("containerStatuses", []) or []:
+            state = cs.get("state", {}) or {}
+            waiting = (state.get("waiting") or {}).get("reason")
+            term = (state.get("terminated") or {}).get("reason")
+            restarts = cs.get("restartCount", 0)
+            if waiting in ("CrashLoopBackOff", "ImagePullBackOff", "ErrImagePull",
+                           "CreateContainerError", "InvalidImageName"):
+                out.append({
+                    "workload": name, "container": cs.get("name"),
+                    "problem": waiting, "restarts": restarts,
+                    "detail": (state.get("waiting") or {}).get("message", "")[:200],
+                    "fix": "the container does not stay up — fix this before reading any "
+                           "finding below; evidence from a crashing container is partial",
+                })
+            elif term and term != "Completed":
+                out.append({
+                    "workload": name, "container": cs.get("name"),
+                    "problem": f"terminated: {term}", "restarts": restarts,
+                    "detail": (state.get("terminated") or {}).get("message", "")[:200],
+                    "fix": "the container exited unexpectedly — fix this first",
+                })
+            elif restarts >= 3 and not cs.get("ready"):
+                out.append({
+                    "workload": name, "container": cs.get("name"),
+                    "problem": "restarting", "restarts": restarts, "detail": "",
+                    "fix": "the container is not staying ready — fix this first",
+                })
+    return out
 
 
 def get_alerts(port):
@@ -219,6 +296,64 @@ def corroborate(findings, pods):
                 dropped.add(id(g))
                 break
     return [f for f in findings if id(f) not in dropped]
+
+
+def fold_external_egress(findings):
+    """One finding per outbound dependency, not one per resolved IP.
+
+    A single `pip install` produces an R0005 for pypi.org and an R0011 for every CDN
+    address the name resolves to — three, on this run. Reported separately that is
+    three "undeclared endpoints" plus a DNS anomaly, and an agent will go looking for
+    three dependencies. There is one.
+
+    So external egress is folded per (container, port): the peers become evidence on a
+    single finding, and if the same container also has a DNS anomaly its domain is
+    attached as the name of the thing being fetched. The count of addresses is kept —
+    it is the reason the fix is "declare or remove the dependency" rather than
+    "allow-list this IP", which would break the moment the CDN rotates.
+    """
+    domains = collections.defaultdict(list)
+    for f in findings:
+        if f.get("rule") == "R0005":
+            m = re.search(r"communication:\s*([^\s]+)", f.get("observed", ""))
+            if m:
+                domains[f.get("container")].append(m.group(1).rstrip("."))
+
+    groups, out = {}, []
+    for f in findings:
+        ext = (f.get("rule") == "R0011" and f.get("adr") == "ADR-0004")
+        if not ext:
+            out.append(f)
+            continue
+        ip, port = peer_of(f.get("observed", ""))
+        key = (f.get("container"), port)
+        if key in groups:
+            groups[key]["peers"].append(ip)
+            continue
+        f["peers"] = [ip]
+        names = sorted(set(domains.get(f.get("container"), [])))
+        if names:
+            f["resolves_to"] = names
+        groups[key] = f
+        out.append(f)
+
+    for f in out:
+        if not f.get("peers"):
+            continue
+        n = len(f["peers"])
+        if n > 1 or f.get("resolves_to"):
+            who = ", ".join(f["resolves_to"]) if f.get("resolves_to") else "one endpoint"
+            f["observed"] = (
+                f"{f['container']} reached {who} at "
+                f"{', '.join(sorted(set(f['peers'])))}"
+                + (f" — {n} addresses for the same dependency" if n > 1 else "")
+            )
+            f["fix"] = (
+                f"declare or remove the dependency on {who}. Do not allow-list the "
+                f"addresses: {n} of them appeared in one run and a CDN will rotate them."
+                if f.get("resolves_to") else f["fix"]
+            )
+    return out
 
 
 def dedupe(findings):
@@ -367,8 +502,9 @@ def main():
     a = ap.parse_args()
     a.since = "alertmanager retention"
 
+    health = workload_health(a.namespace)
     rt, pods = runtime_findings(a.namespace, get_alerts(a.port))
-    rt = dedupe(corroborate(rt, pods))
+    rt = fold_external_egress(dedupe(corroborate(rt, pods)))
     # Scope the scan to this app: its workloads plus the namespace object itself.
     # A cluster scan also fails on webhooks and cluster roles, which are the
     # platform's problem, not the app author's.
@@ -391,6 +527,7 @@ def main():
         "namespace": a.namespace,
         "window": a.since,
         "workloads": [{"pod": m["pod"], "ip": ip, "tier": m["tier"]} for ip, m in pods.items()],
+        "broken_before_anything_else": health,
         "act_on_these_first": rt,
         "manifest_actions": st,
         "manifest_summary": {
@@ -402,6 +539,10 @@ def main():
             {"rule": k, "why": v} for k, v in LOG_INVISIBLE_RULES.items()
         ],
         "how_to_read_this": {
+            "broken_before_anything_else":
+                "containers that are not running. Findings from a crashing container "
+                "are partial by construction, so fix these before acting on anything "
+                "else — otherwise you will tune rules for a process that never ran.",
             "observed": "the detector saw this happen. The evidence field is the actual "
                         "event: container, peer address, port, path. Fix these first — "
                         "they are proven, and re-running the review proves the fix.",
@@ -418,6 +559,16 @@ def main():
         print(f"wrote {a.json}")
 
     print(f"\n╔══ architecture review: {a.namespace} ══╗")
+    if health:
+        print(f"   {len(health)} container(s) not running — read this first\n")
+        print("═══ NOT RUNNING — fix before anything below " + "═" * 26)
+        for h in health:
+            print(f"\n   {h['workload']} [{h['container']}]  {h['problem']}"
+                  f"  restarts={h['restarts']}")
+            if h["detail"]:
+                print(f"     detail     {h['detail']}")
+            print(f"     why first  {h['fix']}")
+        print()
     print(f"   {len(pods)} workloads · {len(rt)} observed · {len(st)} manifest-only "
           f"· window {a.since}\n")
 

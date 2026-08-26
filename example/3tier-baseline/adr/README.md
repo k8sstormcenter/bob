@@ -25,6 +25,36 @@ can act, and can verify its own fix by re-running the check. Every finding this 
 the observed event that produced it. **No observation, no finding.** That rule is what keeps the
 report honest and is why the report is short.
 
+## What the report will not do
+
+Four things the reviewer deliberately refuses to do, each of which it did at some point
+during development and each of which produced feedback that was wrong rather than merely
+noisy:
+
+**Report a finding from a pod that no longer exists.** Alertmanager outlives the workloads
+it describes. Without a liveness filter, evidence from a deleted pod is presented as a
+property of the code running now — and after an agent fixes something and redeploys, the
+old evidence survives and tells it the fix did not work. Findings are filtered to pods that
+currently exist AND to alerts that postdate the pod they are attributed to. That pair is
+what makes "fix it and re-run" mean anything.
+
+**Bury a crashing container.** `broken_before_anything_else` comes first in both the text
+and the JSON. An agent told "your api container reaches pypi.org" while that container is
+in CrashLoopBackOff will go and edit egress rules for a process that never stayed up.
+Evidence from a container that keeps dying is partial by construction, and the report says
+so instead of ranking it alongside everything else.
+
+**Report one dependency as several.** A single `pip install` produced an R0005 for
+`pypi.org` and three R0011s, one per CDN address the name resolved to. Presented separately
+that is three undeclared endpoints. External egress is folded per (container, port), the
+addresses become evidence, and the DNS name becomes the subject — so the fix reads *declare
+or remove the dependency on pypi.org*, not *allow-list 151.101.64.223*, which would break
+the next time the CDN rotates.
+
+**Claim capability posture is unobservable.** `R0004` is mapped to ADR-0006 and reported
+from runtime evidence. It reached alertmanager all along; only the log view was short. See
+the limitation section below.
+
 ## Producing a verdict
 
 ```bash
