@@ -98,6 +98,17 @@ spec:
     internal: true
     methods: [GET]
   ingress:
+  - identifier: cluster-cidr-probes-scrapes
+    type: internal
+    entity: ''
+    dns: ''
+    dnsNames: []
+    ipAddress: ''
+    ipAddresses: [10.42.0.0/16, 10.43.0.0/16, 10.244.0.0/16, 10.96.0.0/12]
+    ports:
+    - {name: TCP-9440, port: 9440, protocol: TCP}
+    - {name: TCP-9090, port: 9090, protocol: TCP}
+    - {name: TCP-8080, port: 8080, protocol: TCP}
   - identifier: node-probes
     type: internal
     ipAddresses: [10.42.0.0/16]
@@ -116,6 +127,19 @@ spec:
     - {name: TCP-9090, port: 9090, protocol: TCP}
     type: external
   egress:
+  - identifier: cluster-cidr-egress
+    type: internal
+    entity: ''
+    dns: ''
+    dnsNames: []
+    ipAddress: ''
+    ipAddresses: [10.43.0.0/16, 10.96.0.0/12, 10.42.0.0/16, 10.244.0.0/16]
+    ports:
+    - {name: UDP-53, port: 53, protocol: UDP}
+    - {name: TCP-53, port: 53, protocol: TCP}
+    - {name: TCP-80, port: 80, protocol: TCP}
+    - {name: TCP-443, port: 443, protocol: TCP}
+    - {name: TCP-8080, port: 8080, protocol: TCP}
   - identifier: github-cdn-ranges
     type: external
     ipAddresses: [140.82.112.0/20, 185.199.108.0/22]
