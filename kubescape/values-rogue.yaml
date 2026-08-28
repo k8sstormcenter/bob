@@ -5,15 +5,15 @@
 #
 #   helm repo add k8sstormcenter https://k8sstormcenter.github.io/helm-charts
 #   helm upgrade --install kubescape k8sstormcenter/kubescape-operator \
-#     --version 1.40.3-rc-rogue -n honey --create-namespace -f values-rogue.yaml
+#     --version 1.40.4-rc-rogue3 -n honey --create-namespace -f values-rogue.yaml
 #
-# The chart already defaults both images to the rc-rogue pair below and grants
+# The chart already defaults both images to the rc-rogue3 pair below and grants
 # node-agent the rogueartifacts RBAC; the pins are repeated here so this file
 # fully describes the deployed stack on its own.
 nodeAgent:
   image:
     repository: ghcr.io/k8sstormcenter/node-agent
-    tag: "rc-rogue"
+    tag: "rc-rogue3"
   config:
     maxLearningPeriod: 2m
     learningPeriod: 2m
@@ -30,7 +30,7 @@ nodeAgent:
 storage:
   image:
     repository: ghcr.io/k8sstormcenter/storage
-    tag: "rc-rogue"
+    tag: "rc-rogue3"
 capabilities:
   runtimeDetection: enable
   networkEventsStreaming: enable
