@@ -1,0 +1,42 @@
+# rc-rogue release stack: reconcilable R1017 rogue states with discoverable
+# RogueArtifacts, signed-profile lifecycle (bundles, enforce mode, in-place
+# heal), network-v2 R0011/R0012 selector engine, and the storage duress
+# hardening (write gate, atomic commit sections).
+#
+#   helm repo add k8sstormcenter https://k8sstormcenter.github.io/helm-charts
+#   helm upgrade --install kubescape k8sstormcenter/kubescape-operator \
+#     --version 1.40.3-rc-rogue -n honey --create-namespace -f values-rogue.yaml
+#
+# The chart already defaults both images to the rc-rogue pair below and grants
+# node-agent the rogueartifacts RBAC; the pins are repeated here so this file
+# fully describes the deployed stack on its own.
+nodeAgent:
+  image:
+    repository: ghcr.io/k8sstormcenter/node-agent
+    tag: "rc-rogue"
+  config:
+    maxLearningPeriod: 2m
+    learningPeriod: 2m
+    updatePeriod: 10000m
+    ruleCooldown:
+      ruleCooldownDuration: 0h
+      ruleCooldownAfterCount: 1000000000
+      ruleCooldownOnProfileFailure: false
+      ruleCooldownMaxSize: 20000
+    # Node/host peers are allowlisted by default in this stack (kubelet probes
+    # and hostNetwork clients no longer raise R0012). Set to true to restore
+    # alerting on host-origin traffic.
+    # alertOnHostPeers: true
+storage:
+  image:
+    repository: ghcr.io/k8sstormcenter/storage
+    tag: "rc-rogue"
+capabilities:
+  runtimeDetection: enable
+  networkEventsStreaming: enable
+alertCRD:
+  installDefault: true
+  scopeClustered: true
+clusterName: rogue-rc
+ksNamespace: honey
+excludeNamespaces: "kubescape,kube-system,kube-public,kube-node-lease,local-path-storage,gmp-system,gmp-public,storm,lightening,cert-manager,kube-flannel,ingress-nginx,olm,px-operator,honey,pl,clickhouse,chain-loadgen"
