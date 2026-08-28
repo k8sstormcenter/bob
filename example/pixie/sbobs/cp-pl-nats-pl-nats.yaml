@@ -1,0 +1,161 @@
+# SBoB for pl-nats/pl-nats — generalised from a recorded ContainerProfile.
+# opens 13 -> 11 after collapse+portability.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: pl-nats-pl-nats
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+spec:
+  execs:
+  - path: /nats-server
+  opens:
+  - path: /etc/⋯
+  - path: /etc/⋯/⋯/ca.crt
+  - path: /etc/⋯/⋯/server.crt
+  - path: /etc/⋯/⋯/server.key
+  - path: /etc/⋯/⋯/nats.conf
+  - path: /proc/⋯/7/fd
+  - path: /proc/⋯/core/somaxconn
+  - path: /proc/⋯/⋯
+  - path: /sys/fs/cgroup/⋯
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - path: /var/run/nats/nats.pid
+  syscalls:
+  - accept4
+  - arch_prctl
+  - bind
+  - capget
+  - capset
+  - chdir
+  - clone
+  - close
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - exit
+  - fchown
+  - fcntl
+  - fstat
+  - futex
+  - getcwd
+  - getdents64
+  - getpid
+  - getppid
+  - getrandom
+  - getsockname
+  - listen
+  - madvise
+  - mmap
+  - nanosleep
+  - openat
+  - prlimit64
+  - read
+  - recvfrom
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - sendto
+  - setgid
+  - setgroups
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - sysinfo
+  - tgkill
+  - tkill
+  - write
+  - writev
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  ingress:
+  - identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    ports:
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+    - name: TCP-8222
+      protocol: TCP
+      port: 8222
+  - identifier: 47a42bd64869e8ed568c98f218ab5d89ea818764568dffb66fe316abd30926cf
+    ipAddress: 10.42.1.0
+    ports:
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+  - identifier: be971f99ebb4711c4b6e7c0c841a69031c22bcf1b3a3c0195b23f7cefc76a653
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-metadata
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-8222
+      protocol: TCP
+      port: 8222
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+  - identifier: 45d5ad2344012200296b36dd59abfae78c961c8a703540a298ae24ecc2fad58d
+    podSelector:
+      matchLabels:
+        app: pixie-operator
+        component: pixie-operator
+        name: vizier-operator
+        plane: control
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: px-operator
+    ports:
+    - name: TCP-8222
+      protocol: TCP
+      port: 8222
+  - identifier: dbdcdb16791c07e66a8882eadcf9d357a53e8f2d4af6558994e9e3295188eb52
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-cloud-connector
+        plane: control
+        vizier-bootstrap: 'true'
+        vizier-name: pixie
+    ports:
+    - name: TCP-8222
+      protocol: TCP
+      port: 8222
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+  - identifier: e23b35d90d5eaf9f53654dc4ce085c87b57a167a44f9567c1448423131aeb405
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+  - identifier: 62ee591d43b945c22a6b4d20155af717cb843a2b85b56ded1939857603480152
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: kelvin
+        plane: data
+        vizier-name: pixie
+    ports:
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222

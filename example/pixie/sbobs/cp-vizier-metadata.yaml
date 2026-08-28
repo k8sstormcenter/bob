@@ -1,0 +1,161 @@
+# SBoB for vizier-metadata/app — generalised from a recorded ContainerProfile.
+# opens 42 -> 29 after collapse+portability.
+# NOTE: kube-apiserver ClusterIP 10.43.0.1 dropped — differs per distro (k3s 10.43/16 vs kubeadm 10.96/12)
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: vizier-metadata
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+spec:
+  execs:
+  - path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
+  opens:
+  - path: /app/src/vizier/services/metadata/metadata.runfiles/px/bazel-out/k8-opt/bin/external/io_bazel_rules_go/stdlib_/lib/time/zoneinfo.zip
+  - path: /certs/⋯/ca.crt
+  - path: /certs/⋯/client.crt
+  - path: /certs/⋯/client.key
+  - path: /certs/⋯/server.crt
+  - path: /certs/⋯/server.key
+  - path: /etc/⋯
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v2/libm.so.6
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v3/libm.so.6
+  - path: /lib/⋯/libc.so.6
+  - path: /lib/⋯/libm.so.6
+  - path: /lib/⋯/libresolv.so.2
+  - path: /lib/⋯/tls/libm.so.6
+  - path: /lib/⋯/tls/x86_64/libm.so.6
+  - path: /lib/⋯/tls/x86_64/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/x86_64/libm.so.6
+  - path: /metadata
+  - path: /metadata/pebble_20220209
+  - path: /metadata/pebble_20220209/⋯
+  - path: /proc/⋯/1/fd
+  - path: /proc/⋯/core/somaxconn
+  - path: /proc/⋯/⋯
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+  syscalls:
+  - accept4
+  - access
+  - close
+  - close_range
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - eventfd2
+  - faccessat2
+  - fadvise64
+  - fallocate
+  - fcntl
+  - fdatasync
+  - fstat
+  - fstatfs
+  - fsync
+  - futex
+  - getpeername
+  - getpid
+  - getrandom
+  - getsockname
+  - listen
+  - madvise
+  - mkdirat
+  - mmap
+  - munmap
+  - nanosleep
+  - openat
+  - openat2
+  - pipe2
+  - pread64
+  - prlimit64
+  - read
+  - readlinkat
+  - renameat
+  - rseq
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - set_robust_list
+  - setsockopt
+  - statx
+  - sync_file_range
+  - tgkill
+  - uname
+  - unknown
+  - unlinkat
+  - write
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  egress:
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      protocol: UDP
+      port: 53
+  - identifier: a08590764670db9042dbda79f3deaa0eee333ec6950ccadc5dd0262fcd994e42
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        name: pl-nats
+    ports:
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
+  ingress:
+  - identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400
+  - identifier: e23b35d90d5eaf9f53654dc4ce085c87b57a167a44f9567c1448423131aeb405
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400
+  - identifier: 62ee591d43b945c22a6b4d20155af717cb843a2b85b56ded1939857603480152
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: kelvin
+        plane: data
+        vizier-name: pixie
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400
+  - identifier: c46150dd8f613da582a6de01611c631d866f1f6566191aa88f5807ec76f2c26e
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        cluster-id: 6a59ca82-ebaa-4bcd-88b2-41ae2678d72f
+        component: vizier
+        name: vizier-cloud-connector
+        plane: control
+        vizier-bootstrap: 'true'
+        vizier-name: pixie
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400

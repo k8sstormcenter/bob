@@ -1,0 +1,36 @@
+# SBoB for cert-provisioner-job/provisioner — generalised from a recorded ContainerProfile.
+# opens 19 -> 18 after collapse+portability.
+# NOTE: kube-apiserver ClusterIP 10.43.0.1 dropped — differs per distro (k3s 10.43/16 vs kubeadm 10.96/12)
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: cert-provisioner-job-provisioner
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+spec:
+  execs:
+  - path: /app/src/utils/cert_provisioner/cert_provisioner.runfiles/px/src/utils/cert_provisioner/cert_provisioner_/cert_provisioner
+  opens:
+  - path: /app/src/utils/cert_provisioner/cert_provisioner.runfiles/px/bazel-out/k8-opt/bin/external/io_bazel_rules_go/stdlib_/lib/time/zoneinfo.zip
+  - path: /etc/⋯
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v2/libm.so.6
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v3/libm.so.6
+  - path: /lib/⋯/libc.so.6
+  - path: /lib/⋯/libm.so.6
+  - path: /lib/⋯/libresolv.so.2
+  - path: /lib/⋯/tls/libm.so.6
+  - path: /lib/⋯/tls/x86_64/libm.so.6
+  - path: /lib/⋯/tls/x86_64/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/x86_64/libm.so.6
+  - path: /proc/⋯/1/fd
+  - path: /proc/⋯/⋯
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt
+  - path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH

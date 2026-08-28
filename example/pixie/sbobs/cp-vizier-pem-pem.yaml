@@ -1,0 +1,492 @@
+# SBoB for vizier-pem/pem — generalised from a recorded ContainerProfile.
+# opens 568 -> 324 after collapse+portability.
+# NOTE: kernel-version segment in /lib/modules generalised — SBoB must survive node upgrades
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: vizier-pem-pem
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+spec:
+  execs:
+  - path: /app/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem/pem
+  opens:
+  - path: /
+  - path: /[uprobes]
+  - path: /[vdso]
+  - path: /apex/com.android.tzdata/etc/tz/tzdata
+  - path: /app/src/operator/operator.runfiles/px/src/operator/operator_/operator
+  - path: /app/src/vizier/services/agent/kelvin/kelvin.runfiles/px/src/vizier/services/agent/kelvin/kelvin
+  - path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+  - path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
+  - path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
+  - path: /bin/busybox
+  - path: /bin/catalog
+  - path: /bin/olm
+  - path: /bin/opm
+  - path: /bin/sh
+  - path: /bin/wget
+  - path: /certs/⋯/ca.crt
+  - path: /certs/⋯/client.crt
+  - path: /certs/⋯/client.key
+  - path: /coredns
+  - path: /data/misc/zoneinfo/current/tzdata
+  - path: /dev/urandom
+  - path: /etc/⋯
+  - path: /etc/⋯/cert.pem
+  - path: /host/etc
+  - path: /host/etc/lsb-release
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/asm/⋯
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/asm/⋯/api.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/asm/⋯/io.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/asm/⋯/msr.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/asm/⋯/processor.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/asm/⋯/types.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/asm/early_ioremap.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/asm/kmap_size.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/asm/local64.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/asm/mmiowb.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/asm/rwonce.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/asm/unistd_32_ia32.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/asm/unistd_64_x32.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/autoconf.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/bounds.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/timeconst.h
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/generated/uapi/asm/⋯
+  - path: /host/usr/lib/modules/⋯/build/arch/x86/include/uapi/asm/⋯
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯/const_hweight.h
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯/ext2-atomic-setbit.h
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯/generic-non-atomic.h
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯/instrumented-atomic.h
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯/instrumented-lock.h
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯/instrumented-non-atomic.h
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯/le.h
+  - path: /host/usr/lib/modules/⋯/build/include/asm-generic/⋯/sched.h
+  - path: /host/usr/lib/modules/⋯/build/include/generated/autoconf.h
+  - path: /host/usr/lib/modules/⋯/build/include/generated/bounds.h
+  - path: /host/usr/lib/modules/⋯/build/include/generated/timeconst.h
+  - path: /host/usr/lib/modules/⋯/build/include/generated/uapi/linux/version.h
+  - path: /host/usr/lib/modules/⋯/build/include/linux/⋯
+  - path: /host/usr/lib/modules/⋯/build/include/linux/⋯/⋯
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/bpf.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/can.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/conntrack.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/core.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/flow_table.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/hash.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/ieee802154_6lowpan.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/ipv4.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/ipv6.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/mctp.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/mib.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/mpls.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/netfilter.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/nexthop.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/nftables.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/packet.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/sctp.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/smc.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/unix.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/xdp.h
+  - path: /host/usr/lib/modules/⋯/build/include/net/⋯/xfrm.h
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/asm-generic/⋯
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/linux/⋯
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/linux/⋯/ioctl.h
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/linux/⋯/little_endian.h
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/linux/⋯/nf_conntrack_common.h
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/linux/⋯/nf_conntrack_sctp.h
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/linux/⋯/nf_conntrack_tcp.h
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/linux/⋯/nf_conntrack_tuple_common.h
+  - path: /host/usr/lib/modules/⋯/build/include/uapi/video/edid.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/bits.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/const.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/jiffies.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/ktime.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/limits.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/math64.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/time.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/time32.h
+  - path: /host/usr/lib/modules/⋯/build/include/vdso/time64.h
+  - path: /host/usr/lib/modules/⋯/build/include/video/edid.h
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/bpf_tools/bcc_bpf/task_struct_utils.h
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/bpf_tools/bcc_bpf/utils.h
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/perf_profiler/bcc_bpf/profiler.c
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/proc_exit/bcc_bpf/proc_exit_trace.c
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/socket_tracer/bcc_bpf/go_http2_trace.c
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/socket_tracer/bcc_bpf/go_tls_trace.c
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/socket_tracer/bcc_bpf/go_trace_common.h
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/socket_tracer/bcc_bpf/grpc_c_trace.c
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/socket_tracer/bcc_bpf/node_openssl_trace.c
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/socket_tracer/bcc_bpf/openssl_trace.c
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/socket_tracer/bcc_bpf/protocol_inference.h
+  - path: /host/usr/lib/modules/⋯/build/src/stirling/source_connectors/socket_tracer/bcc_bpf/socket_trace.c
+  - path: /host/usr/lib/os-release
+  - path: /lib/⋯
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/auxvec.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/bitsperlong.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/bootparam.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/bpf_perf_event.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/byteorder.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/errno.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/fcntl.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/ioctl.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/ipcbuf.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/ldt.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/param.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/poll.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/posix_types_64.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/ptrace-abi.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/resource.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/sembuf.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/shmbuf.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/siginfo.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/socket.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/sockios.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/stat.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/swab.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/types.h
+  - path: /lib/⋯/6.1.167/build/arch/x86/include/generated/asm/unistd_64.h
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v2/libm.so.6
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v3/libm.so.6
+  - path: /lib/⋯/ld-linux-x86-64.so.2
+  - path: /lib/⋯/libc.so.6
+  - path: /lib/⋯/libelf.so.1
+  - path: /lib/⋯/liblzma.so.5.4.1
+  - path: /lib/⋯/libm.so.6
+  - path: /lib/⋯/libresolv.so.2
+  - path: /lib/⋯/libtinfo.so.6.4
+  - path: /lib/⋯/libunwind.so.8
+  - path: /lib/⋯/libz.so.1.2.13
+  - path: /lib/⋯/tls/libm.so.6
+  - path: /lib/⋯/tls/x86_64/libm.so.6
+  - path: /lib/⋯/tls/x86_64/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/x86_64/libm.so.6
+  - path: /metrics-server
+  - path: /nats-server
+  - path: /opt
+  - path: /proc/⋯
+  - path: /proc/⋯/36969/fd
+  - path: /proc/⋯/80848/fd
+  - path: /proc/⋯/core/somaxconn
+  - path: /proc/⋯/dev
+  - path: /proc/⋯/tmp/perf-1.map
+  - path: /proc/⋯/tmp/perf-29.map
+  - path: /proc/⋯/tmp/perf-30.map
+  - path: /proc/⋯/tmp/perf-31.map
+  - path: /proc/⋯/tmp/perf-32.map
+  - path: /proc/⋯/tmp/perf-33903.map
+  - path: /proc/⋯/tmp/perf-36969.map
+  - path: /proc/⋯/tmp/perf-7.map
+  - path: /proc/⋯/tmp/perf-76439.map
+  - path: /proc/⋯/tmp/perf-80848.map
+  - path: /proc/⋯/⋯
+  - path: /sys/devices/system/cpu/cpu0/tsc_freq_khz
+  - path: /sys/devices/system/cpu/online
+  - path: /sys/devices/system/cpu/possible
+  - path: /sys/devices/uprobe/format/retprobe
+  - path: /sys/devices/uprobe/type
+  - path: /sys/fs/cgroup
+  - path: /sys/fs/cgroup/⋯
+  - path: /sys/fs/cgroup/⋯/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/code-server-proxy.socket
+  - path: /sys/fs/cgroup/⋯/code-server-proxy.socket/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/dbus.service
+  - path: /sys/fs/cgroup/⋯/dbus.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/examiner.service
+  - path: /sys/fs/cgroup/⋯/examiner.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/k3s-agent.service
+  - path: /sys/fs/cgroup/⋯/k3s-agent.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/k3s.service
+  - path: /sys/fs/cgroup/⋯/k3s.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod08070559_1b42_402d_aa43_61136ca3f790.slice/cri-containerd-e199474e7faa332bbbfcb157087f1fc9aed070c97cdcf7a1c1f80196e67ba920.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cri-containerd-584db275ed977567c3e50e9c3ee993c128a259c3f358f06e29b3bdf1292f7f2b.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cri-containerd-5cce4c9d0089d5556cd2d01a0a73b7c630d10be62e70d8a75d9782bc7e5c5b7b.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod1d04585f_72fc_4024_ac98_503b5003ca2a.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod1d04585f_72fc_4024_ac98_503b5003ca2a.slice/cri-containerd-f2aed300c6021253292ecadd0c363d63b55d09ff6e5bea8c06b01f1ef9001294.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod23820646_1a57_46fa_ada1_4ea6ded86d31.slice/cri-containerd-6d50b2ff6ab6d7533512c66caf592c2aa407fae897cbb9208b326054b9df6a5a.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod23a59fb1_1af9_4d99_b4e9_f2be55cd1656.slice/cri-containerd-594c14abf70f21a6e9713ac178618cea85af6848fc739fef17b42acb3fa5867c.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod3b9fbdf6_4ccd_4fa6_8509_52a5cffff489.slice/cri-containerd-e1eae543ae0a99b68e6e90edf8a8cfd906d0b0895e4f24c7f7bba80d48bde02c.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod746362d3_dd02_4d03_adc1_f6951efe7024.slice/cri-containerd-0cd063273bad9a9b4e456aa4d5846c8e26a2e8dc4666e37e49294c7565db1374.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod746362d3_dd02_4d03_adc1_f6951efe7024.slice/cri-containerd-cb5898134bbf33b84d931f08c0fb9e73a38bf3626948aca0ef9da41d084a6916.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod7f8d275f_16c9_4e89_9dc5_f49bff74f556.slice/cri-containerd-fe9293800c63f58c4d87e14f976bdc2fbe31c351e7f047189c3efd0238a4e4df.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podc6af174c_6a3c_4ffb_85d7_d71f4c45303e.slice/cri-containerd-e1dcdd6718e532794099802db0755ed866cc0b362a8e9b28c30a63460f585255.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podd13ad4cb_dd99_4b3b_bc9a_8c6a40bf53cd.slice/cri-containerd-7c8cec7c8a38521d7a7601312d6d06294af741f022c62e6ccfeafd404fafc2b4.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podd3bb49f5_e105_4caa_8bbe_8f74e74e693e.slice/cri-containerd-3def314d06e54f700844faf14a592472dab4fa0dcc41df79360e0f0d568f94c1.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podde1a9069_ddbc_4444_b39e_6e16268e3710.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podde1a9069_ddbc_4444_b39e_6e16268e3710.slice/cri-containerd-ff07fd08d998921e80e16d5fdf82602a878afea13fcc372813d05d7b298be8f6.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podee567bc2_1989_428f_a8c9_e91463e99ad8.slice/cri-containerd-4b0ca749310327a62183cd70f34a35c41612b316574bf74441011c3d065f7ec6.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podf6e6dc09_5bfa_4703_b8cd_b8ee02591fd9.slice/cri-containerd-55aab6d01e83861b5567a3df0476acdbb3869dabeba3b43f0f4f3fb8567cb638.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podfe5dfd5d_5fae_4755_82ac_c5698b0e2e45.slice/cri-containerd-4542fa8061312e9b19d9696b7fff7e5c8ec22da131ee964eac96a30ff4d656b1.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod0d06c22c_e1d9_4b48_b426_f6a20cefc4e9.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod0d06c22c_e1d9_4b48_b426_f6a20cefc4e9.slice/cri-containerd-fe22667a9c7231a3db833ddbb933787e6041e1d66291875082be9b3247e43e81.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod10e02c02_d73b_4e67_8e7f_83020b1c79df.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod10e02c02_d73b_4e67_8e7f_83020b1c79df.slice/cri-containerd-5a3e22b6daa591b9bdd24409f588a7472240b5c00c2aa0ce36d401975bbc0c6d.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cri-containerd-5f1a103b64bc40ab8d64b1577ab269867e4f983e9d6ca3a40abd1298539cddca.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cri-containerd-5f1a103b64bc40ab8d64b1577ab269867e4f983e9d6ca3a40abd1298539cddca.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cri-containerd-c989446f49e18e432e4f8adbb6bccf1bf23477d2b28d2a774dbedfe86c155385.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cri-containerd-c989446f49e18e432e4f8adbb6bccf1bf23477d2b28d2a774dbedfe86c155385.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod31753bce_a99c_4acb_8074_4a61efb3db23.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod31753bce_a99c_4acb_8074_4a61efb3db23.slice/cri-containerd-d4562a6dd29fe0f4388c7c8485564d08fea923a7d89cea17d826e8f847e1a9d2.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod3d65ba19_9af7_4475_99d0_81011d66fe5d.slice/cri-containerd-7bbda26e2ed74158f2ec6085d416234e90543dfbc6737a47af505a4e914ad7fd.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod44405596_3a6c_4826_907e_0108cbfd7756.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod44405596_3a6c_4826_907e_0108cbfd7756.slice/cri-containerd-0aaf42f7531dfc00ff7d1bc10d20e63149154b6e8a3d5aec9c4c9761c92fd785.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod4e6a0cef_6b07_4077_8ac6_539dab53cff4.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod4e6a0cef_6b07_4077_8ac6_539dab53cff4.slice/cri-containerd-105111cded8f55964828c52bd9685e35cfd7fde7bdc5b5eaa3fbc6029bd3d91d.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod69c222ad_1f06_47d4_9fc3_9c959bbf9f13.slice/cri-containerd-b7791bd5f6a680ca16bff400a9749d169eabbbfafc85c73873c9b48eaf39a53f.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod737a287a_e796_4897_8b69_849f3f88866b.slice/cri-containerd-8c5b9db2273e58ab3ec8865ffd256ac0a9f29a9b92f6c041e6777ee7ee779c20.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod93756518_cb77_49ca_bf57_e8cac98ef97f.slice/cri-containerd-b266a50a5a7cc3e3bd4ef2a18b61aaede10d6e85202fc92626ba74961b82cbbd.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod960f78f3_a505_41b0_ac69_8b86d33faeed.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod960f78f3_a505_41b0_ac69_8b86d33faeed.slice/cri-containerd-d9d319ab1aa55d6b473559c4130a5b603c8fc867468c4d8e059068d76c41dab4.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod9ad6b1cd_7f0c_4c0c_96d8_a2864703a0e2.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod9ad6b1cd_7f0c_4c0c_96d8_a2864703a0e2.slice/cri-containerd-1f90af02f159ea64be06f03805cea1cb08b486dec85f4d72cfdc0635377352bc.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cri-containerd-688742c07118f4b3f6ea9420dc25119e1e4944d0b40b82b4e40df53618ad83e0.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cri-containerd-688742c07118f4b3f6ea9420dc25119e1e4944d0b40b82b4e40df53618ad83e0.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cri-containerd-89937a630dfe9c39fba9cf3f8b1678c181e7a9093fd608cf025fa0fe34048444.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cri-containerd-89937a630dfe9c39fba9cf3f8b1678c181e7a9093fd608cf025fa0fe34048444.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podaaf4686c_a4ff_4531_bddc_db52d85a66e5.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podaaf4686c_a4ff_4531_bddc_db52d85a66e5.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podaaf4686c_a4ff_4531_bddc_db52d85a66e5.slice/cri-containerd-b82960a00844112b340720b98727ecdf3282ee43f432334f5e352eb2e7dff0b7.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podaaf4686c_a4ff_4531_bddc_db52d85a66e5.slice/cri-containerd-b82960a00844112b340720b98727ecdf3282ee43f432334f5e352eb2e7dff0b7.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podbc2801c2_9b93_461d_8779_fb94b9ed378e.slice/cri-containerd-d250724c26fe0828fd7dd7b6fdf226d2892f2a1390371da2a313a374ad688d68.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podc1f24a9d_64f3_4548_a667_211ebc92652d.slice/cri-containerd-d846745b9ad35e01bfc7310ab86f256da16bb7c4ddf9cd6e890f17994ff5c8aa.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podc9872252_7d19_4cfa_bed1_d323fe8746a1.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podc9872252_7d19_4cfa_bed1_d323fe8746a1.slice/cri-containerd-6e702b530d634fdefe5f0afdee52fa0049c20cdb54de9b47762b2afe0ef0bfc0.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podcda260ec_b7c1_4aa0_a3f7_2db00cd93283.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podcda260ec_b7c1_4aa0_a3f7_2db00cd93283.slice/cri-containerd-0cdf416fc8ee423fb0ae76e414032a4eb92ac1e8ee7990fad7dfe3250ab5a28d.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podd24b74e1_31e0_45e1_94e6_7c265af01175.slice/cri-containerd-.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cri-containerd-7381dacc38872af309ea90de79f4b49a4650b53f13d555fb65304592da1f7d21.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cri-containerd-7381dacc38872af309ea90de79f4b49a4650b53f13d555fb65304592da1f7d21.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cri-containerd-a61656af341842bf415de22fa0771f1c6d912c4e336f342980ab363c55f4c879.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cri-containerd-a61656af341842bf415de22fa0771f1c6d912c4e336f342980ab363c55f4c879.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podf3d362f2_ccbf_44b3_b180_ff0d8156c14c.slice/cri-containerd-ebc7e4d235914db43d644ff0204d21eab60e7792132dacde0d00ce14889467f0.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/ssh.service
+  - path: /sys/fs/cgroup/⋯/ssh.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/ssh.socket
+  - path: /sys/fs/cgroup/⋯/ssh.socket/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-getty.slice
+  - path: /sys/fs/cgroup/⋯/system-getty.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-getty.slice/getty@tty1.service
+  - path: /sys/fs/cgroup/⋯/system-getty.slice/getty@tty1.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-modprobe.slice
+  - path: /sys/fs/cgroup/⋯/system-modprobe.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-serial\x2dgetty.slice
+  - path: /sys/fs/cgroup/⋯/system-serial\x2dgetty.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-serial\x2dgetty.slice/serial-getty@ttyS0.service
+  - path: /sys/fs/cgroup/⋯/system-serial\x2dgetty.slice/serial-getty@ttyS0.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-journald.service
+  - path: /sys/fs/cgroup/⋯/systemd-journald.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-logind.service
+  - path: /sys/fs/cgroup/⋯/systemd-logind.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-resolved.service
+  - path: /sys/fs/cgroup/⋯/systemd-resolved.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-timesyncd.service
+  - path: /sys/fs/cgroup/⋯/systemd-timesyncd.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-udevd.service
+  - path: /sys/fs/cgroup/⋯/systemd-udevd.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-udevd.service/udev
+  - path: /sys/fs/cgroup/⋯/systemd-udevd.service/udev/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/tailscaled.service
+  - path: /sys/fs/cgroup/⋯/tailscaled.service/cgroup.procs
+  - path: /sys/kernel/debug
+  - path: /sys/kernel/debug/tracing/events/kprobes/⋯/id
+  - path: /sys/kernel/debug/tracing/events/sched/sched_process_exit/format
+  - path: /sys/kernel/debug/tracing/events/sched/sched_process_exit/id
+  - path: /sys/kernel/debug/tracing/kprobe_events
+  - path: /sys/kernel/debug/tracing/uprobe_events
+  - path: /system/usr/share/zoneinfo/tzdata
+  - path: /tmp/⋯
+  - path: /usr/bin/local-path-provisioner
+  - path: /usr/bin/node-agent
+  - path: /usr/bin/operator
+  - path: /usr/bin/storage
+  - path: /usr/lib/⋯
+  - path: /usr/lib/⋯/.build-id/⋯/⋯
+  - path: /usr/lib/⋯/glibc-hwcaps/x86-64-v2/libunwind.so.8
+  - path: /usr/lib/⋯/glibc-hwcaps/x86-64-v3/libunwind.so.8
+  - path: /usr/lib/⋯/ld-linux-x86-64.so.2
+  - path: /usr/lib/⋯/libc.so.6
+  - path: /usr/lib/⋯/libcrypt.so.1.1.0
+  - path: /usr/lib/⋯/libcrypto.so.3
+  - path: /usr/lib/⋯/libelf-0.188.so
+  - path: /usr/lib/⋯/libpcre2-8.so.0.11.2
+  - path: /usr/lib/⋯/libssl.so.3
+  - path: /usr/lib/⋯/libunwind.so.8.0.1
+  - path: /usr/lib/⋯/libz.so.1.2.13
+  - path: /usr/lib/⋯/tls/libunwind.so.8
+  - path: /usr/lib/⋯/tls/x86_64/libunwind.so.8
+  - path: /usr/lib/⋯/tls/x86_64/x86_64/libunwind.so.8
+  - path: /usr/lib/⋯/x86_64/libunwind.so.8
+  - path: /usr/lib/⋯/x86_64/x86_64/libunwind.so.8
+  - path: /usr/local/bin/traefik
+  - path: /usr/sbin/nginx
+  - path: /virtual/include/bcc/helpers.h
+  syscalls:
+  - accept
+  - access
+  - bind
+  - bpf
+  - brk
+  - chdir
+  - clock_nanosleep
+  - clone3
+  - close
+  - connect
+  - dup2
+  - epoll_create1
+  - epoll_ctl
+  - epoll_wait
+  - eventfd2
+  - exit
+  - fcntl
+  - fork
+  - futex
+  - getcwd
+  - getdents64
+  - geteuid
+  - getpid
+  - getrandom
+  - getsockname
+  - getsockopt
+  - gettid
+  - ioctl
+  - listen
+  - lseek
+  - madvise
+  - membarrier
+  - mincore
+  - mkdir
+  - mmap
+  - mprotect
+  - munmap
+  - newfstatat
+  - open
+  - openat
+  - perf_event_open
+  - pipe
+  - pipe2
+  - poll
+  - prctl
+  - pread64
+  - read
+  - readlink
+  - recvfrom
+  - rseq
+  - rt_sigaction
+  - rt_sigprocmask
+  - sched_getparam
+  - sched_getscheduler
+  - sched_yield
+  - sendmmsg
+  - sendmsg
+  - sendto
+  - set_robust_list
+  - setns
+  - setsockopt
+  - socket
+  - stat
+  - statfs
+  - symlink
+  - sysinfo
+  - uname
+  - unknown
+  - write
+  - writev
+  capabilities:
+  - CAP_BPF
+  - CAP_IPC_LOCK
+  - CAP_NET_ADMIN
+  - CAP_PERFMON
+  - CAP_SYSLOG
+  - CAP_SYS_ADMIN
+  - CAP_SYS_PTRACE
+  egress:
+  - identifier: f8ea565a95536d30bb1ba20dccafb845ea3d15d1516356d5185529c706d4e64b
+    podSelector:
+      matchLabels:
+        app: node-agent
+        app.kubernetes.io/component: node-agent
+        app.kubernetes.io/name: kubescape-operator
+        app.kubernetes.io/part-of: kubescape
+        kubescape.io/ignore: 'true'
+        kubescape.io/tier: core
+        tier: ks-control-plane
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: honey
+    ports:
+    - name: TCP-7888
+      protocol: TCP
+      port: 7888
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: TCP-8181
+      protocol: TCP
+      port: 8181
+  - identifier: be971f99ebb4711c4b6e7c0c841a69031c22bcf1b3a3c0195b23f7cefc76a653
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-metadata
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400
+  - identifier: 63f25e9f7fe5fae0febfbde38ab9003eaeaedafbf0403e6ffa8e6ed956b62c4c
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        name: pl-nats
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-8222
+      protocol: TCP
+      port: 8222
+  - identifier: ae875b5c4a88ff3ebe7a06717c1b1114b0b579be7e507bab1fd70e0af666a26e
+    podSelector:
+      matchLabels:
+        app: catalog-operator
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: olm
+    ports:
+    - name: TCP-8080
+      protocol: TCP
+      port: 8080
+  - identifier: c46150dd8f613da582a6de01611c631d866f1f6566191aa88f5807ec76f2c26e
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        cluster-id: 6a59ca82-ebaa-4bcd-88b2-41ae2678d72f
+        component: vizier
+        name: vizier-cloud-connector
+        plane: control
+        vizier-bootstrap: 'true'
+        vizier-name: pixie
+    ports:
+    - name: TCP-50800
+      protocol: TCP
+      port: 50800

@@ -1,0 +1,362 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-query-broker-f994c7db9/containerName-app
+    kubescape.io/otel-span-id: ""
+    kubescape.io/otel-traceparent: ""
+    kubescape.io/resource-size: "80"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: fdace0722b9bdf6fe54e9fcd4557242fd4831a05ed8509a3422162cd0120a7dd
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-query-broker
+    kubescape.io/workload-container-type: containers
+  creationTimestamp: "2026-08-22T07:24:56Z"
+  labels:
+    kubescape.io/instance-template-hash: f994c7db9
+    kubescape.io/learning-period: 2h
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-container-name: app
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: vizier-query-broker
+    kubescape.io/workload-namespace: pl
+    kubescape.io/workload-resource-version: "25374"
+  name: replicaset-vizier-query-broker-f994c7db9-app-1221-9a36
+  namespace: pl
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_FOWNER
+  - CAP_NET_ADMIN
+  egress:
+  - dns: ""
+    dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: d9bcc711b1fbffffc6fe9bdacd6057f0b6c5d58863f85bded6d7fb18c18bd077
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-metadata
+    ports:
+    - name: TCP-50400
+      port: 50400
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: a08590764670db9042dbda79f3deaa0eee333ec6950ccadc5dd0262fcd994e42
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        name: pl-nats
+    ports:
+    - name: TCP-4222
+      port: 4222
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: default
+    podSelector:
+      matchLabels:
+        component: apiserver
+        provider: kubernetes
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: internal
+  endpoints: null
+  execs:
+  - args:
+    - /app/src/vizier/services/query_broker/query_broker
+    path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
+  identifiedCallStacks: null
+  imageID: ghcr.io/k8sstormcenter/vizier-query_broker_server_image@sha256:d99a038ef7b63f142c1695124154eaac49fa670909db193eca46f5cb068b1d46
+  imageTag: ghcr.io/k8sstormcenter/vizier-query_broker_server_image:0.14.19-pemdq1
+  ingress:
+  - dns: ""
+    dnsNames: null
+    identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-50300
+      port: 50300
+      protocol: TCP
+    type: external
+  - dns: ""
+    dnsNames: null
+    identifier: 47a42bd64869e8ed568c98f218ab5d89ea818764568dffb66fe316abd30926cf
+    ipAddress: 10.42.1.0
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-50300
+      port: 50300
+      protocol: TCP
+    type: external
+  - dns: ""
+    dnsNames: null
+    identifier: 62ee591d43b945c22a6b4d20155af717cb843a2b85b56ded1939857603480152
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: kelvin
+        plane: data
+        vizier-name: pixie
+    ports:
+    - name: TCP-50300
+      port: 50300
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: c46150dd8f613da582a6de01611c631d866f1f6566191aa88f5807ec76f2c26e
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        cluster-id: 6a59ca82-ebaa-4bcd-88b2-41ae2678d72f
+        component: vizier
+        name: vizier-cloud-connector
+        plane: control
+        vizier-bootstrap: "true"
+        vizier-name: pixie
+    ports:
+    - name: TCP-50300
+      port: 50300
+      protocol: TCP
+    type: internal
+  matchLabels:
+    app: pl-monitoring
+    component: vizier
+    name: vizier-query-broker
+  opens:
+  - flags:
+    - O_RDONLY
+    path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/bazel-out/k8-opt/bin/external/io_bazel_rules_go/stdlib_/lib/time/zoneinfo.zip
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3736355918/ca.crt
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /certs/..2026_08_22_07_21_40.3736355918/client.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3736355918/client.key
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3736355918/server.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3736355918/server.key
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/host.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/ld.so.cache
+  - flags:
+    - O_RDONLY
+    path: /etc/localtime
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/resolv.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libc.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/liblzma.so.5.4.1
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libresolv.so.2
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libunwind.so.8
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libz.so.1.2.13
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/x86_64/x86_64/libm.so.6
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /lib/x86_64-linux-gnu/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/x86_64/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/maps
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/⋯/net/core/somaxconn
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    - O_DIRECTORY
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /sys/devices/system/cpu/online
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libunwind.so.8
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libunwind.so.8
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/libunwind.so.8.0.1
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/tls/libunwind.so.8
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/tls/x86_64/libunwind.so.8
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/tls/x86_64/x86_64/libunwind.so.8
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/lib/x86_64-linux-gnu/x86_64/libunwind.so.8
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/lib/x86_64-linux-gnu/x86_64/x86_64/libunwind.so.8
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_40.336844718/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_40.336844718/token
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls:
+  - accept4
+  - brk
+  - close
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - futex
+  - getpeername
+  - getpid
+  - getrandom
+  - getsockname
+  - getsockopt
+  - gettid
+  - lseek
+  - madvise
+  - mincore
+  - mmap
+  - nanosleep
+  - read
+  - readlinkat
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_yield
+  - setsockopt
+  - socket
+  - tgkill
+  - write
+status: {}

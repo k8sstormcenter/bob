@@ -1,0 +1,293 @@
+# SBoB for adaptive-export (AE). Recorded from the learned profile; the dx→:9100
+# control-plane ingress was added (learning missed it — dx connects post-window).
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: adaptive-export
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+spec:
+  architectures:
+  - amd64
+  matchLabels:
+    name: adaptive-export
+  execs:
+  - args:
+    - /app/src/vizier/services/adaptive_export/cmd/cmd
+    path: /app/src/vizier/services/adaptive_export/cmd/cmd.runfiles/px/src/vizier/services/adaptive_export/cmd/cmd_/cmd
+  opens:
+  - path: /app/src/vizier/services/adaptive_export/cmd/cmd.runfiles/px/bazel-out/k8-opt/bin/external/io_bazel_rules_go/stdlib_/lib/time/zoneinfo.zip
+    flags:
+    - O_RDONLY
+  - path: /app/src/vizier/services/adaptive_export/cmd/cmd.runfiles/px/src/vizier/services/adaptive_export/cmd/cmd_/cmd
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /etc/hosts
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /etc/ld.so.cache
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /etc/localtime
+    flags:
+    - O_RDONLY
+  - path: /etc/nsswitch.conf
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /etc/pki/tls/certs
+    flags:
+    - O_RDONLY
+    - O_DIRECTORY
+    - O_CLOEXEC
+  - path: /etc/resolv.conf
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /etc/ssl/certs
+    flags:
+    - O_RDONLY
+    - O_DIRECTORY
+    - O_CLOEXEC
+  - path: /etc/ssl/certs/ca-certificates.crt
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libm.so.6
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libm.so.6
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v4/libm.so.6
+    flags:
+    - O_CLOEXEC
+    - O_RDONLY
+  - path: /lib/x86_64-linux-gnu/libc.so.6
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/libm.so.6
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/libresolv.so.2
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/tls/libm.so.6
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/tls/x86_64/libm.so.6
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/tls/x86_64/x86_64/libm.so.6
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/x86_64/libm.so.6
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: /lib/x86_64-linux-gnu/x86_64/x86_64/libm.so.6
+    flags:
+    - O_CLOEXEC
+    - O_RDONLY
+  - path: "/proc/\u22EF/maps"
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: "/proc/\u22EF/net/core/somaxconn"
+    flags:
+    - O_CLOEXEC
+    - O_RDONLY
+  - path: "/proc/\u22EF/task/1/fd"
+    flags:
+    - O_RDONLY
+    - O_DIRECTORY
+    - O_CLOEXEC
+  - path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+    flags:
+    - O_RDONLY
+  - path: "/var/run/secrets/kubernetes.io/serviceaccount/\u22EF/ca.crt"
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  - path: "/var/run/secrets/kubernetes.io/serviceaccount/\u22EF/token"
+    flags:
+    - O_RDONLY
+    - O_CLOEXEC
+  capabilities:
+  - CAP_NET_ADMIN
+  syscalls:
+  - accept4
+  - access
+  - arch_prctl
+  - bind
+  - brk
+  - capget
+  - capset
+  - chdir
+  - clone3
+  - close
+  - close_range
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - eventfd2
+  - execve
+  - exit
+  - faccessat2
+  - fcntl
+  - fstat
+  - fstatfs
+  - futex
+  - getcwd
+  - getdents64
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getsockname
+  - getsockopt
+  - gettid
+  - ioctl
+  - listen
+  - madvise
+  - mmap
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - openat2
+  - prctl
+  - pread64
+  - prlimit64
+  - read
+  - readlinkat
+  - recvfrom
+  - rseq
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - set_robust_list
+  - set_tid_address
+  - setgid
+  - setgroups
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - socket
+  - statx
+  - tgkill
+  - tkill
+  - uname
+  - write
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: 15e8bb325ab9693217dcc18f8a7f16c885f388f7e307ecfd0646aceed194f3d2
+    ipAddress: ''
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: clickhouse
+    podSelector:
+      matchLabels:
+        apps.kubernetes.io/pod-index: '0'
+        clickhouse.altinity.com/app: chop
+        clickhouse.altinity.com/chi: forensic-soc-db
+        clickhouse.altinity.com/cluster: soc-cluster
+        clickhouse.altinity.com/namespace: clickhouse
+        clickhouse.altinity.com/ready: 'yes'
+        clickhouse.altinity.com/replica: '0'
+        clickhouse.altinity.com/shard: '0'
+        statefulset.kubernetes.io/pod-name: chi-forensic-soc-db-soc-cluster-0-0-0
+    ports:
+    - name: TCP-8123
+      port: 8123
+      protocol: TCP
+    type: internal
+  - dns: work.test.austrianopencloudcommunity.org.
+    dnsNames:
+    - work.test.austrianopencloudcommunity.org.
+    identifier: 284d617ca3e493147f79f2c7f185037100a9c2636930eec7995122394206e7fe
+    ipAddress: 100.103.139.51
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: external
+  - dns: ''
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: default
+    podSelector:
+      matchLabels:
+        component: apiserver
+        provider: kubernetes
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: 4380bec7cadc8df8f7321e3ceac7739db245e5db032c59fdb73c104aa0543112
+    ipAddress: 10.43.0.10
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  ingress:
+  - identifier: dx-control
+    type: internal
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: honey
+    podSelector:
+      matchLabels:
+        app: dx-daemon
+    ports:
+    - name: TCP-9100
+      port: 9100
+      protocol: TCP
+  - identifier: dx-control-cidr
+    type: internal
+    dns: ''
+    dnsNames: []
+    ipAddress: ''
+    ipAddresses:
+    - 10.42.0.0/16
+    - 10.43.0.0/16
+    - 10.244.0.0/16
+    - 10.96.0.0/12
+    ports:
+    - name: TCP-9100
+      port: 9100
+      protocol: TCP

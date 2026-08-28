@@ -1,0 +1,233 @@
+# SBoB for kelvin/app — generalised from a recorded ContainerProfile.
+# opens 172 -> 145 after collapse+portability.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: kelvin
+  namespace: pl
+  annotations:
+    kubescape.io/managed-by: User
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+spec:
+  execs:
+  - path: /app/src/vizier/services/agent/kelvin/kelvin.runfiles/px/src/vizier/services/agent/kelvin/kelvin
+  opens:
+  - path: /apex/com.android.tzdata/etc/tz/tzdata
+  - path: /certs/⋯/ca.crt
+  - path: /certs/⋯/client.crt
+  - path: /certs/⋯/client.key
+  - path: /data/misc/zoneinfo/current/tzdata
+  - path: /dev/urandom
+  - path: /etc/⋯
+  - path: /etc/⋯/cert.pem
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v2/libm.so.6
+  - path: /lib/⋯/glibc-hwcaps/x86-64-v3/libm.so.6
+  - path: /lib/⋯/libc.so.6
+  - path: /lib/⋯/liblzma.so.5.4.1
+  - path: /lib/⋯/libm.so.6
+  - path: /lib/⋯/libunwind.so.8
+  - path: /lib/⋯/libz.so.1.2.13
+  - path: /lib/⋯/tls/libm.so.6
+  - path: /lib/⋯/tls/x86_64/libm.so.6
+  - path: /lib/⋯/tls/x86_64/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/libm.so.6
+  - path: /lib/⋯/x86_64/x86_64/libm.so.6
+  - path: /proc/⋯/1/fd
+  - path: /proc/⋯/core/somaxconn
+  - path: /sys/devices/system/cpu/cpu0/tsc_freq_khz
+  - path: /sys/devices/system/cpu/online
+  - path: /sys/devices/system/cpu/possible
+  - path: /sys/fs/cgroup
+  - path: /sys/fs/cgroup/⋯
+  - path: /sys/fs/cgroup/⋯/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/code-server-proxy.socket
+  - path: /sys/fs/cgroup/⋯/code-server-proxy.socket/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/dbus.service
+  - path: /sys/fs/cgroup/⋯/dbus.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/examiner.service
+  - path: /sys/fs/cgroup/⋯/examiner.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/k3s-agent.service
+  - path: /sys/fs/cgroup/⋯/k3s-agent.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cri-containerd-584db275ed977567c3e50e9c3ee993c128a259c3f358f06e29b3bdf1292f7f2b.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cri-containerd-584db275ed977567c3e50e9c3ee993c128a259c3f358f06e29b3bdf1292f7f2b.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cri-containerd-5cce4c9d0089d5556cd2d01a0a73b7c630d10be62e70d8a75d9782bc7e5c5b7b.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cri-containerd-5cce4c9d0089d5556cd2d01a0a73b7c630d10be62e70d8a75d9782bc7e5c5b7b.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cri-containerd-8ce22612a17a527d42e6991dc857ef18735c2b3ad942db39ca53390e3391f8a9.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod0af0fc5c_6d00_45ce_9342_a1cc3d9e4fbf.slice/cri-containerd-8ce22612a17a527d42e6991dc857ef18735c2b3ad942db39ca53390e3391f8a9.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod23820646_1a57_46fa_ada1_4ea6ded86d31.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod23820646_1a57_46fa_ada1_4ea6ded86d31.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod23820646_1a57_46fa_ada1_4ea6ded86d31.slice/cri-containerd-6d50b2ff6ab6d7533512c66caf592c2aa407fae897cbb9208b326054b9df6a5a.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod23820646_1a57_46fa_ada1_4ea6ded86d31.slice/cri-containerd-6d50b2ff6ab6d7533512c66caf592c2aa407fae897cbb9208b326054b9df6a5a.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod23820646_1a57_46fa_ada1_4ea6ded86d31.slice/cri-containerd-dbdd597d056b08c0dc01d90ea1e5a78389e5dd821f105ec3678d82062dae9073.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod23820646_1a57_46fa_ada1_4ea6ded86d31.slice/cri-containerd-dbdd597d056b08c0dc01d90ea1e5a78389e5dd821f105ec3678d82062dae9073.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod3b9fbdf6_4ccd_4fa6_8509_52a5cffff489.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod3b9fbdf6_4ccd_4fa6_8509_52a5cffff489.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod3b9fbdf6_4ccd_4fa6_8509_52a5cffff489.slice/cri-containerd-14e97aaf5f2229bffd6d31e563119216b7f61573480761edbdf00be57b1c0567.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod3b9fbdf6_4ccd_4fa6_8509_52a5cffff489.slice/cri-containerd-14e97aaf5f2229bffd6d31e563119216b7f61573480761edbdf00be57b1c0567.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod3b9fbdf6_4ccd_4fa6_8509_52a5cffff489.slice/cri-containerd-e1eae543ae0a99b68e6e90edf8a8cfd906d0b0895e4f24c7f7bba80d48bde02c.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-pod3b9fbdf6_4ccd_4fa6_8509_52a5cffff489.slice/cri-containerd-e1eae543ae0a99b68e6e90edf8a8cfd906d0b0895e4f24c7f7bba80d48bde02c.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podc6af174c_6a3c_4ffb_85d7_d71f4c45303e.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podc6af174c_6a3c_4ffb_85d7_d71f4c45303e.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podc6af174c_6a3c_4ffb_85d7_d71f4c45303e.slice/cri-containerd-7071839f374301de8e6cca0c8072032e4e96cd480e8db636e85b6db9a548ad38.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podc6af174c_6a3c_4ffb_85d7_d71f4c45303e.slice/cri-containerd-7071839f374301de8e6cca0c8072032e4e96cd480e8db636e85b6db9a548ad38.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podc6af174c_6a3c_4ffb_85d7_d71f4c45303e.slice/cri-containerd-e1dcdd6718e532794099802db0755ed866cc0b362a8e9b28c30a63460f585255.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podc6af174c_6a3c_4ffb_85d7_d71f4c45303e.slice/cri-containerd-e1dcdd6718e532794099802db0755ed866cc0b362a8e9b28c30a63460f585255.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podde1a9069_ddbc_4444_b39e_6e16268e3710.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podde1a9069_ddbc_4444_b39e_6e16268e3710.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podde1a9069_ddbc_4444_b39e_6e16268e3710.slice/cri-containerd-21b96ad72604f4bbf34fee0aa16566dcb6e0c3377931a08265471141127b9768.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podde1a9069_ddbc_4444_b39e_6e16268e3710.slice/cri-containerd-21b96ad72604f4bbf34fee0aa16566dcb6e0c3377931a08265471141127b9768.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podde1a9069_ddbc_4444_b39e_6e16268e3710.slice/cri-containerd-ff07fd08d998921e80e16d5fdf82602a878afea13fcc372813d05d7b298be8f6.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-besteffort.slice/kubepods-besteffort-podde1a9069_ddbc_4444_b39e_6e16268e3710.slice/cri-containerd-ff07fd08d998921e80e16d5fdf82602a878afea13fcc372813d05d7b298be8f6.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cri-containerd-5f1a103b64bc40ab8d64b1577ab269867e4f983e9d6ca3a40abd1298539cddca.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cri-containerd-5f1a103b64bc40ab8d64b1577ab269867e4f983e9d6ca3a40abd1298539cddca.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cri-containerd-c989446f49e18e432e4f8adbb6bccf1bf23477d2b28d2a774dbedfe86c155385.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod25190164_23dd_4da8_9ce8_92f041e09172.slice/cri-containerd-c989446f49e18e432e4f8adbb6bccf1bf23477d2b28d2a774dbedfe86c155385.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod737a287a_e796_4897_8b69_849f3f88866b.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod737a287a_e796_4897_8b69_849f3f88866b.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod737a287a_e796_4897_8b69_849f3f88866b.slice/cri-containerd-60ef11b3b25db32247531fec0ee40c34766e0432c35cf2d60fc3051006a9ca1f.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod737a287a_e796_4897_8b69_849f3f88866b.slice/cri-containerd-60ef11b3b25db32247531fec0ee40c34766e0432c35cf2d60fc3051006a9ca1f.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod737a287a_e796_4897_8b69_849f3f88866b.slice/cri-containerd-8c5b9db2273e58ab3ec8865ffd256ac0a9f29a9b92f6c041e6777ee7ee779c20.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-pod737a287a_e796_4897_8b69_849f3f88866b.slice/cri-containerd-8c5b9db2273e58ab3ec8865ffd256ac0a9f29a9b92f6c041e6777ee7ee779c20.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cri-containerd-688742c07118f4b3f6ea9420dc25119e1e4944d0b40b82b4e40df53618ad83e0.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cri-containerd-688742c07118f4b3f6ea9420dc25119e1e4944d0b40b82b4e40df53618ad83e0.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cri-containerd-89937a630dfe9c39fba9cf3f8b1678c181e7a9093fd608cf025fa0fe34048444.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poda00bbcac_bd1a_4473_bc5a_817eb969ea15.slice/cri-containerd-89937a630dfe9c39fba9cf3f8b1678c181e7a9093fd608cf025fa0fe34048444.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podbc2801c2_9b93_461d_8779_fb94b9ed378e.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podbc2801c2_9b93_461d_8779_fb94b9ed378e.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podbc2801c2_9b93_461d_8779_fb94b9ed378e.slice/cri-containerd-c62375721e37252b6d20e3b77aae2e19331d33b9ddee1c6bc2f007ad26b11d57.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podbc2801c2_9b93_461d_8779_fb94b9ed378e.slice/cri-containerd-c62375721e37252b6d20e3b77aae2e19331d33b9ddee1c6bc2f007ad26b11d57.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podbc2801c2_9b93_461d_8779_fb94b9ed378e.slice/cri-containerd-d250724c26fe0828fd7dd7b6fdf226d2892f2a1390371da2a313a374ad688d68.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podbc2801c2_9b93_461d_8779_fb94b9ed378e.slice/cri-containerd-d250724c26fe0828fd7dd7b6fdf226d2892f2a1390371da2a313a374ad688d68.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cri-containerd-7381dacc38872af309ea90de79f4b49a4650b53f13d555fb65304592da1f7d21.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cri-containerd-7381dacc38872af309ea90de79f4b49a4650b53f13d555fb65304592da1f7d21.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cri-containerd-a61656af341842bf415de22fa0771f1c6d912c4e336f342980ab363c55f4c879.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-poddce111fb_ea24_44ef_84bb_83731e8d0ae1.slice/cri-containerd-a61656af341842bf415de22fa0771f1c6d912c4e336f342980ab363c55f4c879.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podf3d362f2_ccbf_44b3_b180_ff0d8156c14c.slice
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podf3d362f2_ccbf_44b3_b180_ff0d8156c14c.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podf3d362f2_ccbf_44b3_b180_ff0d8156c14c.slice/cri-containerd-26994b69b370af3e4daddc59c7368fa15db368a26152f16032762f88dd996c8b.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podf3d362f2_ccbf_44b3_b180_ff0d8156c14c.slice/cri-containerd-26994b69b370af3e4daddc59c7368fa15db368a26152f16032762f88dd996c8b.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podf3d362f2_ccbf_44b3_b180_ff0d8156c14c.slice/cri-containerd-ebc7e4d235914db43d644ff0204d21eab60e7792132dacde0d00ce14889467f0.scope
+  - path: /sys/fs/cgroup/⋯/kubepods-burstable.slice/kubepods-burstable-podf3d362f2_ccbf_44b3_b180_ff0d8156c14c.slice/cri-containerd-ebc7e4d235914db43d644ff0204d21eab60e7792132dacde0d00ce14889467f0.scope/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/ssh.service
+  - path: /sys/fs/cgroup/⋯/ssh.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/ssh.socket
+  - path: /sys/fs/cgroup/⋯/ssh.socket/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-getty.slice
+  - path: /sys/fs/cgroup/⋯/system-getty.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-getty.slice/getty@tty1.service
+  - path: /sys/fs/cgroup/⋯/system-getty.slice/getty@tty1.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-modprobe.slice
+  - path: /sys/fs/cgroup/⋯/system-modprobe.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-serial\x2dgetty.slice
+  - path: /sys/fs/cgroup/⋯/system-serial\x2dgetty.slice/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/system-serial\x2dgetty.slice/serial-getty@ttyS0.service
+  - path: /sys/fs/cgroup/⋯/system-serial\x2dgetty.slice/serial-getty@ttyS0.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-journald.service
+  - path: /sys/fs/cgroup/⋯/systemd-journald.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-logind.service
+  - path: /sys/fs/cgroup/⋯/systemd-logind.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-resolved.service
+  - path: /sys/fs/cgroup/⋯/systemd-resolved.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-timesyncd.service
+  - path: /sys/fs/cgroup/⋯/systemd-timesyncd.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-udevd.service
+  - path: /sys/fs/cgroup/⋯/systemd-udevd.service/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/systemd-udevd.service/udev
+  - path: /sys/fs/cgroup/⋯/systemd-udevd.service/udev/cgroup.procs
+  - path: /sys/fs/cgroup/⋯/tailscaled.service
+  - path: /sys/fs/cgroup/⋯/tailscaled.service/cgroup.procs
+  - path: /system/usr/share/zoneinfo/tzdata
+  - path: /usr/lib/⋯/glibc-hwcaps/x86-64-v2/libunwind.so.8
+  - path: /usr/lib/⋯/glibc-hwcaps/x86-64-v3/libunwind.so.8
+  - path: /usr/lib/⋯/libunwind.so.8.0.1
+  - path: /usr/lib/⋯/tls/libunwind.so.8
+  - path: /usr/lib/⋯/tls/x86_64/libunwind.so.8
+  - path: /usr/lib/⋯/tls/x86_64/x86_64/libunwind.so.8
+  - path: /usr/lib/⋯/x86_64/libunwind.so.8
+  - path: /usr/lib/⋯/x86_64/x86_64/libunwind.so.8
+  syscalls:
+  - brk
+  - clock_nanosleep
+  - clone
+  - epoll_ctl
+  - epoll_wait
+  - futex
+  - gettid
+  - mincore
+  - mprotect
+  - openat
+  - prlimit64
+  - read
+  - recvmsg
+  - rseq
+  - rt_sigprocmask
+  - sched_getparam
+  - sched_getscheduler
+  - sched_yield
+  - sendmmsg
+  - sendmsg
+  - set_robust_list
+  - shutdown
+  - statfs
+  - write
+  - writev
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  egress:
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      protocol: UDP
+      port: 53
+  - identifier: e23b35d90d5eaf9f53654dc4ce085c87b57a167a44f9567c1448423131aeb405
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-50300
+      protocol: TCP
+      port: 50300
+  - identifier: d9bcc711b1fbffffc6fe9bdacd6057f0b6c5d58863f85bded6d7fb18c18bd077
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-metadata
+    ports:
+    - name: TCP-50400
+      protocol: TCP
+      port: 50400
+  - identifier: a08590764670db9042dbda79f3deaa0eee333ec6950ccadc5dd0262fcd994e42
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        name: pl-nats
+    ports:
+    - name: TCP-4222
+      protocol: TCP
+      port: 4222
