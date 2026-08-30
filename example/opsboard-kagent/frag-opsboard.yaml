@@ -1,0 +1,208 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: opsboard-base
+  namespace: shop
+  labels:
+    kubescape.io/managed-by: user
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_NET_ADMIN
+  execs:
+  - args:
+    - /opsboard
+    path: /opsboard
+  opens:
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/passwd
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/resolv.conf
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /opsboard
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: "/proc/\u22EF/net/core/somaxconn"
+  - flags:
+    - O_RDONLY
+    - O_DIRECTORY
+    - O_CLOEXEC
+    path: "/proc/\u22EF/task/1/fd"
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /root/.pgpass
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  syscalls:
+  - accept4
+  - arch_prctl
+  - bind
+  - capget
+  - capset
+  - chdir
+  - clone
+  - close
+  - close_range
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - exit
+  - faccessat2
+  - fcntl
+  - fstat
+  - fstatfs
+  - futex
+  - getcwd
+  - getdents64
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getrlimit
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - listen
+  - madvise
+  - mmap
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - openat2
+  - pipe2
+  - prctl
+  - pread64
+  - read
+  - readlinkat
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - setgid
+  - setgroups
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - socket
+  - statx
+  - tgkill
+  - tkill
+  - write
+  endpoints:
+  - direction: outbound
+    endpoint: :80/rate
+    headers:
+      Accept-Encoding:
+      - gzip
+      Host:
+      - fx
+    internal: true
+    methods:
+    - GET
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: 4380bec7cadc8df8f7321e3ceac7739db245e5db032c59fdb73c104aa0543112
+    ipAddress: 10.43.0.10
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: 684af75703532be0bb4e0ce5a31683c8525922a73865e877abb60c9d5a4314b3
+    ipAddress: 10.43.246.176
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: redis
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: cf1a5d67e15075bcfd2d8a232306bc532c01b28237edf0c90cbd28ca2b694f06
+    ipAddress: 10.43.142.190
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: postgres
+    ports:
+    - name: TCP-5432
+      port: 5432
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: ddeab48f8fe4f787e13addf36d56069d99ead6fb77dab41bb5ceb425b6d94ef1
+    ipAddress: 10.43.99.180
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: fx
+    ports:
+    - name: TCP-80
+      port: 80
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: 4f487fed9c24cd4d22d8714968d74aafe94aca79b23dee249464c228d5b0179e
+    ipAddress: 10.43.17.53
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: inventory
+    ports:
+    - name: TCP-9090
+      port: 9090
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: 71fa62386c09eb12ca475f6a625832c8287965bf812e5550f60c3ad1af1c5160
+    ipAddress: 10.43.11.135
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: rabbitmq
+    ports:
+    - name: TCP-5672
+      port: 5672
+      protocol: TCP
+    type: internal
+  imageID: ttl.sh/opsboard-bb4f07bc@sha256:998f26f88d2186289834eb830e58bf7a39a34ee9570f3748c8644fb93de3fcc6
+  imageTag: ttl.sh/opsboard-bb4f07bc:24h
