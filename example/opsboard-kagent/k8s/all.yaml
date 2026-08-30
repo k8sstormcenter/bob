@@ -1,0 +1,127 @@
+apiVersion: v1
+kind: Namespace
+metadata: {name: shop}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: opsboard, namespace: shop}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: opsboard-secrets, namespace: shop}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get","list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: opsboard-secrets, namespace: shop}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: opsboard-secrets}
+subjects: [{kind: ServiceAccount, name: opsboard, namespace: shop}]
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: payments-signing-key, namespace: shop}
+stringData: {key: "PLACEHOLDER-demo-secret-do-not-use"}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: redis, namespace: shop}
+spec:
+  selector: {matchLabels: {app: redis}}
+  template:
+    metadata: {labels: {app: redis}}
+    spec:
+      containers: [{name: redis, image: redis:7-alpine, ports: [{containerPort: 6379}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: redis, namespace: shop}
+spec: {selector: {app: redis}, ports: [{port: 6379, targetPort: 6379}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: postgres, namespace: shop}
+spec:
+  selector: {matchLabels: {app: postgres}}
+  template:
+    metadata: {labels: {app: postgres}}
+    spec:
+      containers:
+      - {name: postgres, image: postgres:16-alpine, ports: [{containerPort: 5432}], env: [{name: POSTGRES_USER, value: ops},{name: POSTGRES_PASSWORD, value: ops},{name: POSTGRES_DB, value: ops}]}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: postgres, namespace: shop}
+spec: {selector: {app: postgres}, ports: [{port: 5432, targetPort: 5432}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: rabbitmq, namespace: shop}
+spec:
+  selector: {matchLabels: {app: rabbitmq}}
+  template:
+    metadata: {labels: {app: rabbitmq}}
+    spec:
+      containers: [{name: rabbitmq, image: rabbitmq:3-alpine, ports: [{containerPort: 5672}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: rabbitmq, namespace: shop}
+spec: {selector: {app: rabbitmq}, ports: [{port: 5672, targetPort: 5672}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: fx, namespace: shop}
+spec:
+  selector: {matchLabels: {app: fx}}
+  template:
+    metadata: {labels: {app: fx}}
+    spec:
+      containers: [{name: fx, image: nginx:alpine, ports: [{containerPort: 80}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: fx, namespace: shop}
+spec: {selector: {app: fx}, ports: [{port: 80, targetPort: 80}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: inventory, namespace: shop}
+spec:
+  selector: {matchLabels: {app: inventory}}
+  template:
+    metadata: {labels: {app: inventory}}
+    spec:
+      containers: [{name: inventory, image: IMAGE, env: [{name: MODE, value: grpcserver}], ports: [{containerPort: 9090}]}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: inventory, namespace: shop}
+spec: {selector: {app: inventory}, ports: [{port: 9090, targetPort: 9090}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: opsboard, namespace: shop}
+spec:
+  selector: {matchLabels: {app: opsboard}}
+  template:
+    metadata: {labels: {app: opsboard}}
+    spec:
+      serviceAccountName: opsboard
+      containers:
+      - name: opsboard
+        image: IMAGE
+        ports: [{containerPort: 8080}]
+        env:
+        - {name: REDIS_ADDR, value: "redis:6379"}
+        - {name: PG_DSN, value: "postgres://ops:ops@postgres:5432/ops"}
+        - {name: AMQP_ADDR, value: "rabbitmq:5672"}
+        - {name: INVENTORY_ADDR, value: "inventory:9090"}
+        - {name: FX_ADDR, value: "fx"}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: opsboard, namespace: shop}
+spec: {selector: {app: opsboard}, ports: [{port: 8080, targetPort: 8080}]}

@@ -1,0 +1,117 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: inventory-base
+  namespace: shop
+  labels:
+    kubescape.io/managed-by: user
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_NET_ADMIN
+  execs:
+  - args:
+    - /opsboard
+    path: /opsboard
+  opens:
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /opsboard
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/net/core/somaxconn
+  - flags:
+    - O_DIRECTORY
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  syscalls:
+  - accept4
+  - arch_prctl
+  - bind
+  - capget
+  - capset
+  - chdir
+  - clone
+  - close
+  - close_range
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - exit
+  - faccessat2
+  - fcntl
+  - fstat
+  - fstatfs
+  - futex
+  - getcwd
+  - getdents64
+  - getpid
+  - getppid
+  - getrlimit
+  - getsockname
+  - getsockopt
+  - gettid
+  - listen
+  - madvise
+  - mmap
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - openat2
+  - pipe2
+  - prctl
+  - pread64
+  - read
+  - readlinkat
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - setgid
+  - setgroups
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - socket
+  - statx
+  - tgkill
+  - tkill
+  - write
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: e0ce7b810e118b6c99bbb13b979b8c16dc92147f7cdbeb52e895bc5ced9462d0
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: opsboard
+    ports:
+    - name: TCP-9090
+      port: 9090
+      protocol: TCP
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: 6281490a592eecab92fa26e4039a8b549b839e8b6583efee4a34ded40924c920
+    ipAddress: 10.42.0.21
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-9090
+      port: 9090
+      protocol: TCP
+    type: external
+  imageID: ttl.sh/opsboard-bb4f07bc@sha256:998f26f88d2186289834eb830e58bf7a39a34ee9570f3748c8644fb93de3fcc6
+  imageTag: ttl.sh/opsboard-bb4f07bc:24h
