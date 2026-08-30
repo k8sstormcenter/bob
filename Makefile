@@ -4,7 +4,7 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.40.3
+KUBESCAPE_CHART_VER ?= 1.41.0-duckling2
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
@@ -377,8 +377,10 @@ show-runc:
 
 .PHONY: kubescape
 kubescape:
-	helm repo add kubescape https://kubescape.github.io/helm-charts/
+	helm repo add kubescape https://raw.githubusercontent.com/k8sstormcenter/helm-charts/gh-pages
 	helm repo update
+	kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f -
+	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml | kubectl apply -f -
 	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f kubescape/default-rules.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
