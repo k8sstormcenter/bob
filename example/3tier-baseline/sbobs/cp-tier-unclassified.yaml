@@ -1,0 +1,209 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# TIER 0 — UNCLASSIFIED  (Kyverno could not infer a tier from image or port)
+#
+# Deliberately minimal: shell and coreutils only, NO capabilities, NO app egress
+# beyond DNS, NO ingress at all. Any real traffic alerts immediately.
+#
+# It carries NO language runtimes (java/python/node/php/ruby/dotnet), no /app/⋯ or
+# /srv/⋯ wildcards, and NO ServiceAccount token path — those belong to tier-backend,
+# and a workload nobody could classify is the last one that should hold cluster
+# credentials (see adr/0003). An earlier revision of this file was byte-identical to
+# tier-backend on execs, opens, syscalls and capabilities, differing only in the
+# network sections; it was strict in name only.
+#
+# This exists because an unresolvable profile label is WORSE than a strict one:
+# node-agent leaves such a container with NO profile at all (it does not fall
+# back to learning), so the workload would be silently uncovered. A real-but-
+# strict profile makes the gap loud instead of invisible.
+#
+# The fix for these alerts is not to widen this file — it is to label the
+# workload with its real tier.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: tier-unclassified
+  namespace: CHANGEME
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  capabilities: []
+  execs:
+  - path: /bin/sh
+  - path: /usr/bin/sh
+  - path: /bin/dash
+  - path: /usr/bin/dash
+  - path: /bin/bash
+  - path: /usr/bin/bash
+  - path: /usr/bin/env
+  - path: /bin/env
+  - path: /usr/bin/cat
+  - path: /bin/cat
+  - path: /usr/bin/grep
+  - path: /bin/grep
+  - path: /usr/bin/sed
+  - path: /bin/sed
+  - path: /usr/bin/awk
+  - path: /bin/awk
+  - path: /usr/bin/id
+  - path: /bin/id
+  - path: /usr/bin/mkdir
+  - path: /bin/mkdir
+  opens:
+  - path: /opt/⋯
+  - path: /var/log/⋯
+  - path: /var/cache/⋯
+  - path: /tmp/⋯
+  - path: /dev/null
+  - path: /dev/urandom
+  - path: /dev/random
+  - path: /etc/passwd
+  - path: /etc/group
+  - path: /etc/hosts
+  - path: /etc/hostname
+  - path: /etc/resolv.conf
+  - path: /etc/nsswitch.conf
+  - path: /etc/localtime
+  - path: /etc/ssl/⋯
+  - path: /etc/pki/⋯
+  - path: /etc/ca-certificates/⋯
+  - path: /lib/⋯
+  - path: /lib64/⋯
+  - path: /usr/lib/⋯
+  - path: /usr/local/lib/⋯
+  - path: /usr/share/zoneinfo/⋯
+  - path: /usr/share/ca-certificates/⋯
+  - path: /proc/⋯
+  - path: /sys/⋯
+  syscalls:
+  - accept
+  - accept4
+  - access
+  - arch_prctl
+  - bind
+  - brk
+  - capget
+  - chdir
+  - clock_nanosleep
+  - clone
+  - clone3
+  - close
+  - close_range
+  - connect
+  - dup2
+  - dup3
+  - epoll_create
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - epoll_wait
+  - eventfd2
+  - execve
+  - exit
+  - exit_group
+  - faccessat
+  - faccessat2
+  - fadvise64
+  - fallocate
+  - fchdir
+  - fcntl
+  - fdatasync
+  - fstat
+  - fstatfs
+  - fsync
+  - futex
+  - getcwd
+  - getdents64
+  - getegid
+  - geteuid
+  - getgid
+  - getgroups
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getrlimit
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - io_setup
+  - ioctl
+  - listen
+  - lseek
+  - madvise
+  - membarrier
+  - mincore
+  - mkdir
+  - mkdirat
+  - mmap
+  - mprotect
+  - mremap
+  - munmap
+  - nanosleep
+  - newfstatat
+  - open
+  - openat
+  - openat2
+  - pipe
+  - pipe2
+  - poll
+  - prctl
+  - pread64
+  - prlimit64
+  - pwrite64
+  - read
+  - readlink
+  - readlinkat
+  - recvfrom
+  - recvmsg
+  - rename
+  - renameat
+  - rseq
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_getparam
+  - sched_getscheduler
+  - sched_yield
+  - sendfile
+  - sendmmsg
+  - sendmsg
+  - sendto
+  - set_robust_list
+  - set_tid_address
+  - setsockopt
+  - shutdown
+  - sigaltstack
+  - socket
+  - socketpair
+  - stat
+  - statfs
+  - statx
+  - sysinfo
+  - tgkill
+  - umask
+  - uname
+  - unlink
+  - unlinkat
+  - utimensat
+  - wait4
+  - write
+  - writev
+  egress:
+  - identifier: dns
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      protocol: UDP
+      port: 53
+    - name: TCP-53
+      protocol: TCP
+      port: 53
+  ingress: []
