@@ -4,7 +4,7 @@ keep = ["architectures", "capabilities", "execs", "opens", "syscalls", "endpoint
 frag = {
     "apiVersion": "spdx.softwarecomposition.kubescape.io/v1beta1",
     "kind": "ContainerProfile",
-    "metadata": {"name": "opsboard-base", "namespace": "shop", "labels": {"kubescape.io/managed-by": "user"}},
+    "metadata": {"name": "opsboard-base", "namespace": "shop", "labels": {"kubescape.io/managed-by": "User"}},
     "spec": {k: s[k] for k in keep if s.get(k) is not None},
 }
 yaml.safe_dump(frag, sys.stdout, sort_keys=False)
