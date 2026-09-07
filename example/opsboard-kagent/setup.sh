@@ -7,9 +7,12 @@ CP=containerprofiles.spdx.softwarecomposition.kubescape.io
 NS=shop
 cd "$ROOT"
 
-echo "### build + push opsboard"
-TAG="ttl.sh/opsboard-$(head -c4 /dev/urandom | xxd -p):24h"
-docker buildx build -t "$TAG" --push "$HERE/opsboard"
+TAG="${OPSBOARD_IMAGE:-ghcr.io/k8sstormcenter/opsboard-demo:latest}"
+if [ "${OPSBOARD_BUILD:-0}" = "1" ]; then
+  echo "### build + push opsboard -> $TAG"
+  docker buildx build -t "$TAG" --push "$HERE/opsboard"
+fi
+echo "### opsboard image: $TAG"
 
 echo "### deploy stack"
 sed "s#IMAGE#$TAG#g" "$HERE/k8s/all.yaml" | kubectl apply -f -
