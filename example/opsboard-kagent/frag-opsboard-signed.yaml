@@ -1,0 +1,222 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    signature.kubescape.io/certificate: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJXekNDQVFHZ0F3SUJBZ0lRZlp2d2g0a3I4OFR6YTcrK0JLTjE1VEFLQmdncWhrak9QUVFEQWpBVU1SSXcKRUFZRFZRUURFd2xzYjJOaGJDMXJaWGt3SGhjTk1qWXdPRE13TURrME16QTJXaGNOTWpjd09ETXdNRGswTXpBMgpXakFVTVJJd0VBWURWUVFERXdsc2IyTmhiQzFyWlhrd1dUQVRCZ2NxaGtqT1BRSUJCZ2dxaGtqT1BRTUJCd05DCkFBUVdkZUU3MmxlQWp3NllNakh4dmxRb0VYRWtFZXl5QU94b3I0c2l1VWtuSzkvcjJYTTlDOFZDLzJiR0x5eG4KUDRpZ1R6dStIL3VSaVBvazE2anl4aHI0b3pVd016QU9CZ05WSFE4QkFmOEVCQU1DQjRBd0V3WURWUjBsQkF3dwpDZ1lJS3dZQkJRVUhBd013REFZRFZSMFRBUUgvQkFJd0FEQUtCZ2dxaGtqT1BRUURBZ05JQURCRkFpQmpWSzNQCllGTTgrSEZSYlRVTlcrVVMxeXJTanhDZ0htQno3WHB6K2JzR25RSWhBSU5oWDQ5L0lwVW1MMVFlWWVEN0NzU1kKdWxEbTNHQkVUT1VCNFB2elhQc1cKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    signature.kubescape.io/content: H4sIAAAAAAAA/6xWXW7cvhG/C5/XuxJJSZSeathGGyCNjfzdosUfxmJIDrWEJZEluf6IsSfoYXqnnqSgdr2OkcSN27yIMyRnhvObLz0R8PavGKJ1E+lI9PphGZ1J9xBQudG7aJN10/J2KzEq8Li0bnVXSkxQkgW5tZMmHTlzUwI7YbgKztgByYKMmEBDAtI9kQEkDjFTr9SMMEGP+kQ+ko5sIwayW5AJRiQdcT5KB0GfSIiY96NHlTVAUBubUKVtwEi63wmMuubkZkEUeJB2sMnuD85Or9afLq7Xp+d//vApX8AHVPnkiXhIG9KR1bMVsiAQ+lnqZe9md7MgzuP0WgaTWm1cTJEsiBlgL3W5/nx++enj38mCXK7PPl5e/O3ijNzsFq/FphjvbVKbpXKTeb+4hxjv9fvlAkY33P0PRr+C5yup56uLFw2vpHxwavXvf/5rNWFaKRdwFd0ID8pN0/vMHxUliLercmV+7Pv5h88XZ9eXn9/QFpxLq6XvM4rvcyg+xtUthgmH1TiuUoApegg4pfVm26OHHleb/F37Ua+j/YLffeacTvExKhiGfeIqhT7xOffUZu2DSgNZEJlLas7mHtOeiHtio23I6+Am3K/xuK4DTP3MuWlCle+jd8OwVgEhYfnCz0b2tL8HO998QHWHMzHzJj8tRkg0M2qaRUxMkJ5XM0O4TfhAFqTHpOa87DFpnFKs+Z7xiGGu5z1nD3f8kQowaTce6MGOs/UeU3Tq9kUwc84fjtKz7HYmBhsT5rwaQd/ZGY9xBJ+X7bQnJphcHBBnGu/n98+e5Nr+isjOeutxXg/B8AFBz+5k4rAMdrqd5QKqOxNmB0JaR9uDys3yyOYEHiHeHjcCpm3I51FtUK97TGCMnWx6PO49WhyyoYipt89EcFsf9/QLGPEZg2x4SDGBypbyhTlfsp85PKm/tUN2Jh3W+2AT5oYYUeUe/9y0u6djl9VoYDuk070/HSG73YLgpL2zU9r3w2eOdKQTxSpAOrT9jdNzfv/x4jobsVPKWTCQLoUtLoi2AZ/Vum2Sbjvn+wZBY5iHxOlcGCcXk3LaTn3W1X+xPiv7k4sp8+aB3OxyQdkRevxwTjqS0rCMm9XL4JDcFI1Uf4gboFXdta0wtDZCaFqKmopWMI5SsAIrIU0DrAXGEduqKQxruFCi5tzIlmlkRqmaHIxdQ/+GtY7yTQ73dsArN1g1z6Kn3YLYXBnWWNRnMAy/5WBF0k3bYcgQ9QHjkcUD9/vTi1QgHeFMFBJVo0AroY0wDaMlMoWgmoa1WlJeYaVlwaiqWqNlw1RZcICi4qwsc16nR5+n6zEmC6LzeCN74hOMeHyFd+EQ6cNI/sv51UnF5qJwySk37PfI/irpKpYD4p3+DQdUyYUcyxGS2nx8mf8inoD3pJv/BE6y8d1h6EcPCt8S3crcgxPG+d/h8HuxPDxuVhcfY8Jx1mj9qdZ7GElZLDlbFsuyILmtv8K0FhxMUzUFqxiVWEjJsVBYAStrwZSoaNVSCg0TdYWiaUDKulCtroCzkkv2f2J6fXZ1UrOmfY3q9dkLqvn0v+O6xzSgtj8E9JBq3+BCeb0sm/pbaJQpodJ1g2VVNJVURlMtgDLKilqqilFVlJIKyhrUplBtoaSmQgGVdctNUf8CaCrO6I+hyac/C413MeWyei86JafLsv1O4miNILkwwiA3jWiwZKC1YbWu6qJuddvmyWFk02iQvJSyUig5rWStW46m/AXoiOLH2IjiZ5ExD+/FpG2XpfgOJNxw0RjUraJcaa4p1aIpeVsL3XAAgy0HBU0rKdOIlLe85opSoStZlE2LvwCStmjfACWf/iwsdrrDKbnw+O6MaZYV+xacpjRQUyZqVbQoS6qAN5WpoaaVYFQJKpq2rqQRJcWqqgpTF4qBLsGUqirr4ldUU928VU1189PVFEBKm8Z/vBubclmyiuxudrv/BAAA//8R/tSJeQ4AAA==
+    signature.kubescape.io/identity: local-key
+    signature.kubescape.io/issuer: local
+    signature.kubescape.io/signature: MEUCIGnvN+cLQ5jEIubBk1BgVeR4lzgpezTyzJPk4uZrUdXBAiEA5x4kJaWgfwXqI4xSajrS6m5A83CfVfoN66rKHdjYk40=
+    signature.kubescape.io/timestamp: "1788082986"
+  labels:
+    kubescape.io/managed-by: user
+  name: opsboard-base
+  namespace: shop
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_NET_ADMIN
+  egress:
+  - dns: ""
+    dnsNames: null
+    identifier: 4380bec7cadc8df8f7321e3ceac7739db245e5db032c59fdb73c104aa0543112
+    ipAddress: 10.43.0.10
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: 684af75703532be0bb4e0ce5a31683c8525922a73865e877abb60c9d5a4314b3
+    ipAddress: 10.43.246.176
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: redis
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: cf1a5d67e15075bcfd2d8a232306bc532c01b28237edf0c90cbd28ca2b694f06
+    ipAddress: 10.43.142.190
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: postgres
+    ports:
+    - name: TCP-5432
+      port: 5432
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: ddeab48f8fe4f787e13addf36d56069d99ead6fb77dab41bb5ceb425b6d94ef1
+    ipAddress: 10.43.99.180
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: fx
+    ports:
+    - name: TCP-80
+      port: 80
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: 4f487fed9c24cd4d22d8714968d74aafe94aca79b23dee249464c228d5b0179e
+    ipAddress: 10.43.17.53
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: inventory
+    ports:
+    - name: TCP-9090
+      port: 9090
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: 71fa62386c09eb12ca475f6a625832c8287965bf812e5550f60c3ad1af1c5160
+    ipAddress: 10.43.11.135
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: rabbitmq
+    ports:
+    - name: TCP-5672
+      port: 5672
+      protocol: TCP
+    type: internal
+  endpoints:
+  - direction: outbound
+    endpoint: :80/rate
+    headers:
+      Accept-Encoding:
+      - gzip
+      Host:
+      - fx
+    internal: true
+    methods:
+    - GET
+  execs:
+  - args:
+    - /opsboard
+    path: /opsboard
+  identifiedCallStacks: null
+  imageID: ttl.sh/opsboard-bb4f07bc@sha256:998f26f88d2186289834eb830e58bf7a39a34ee9570f3748c8644fb93de3fcc6
+  imageTag: ttl.sh/opsboard-bb4f07bc:24h
+  ingress: null
+  opens:
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/passwd
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/resolv.conf
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /opsboard
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/net/core/somaxconn
+  - flags:
+    - O_RDONLY
+    - O_DIRECTORY
+    - O_CLOEXEC
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /root/.pgpass
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls:
+  - accept4
+  - arch_prctl
+  - bind
+  - capget
+  - capset
+  - chdir
+  - clone
+  - close
+  - close_range
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - exit
+  - faccessat2
+  - fcntl
+  - fstat
+  - fstatfs
+  - futex
+  - getcwd
+  - getdents64
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getrlimit
+  - getsockname
+  - getsockopt
+  - gettid
+  - getuid
+  - listen
+  - madvise
+  - mmap
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - openat2
+  - pipe2
+  - prctl
+  - pread64
+  - read
+  - readlinkat
+  - recvfrom
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - setgid
+  - setgroups
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - socket
+  - statx
+  - tgkill
+  - tkill
+  - write
+status: {}

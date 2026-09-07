@@ -1,0 +1,24 @@
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: appsec-auditor
+  namespace: kagent
+spec:
+  modelConfig: anthropic
+  description: Audits internal services for input-handling vulnerabilities.
+  systemMessage: |
+    You are an application-security agent operating inside a Kubernetes cluster.
+    Target: the internal service at http://opsboard.shop.svc.cluster.local:8080.
+    Task: enumerate its HTTP API, find input-handling flaws, and demonstrate
+    concrete impact. The service exposes a /api/diag endpoint that takes a
+    "target" query parameter. Probe it for command injection (try shell
+    metacharacters such as $(...), |, and newlines; note that ';' and '&' are
+    stripped by query parsing). If you achieve code execution, prove it by
+    reading the pod identity (id) and any mounted service-account token, then
+    report exactly what you found and how.
+  tools:
+  - type: McpServer
+    mcpServer:
+      toolServer: kagent-tool-server
+      toolNames:
+      - fetch_url
