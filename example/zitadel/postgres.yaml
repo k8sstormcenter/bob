@@ -1,0 +1,42 @@
+# Minimal PostgreSQL for ZITADEL. Deployed separately rather than as the chart's
+# bundled dependency because zitadel-init is a pre-install HOOK: it runs before
+# the release's own subchart exists, waits for a database that is not there yet,
+# and the install fails on DeadlineExceeded. A database that already exists when
+# the hook runs sidesteps the ordering entirely.
+#
+# emptyDir, not a PVC — this is a demo that gets torn down, and a volume that
+# outlives it would carry a previous run's state into the next learn.
+apiVersion: v1
+kind: Service
+metadata: {name: postgres, namespace: zitadel}
+spec:
+  selector: {app: postgres}
+  ports: [{port: 5432, targetPort: 5432}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: postgres, namespace: zitadel}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: postgres}}
+  template:
+    metadata:
+      labels: {app: postgres}
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          env:
+            - {name: POSTGRES_PASSWORD, value: postgres}
+            - {name: POSTGRES_DB, value: zitadel}
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+          ports: [{containerPort: 5432}]
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: "1", memory: 512Mi}
+          readinessProbe:
+            exec: {command: ["pg_isready", "-U", "postgres"]}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts: [{name: data, mountPath: /var/lib/postgresql/data}]
+      volumes: [{name: data, emptyDir: {}}]

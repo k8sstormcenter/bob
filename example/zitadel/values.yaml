@@ -1,0 +1,30 @@
+# ZITADEL, minimal. One replica, no persistence, no TLS — enough to exercise the
+# real code paths (login, API, projections) without the footprint of a
+# production install.
+replicaCount: 1
+zitadel:
+  masterkey: "MasterkeyNeedsToHave32Characters"
+  configmapConfig:
+    ExternalDomain: localhost
+    ExternalPort: 8080
+    ExternalSecure: false
+    TLS: {Enabled: false}
+    Database:
+      Postgres:
+        Host: postgres.zitadel.svc.cluster.local
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 5
+        MaxIdleConns: 2
+        User: {Username: postgres, SSL: {Mode: disable}}
+        Admin: {Username: postgres, SSL: {Mode: disable}}
+  secretConfig:
+    Database:
+      Postgres:
+        User: {Password: postgres}
+        Admin: {Password: postgres}
+  resources:
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {cpu: "1", memory: 1Gi}
+postgresql:
+  enabled: false
