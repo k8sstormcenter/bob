@@ -16,9 +16,9 @@ LABEL="kubescape.io/user-defined-profile"
 # there is nothing to bind a profile to.
 components() {
   cat <<'EOF'
-postgres        deployment/postgres
-zitadel         deployment/zitadel
-zitadel-login   deployment/zitadel-login
+zitadel-postgresql   statefulset/zitadel-postgresql
+zitadel              deployment/zitadel
+zitadel-login        deployment/zitadel-login
 EOF
 }
 
@@ -32,18 +32,15 @@ deploy() {
   fi
   kubectl create ns "$NS" --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 
-  # PostgreSQL first, and NOT the chart's bundled subchart. zitadel-init is a
-  # helm pre-install hook, so it runs before the release's own dependencies
-  # exist, waits for a database that is not there yet, and the install dies on
-  # DeadlineExceeded. A database that is already up when the hook fires avoids
-  # the ordering problem completely.
-  kubectl apply -f postgres.yaml >/dev/null
-  kubectl -n "$NS" rollout status deploy/postgres --timeout=180s
-
   helm repo add zitadel https://charts.zitadel.com >/dev/null 2>&1 || true
   helm repo update zitadel >/dev/null
+  # The nulls are load-bearing: they strip the pre-install hook from the init
+  # and setup Jobs. Setting the annotations to {} in values.yaml does NOT work —
+  # helm merges maps, so the chart's default hook annotations survive.
   helm upgrade --install zitadel zitadel/zitadel \
-    --version "$CHART_VERSION" -n "$NS" --values values.yaml --wait --timeout 8m
+    --version "$CHART_VERSION" -n "$NS" --values values.yaml \
+    --set initJob.annotations=null --set setupJob.annotations=null \
+    --wait --timeout 10m
 
   kubectl -n "$NS" get pods
 }

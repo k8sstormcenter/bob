@@ -1,6 +1,5 @@
 # ZITADEL, minimal. One replica, no persistence, no TLS — enough to exercise the
-# real code paths (login, API, projections) without the footprint of a
-# production install.
+# real code paths (login, API, projections) without a production footprint.
 replicaCount: 1
 zitadel:
   masterkey: "MasterkeyNeedsToHave32Characters"
@@ -9,22 +8,36 @@ zitadel:
     ExternalPort: 8080
     ExternalSecure: false
     TLS: {Enabled: false}
-    Database:
-      Postgres:
-        Host: postgres.zitadel.svc.cluster.local
-        Port: 5432
-        Database: zitadel
-        MaxOpenConns: 5
-        MaxIdleConns: 2
-        User: {Username: postgres, SSL: {Mode: disable}}
-        Admin: {Username: postgres, SSL: {Mode: disable}}
-  secretConfig:
-    Database:
-      Postgres:
-        User: {Password: postgres}
-        Admin: {Password: postgres}
   resources:
     requests: {cpu: 100m, memory: 256Mi}
     limits: {cpu: "1", memory: 1Gi}
+
+# The init and setup Jobs ship as helm PRE-INSTALL HOOKS, so they run before the
+# release's own postgresql subchart exists, wait for a database that is not
+# there, and the install dies on DeadlineExceeded. Clearing the annotations
+# makes them ordinary resources created in the same phase as the database.
+#
+# The annotations MUST be cleared with `--set ...=null`, not with `{}` here:
+# helm coalesces maps, so an empty map in values leaves the chart's defaults in
+# place and the hook survives. distro.sh passes the nulls for that reason.
+#
+# backoffLimit covers the window while the database starts — the jobs and the
+# StatefulSet come up together, so the first attempts fail by design.
+initJob:
+  backoffLimit: 20
+  activeDeadlineSeconds: 900
+setupJob:
+  backoffLimit: 20
+  activeDeadlineSeconds: 900
+
 postgresql:
-  enabled: false
+  enabled: true
+  primary:
+    # emptyDir, not a PVC: a volume that outlives the demo carries one run's
+    # state into the next learn window, and a profile recorded over an
+    # already-initialised database looks nothing like one recorded over
+    # first-run migrations.
+    persistence: {enabled: false}
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {cpu: "1", memory: 512Mi}

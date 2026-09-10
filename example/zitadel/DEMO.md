@@ -41,7 +41,7 @@ Three long-running containers result:
 
 | component | container | port | what it is |
 |---|---|---|---|
-| `postgres` | `postgres` | 5432 | the datastore, minimal, `emptyDir` |
+| `zitadel-postgresql` | `postgresql` | 5432 | the datastore, chart subchart, `emptyDir` |
 | `zitadel` | `zitadel` | 8080 | the API and console |
 | `zitadel-login` | `zitadel-login` | 3000 | the login UI, a separate deployment since v4 |
 
@@ -50,37 +50,60 @@ bound to profiles: there is no long-running container to attach one to. What
 they do at install time is nevertheless real behaviour, and a profile recorded
 across an install will differ from one recorded on a steady-state pod.
 
-### Why PostgreSQL is deployed separately
+### Why the install needs two `--set ...=null`
 
-The chart bundles a PostgreSQL subchart, and using it fails. `zitadel-init` is a
-helm **pre-install hook**: it runs before the release's own dependencies are
-created, waits for a database that does not exist yet, and the install ends in
-`DeadlineExceeded`. Deploying the database first — so it is already serving when
-the hook fires — avoids the ordering problem entirely.
+The chart's `init` and `setup` Jobs ship as helm **pre-install hooks**. Hooks run
+before the release's own resources, so on a first install they wait for a
+database that the release has not created yet and the install ends in
+`DeadlineExceeded`. `distro.sh` clears those annotations so the Jobs become
+ordinary resources, created in the same phase as the database; `backoffLimit`
+covers the seconds while PostgreSQL starts, so the first attempts failing is by
+design rather than a fault.
 
-It also makes the demo honest: `postgres.yaml` is 40 lines you can read, rather
-than a subchart whose surface changes between chart versions.
+The nulls have to be passed on the command line:
+
+```
+--set initJob.annotations=null --set setupJob.annotations=null
+```
+
+Setting `initJob.annotations: {}` in `values.yaml` does **not** work. Helm
+coalesces maps, so an empty map leaves the chart's defaults in place and the
+hook survives — the install fails exactly as before, with nothing in the values
+file to suggest why.
 
 Storage is `emptyDir` on purpose. A volume that outlives the demo carries one
-run's state into the next learn window, and a profile recorded over a database
-that was already initialised looks nothing like one recorded over a database
-doing its first-run migrations.
+run's state into the next learn window, and a profile recorded over an
+already-initialised database looks nothing like one recorded over first-run
+migrations.
 
 ## 3. Drive real work
 
 A profile is only worth as much as the behaviour it saw. An idle ZITADEL opens
-its config, connects to Postgres and waits — learn from that and the first real
-login is an anomaly.
+its config, connects to PostgreSQL and waits — learn from that and the first
+real login is an anomaly.
 
 ```
-kubectl -n zitadel port-forward svc/zitadel 8080:8080 &
-kubectl -n zitadel get secret iam-admin -o jsonpath='{.data.iam-admin\.json}' | base64 -d > /tmp/iam-admin.json
+bobctl test --functional-tests example/zitadel/functional-tests.yaml -n zitadel
 ```
 
-Exercise, at minimum: the console loads, a login round-trip through
-`zitadel-login`, and a couple of API calls with the service-account key. Each
-touches a different part of the process — the login UI, the API, and the
-projection machinery that writes to Postgres.
+Nine benign requests across the OIDC discovery surface, the signing keys, the
+console and the health endpoints. All nine pass against a fresh install.
+
+### The Host header is load-bearing
+
+ZITADEL routes on the `Host` header and compares it to `ExternalDomain`.
+Addressed by ClusterIP without it, the entire OIDC surface answers **404** while
+the server is perfectly healthy — `/debug/healthz` returns 200 the whole time.
+
+This is worth knowing because it is quiet in the worst way: a 404 is a real
+response, so the request "worked". It reads as a missing endpoint rather than as
+a wrong-vhost request.
+
+It also bit `bobctl` itself. Go's `net/http` ignores a `Host` entry in the
+header map — the Host on the wire comes from `req.Host` — so a suite naming it
+as an ordinary header had it silently dropped. Fixed in all three request paths
+(`attack/suite_runner.go`, `autotune/benign.go`, `autotune/functest_runner.go`),
+with `TestHostHeaderGoesOnRequestHostNotTheHeaderMap` to keep it fixed.
 
 ## 4. Learn
 
@@ -170,9 +193,13 @@ example/zitadel/distro.sh down
 
 ## Status
 
-The deployment, `distro.sh` and this document are verified: ZITADEL installs,
-`/debug/healthz` and `/debug/ready` both return 200, and `distro.sh sbob`
-resolves all three components and skips cleanly while `sbobs/` is empty.
+Verified against a fresh install:
 
-`sbobs/` is empty — the profiles are the next piece of work. Every number in
-§6 and §7 is therefore an expectation, not a measurement, until they exist.
+- the chart installs with its own bundled PostgreSQL, `STATUS: deployed`
+- `/debug/healthz` and `/debug/ready` both return 200
+- the functional suite passes **9/9**
+- `distro.sh sbob` resolves all three components and skips cleanly while
+  `sbobs/` is empty
+
+`sbobs/` is empty — the profiles are the next piece of work. Every number in §6
+and §7 is therefore an expectation, not a measurement, until they exist.
