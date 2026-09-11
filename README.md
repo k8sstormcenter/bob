@@ -30,9 +30,6 @@ It's understood to be an abstraction of linux kernel level behavior to express `
 ### Stay informed when more applications get SBOBs
 Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.com/86141f7462), follow us on [Linkedin](https://www.linkedin.com/in/croedig/), or talk to us on [slack](https://join.slack.com/t/k8sstorm/signup) 
 
-Next up release: Argo CD with all of its seven components:
-
-![Argo CD kill-chain — all 7 containers](example/argocd/argocd-killchain.gif)
 
 
 
