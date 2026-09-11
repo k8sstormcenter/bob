@@ -1,0 +1,85 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata: {name: zitadel-killchain, description: 'Kill-chain attacks against the ZITADEL identity provider container: post-exploitation exec, credential and service-account theft, and outbound exfiltration. The profile allows only /app/zitadel, so any injected exec trips R0001; the service-account token read trips R0006; outbound to the metadata endpoint trips R0011.'}
+target: {service: zitadel, namespace: zitadel, port: 8080}
+attacks:
+- name: recon-whoami
+  type: cmdinject
+  exec:
+    command: [whoami]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: whoami}
+- name: recon-id
+  type: cmdinject
+  exec:
+    command: [id]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: id}
+- name: recon-uname
+  type: cmdinject
+  exec:
+    command: [uname, -a]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: uname}
+- name: recon-hostname
+  type: cmdinject
+  exec:
+    command: [hostname]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: hostname}
+- name: exec-shell
+  type: cmdinject
+  exec:
+    command: [/bin/sh, -c, echo pwned]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: sh}
+- name: exec-bash
+  type: cmdinject
+  exec:
+    command: [/bin/bash, -c, echo pwned]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: bash}
+- name: exec-devshm-drop
+  type: cmdinject
+  exec:
+    command: [/bin/sh, -c, cp /bin/sh /dev/shm/x && /dev/shm/x -c id]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: x}
+- name: discovery-ps
+  type: cmdinject
+  exec:
+    command: [ps, aux]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: ps}
+- name: discovery-netstat
+  type: cmdinject
+  exec:
+    command: [ss, -tunlp]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: ss}
+- name: creds-read-pgpass
+  type: cmdinject
+  exec:
+    command: [cat, /.pgpass]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: cat}
+- name: creds-read-satoken
+  type: cmdinject
+  exec:
+    command: [cat, /var/run/secrets/kubernetes.io/serviceaccount/token]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: cat}
+  - {ruleID: R0006, ruleName: Unexpected service account token access, containerName: zitadel}
+- name: exfil-curl-egress
+  type: cmdinject
+  exec:
+    command: [/bin/sh, -c, 'curl -s http://169.254.169.254/ >/dev/null']
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: sh}
+  - {ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: zitadel}
+- name: persist-cronwrite
+  type: cmdinject
+  exec:
+    command: [/bin/sh, -c, echo "* * * * * id" > /etc/cron.d/x]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: sh}

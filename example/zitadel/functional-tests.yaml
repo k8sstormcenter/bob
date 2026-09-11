@@ -1,75 +1,61 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: FunctionalTestSuite
-metadata:
-  name: zitadel-functional
-  description: >-
-    Benign ZITADEL traffic that must raise no detections. Covers the OIDC
-    discovery surface, the signing keys, the console, and the health endpoints —
-    the paths a real identity provider serves continuously.
-# ZITADEL routes on the Host header and rejects anything that does not match
-# ExternalDomain: without it the OIDC endpoints answer 404 and every assertion
-# below would be checking a wrong-host error page rather than the real handler.
-target:
-  service: zitadel
-  namespace: zitadel
-  port: 8080
-  scheme: http
+metadata: {name: zitadel-functional, description: "Benign ZITADEL traffic that must raise no detections. Covers the OIDC discovery surface, the signing keys, the console, and the health endpoints \u2014 the paths a real identity provider serves continuously."}
+target: {service: zitadel, namespace: zitadel, port: 8080, scheme: http}
 tests:
-  # --- OIDC discovery ------------------------------------------------------
-  # Discovery and JWKS are the two endpoints every relying party fetches, and
-  # they exercise the config and key-material paths inside the process.
-  - name: oidc-discovery
-    http:
-      method: GET
-      path: /.well-known/openid-configuration
-      headers: &host {Host: 'localhost:8080'}
-      expectedStatus: 200
-      responseContains: issuer
-  - name: oidc-jwks
-    http:
-      method: GET
-      path: /oauth/v2/keys
-      headers: *host
-      expectedStatus: 200
-      responseContains: keys
-  - name: oauth-authorize-missing-params
-    # A malformed authorize request is normal internet noise for a public IdP.
-    # It must be handled, not crash, and must not look like an attack. ZITADEL
-    # answers 400 rather than redirecting, because with no valid client_id or
-    # redirect_uri there is nowhere it may safely send the caller.
-    http:
-      method: GET
-      path: /oauth/v2/authorize
-      headers: *host
-      expectedStatus: 400
-
-  # --- console -------------------------------------------------------------
-  - name: console-index
-    http:
-      method: GET
-      path: /ui/console
-      headers: *host
-      expectedStatus: 200
-  - name: console-assets
-    http:
-      method: GET
-      path: /ui/console/assets/environment.json
-      headers: *host
-      expectedStatus: 200
-
-  # --- health --------------------------------------------------------------
-  # These are what the kubelet probes hit. They run on every probe interval, so
-  # a profile that does not cover them is noisy from the first minute.
-  - name: healthz
-    http: {method: GET, path: /debug/healthz, headers: *host, expectedStatus: 200}
-  - name: ready
-    http: {method: GET, path: /debug/ready, headers: *host, expectedStatus: 200}
-  - name: validate
-    http: {method: GET, path: /debug/validate, headers: *host, expectedStatus: 200}
-
-  # --- negative space ------------------------------------------------------
-  # A 404 is a served response, not a failure. Included because scanning for
-  # absent paths is routine background traffic and the handler that produces
-  # the 404 is itself code that runs.
-  - name: unknown-path-404
-    http: {method: GET, path: /this-does-not-exist, headers: *host, expectedStatus: 404}
+- name: oidc-discovery
+  http:
+    method: GET
+    path: /.well-known/openid-configuration
+    headers: &id001 {Host: 'localhost:8080'}
+    expectedStatus: 200
+    responseContains: issuer
+- name: oidc-jwks
+  http:
+    method: GET
+    path: /oauth/v2/keys
+    headers: *id001
+    expectedStatus: 200
+    responseContains: keys
+- name: oauth-authorize-missing-params
+  http:
+    method: GET
+    path: /oauth/v2/authorize
+    headers: *id001
+    expectedStatus: 400
+- name: console-index
+  http:
+    method: GET
+    path: /ui/console
+    headers: *id001
+    expectedStatus: 200
+- name: console-assets
+  http:
+    method: GET
+    path: /ui/console/assets/environment.json
+    headers: *id001
+    expectedStatus: 200
+- name: healthz
+  http:
+    method: GET
+    path: /debug/healthz
+    headers: *id001
+    expectedStatus: 200
+- name: ready
+  http:
+    method: GET
+    path: /debug/ready
+    headers: *id001
+    expectedStatus: 200
+- name: validate
+  http:
+    method: GET
+    path: /debug/validate
+    headers: *id001
+    expectedStatus: 200
+- name: unknown-path-404
+  http:
+    method: GET
+    path: /this-does-not-exist
+    headers: *id001
+    expectedStatus: 404
