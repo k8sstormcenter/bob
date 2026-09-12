@@ -1,0 +1,287 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-StatefulSet/name-pl-nats-58bff78cf8/containerName-pl-nats
+    kubescape.io/otel-span-id: ""
+    kubescape.io/otel-traceparent: ""
+    kubescape.io/resource-size: "70"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: 9e52c40da4f0734b34062488410b6c4729d6bf7684e1924e1d7283e092fd8e08
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/statefulset-pl-nats
+    kubescape.io/workload-container-type: containers
+  creationTimestamp: "2026-08-22T07:24:20Z"
+  labels:
+    kubescape.io/learning-period: 2h
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-container-name: pl-nats
+    kubescape.io/workload-kind: StatefulSet
+    kubescape.io/workload-name: pl-nats
+    kubescape.io/workload-namespace: pl
+    kubescape.io/workload-resource-version: "25032"
+  name: statefulset-pl-nats-58bff78cf8-pl-nats-8320-eba1
+  namespace: pl
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  egress: null
+  endpoints:
+  - direction: inbound
+    endpoint: :8222/
+    headers:
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - close
+      Host:
+      - 10.42.0.18:8222
+      - pl-nats-mgmt:8222
+      - 10-42-0-18.pl.pod.cluster.local:8222
+    internal: true
+    methods:
+    - GET
+  execs:
+  - args:
+    - /nats-server
+    - --config
+    - /etc/nats-config/nats.conf
+    path: /nats-server
+  identifiedCallStacks: null
+  imageID: ghcr.io/pixie-io/nats@sha256:ac7228464fbc7154e91c9a00cba85b5da1df9a3ded6c784cdd6009cece85a1e3
+  imageTag: ghcr.io/pixie-io/nats@sha256:ac7228464fbc7154e91c9a00cba85b5da1df9a3ded6c784cdd6009cece85a1e3
+  ingress:
+  - dns: ""
+    dnsNames: null
+    identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-4222
+      port: 4222
+      protocol: TCP
+    - name: TCP-8222
+      port: 8222
+      protocol: TCP
+    type: external
+  - dns: ""
+    dnsNames: null
+    identifier: 47a42bd64869e8ed568c98f218ab5d89ea818764568dffb66fe316abd30926cf
+    ipAddress: 10.42.1.0
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-4222
+      port: 4222
+      protocol: TCP
+    type: external
+  - dns: ""
+    dnsNames: null
+    identifier: be971f99ebb4711c4b6e7c0c841a69031c22bcf1b3a3c0195b23f7cefc76a653
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        apps.kubernetes.io/pod-index: "0"
+        component: vizier
+        name: vizier-metadata
+        plane: control
+        statefulset.kubernetes.io/pod-name: vizier-metadata-0
+        vizier-name: pixie
+    ports:
+    - name: TCP-8222
+      port: 8222
+      protocol: TCP
+    - name: TCP-4222
+      port: 4222
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: 45d5ad2344012200296b36dd59abfae78c961c8a703540a298ae24ecc2fad58d
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: px-operator
+    podSelector:
+      matchLabels:
+        app: pixie-operator
+        component: pixie-operator
+        name: vizier-operator
+        plane: control
+    ports:
+    - name: TCP-8222
+      port: 8222
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: dbdcdb16791c07e66a8882eadcf9d357a53e8f2d4af6558994e9e3295188eb52
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-cloud-connector
+        plane: control
+        vizier-bootstrap: "true"
+        vizier-name: pixie
+    ports:
+    - name: TCP-8222
+      port: 8222
+      protocol: TCP
+    - name: TCP-4222
+      port: 4222
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: e23b35d90d5eaf9f53654dc4ce085c87b57a167a44f9567c1448423131aeb405
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-4222
+      port: 4222
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: 62ee591d43b945c22a6b4d20155af717cb843a2b85b56ded1939857603480152
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: kelvin
+        plane: data
+        vizier-name: pixie
+    ports:
+    - name: TCP-4222
+      port: 4222
+      protocol: TCP
+    type: internal
+  matchLabels:
+    app: pl-monitoring
+    name: pl-nats
+  opens:
+  - flags:
+    - O_RDONLY
+    path: /etc/localtime
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nats-config/..2026_08_22_07_21_39.2738485770/nats.conf
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nats-server-tls-certs/..2026_08_22_07_21_39.2655901924/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nats-server-tls-certs/..2026_08_22_07_21_39.2655901924/server.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nats-server-tls-certs/..2026_08_22_07_21_39.2655901924/server.key
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/cgroup
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/mountinfo
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/net/core/somaxconn
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/stat
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    - O_DIRECTORY
+    path: /proc/⋯/task/7/fd
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /sys/fs/cgroup/cpu.max
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_TRUNC
+    - O_CLOEXEC
+    path: /var/run/nats/nats.pid
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls:
+  - accept4
+  - arch_prctl
+  - bind
+  - capget
+  - capset
+  - chdir
+  - clone
+  - close
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - exit
+  - fchown
+  - fcntl
+  - fstat
+  - futex
+  - getcwd
+  - getdents64
+  - getpid
+  - getppid
+  - getrandom
+  - getsockname
+  - listen
+  - madvise
+  - mmap
+  - nanosleep
+  - openat
+  - prlimit64
+  - read
+  - recvfrom
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - sendto
+  - setgid
+  - setgroups
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - sysinfo
+  - tgkill
+  - tkill
+  - write
+  - writev
+status: {}

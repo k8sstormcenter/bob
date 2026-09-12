@@ -1,0 +1,273 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: vizier-pem-pem
+  namespace: pl
+  annotations: {kubescape.io/managed-by: User}
+spec:
+  execs:
+  - path: /app/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem/pem
+    args: [/app/src/vizier/services/agent/pem/pem]
+    envs: []
+    argsrequired: false
+  opens:
+  - path: /
+    flags: [O_RDONLY]
+  - path: /[uprobes]
+    flags: [O_RDONLY]
+  - path: /[vdso]
+    flags: [O_RDONLY]
+  - path: /apex/com.android.tzdata/etc/tz/tzdata
+    flags: [O_RDONLY]
+  - path: /app/src/operator/operator.runfiles/px/src/operator/operator_/operator
+    flags: [O_RDONLY]
+  - path: /app/src/vizier/services/agent/kelvin/kelvin.runfiles/px/src/vizier/services/agent/kelvin/kelvin
+    flags: [O_RDONLY]
+  - path: /app/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem/pem
+    flags: [O_RDONLY]
+  - path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+    flags: [O_RDONLY]
+  - path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
+    flags: [O_RDONLY]
+  - path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
+    flags: [O_RDONLY]
+  - path: /bin/busybox
+    flags: [O_RDONLY]
+  - path: /bin/catalog
+    flags: [O_RDONLY]
+  - path: /bin/olm
+    flags: [O_RDONLY]
+  - path: /bin/opm
+    flags: [O_RDONLY]
+  - path: /bin/sh
+    flags: [O_RDONLY]
+  - path: /bin/wget
+    flags: [O_RDONLY]
+  - path: "/certs/\u22EF/ca.crt"
+    flags: [O_RDONLY]
+  - path: "/certs/\u22EF/client.crt"
+    flags: [O_RDONLY]
+  - path: "/certs/\u22EF/client.key"
+    flags: [O_RDONLY]
+  - path: /coredns
+    flags: [O_RDONLY]
+  - path: /data/misc/zoneinfo/current/tzdata
+    flags: [O_RDONLY]
+  - path: /dev/urandom
+    flags: [O_RDONLY]
+  - path: /etc/SuSE-release
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/debian_version
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/host.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/hosts
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/ld.so.cache
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/localtime
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/lsb-release
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/nsswitch.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/os-release
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/redhat-release
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/resolv.conf
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /etc/ssl/cert.pem
+    flags: [O_RDONLY]
+  - path: /etc/svc.conf
+    flags: [O_RDONLY]
+  - path: /host/etc
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /host/etc/lsb-release
+    flags: [O_RDONLY]
+  - path: "/host/usr/lib/modules/\u22EF/build/*"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /host/usr/lib/os-release
+    flags: [O_RDONLY]
+  - path: /lib/ld-linux-x86-64.so.2
+    flags: [O_RDONLY]
+  - path: /lib/libc.so.6
+    flags: [O_RDONLY]
+  - path: /lib/libm.so.6
+    flags: [O_RDONLY]
+  - path: /lib/libresolv.so.2
+    flags: [O_RDONLY]
+  - path: "/lib/modules/\u22EF/build/*"
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libm.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libm.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    flags: [O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/libc.so.6
+    flags: [O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/libelf.so.1
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/liblzma.so.5.4.1
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/libm.so.6
+    flags: [O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/libresolv.so.2
+    flags: [O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/libtinfo.so.6.4
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/libunwind.so.8
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/libz.so.1.2.13
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/tls/libm.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/tls/x86_64/libm.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/tls/x86_64/x86_64/libm.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/x86_64/libm.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /lib/x86_64-linux-gnu/x86_64/x86_64/libm.so.6
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /metrics-server
+    flags: [O_RDONLY]
+  - path: /nats-server
+    flags: [O_RDONLY]
+  - path: /opt
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: "/proc/\u22EF"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/cmdline"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/fdinfo/\u22EF"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/io"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/maps"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/net/*"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/root/*"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/root[uprobes]"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/root[vdso]"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/stat"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/status"
+    flags: [O_RDONLY]
+  - path: "/proc/\u22EF/task/*"
+    flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+  - path: /sys/devices/*
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /sys/fs/cgroup
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /sys/fs/cgroup/*
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: /sys/kernel/debug
+    flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+  - path: "/sys/kernel/debug/tracing/events/kprobes/\u22EF/id"
+    flags: [O_RDONLY]
+  - path: /sys/kernel/debug/tracing/events/sched/sched_process_exit/format
+    flags: [O_RDONLY]
+  - path: /sys/kernel/debug/tracing/events/sched/sched_process_exit/id
+    flags: [O_RDONLY]
+  - path: /sys/kernel/debug/tracing/kprobe_events
+    flags: [O_APPEND, O_RDONLY, O_WRONLY]
+  - path: /sys/kernel/debug/tracing/uprobe_events
+    flags: [O_APPEND, O_RDONLY, O_WRONLY]
+  - path: /system/usr/share/zoneinfo/tzdata
+    flags: [O_RDONLY]
+  - path: "/tmp/\u22EF"
+    flags: [O_RDONLY]
+  - path: /usr/bin/local-path-provisioner
+    flags: [O_RDONLY]
+  - path: /usr/bin/node-agent
+    flags: [O_RDONLY]
+  - path: /usr/bin/operator
+    flags: [O_RDONLY]
+  - path: /usr/bin/storage
+    flags: [O_RDONLY]
+  - path: /usr/lib/debug/.build-id/*
+    flags: [O_RDONLY]
+  - path: /usr/lib/os-release
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libunwind.so.8
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libunwind.so.8
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libc.so.6
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libcrypt.so.1.1.0
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libcrypto.so.3
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libelf-0.188.so
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libssl.so.3
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libunwind.so.8.0.1
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/libz.so.1.2.13
+    flags: [O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/tls/libunwind.so.8
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/tls/x86_64/libunwind.so.8
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/tls/x86_64/x86_64/libunwind.so.8
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/x86_64/libunwind.so.8
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/lib/x86_64-linux-gnu/x86_64/x86_64/libunwind.so.8
+    flags: [O_CLOEXEC, O_RDONLY]
+  - path: /usr/local/bin/traefik
+    flags: [O_RDONLY]
+  - path: /usr/sbin/nginx
+    flags: [O_RDONLY]
+  - path: /virtual/include/bcc/helpers.h
+    flags: [O_CLOEXEC, O_RDONLY]
+  capabilities: [CAP_BPF, CAP_IPC_LOCK, CAP_NET_ADMIN, CAP_PERFMON, CAP_SYSLOG, CAP_SYS_ADMIN, CAP_SYS_PTRACE]
+  egress:
+  - identifier: f8ea565a95536d30bb1ba20dccafb845ea3d15d1516356d5185529c706d4e64b
+    podSelector:
+      matchLabels: {app: node-agent, app.kubernetes.io/component: node-agent, app.kubernetes.io/name: kubescape-operator, app.kubernetes.io/part-of: kubescape, kubescape.io/ignore: 'true', kubescape.io/tier: core, tier: ks-control-plane}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: honey}
+    ports:
+    - {name: TCP-7888, protocol: TCP, port: 7888}
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    podSelector:
+      matchLabels: {k8s-app: kube-dns}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: kube-system}
+    ports:
+    - {name: TCP-8181, protocol: TCP, port: 8181}
+  - identifier: be971f99ebb4711c4b6e7c0c841a69031c22bcf1b3a3c0195b23f7cefc76a653
+    podSelector:
+      matchLabels: {app: pl-monitoring, component: vizier, name: vizier-metadata, plane: control, vizier-name: pixie}
+    ports:
+    - {name: TCP-50400, protocol: TCP, port: 50400}
+  - identifier: 63f25e9f7fe5fae0febfbde38ab9003eaeaedafbf0403e6ffa8e6ed956b62c4c
+    podSelector:
+      matchLabels: {app: pl-monitoring, name: pl-nats, plane: control, vizier-name: pixie}
+    ports:
+    - {name: TCP-8222, protocol: TCP, port: 8222}
+  - identifier: ae875b5c4a88ff3ebe7a06717c1b1114b0b579be7e507bab1fd70e0af666a26e
+    podSelector:
+      matchLabels: {app: catalog-operator}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: olm}
+    ports:
+    - {name: TCP-8080, protocol: TCP, port: 8080}
+  - identifier: c46150dd8f613da582a6de01611c631d866f1f6566191aa88f5807ec76f2c26e
+    podSelector:
+      matchLabels: {app: pl-monitoring, cluster-id: 6a59ca82-ebaa-4bcd-88b2-41ae2678d72f, component: vizier, name: vizier-cloud-connector, plane: control, vizier-bootstrap: 'true', vizier-name: pixie}
+    ports:
+    - {name: TCP-50800, protocol: TCP, port: 50800}
