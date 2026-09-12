@@ -267,7 +267,7 @@ def main():
     if saw_over_broad:
         print("\nOVER-BROAD: the learn window was fine; the paths lost their anchor."
               "\nRe-learning reproduces it. Anchor or drop them instead —"
-              "\nscripts/sbob-from-learned.py now rejects both forms.")
+              "\nbobctl generalize is what shapes a shippable SBoB.")
     return 1 if failed else 0
 
 

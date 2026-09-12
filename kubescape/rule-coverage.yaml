@@ -69,6 +69,37 @@ apps:
     note: CVE-2019-9193 COPY TO/FROM PROGRAM superuser misconfiguration
     probe: [R1004]
 
+  # PostgreSQL packaging distros — ONE portable pg-client SBoB (the contrast leg,
+  # postgres:17 across all three) plus a per-fork server SBoB. Every fork: server
+  # AND client bound, 0 benign false positives under the full functional suite,
+  # and the SAME 14-rule attack contrast. A database's data dir is inherently
+  # dynamic (WAL/OID relfiles/temp spill), so the server SBoB constrains what the
+  # server EXECUTES (R0001) and allowlists R0002 for the server's own comms rather
+  # than chasing unmatchable file paths — attack execs run as other comms, so the
+  # contrast is untouched.
+  - name: postgres-oss
+    title: postgres (docker library 17)
+    out: example/postgres/distros/rule-coverage/postgres-oss-killchain.gif
+    suites: [example/postgres/distros/attacks/oss.yaml]
+    note: official postgres:17 Deployment; server+client SBoB bound, 0 benign FP
+    # R1004: the manager/staged exec fires R0001+R1000 here, never R1004. R1006:
+    # unshare is cluster-config-dependent; R0001 catches the exec unconditionally.
+    probe: [R1004, R1006]
+
+  - name: postgres-bitnami
+    title: postgres (bitnami)
+    out: example/postgres/distros/rule-coverage/postgres-bitnami-killchain.gif
+    suites: [example/postgres/distros/attacks/bitnami.yaml]
+    note: bitnami/postgresql helm chart; server SBoB allowlists the shell init toolchain
+    probe: [R1004, R1006]
+
+  - name: postgres-cnpg
+    title: postgres (CloudNativePG)
+    out: example/postgres/distros/rule-coverage/postgres-cnpg-killchain.gif
+    suites: [example/postgres/distros/attacks/cnpg.yaml]
+    note: CloudNativePG operator; server SBoB allowlists the mounted instance `manager` (R1004)
+    probe: [R1004, R1006]
+
   - name: mariadb
     title: mariadb
     out: example/rule-coverage/mariadb-killchain.gif

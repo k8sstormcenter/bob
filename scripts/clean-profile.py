@@ -27,6 +27,34 @@ KUBESCAPE_ANNOTATION_PREFIXES = (
 )
 
 
+# Mirrors declareRuncInitAllowed in pkg/autotune/tuner.go. The tuner writes this
+# into the profile it emits, but local-ci rebuilds the shipped file from the
+# per-iteration snapshot, which predates that step — so the last writer has to
+# apply it too or the allowlist silently disappears from what actually ships.
+RUNC_INIT_COMMS = ["runc:[1:INIT]", "runc:[1:CHILD]", "runc:[2:INIT]", "runc:[3:INIT]"]
+
+
+def ensure_runc_init_allowed(spec):
+    if not isinstance(spec, dict):
+        return
+    pol = spec.get("rulePolicies")
+    if not isinstance(pol, dict):
+        pol = {}
+        spec["rulePolicies"] = pol
+    for rule_id in ("R0002", "R0004"):
+        entry = pol.get(rule_id)
+        if not isinstance(entry, dict):
+            entry = {}
+            pol[rule_id] = entry
+        allowed = entry.get("processAllowed")
+        if not isinstance(allowed, list):
+            allowed = []
+            entry["processAllowed"] = allowed
+        for comm in RUNC_INIT_COMMS:
+            if comm not in allowed:
+                allowed.append(comm)
+
+
 def clean(p):
     p["apiVersion"] = "spdx.softwarecomposition.kubescape.io/v1beta1"
     # CP migration: the tuner emits ContainerProfiles (unified flat spec with
@@ -55,6 +83,7 @@ def clean(p):
             m.pop("labels", None)
 
     p.pop("status", None)
+    ensure_runc_init_allowed(p.get("spec"))
 
     return {k: p[k] for k in ("apiVersion", "kind", "metadata", "spec") if k in p}
 
