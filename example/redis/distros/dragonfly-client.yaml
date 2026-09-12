@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-client
-  namespace: redis
+  name: dragonfly-client
+  namespace: dragonfly
   labels:
-    app: redis-client
+    app: dragonfly-client
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redis-client
+      app: dragonfly-client
   template:
     metadata:
       labels:
-        app: redis-client
-        kubescape.io/user-defined-profile: redis-client
+        app: dragonfly-client
+        kubescape.io/ignore: "true"
     spec:
       containers:
         - name: client
@@ -24,7 +24,7 @@ spec:
             - |
               i=0
               while true; do
-                redis-cli -h redis-master -p 6379 SET "k:$i" "v:$i" >/dev/null
+                redis-cli -h dragonfly -p 6379 SET "k:$i" "v:$i" >/dev/null
                 i=$((i+1)); sleep 2
               done
           resources:

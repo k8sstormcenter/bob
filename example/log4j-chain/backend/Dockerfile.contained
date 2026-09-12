@@ -2,13 +2,13 @@
 # No /bin/sh, no psql, no curl. JVM-internal RCE only — execve() to anything
 # outside the JVM returns ENOENT. The class loads, runs in-JVM, fails to spawn.
 
-FROM maven:3.9-eclipse-temurin-11 AS build
+FROM maven:3.9-eclipse-temurin-11@sha256:5818ee89bddd09cc7b265bea1919c5088f82a4e17f0adc104e12e94cb26bea03 AS build
 WORKDIR /src
 COPY pom.xml ./
 COPY src ./src
 RUN LOG4J_VERSION=2.14.1 mvn -B package -DskipTests
 
-FROM gcr.io/distroless/java11-debian11
+FROM gcr.io/distroless/java11-debian11@sha256:56ffee16297ae1d3484bd47575cacd8102e5ba2be425a7772b3f8ad0d48def3b
 COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar /app/app.jar
 EXPOSE 8080
 # LDAP endpoint for the /api/_probe trigger. Here the JNDI lookup DOES fire

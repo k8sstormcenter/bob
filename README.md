@@ -1,4 +1,7 @@
 # Software Bill of Behavior SBOB 
+
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/k8sstormcenter/bob/badge)](https://scorecard.dev/viewer/?uri=github.com/k8sstormcenter/bob)
+
 Imagine a software vendor distills all their knowledge of their own testing into a standard file and ships it `with each update` . Just like a Container Package-Insert (Packungsbeilage) 📦📃🩻
 
 
@@ -27,9 +30,6 @@ It's understood to be an abstraction of linux kernel level behavior to express `
 ### Stay informed when more applications get SBOBs
 Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.com/86141f7462), follow us on [Linkedin](https://www.linkedin.com/in/croedig/), or talk to us on [slack](https://join.slack.com/t/k8sstorm/signup) 
 
-Next up release: Argo CD with all of its seven components:
-
-![Argo CD kill-chain — all 7 containers](example/argocd/argocd-killchain.gif)
 
 
 
@@ -68,9 +68,5 @@ kubectl logs -n honey -l app=node-agent -c node-agent
 ## Try it out in a lab with a k3s and a k8s
 Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
-## FAQ: why does this repo not have any stars
-Because it was turned into a private repo for a few hours ... well gotta `adversarially test the AI` dont we. 
 
-### Why is there no Security.md? And no OpenSSF scorecard?
-In the first week of August, we are testing the whole setup. Then you ll see it.
 

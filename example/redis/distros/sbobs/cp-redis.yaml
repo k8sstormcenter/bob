@@ -21,35 +21,17 @@ spec:
   endpoints: null
   execs:
   - args:
-    - /bin/bash
-    - -ec
-    - /health/ping_readiness_local.sh 1
-    - /health/ping_readiness_local.sh
-    - '1'
-    - /health/ping_liveness_local.sh 5
-    - /health/ping_liveness_local.sh
-    - '5'
-    - /opt/bitnami/scripts/start-scripts/start-master.sh
+    - ⋯⋯
     path: /usr/bin/bash
   - args:
     - /usr/bin/timeout
-    - -s
-    - '15'
-    - '5'
-    - redis-cli
-    - -h
-    - localhost
-    - -p
-    - '6379'
+    - ⋯⋯
     - ping
-    - '1'
+    - ⋯⋯
     path: /usr/bin/timeout
   - args:
     - /opt/bitnami/redis/bin/redis-cli
-    - -h
-    - localhost
-    - -p
-    - '6379'
+    - ⋯⋯
     - ping
     path: /opt/bitnami/redis/bin/redis-cli
   - args:
@@ -79,11 +61,6 @@ spec:
     - '{print $1;}'
     path: /usr/bin/gawk
   identifiedCallStacks: null
-  ingress: null
-  matchLabels:
-    app.kubernetes.io/component: master
-    app.kubernetes.io/instance: redis
-    app.kubernetes.io/name: redis
   opens:
   - flags:
     - O_RDONLY
@@ -147,7 +124,7 @@ spec:
   - flags:
     - O_CLOEXEC
     - O_RDONLY
-    path: /usr/lib/glibc-hwcaps/x86-64-v2/libncursesw.so.6
+    path: /usr/lib/glibc-hwcaps/⋯/libncursesw.so.6
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -173,7 +150,7 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /opt/bitnami/redis/lib/glibc-hwcaps/x86-64-v2/libm.so.6
+    path: /opt/bitnami/redis/lib/glibc-hwcaps/⋯/libm.so.6
   - flags:
     - O_RDONLY
     - O_CLOEXEC
@@ -287,7 +264,7 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /usr/lib/glibc-hwcaps/x86-64-v3/libncursesw.so.6
+    path: /usr/lib/glibc-hwcaps/⋯/libncursesw.so.6
   - flags:
     - O_CLOEXEC
     - O_RDONLY
@@ -321,7 +298,7 @@ spec:
   - flags:
     - O_RDONLY
     - O_CLOEXEC
-    path: /opt/bitnami/redis/lib/glibc-hwcaps/x86-64-v3/libm.so.6
+    path: /opt/bitnami/redis/lib/glibc-hwcaps/⋯/libm.so.6
   - flags:
     - O_RDONLY
     - O_CLOEXEC
