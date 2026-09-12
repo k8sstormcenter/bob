@@ -1,11 +1,30 @@
 # Redis-distro SBoB demo — deploy, bind, contrast
 
+## 0. Get bobctl
+
+Download the released binary (linux/amd64; swap `amd64` for `arm64` on ARM):
+
+```
+curl -L https://github.com/k8sstormcenter/bob/releases/download/v0.1.4/bobctl-linux-amd64 -o bobctl
+chmod +x bobctl && sudo mv bobctl /usr/local/bin/bobctl
+bobctl version
+```
+
 Bring up the fork stack from the bob repo root first:
 
 ```
 make kubescape
 make alertmanager
 ```
+
+`make kubescape` installs the runtime rules and the `all-rules-all-pods`
+RuntimeRuleAlertBinding. It must set `global.overrideRuntimePath` to the
+**resolved** k3s runc path (`readlink -f …/current/bin/runc`, not the `current`
+symlink — the symlink target is not mounted inside the node-agent pod), point
+`nodeAgent.config.alertManagerExporterUrls` at `alertmanager.<ns>.svc:9093`, and
+keep `nodeAgent.config.maxLearningPeriod` greater than `initialDelay` so a
+container is not dropped from monitoring before enforcement begins. R0003
+(syscalls) is intentionally not bound — SBoBs carry no syscalls.
 
 Each distro is installed by its native vendor installer and its SBoB (learned
 against that same vendor image) is bound at deploy time via the `sbob` toggle.
