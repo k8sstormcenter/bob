@@ -1,0 +1,75 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata: {name: zitadel-postgresql-killchain, description: "Kill-chain against the database behind ZITADEL. This is the component with a real post-exploitation surface: the bitnami image ships a shell, coreutils, curl and psql, so an attacker who reaches it can read credentials, pivot on the service-account token and exfiltrate. The identity server itself is distroless and is covered separately."}
+target: {service: zitadel-postgresql, namespace: zitadel, port: 5432}
+attacks:
+# cat, id, ls, find and grep are in the image's own startup baseline, so R0001
+# cannot speak for them and the path-side rules carry the assertion instead.
+# ln, cp and curl are not, which is why those steps assert R0001.
+#
+# /etc/shadow is mode 0400 and the image runs as uid 1001, so the read fails —
+# but the tracer reports the attempt, so R0010 still names it.
+- name: recon-whoami
+  type: cmdinject
+  exec:
+    command: [whoami]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: postgresql, command: whoami}
+- name: creds-read-shadow
+  type: cmdinject
+  exec:
+    command: [cat, /etc/shadow]
+  expectedDetections:
+  - {ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: postgresql, command: cat}
+- name: creds-read-satoken
+  type: cmdinject
+  exec:
+    command: [cat, /run/secrets/kubernetes.io/serviceaccount/token]
+  expectedDetections:
+  - {ruleID: R0006, ruleName: Unexpected service account token access, containerName: postgresql, command: cat}
+- name: discovery-read-environ
+  type: cmdinject
+  exec:
+    command: [cat, /proc/1/environ]
+  expectedDetections:
+  - {ruleID: R0008, ruleName: Read Environment Variables from procfs, containerName: postgresql, command: cat}
+- name: persist-symlink-shadow
+  type: cmdinject
+  exec:
+    command: [ln, -sf, /etc/shadow, /tmp/sl_probe]
+  expectedDetections:
+  - {ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: postgresql, command: ln}
+- name: persist-hardlink-shadow
+  type: cmdinject
+  exec:
+    command: [bash, -o, pipefail, -c, "ln /etc/shadow /tmp/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_probe"]
+  expectedDetections:
+  - {ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: postgresql, command: ln}
+# /dev/shm/⋯ is in the baseline because postgres puts its shared-memory
+# segments there, so the WRITE raises nothing. R1000 keys on the exec path, not
+# on the profile, so staging and running a binary there is still caught.
+- name: exec-from-devshm
+  type: cmdinject
+  exec:
+    command: [bash, -o, pipefail, -c, "cp /bin/echo /dev/shm/pg_impostor && chmod +x /dev/shm/pg_impostor && /dev/shm/pg_impostor pwned >/dev/null 2>&1 && echo devshm_exec_done; rm -f /dev/shm/pg_impostor"]
+  expectedDetections:
+  - {ruleID: R1000, ruleName: Process executed from malicious source, containerName: postgresql}
+# This profile's egress is one entry, 127.0.0.1:5432 — its own readiness probe
+# — so an outbound to any Service is unexpected and R0011 should name it.
+# Measured on node-agent v0.1.0-rogue26: it does not. Verified by hand against
+# three reachable, undeclared peers (zitadel:8080 200, zitadel-login:3000 404,
+# 10.43.0.1:443 400); R0007 fired on the apiserver hop from the same curl, so
+# the container's network events ARE being evaluated — the CP egress helpers
+# admit the peer. Left asserting only R0001 until that is fixed, so this suite
+# reports what the stack actually does. See entlein/node-agent.
+- name: exfil-curl-egress
+  type: cmdinject
+  exec:
+    command: [bash, -o, pipefail, -c, "curl -s -m 5 -o /dev/null http://zitadel:8080/debug/healthz >/dev/null 2>&1; echo exfil_attempted"]
+  expectedDetections:
+  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: postgresql, command: curl}
+- name: cleanup-probe-files
+  type: cmdinject
+  exec:
+    command: [bash, -c, "rm -f /tmp/sl_probe /tmp/hl_probe /dev/shm/pg_impostor; echo cleanup_done"]
+  expectedDetections: []

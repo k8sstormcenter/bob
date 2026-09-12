@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ZITADEL SBoB demo — deploy ZITADEL and optionally bind every component SBoB.
-#   ./distro.sh          # deploy only
-#   ./distro.sh sbob     # deploy AND bind every SBoB in sbobs/
-#   ./distro.sh unbind   # drop the bind label so the components LEARN again
+#   ./distro.sh          # deploy only (components LEARN)
+#   ./distro.sh sbob     # reinstall with every SBoB in sbobs/ bound from container start
+#   ./distro.sh unbind   # reinstall without the bind labels so the components LEARN again
 #   ./distro.sh down     # remove everything
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -38,58 +38,45 @@ deploy() {
   # and setup Jobs. Setting the annotations to {} in values.yaml does NOT work —
   # helm merges maps, so the chart's default hook annotations survive.
   helm upgrade --install zitadel zitadel/zitadel \
-    --version "$CHART_VERSION" -n "$NS" --values values.yaml \
+    --version "$CHART_VERSION" -n "$NS" --values values.yaml "$@" \
     --set initJob.annotations=null --set setupJob.annotations=null \
     --wait --timeout 10m
 
   kubectl -n "$NS" get pods
 }
 
+# A fresh install, not a patch-and-roll. node-agent adopts a profile when the
+# container STARTS, so the label has to be on the pod template before the pod
+# exists — and the database is an emptyDir populated once by the setup Job, so
+# rolling the StatefulSet of a running release leaves ZITADEL with no schema
+# ("relation system.encryption_keys does not exist") and a CrashLoopBackOff.
 bind() {
-  local bound=0 missing=0 total=0
-  while read -r name workload; do
+  kubectl create ns "$NS" --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+  local applied=0 missing=0
+  for f in sbobs/cp-*.yaml; do
+    [ -e "$f" ] || continue
+    kubectl apply -f "$f" >/dev/null
+    applied=$((applied + 1))
+  done
+  while read -r name _; do
     [ -z "$name" ] && continue
-    total=$((total + 1))
-    if [ ! -f "sbobs/cp-$name.yaml" ]; then
-      echo "     $name: no sbobs/cp-$name.yaml — skipped"
-      missing=$((missing + 1)); continue
-    fi
-    if ! kubectl -n "$NS" get "$workload" >/dev/null 2>&1; then
-      echo "     $name: no $workload — skipped"
-      missing=$((missing + 1)); continue
-    fi
-    kubectl apply -f "sbobs/cp-$name.yaml" >/dev/null
-    # The label goes on the POD TEMPLATE. node-agent binds a profile when the
-    # container starts, so the workload has to roll for the bind to take;
-    # labelling a running pod does nothing.
-    kubectl -n "$NS" patch "$workload" --type merge \
-      -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"$LABEL\":\"$name\"}}}}}" >/dev/null
-    bound=$((bound + 1))
+    [ -f "sbobs/cp-$name.yaml" ] || { echo "     $name: no sbobs/cp-$name.yaml"; missing=$((missing + 1)); }
   done < <(components)
-  echo "bound=$bound missing=$missing total=$total"
+  echo "profiles applied=$applied missing=$missing"
 
-  while read -r _ workload; do
-    [ -z "$workload" ] && continue
-    kubectl -n "$NS" get "$workload" >/dev/null 2>&1 || continue
-    kubectl -n "$NS" rollout status "$workload" --timeout=300s >/dev/null 2>&1 || true
-  done < <(components)
+  deploy --values values-sbob.yaml
   kubectl -n "$NS" get pods \
-    -o custom-columns=POD:.metadata.name,PROFILE:.metadata.labels."$LABEL" --no-headers
+    -o custom-columns=POD:.metadata.name,PROFILE:".metadata.labels.${LABEL//./\\.}" --no-headers
 }
 
 # Learning and enforcement are mutually exclusive: while the label is set,
-# node-agent applies the supplied profile instead of recording one, so a
-# re-learn has to drop it first and roll the workload.
+# node-agent applies the supplied profile instead of recording one. Re-learning
+# is a fresh install without the overlay, for the same reason bind is.
 unbind() {
-  while read -r _ workload; do
-    [ -z "$workload" ] && continue
-    kubectl -n "$NS" get "$workload" >/dev/null 2>&1 || continue
-    kubectl -n "$NS" patch "$workload" --type merge \
-      -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"$LABEL\":null}}}}}" >/dev/null
-  done < <(components)
-  kubectl -n "$NS" delete pods --all --wait=true --timeout=180s >/dev/null 2>&1 || true
-  kubectl -n "$NS" wait --for=condition=ready pod --all --timeout=300s >/dev/null 2>&1 || true
-  echo "unbound; components are recording again"
+  down
+  kubectl wait --for=delete "ns/$NS" --timeout=180s >/dev/null 2>&1 || true
+  deploy
+  echo "reinstalled without the bind labels; components are recording again"
 }
 
 down() {
@@ -99,7 +86,7 @@ down() {
 }
 
 case "$MODE" in
-  sbob)   deploy; bind ;;
+  sbob)   down; kubectl wait --for=delete "ns/$NS" --timeout=180s >/dev/null 2>&1 || true; bind ;;
   unbind) unbind ;;
   down)   down ;;
   "")     deploy ;;

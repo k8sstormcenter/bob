@@ -1,0 +1,35 @@
+# Bind overlay: every long-running pod template carries the label naming its
+# SBoB, so node-agent adopts the profile at container start. Patching a live
+# workload cannot achieve this — the bind happens when the container starts, and
+# rolling the StatefulSet to trigger it destroys the emptyDir database that the
+# init and setup Jobs populated. Install with this overlay instead.
+#
+# The login pod's init container resolves "zitadel-login-wait-for-zitadel"
+# first and falls back to the bare name, so it gets its own SBoB rather than
+# the login server's.
+podAdditionalLabels:
+  kubescape.io/user-defined-profile: zitadel
+
+login:
+  podAdditionalLabels:
+    kubescape.io/user-defined-profile: zitadel-login
+
+postgresql:
+  primary:
+    podLabels:
+      kubescape.io/user-defined-profile: zitadel-postgresql
+
+# The Jobs run once and exit, but an unbound container is itself a finding
+# (R1017), so they carry profiles too. One label per pod resolves per container
+# via the "<label>-<containerName>" convention, which is what the setup Job
+# needs — it runs zitadel-setup, zitadel-machinekey and zitadel-machine-pat in
+# the same pod.
+initJob:
+  podAdditionalLabels:
+    kubescape.io/user-defined-profile: zitadel-jobs
+setupJob:
+  podAdditionalLabels:
+    kubescape.io/user-defined-profile: zitadel-jobs
+cleanupJob:
+  podAdditionalLabels:
+    kubescape.io/user-defined-profile: zitadel-jobs

@@ -1,85 +1,70 @@
 apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: AttackSuite
-metadata: {name: zitadel-killchain, description: 'Kill-chain attacks against the ZITADEL identity provider container: post-exploitation exec, credential and service-account theft, and outbound exfiltration. The profile allows only /app/zitadel, so any injected exec trips R0001; the service-account token read trips R0006; outbound to the metadata endpoint trips R0011.'}
+metadata: {name: zitadel-killchain, description: "Post-exploitation probes against the ZITADEL identity server. ghcr.io/zitadel/zitadel is distroless — no shell, no coreutils, no package manager — so every one of these execs fails at the runtime with \"no such file or directory\" and no kernel event is produced. The image IS the control here, which is why each probe asserts nothing. They stay in the suite so an image that regains a shell is caught the first time it is tuned. The database behind it does have a full toolchain and carries the real kill-chain: see zitadel-postgresql-attacks.yaml."}
 target: {service: zitadel, namespace: zitadel, port: 8080}
 attacks:
 - name: recon-whoami
   type: cmdinject
   exec:
     command: [whoami]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: whoami}
+  expectedDetections: []
 - name: recon-id
   type: cmdinject
   exec:
     command: [id]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: id}
+  expectedDetections: []
 - name: recon-uname
   type: cmdinject
   exec:
     command: [uname, -a]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: uname}
+  expectedDetections: []
 - name: recon-hostname
   type: cmdinject
   exec:
     command: [hostname]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: hostname}
+  expectedDetections: []
 - name: exec-shell
   type: cmdinject
   exec:
     command: [/bin/sh, -c, echo pwned]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: sh}
+  expectedDetections: []
 - name: exec-bash
   type: cmdinject
   exec:
     command: [/bin/bash, -c, echo pwned]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: bash}
+  expectedDetections: []
 - name: exec-devshm-drop
   type: cmdinject
   exec:
     command: [/bin/sh, -c, cp /bin/sh /dev/shm/x && /dev/shm/x -c id]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: x}
+  expectedDetections: []
 - name: discovery-ps
   type: cmdinject
   exec:
     command: [ps, aux]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: ps}
+  expectedDetections: []
 - name: discovery-netstat
   type: cmdinject
   exec:
     command: [ss, -tunlp]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: ss}
+  expectedDetections: []
 - name: creds-read-pgpass
   type: cmdinject
   exec:
     command: [cat, /.pgpass]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: cat}
+  expectedDetections: []
 - name: creds-read-satoken
   type: cmdinject
   exec:
     command: [cat, /var/run/secrets/kubernetes.io/serviceaccount/token]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: cat}
-  - {ruleID: R0006, ruleName: Unexpected service account token access, containerName: zitadel}
+  expectedDetections: []
 - name: exfil-curl-egress
   type: cmdinject
   exec:
     command: [/bin/sh, -c, 'curl -s http://169.254.169.254/ >/dev/null']
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: sh}
-  - {ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: zitadel}
+  expectedDetections: []
 - name: persist-cronwrite
   type: cmdinject
   exec:
     command: [/bin/sh, -c, echo "* * * * * id" > /etc/cron.d/x]
-  expectedDetections:
-  - {ruleID: R0001, ruleName: Unexpected process launched, containerName: zitadel, command: sh}
+  expectedDetections: []

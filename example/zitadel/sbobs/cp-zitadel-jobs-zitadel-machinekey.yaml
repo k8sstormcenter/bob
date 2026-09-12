@@ -1,0 +1,98 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: zitadel-jobs-zitadel-machinekey
+  namespace: zitadel
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_SETUID
+  egress:
+    - {dns: "", dnsNames: null, identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2, ipAddress: 10.43.0.1, namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: default}}, podSelector: {matchLabels: {component: apiserver, provider: kubernetes}}, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: internal}
+  endpoints: null
+  execs:
+    - {args: [sh, -c, until, '[', -n, '"$(kubectl', --namespace=zitadel, get, pod, '${POD_NAME}', '--output=jsonpath="{.status.containerStatuses[?(@.name==''zitadel-setup'')].state.terminated}")"', '];', do, echo, '''waiting', for, zitadel-setup, container, to, terminate';, sleep, 5;, done, '&&', echo, '''zitadel-setup', container, terminated', '&&', if, '[', -f, /machinekey/sa.json, '];', then, kubectl, --namespace=zitadel, create, secret, generic, iam-admin, \, --from-file=iam-admin.json=/machinekey/sa.json, \, --dry-run=client, --output=yaml, '|', \, kubectl, annotate, --local, --filename=-, \, helm.sh/resource-policy=keep, \, --output=yaml, '|', \, kubectl, label, --local, --filename=-, \, app.kubernetes.io/managed-by=Zitadel, \, app.kubernetes.io/name=zitadel, \, app.kubernetes.io/instance=zitadel, \, --output=yaml, '|', \, kubectl, apply, --server-side, --field-manager=zitadel-setup, --filename=-;, fi;], path: /bin/busybox}
+    - {args: [/bin/sh, -c, "until [ -n \"$(kubectl --namespace=zitadel get pod ${POD_NAME} --output=jsonpath=\"{.status.containerStatuses[?(@.name=='zitadel-setup')].state.terminated}\")\" ]; do\n  echo 'waiting for zitadel-setup container to terminate';\n  sleep 5;\ndone &&\necho 'zitadel-"], path: /bin/busybox}
+    - {args: [/bin/sleep, "5"], path: /bin/busybox}
+    - {args: [sleep, "5"], path: /bin/busybox}
+    - {args: [/usr/bin/kubectl, --namespace=zitadel, get, pod, ⋯, '--output=jsonpath={.status.containerStatuses[?(@.name==''zitadel-setup'')].state.terminated}'], path: /usr/bin/kubectl}
+    - {args: [/usr/bin/kubectl, apply, --server-side, --field-manager=zitadel-setup, --filename=-], path: /usr/bin/kubectl}
+    - {args: [/usr/bin/kubectl, --namespace=zitadel, create, secret, generic, iam-admin, --from-file=iam-admin.json=/machinekey/sa.json, --dry-run=client, --output=yaml], path: /usr/bin/kubectl}
+    - {args: [/usr/bin/kubectl, annotate, --local, --filename=-, helm.sh/resource-policy=keep, --output=yaml], path: /usr/bin/kubectl}
+    - {args: [/usr/bin/kubectl, label, --local, --filename=-, app.kubernetes.io/managed-by=Zitadel, app.kubernetes.io/name=zitadel, app.kubernetes.io/instance=zitadel, --output=yaml], path: /usr/bin/kubectl}
+  identifiedCallStacks: null
+  imageID: docker.io/alpine/k8s@sha256:d9aeef2665287b9918bc57c539ba95382ba4c8d52c8b1310df5666a89d9a3d04
+  imageTag: docker.io/alpine/k8s:1.35.4
+  ingress: null
+  matchLabels:
+    batch.kubernetes.io/controller-uid: fa047623-d88c-4fe4-b182-68ba5e620948
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/admissionregistration.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/apiextensions.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/apiregistration.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/apps/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/authentication.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/authorization.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/autoscaling/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/autoscaling/v2/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/batch/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/certificates.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/clickhouse-keeper.altinity.com/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/clickhouse.altinity.com/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/coordination.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/dapr.io/v1alpha1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/dapr.io/v2alpha1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/discovery.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/events.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/flowcontrol.apiserver.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/helm.cattle.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/hostdata.kubescape.cloud/v1beta1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/k3s.cattle.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1alpha1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/kubescape.io/v1beta1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/metrics.k8s.io/v1beta1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/networking.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/node.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v1alpha2/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/operators.coreos.com/v2/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/policy/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/px.dev/v1alpha1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/rbac.authorization.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/resource.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/scheduling.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/servergroups.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/spdx.softwarecomposition.kubescape.io/v1beta1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/storage.k8s.io/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/cache/discovery/10.43.0.1_443/v1/serverresources.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/config}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/kuberc}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /machinekey/sa.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sbin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/bin/kubectl}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/local/bin}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/local/sbin}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/sbin}
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

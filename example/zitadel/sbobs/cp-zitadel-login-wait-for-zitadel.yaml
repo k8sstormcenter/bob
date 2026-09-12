@@ -1,0 +1,44 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: zitadel-login-wait-for-zitadel
+  namespace: zitadel
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+  egress:
+    - {dns: "", dnsNames: null, identifier: c2b675d067ae5aac4e02b81115532a725b221fe8fa51c681349c1b386c189521, ipAddress: 10.43.134.229, namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/component: start, app.kubernetes.io/instance: zitadel, app.kubernetes.io/name: zitadel}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: b665568ebd6dd6ef9584d992012006403331bce0cc9cd3a5cf700d462cf6d704, ipAddress: 10.43.74.1, namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/component: start, app.kubernetes.io/instance: zitadel, app.kubernetes.io/name: zitadel}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 4380bec7cadc8df8f7321e3ceac7739db245e5db032c59fdb73c104aa0543112, ipAddress: 10.43.0.10, namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
+  endpoints: null
+  execs:
+    - {args: [/pause], path: /pause}
+    - {args: [/usr/bin/wait4x, http, 'http://zitadel:8080/debug/ready', --insecure-skip-tls-verify, --h2c, --no-redirect, --expect-status-code, "200", --timeout, 5m, --interval, 5s], path: /usr/bin/wait4x}
+    - {args: [wait4x, http, 'http://zitadel:8080/debug/ready', --insecure-skip-tls-verify, --h2c, --no-redirect, --expect-status-code, "200", --timeout, 5m, --interval, 5s], path: /usr/bin/wait4x}
+  identifiedCallStacks: null
+  imageID: docker.io/wait4x/wait4x@sha256:bec7ac18547781d854562c3729d3195c3880116d6758c49fdf4573ad58805f14
+  imageTag: docker.io/wait4x/wait4x:3.6
+  ingress: null
+  matchLabels:
+    app.kubernetes.io/component: login
+    app.kubernetes.io/instance: zitadel
+    app.kubernetes.io/name: zitadel-login
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_RDONLY], path: /etc/localtime}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/bin/wait4x}
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
