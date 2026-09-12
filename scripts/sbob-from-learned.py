@@ -137,18 +137,26 @@ def anchor_wildcards(dropped_paths, anchors):
 
 
 def collapse_exec_args(execs):
-    """One entry per binary, args [argv0, ⋯⋯] (zero-or-more).
+    """One entry per (binary, argv0), args [argv0, ⋯⋯] (zero-or-more).
 
     Learned args pin values that can never recur — commit SHAs, checkout UUIDs,
     temp filenames, pod names — so the literal entry matches exactly once and is
     dead weight afterwards. A bare [path] is no better: CompareExecArgs shows it
     does NOT match an invocation that has arguments.
+
+    Keyed on argv0 as well as path because a multiplexed interpreter runs under
+    one binary as many tools: Debian's pg_wrapper is /usr/bin/perl invoked as
+    psql, pgbench, pg_dump and nine more. Keying on the path alone keeps one
+    argv0 and silently stops matching every other tool. Emitting several entries
+    for one path is the supported shape — the projection maps a path to a LIST
+    of argv vectors and a runtime exec matches if any of them matches.
     """
     by = {}
     for e in execs:
         argv = e.get("args") or []
-        by.setdefault(e["path"], argv[0] if argv else e["path"])
-    return [{"path": p, "args": [a, "⋯⋯"]} for p, a in sorted(by.items())]
+        argv0 = argv[0] if argv else e["path"]
+        by.setdefault((e["path"], argv0), None)
+    return [{"path": p, "args": [a, "⋯⋯"]} for p, a in sorted(by)]
 
 
 def main():
