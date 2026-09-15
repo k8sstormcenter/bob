@@ -108,22 +108,6 @@ docker build -t YOURREG/log4j-chain-backend-patched:dev     -f backend/Dockerfil
 
 See `RUNBOOK-FOR-AGENTS.md` for the step-by-step.
 
-## bobctl-tune
-
-This directory is structured so `bobctl-tune` can consume it:
-
-1. Apply `log4j-chain.yaml` (scenario A baseline)
-2. Run `log4j-functional-tests.yaml` (learns the four sbobs in log4j-poc ns)
-3. Switch backend to B → re-run functional tests → sbobs converge on
-   "distroless variant" shape
-4. Switch backend to C → re-run functional tests → sbobs converge on
-   "patched library" shape
-5. For each scenario, run `log4j-attacks.yaml` and confirm the expected
-   detections per scenario
-
-The three sbobs produced per scenario become the discriminator catalog
-for active-diagnosis decision trees.
-
 ## Detection narrative (with kubescape ContainerProfile baseline)
 
 Each scenario produces a distinct kubescape rule-fire signature:

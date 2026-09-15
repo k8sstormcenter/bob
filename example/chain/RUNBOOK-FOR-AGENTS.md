@@ -282,53 +282,6 @@ The value is the ContainerProfile resource name, NOT the Deployment name
 (they happen to match in this demo for clarity). node-agent's
 `shared_container_data.go` matches pod ↔ profile by these two labels.
 
-### Source references in node-agent (for anyone extending this)
-
-```
-pkg/objectcache/containerprofilecache/containerprofilecache.go
-                isUserManagedProfile()                 — managed-by gate
-                isUserManagedNN()                      — same for NN
-pkg/objectcache/shared_container_data.go               — pod-label match
-tests/resources/known-network-neighborhood.yaml        — canonical shape
-```
-
-### Transforms applied when promoting a learned sbob → user-supplied
-
-When the vendor regenerates an sbob (via `--learn-sbobs`, then
-`kubectl get -o yaml` + hand-edit), apply this one-off normaliser
-before committing to `example/chain/sbobs/`. The tuner will eventually
-automate this, but today it's manual:
-
-| Drop | Add | Rename | Wildcard / collapse |
-|---|---|---|---|
-| `creationTimestamp`, `resourceVersion`, `uid` | `kubescape.io/managed-by: User` | `replicaset-chain-<role>-<hash>` → `chain-<role>` | `/usr/lib/postgresql/16/bin/postgres` → `…/⋯/bin/postgres` (wildcard the postgres major version) |
-| `kubescape.io/sync-checksum`, `kubescape.io/resource-size` | — | — | `/dev/shm/PostgreSQL.<rand>` → `/dev/shm/⋯` (and similar dynamic suffixes — see `storage/pkg/registry/file/dynamicpathdetector`) |
-| `wlid`, `instance-id`, `instance-template-hash` | — | — | `/pg_wal/<24-hex>` → `/pg_wal/⋯` |
-| `learning-period`, `workload-resource-version` | — | — | `/etc/redis/..<date-secs>/redis.conf` → `/etc/redis/⋯/redis.conf` |
-| Literal-IP HTTP `Host:` headers (e.g. `Host: 10.42.0.198:8080`) — kubescape uses `strings.Contains()` on Host, so a learned pod IP is cluster-specific noise that false-positives on the customer's cluster | — | — | — |
-
-`imageTag` should read `ghcr.io/k8sstormcenter/...` (the CI's stable
-registry) — already the case when learning off the default GHCR images;
-only the opt-in `--build` flow leaves a `ttl.sh/<uuid>` tag that must be
-rewritten to GHCR. `imageID` is reset to a zero-digest placeholder —
-node-agent recomputes it on first pod-image-pull at the customer's cluster.
-
-### Three flows, one set of sbobs
-
-| Flag | Sbob policy | Use case |
-|---|---|---|
-| (default) | All 4 sbobs applied; no learning | Customer demo |
-| `--learn-sbobs` | No sbobs; node-agent learns from benign traffic | Vendor regenerating sbobs |
-| `--isolate=<pod>` | Only `<pod>` uses its sbob; the other 3 learn | Per-pod sbob verification |
-
-`--isolate=<pod>` is the verification harness: it proves each pod's
-AP+NN is individually well-formed without coupling the result to the
-other three. Run once per pod (`chain-redis`, `chain-postgres`,
-`chain-backend`, `chain-frontend`). All four runs should still
-produce **Coverage: 4 / 7** because the chain attack always hits the
-redis pod; what changes per run is *which* sbobs are exercised in
-their user-supplied form vs in their learned form.
-
 ---
 
 ## Step 5 — Verify each piece independently (when things look off)
