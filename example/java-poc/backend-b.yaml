@@ -1,0 +1,46 @@
+# Scenario B: vulnerable logging library 2.14.1 BUT distroless image + hardened
+# securityContext. RCE lands in JVM, /bin/sh exec fails ENOENT.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: java-poc
+  labels: { scenario: "B" }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: backend } }
+  template:
+    metadata:
+      labels: { app: backend, scenario: "B" }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+      - name: backend
+        image: ghcr.io/k8sstormcenter/java-poc-backend-contained:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        env:
+        - { name: POSTGRES_HOST, value: "postgres" }
+        - { name: POSTGRES_DB,   value: "appdb" }
+        - { name: POSTGRES_USER, value: "postgres" }
+        ports: [{ containerPort: 8080 }]
+        volumeMounts:
+        - { name: tmp, mountPath: /tmp }
+      volumes:
+      - name: tmp
+        emptyDir: { medium: "Memory" }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: backend, namespace: java-poc }
+spec:
+  selector: { app: backend }
+  ports: [{ port: 8080, targetPort: 8080 }]

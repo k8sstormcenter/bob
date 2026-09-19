@@ -49,6 +49,28 @@ If a pod started before its SBoB (e.g. CRDs not yet ready), `kubectl delete pod`
 it to rebind — do **not** `rollout restart` (that clobbers the managed-by
 annotation).
 
+## Sources, suites and scenario variants
+
+The retired chain tree folded into this directory, so everything the demo needs
+now lives here:
+
+| Path | What |
+|---|---|
+| `backend/` | the vulnerable Java app — `Dockerfile.{vulnerable,contained,patched}`, `pom.xml`, `App.java` |
+| `pathogen/` | the LDAP Specimen server — `Dockerfile`, `Payload.java`, `run.sh` |
+| `backend-b.yaml` / `backend-c.yaml` | scenario B (distroless + hardened SC) and C (patched library) overlays for `backend` |
+| `java-attacks.yaml` | bobctl `AttackSuite` — one payload, three scenarios |
+| `java-functional-tests.yaml` | bobctl `FunctionalTestSuite` — the benign baseline to learn against |
+| `attack-pod.yaml`, `exfil-dns.yaml` | in-cluster probe and the DNS egress surface |
+| `kubescape/rules/R1100_rulespec.yaml` | the failed-execve binding scenario B turns on |
+| `RUNBOOK-FOR-AGENTS.md` | step-by-step operation |
+
+Images are built by `.github/workflows/ci-java-poc-images.yaml` and published as
+`ghcr.io/k8sstormcenter/java-poc-<component>`. The digests pinned in
+`30-backend.yaml` and `50-pathogen.yaml` still carry the old repository name:
+they are immutable and resolve, and re-pinning waits on either a registry retag
+or the first publish under the new name.
+
 ## Layering
 
 This is **only the apps**. It assumes the detection/forensics stack (kubescape +

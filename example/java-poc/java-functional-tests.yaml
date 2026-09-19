@@ -1,0 +1,61 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: FunctionalTestSuite
+metadata:
+  name: java-poc-benign-baseline
+  description: |
+    Benign HTTP traffic against the java chain's frontend. Run during
+    learning to populate the FOUR sbobs in the java-poc namespace:
+
+      frontend.ApplicationProfile   → nginx + sh
+      frontend.NetworkNeighborhood  → kube-dns, backend
+      backend.ApplicationProfile    → java + psql + getent + curl
+      backend.NetworkNeighborhood   → kube-dns, postgres
+      postgres.ApplicationProfile   → postgres + admin tools
+      postgres.NetworkNeighborhood  → kube-dns (resolver init)
+      observer.ApplicationProfile   → curl + sh
+      observer.NetworkNeighborhood  → kube-dns, backend
+
+    Traffic shape is the user-facing API:
+      GET  /healthz                  — liveness
+      GET  /api/products?q=<term>    — read path → backend → pg-wire SELECT
+      POST /api/login {user,pass}    — auth path → backend issues JWT
+
+    observer already runs this pattern on a 30s loop while it's
+    deployed (see 40-observer.yaml). This FunctionalTestSuite gives bobctl
+    an explicit, replayable handle.
+
+target:
+  service: frontend
+  namespace: java-poc
+  port: 8080
+  scheme: http
+
+tests:
+  - name: healthz
+    http:
+      method: GET
+      path: /healthz
+      expectedStatus: 200
+  - name: list-products
+    http:
+      method: GET
+      path: /api/products
+      expectedStatus: 200
+  - name: list-products-with-filter
+    http:
+      method: GET
+      path: /api/products?q=widget
+      expectedStatus: 200
+  - name: login
+    http:
+      method: POST
+      path: /api/login
+      headers:
+        Content-Type: application/json
+      body: '{"user":"alice","pass":"correct-horse-battery-staple"}'
+      expectedStatus: 200
+  - name: list-products-after-login
+    http:
+      method: GET
+      path: /api/products?q=gadget
+      expectedStatus: 200
