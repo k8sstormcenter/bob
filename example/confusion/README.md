@@ -87,7 +87,7 @@ experiment (full co-occurring chain) still rules in.
 
 Repeatable run + measurement:
 ```sh
-./run-experiment.sh [log4j] [replicas-per-variant=25] [window-s=150]
+./run-experiment.sh [java-poc] [replicas-per-variant=25] [window-s=150]
 ```
 Deploys+binds the split, scales it, fires ONE experiment, then prints the dx NFR delta
 (time-to-verdict, bench-query, pivot-escalation, drops) + how dx classified the confusion

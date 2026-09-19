@@ -2,9 +2,9 @@ apiVersion: bobctl.k8sstormcenter.io/v1alpha1
 kind: ChainManifest
 metadata:
   name: fixture-scenarios
-  namespace: log4j-poc
+  namespace: java-poc
 deploy:
-  - manifest: log4j-chain.yaml
+  - manifest: java-chain.yaml
   - manifest: kubescape/rules/R1100_rulespec.yaml
     optional: true
 pods:
@@ -15,8 +15,8 @@ pods:
     profile_match: replicaset-chain-observer
     container: observer
     negative_control: true
-functional_tests: log4j-functional-tests.yaml
-attack_suite: log4j-attacks.yaml
+functional_tests: java-functional-tests.yaml
+attack_suite: java-attacks.yaml
 scenarios:
   - name: A-vuln
     apply: []
