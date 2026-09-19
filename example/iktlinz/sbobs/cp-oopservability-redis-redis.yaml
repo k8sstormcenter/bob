@@ -1,0 +1,89 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations: {kubescape.io/managed-by: User}
+  name: oopservability-redis-redis
+  namespace: oopservability
+spec:
+  architectures: [amd64]
+  capabilities: [CAP_NET_ADMIN]
+  egress: null
+  endpoints: null
+  execs:
+  - args: [/pause]
+    path: /pause
+  - args: [/usr/bin/redis-server, --protected-mode, 'no']
+    path: /usr/bin/redis-check-rdb
+  - args: [redis-server, '*:6379']
+    path: /usr/bin/redis-check-rdb
+  identifiedCallStacks: null
+  imageID: ghcr.io/magier/oopservability-redis@sha256:c97e6254ed25c48494b8a71f5738c10488b701c7b9778e225aebd31fbcbd5210
+  imageTag: ghcr.io/magier/oopservability-redis:latest
+  ingress: null
+  matchLabels: {app.kubernetes.io/name: oopservability-redis}
+  opens:
+  - flags: [O_RDONLY]
+    path: /cjson.lua
+  - flags: [O_RDONLY]
+    path: /cjson.so
+  - flags: [O_RDONLY]
+    path: /dev/urandom
+  - flags: [O_RDONLY]
+    path: /dump.rdb
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/ld.so.cache
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /lib/x86_64-linux-gnu/libc-2.31.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /lib/x86_64-linux-gnu/libdl-2.31.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /lib/x86_64-linux-gnu/libgcc_s.so.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /lib/x86_64-linux-gnu/libgpg-error.so.0.29.0
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /lib/x86_64-linux-gnu/liblzma.so.5.2.5
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /lib/x86_64-linux-gnu/libm-2.31.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /lib/x86_64-linux-gnu/libpthread-2.31.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /lib/x86_64-linux-gnu/librt-2.31.so
+  - flags: [O_RDONLY]
+    path: /proc/sys/net/core/somaxconn
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/sys/vm/overcommit_memory
+  - flags: [O_RDONLY]
+    path: "/proc/\u22EF/oom_score_adj"
+  - flags: [O_RDONLY]
+    path: "/proc/\u22EF/stat"
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+    path: "/proc/\u22EF/task/*"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /sys/devices/*
+  - flags: [O_RDONLY]
+    path: /sys/kernel/mm/transparent_hugepage/enabled
+  - flags: [O_RDONLY]
+    path: /usr/lib/ssl/openssl.cnf
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/usr/lib/x86_64-linux-gnu/\u22EF"
+  - flags: [O_RDONLY]
+    path: /usr/local/lib/lua/5.1/cjson.lua
+  - flags: [O_RDONLY]
+    path: /usr/local/lib/lua/5.1/cjson.so
+  - flags: [O_RDONLY]
+    path: /usr/local/lib/lua/5.1/cjson/init.lua
+  - flags: [O_RDONLY]
+    path: /usr/local/share/lua/5.1/cjson.lua
+  - flags: [O_RDONLY]
+    path: /usr/local/share/lua/5.1/cjson/init.lua
+  - flags: [O_RDONLY]
+    path: /usr/share/lua/5.1/cjson.lua
+  - flags: [O_RDONLY]
+    path: /usr/share/lua/5.1/cjson/init.lua
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/share/zoneinfo/Etc/UTC
+  rulePolicies: {}
+  seccompProfile:
+    spec: {defaultAction: ''}
+  syscalls: null
+status: {}

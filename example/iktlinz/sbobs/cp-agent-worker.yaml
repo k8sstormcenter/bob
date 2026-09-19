@@ -1,0 +1,54 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations: {kubescape.io/managed-by: User}
+  name: agent-worker
+  namespace: agent-system
+spec:
+  architectures: [amd64]
+  capabilities: []
+  egress: null
+  endpoints: null
+  execs:
+  - args: [/pause]
+    path: /pause
+  - args: [/usr/bin/cat, /etc/hostname]
+    path: /usr/bin/cat
+  - args: [sh, -c, eval, '"$TASK_CMD";', sleep, infinity]
+    path: /usr/bin/dash
+  - args: [/usr/bin/sh, -c, eval "$TASK_CMD"; sleep infinity]
+    path: /usr/bin/dash
+  - args: [/usr/bin/ls, /app]
+    path: /usr/bin/ls
+  - args: [sleep, infinity]
+    path: /usr/bin/sleep
+  - args: [sleep, '15']
+    path: /usr/bin/sleep
+  - args: [/usr/bin/sleep, infinity]
+    path: /usr/bin/sleep
+  - args: [/usr/bin/sleep, '15']
+    path: /usr/bin/sleep
+  identifiedCallStacks: null
+  imageID: ghcr.io/magier/ikt26/agentbox@sha256:676f888fee8bd30ee389308081a0623b119d5792e54ee04e201be8c05e8060a8
+  imageTag: ghcr.io/magier/ikt26/agentbox:latest
+  ingress: null
+  opens:
+  - flags: [O_RDONLY]
+    path: /etc/hostname
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/ld.so.cache
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/filesystems
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+    path: "/proc/\u22EF/task/*"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libc.so.6
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libselinux.so.1
+  rulePolicies: {}
+  seccompProfile:
+    spec: {defaultAction: ''}
+  syscalls: null
+status: {}

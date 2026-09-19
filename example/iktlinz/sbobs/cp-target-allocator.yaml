@@ -1,0 +1,87 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations: {kubescape.io/managed-by: User}
+  name: target-allocator
+  namespace: oopservability
+spec:
+  architectures: [amd64]
+  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: default}
+    podSelector:
+      matchLabels: {component: apiserver, provider: kubernetes}
+    ports:
+    - {name: TCP-443, port: 443, protocol: TCP}
+    type: internal
+  endpoints:
+  - direction: inbound
+    endpoint: :80/jobs/serviceMonitor/oopservability/redis-metrics/0/targets
+    headers:
+      Host: ['target-allocator.oopservability.svc.cluster.local:80']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :80/scrape_configs
+    headers:
+      Accept-Encoding: [gzip]
+      Host: ['target-allocator.oopservability.svc.cluster.local:80']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :8080/livez
+    headers:
+      Connection: [close]
+      Host: ['*:8080']
+    internal: true
+    methods: [GET]
+  - direction: inbound
+    endpoint: :8080/readyz
+    headers:
+      Connection: [close]
+      Host: ['*:8080']
+    internal: true
+    methods: [GET]
+  execs:
+  - args: [./main, --config-file=/conf/targetallocator.yaml]
+    path: /main
+  - args: [/pause]
+    path: /pause
+  identifiedCallStacks: null
+  imageID: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator@sha256:a34d608ea57c2e269b34b118a4791e14d3ad88df9c20786522efb6f231252269
+  imageTag: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:v0.151.0
+  ingress: null
+  matchLabels: {app: target-allocator}
+  opens:
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/conf/\u22EF/targetallocator.yaml"
+  - flags: [O_RDONLY]
+    path: /etc/localtime
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /main
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/sys/net/core/somaxconn
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/proc/\u22EF/cgroup"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/proc/\u22EF/mountinfo"
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+    path: "/proc/\u22EF/task/*"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /sys/fs/cgroup/*
+  - flags: [O_RDONLY]
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/var/run/secrets/kubernetes.io/serviceaccount/\u22EF/ca.crt"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/var/run/secrets/kubernetes.io/serviceaccount/\u22EF/token"
+  rulePolicies: {}
+  seccompProfile:
+    spec: {defaultAction: ''}
+  syscalls: null
+status: {}
