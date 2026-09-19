@@ -43,7 +43,7 @@ pass=0; fail=0; failed=()
 check() {
   local file="$1" kind="$2" out
   if [ "$kind" = attack ]; then
-    out=$(KUBECONFIG=/nonexistent "$BOBCTL" attack --attack-suite "$file" -n validate 2>&1)
+    out=$(KUBECONFIG=/nonexistent "$BOBCTL" simulate --suite "$file" -n validate 2>&1)
   else
     out=$(KUBECONFIG=/nonexistent "$BOBCTL" test --functional-tests "$file" -n validate 2>&1)
   fi

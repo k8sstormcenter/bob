@@ -245,7 +245,7 @@ Coverage: 4 / 7 expected detections matched
 
 ## Architecture choices
 
-- **Single AttackSuite target = frontend.** Reuses `bobctl attack` verbatim
+- **Single AttackSuite target = frontend.** Reuses `bobctl simulate` verbatim
   for HTTP delivery. Every chain stage enters as one POST to
   `/api/cache/eval`. Detections happen wherever syscalls actually fire;
   `expectedDetections.containerName` tells the verifier which pod to
