@@ -5,9 +5,9 @@
 Download the released binary (linux/amd64; swap `amd64` for `arm64` on ARM):
 
 ```
-curl -L https://github.com/k8sstormcenter/bob/releases/download/v0.1.4/bobctl-linux-amd64 -o bobctl
+curl -L https://github.com/k8sstormcenter/bob/releases/download/v0.1.5/bobctl-linux-amd64 -o bobctl
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/bobctl
-bobctl version
+bobctl simulate --help
 ```
 
 Bring up the fork stack from the bob repo root first:
