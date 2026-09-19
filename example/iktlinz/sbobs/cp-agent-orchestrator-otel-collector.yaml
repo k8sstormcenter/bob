@@ -89,6 +89,10 @@ spec:
     path: /sys/fs/cgroup/*
   - flags: [O_RDONLY]
     path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/var/run/secrets/kubernetes.io/serviceaccount/\u22EF/ca.crt"
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: "/var/run/secrets/kubernetes.io/serviceaccount/\u22EF/token"
   rulePolicies: {}
   seccompProfile:
     spec: {defaultAction: ''}

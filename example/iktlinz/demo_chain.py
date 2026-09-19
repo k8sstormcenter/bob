@@ -270,19 +270,29 @@ def step_10_nmap(ctx):
         return out
 
     ips = _ips() or ["10.42.0.1"]
-    octs = [int(i.split(".")[3]) for i in ips]
-    base = ".".join(ips[0].split(".")[:3])
-    lo, hi = min(octs), max(octs)
-    # smallest prefix covering lo..hi, but never coarser than /25 (a /24 blows
-    # the budget); anchor the /25 on the redis half so unit-5 always has a target
-    prefix, net = 27, (lo // 32) * 32
-    for p, size in ((27, 32), (26, 64), (25, 128)):
-        n = (lo // size) * size
-        if hi < n + size:
-            prefix, net = p, n
-            break
+    # ips[0] is the foothold, the rest are the redis target(s). On a multi-node
+    # cluster they sit in different per-node pod CIDRs (worker 10.42.2.x, redis
+    # 10.42.0.x) and NO prefix we can afford spans them -- a range wide enough
+    # would have to be a /16. So only try to cover both when they share a /24;
+    # otherwise anchor on redis, because a scan that misses the target makes
+    # every later unit-5 step fail with "no target resolved", while a scan that
+    # misses the foothold costs nothing (we are already inside it).
+    tgt = ips[-1]
+    same24 = len({".".join(i.split(".")[:3]) for i in ips}) == 1
+    if same24:
+        base = ".".join(ips[0].split(".")[:3])
+        octs = [int(i.split(".")[3]) for i in ips]
+        lo, hi = min(octs), max(octs)
+        prefix, net = 25, (lo // 128) * 128
+        for pfx, size in ((27, 32), (26, 64), (25, 128)):
+            n = (lo // size) * size
+            if hi < n + size:
+                prefix, net = pfx, n
+                break
     else:
-        prefix, net = 25, (octs[-1] // 128) * 128
+        base = ".".join(tgt.split(".")[:3])
+        prefix, net = 27, (int(tgt.split(".")[3]) // 32) * 32
+        print(f"      foothold and target are on different nodes; anchoring on {tgt}")
     cidr = f"{base}.{net}/{prefix}"
     print(f"      scanning {cidr} (foothold+target ips: {','.join(ips)})")
     return execute("nmap-host-scan", pod_id("agent-system", "agent-worker"),
