@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>io.fusioncore.log4j-poc</groupId>
-    <artifactId>chain-backend</artifactId>
+    <groupId>io.fusioncore.java-poc</groupId>
+    <artifactId>backend</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <log4j.version>${env.LOG4J_VERSION}</log4j.version>
+        <logging.version>${env.LOGGING_VERSION}</logging.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>${log4j.version}</version>
+            <version>${logging.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
+            <version>${logging.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -31,7 +31,7 @@
     </dependencies>
 
     <build>
-        <finalName>chain-backend</finalName>
+        <finalName>backend</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>

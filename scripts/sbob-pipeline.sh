@@ -4,7 +4,7 @@
 # Composes scripts/lib/chain-{deploy,apply-sbobs,extract-sbobs,
 # scenario-switch}.sh against a ChainManifest. Replaces the apply-loop
 # logic from scripts/local-ci-chain.sh with a thin top-level that any
-# new chain demo (e.g. example/log4j-chain/) can drive without forking.
+# new chain demo (e.g. example/java-poc/) can drive without forking.
 #
 # Examples (run from repo root):
 #
@@ -19,7 +19,7 @@
 #
 #   # End-to-end on a manifest with scenarios: deploy, apply SBOBs,
 #   # then switch to scenario B
-#   ./scripts/sbob-pipeline.sh switch example/log4j-chain/chain.manifest.yaml B-distroless
+#   ./scripts/sbob-pipeline.sh switch example/java-poc/chain.manifest.yaml B-distroless
 #
 #   # Extract learned SBOBs from a cluster back to the manifest's sbob_dir
 #   ./scripts/sbob-pipeline.sh extract example/chain/chain.manifest.yaml

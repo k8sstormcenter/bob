@@ -1,28 +1,26 @@
-name: CI - log4j chain images
+name: CI - java-poc images
 
-# Builds and publishes the four log4j-chain demo images
-# (example/log4j-chain/) to GHCR. Mirrors ci-chain-images.yaml's
-# shape; uses immutable GitHub Actions SHAs per the repo's pinning
-# policy.
+# Builds and publishes the four example/java-poc demo images to GHCR.
+# Mirrors ci-chain-images.yaml's shape; uses immutable GitHub Actions
+# SHAs per the repo's pinning policy.
 #
 # Tags pushed (per component):
-#   - ghcr.io/k8sstormcenter/log4j-chain-<component>:<short-sha>
-#   - ghcr.io/k8sstormcenter/log4j-chain-<component>:<branch>
-#   - ghcr.io/k8sstormcenter/log4j-chain-<component>:latest    (main only)
+#   - ghcr.io/k8sstormcenter/java-poc-<component>:<short-sha>
+#   - ghcr.io/k8sstormcenter/java-poc-<component>:<branch>
+#   - ghcr.io/k8sstormcenter/java-poc-<component>:latest    (main only)
 #
 # Replaces the ttl.sh 24h-rot path that was breaking fresh-PG
-# provisioning. Consumers are example/log4j-chain/{backend-b,backend-c,
-# log4j-chain,log4j-attacks}.yaml — those already reference
-# ghcr.io/k8sstormcenter/log4j-chain-<component>:latest.
+# provisioning. Consumers are example/java-poc/{30-backend,50-pathogen,
+# backend-b,backend-c}.yaml.
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'example/log4j-chain/backend/**'
-      - 'example/log4j-chain/attacker/**'
-      - '.github/workflows/ci-log4j-chain-images.yaml'
+      - 'example/java-poc/backend/**'
+      - 'example/java-poc/pathogen/**'
+      - '.github/workflows/ci-java-poc-images.yaml'
   workflow_dispatch:
 
 permissions:
@@ -37,18 +35,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - component: log4j-chain-backend-vulnerable
-            context: example/log4j-chain/backend
-            dockerfile: example/log4j-chain/backend/Dockerfile.vulnerable
-          - component: log4j-chain-backend-contained
-            context: example/log4j-chain/backend
-            dockerfile: example/log4j-chain/backend/Dockerfile.contained
-          - component: log4j-chain-backend-patched
-            context: example/log4j-chain/backend
-            dockerfile: example/log4j-chain/backend/Dockerfile.patched
-          - component: log4j-chain-attacker
-            context: example/log4j-chain/attacker
-            dockerfile: example/log4j-chain/attacker/Dockerfile
+          - component: java-poc-backend-vulnerable
+            context: example/java-poc/backend
+            dockerfile: example/java-poc/backend/Dockerfile.vulnerable
+          - component: java-poc-backend-contained
+            context: example/java-poc/backend
+            dockerfile: example/java-poc/backend/Dockerfile.contained
+          - component: java-poc-backend-patched
+            context: example/java-poc/backend
+            dockerfile: example/java-poc/backend/Dockerfile.patched
+          - component: java-poc-pathogen
+            context: example/java-poc/pathogen
+            dockerfile: example/java-poc/pathogen/Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4

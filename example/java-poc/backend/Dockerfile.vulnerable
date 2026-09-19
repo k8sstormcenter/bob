@@ -1,27 +1,27 @@
-# Scenario A — vulnerable log4j 2.14.1, ops-friendly ubuntu base.
-# Has /bin/sh, psql, curl, getent — full toolbox for an attacker post-RCE.
+# Scenario A — vulnerable logging library 2.14.1, ops-friendly ubuntu base.
+# Has /bin/sh, psql, curl, getent — full toolbox for a pathogen post-RCE.
 
 FROM maven:3.9-eclipse-temurin-11@sha256:5818ee89bddd09cc7b265bea1919c5088f82a4e17f0adc104e12e94cb26bea03 AS build
 WORKDIR /src
 COPY pom.xml ./
 COPY src ./src
-RUN LOG4J_VERSION=2.14.1 mvn -B package -DskipTests
+RUN LOGGING_VERSION=2.14.1 mvn -B package -DskipTests
 
 FROM eclipse-temurin:11-jdk@sha256:4d14042fcb8451c643170f8d7f556b817a7aa65800c582ad9190dbc60d424886
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client curl dnsutils ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=build /src/target/chain-backend-jar-with-dependencies.jar ./app.jar
+COPY --from=build /src/target/backend-jar-with-dependencies.jar ./app.jar
 EXPOSE 8080
-# Where the malicious LDAP referral server lives — the endpoint the Log4Shell
-# JNDI lookup dials out to. Placeholder default points at the in-repo attacker
+# Where the malicious LDAP referral server lives — the endpoint the CVE-2021-44228
+# JNDI lookup dials out to. Placeholder default points at the in-repo pathogen
 # Service; set LDAP_HOST (host[:port]) or LDAP_URL (full ldap:// URL) to a
 # non-private/public address so the call-out egress trips R0011. Pairs with the
-# attacker image's CODEBASE_HOST (PR #144). Consumed by App.java's /api/_probe.
-ENV LDAP_HOST=attacker.attacker-ns.svc.cluster.local:1389
+# pathogen image's CODEBASE_HOST (PR #144). Consumed by App.java's /api/_probe.
+ENV LDAP_HOST=pathogen.pathogen-ns.svc.cluster.local:1389
 # JNDI/LDAP class loading: temurin-11 sets `com.sun.jndi.ldap.object.trustURLCodebase=false`
-# by default (since JDK 11.0.1) — without this flag the Log4Shell chain stops at
+# by default (since JDK 11.0.1) — without this flag the CVE-2021-44228 chain stops at
 # LDAP referral, never fetches the Payload.class. Enabling it makes the JVM
 # behave like the pre-mitigation environments that were vulnerable in 2021.
 ENTRYPOINT ["java","-Dcom.sun.jndi.ldap.object.trustURLCodebase=true","-jar","/app/app.jar"]

@@ -1,4 +1,4 @@
-# Runbook — running the Log4Shell three-scenario chain demo
+# Runbook — running the CVE-2021-44228 three-scenario chain demo
 
 **Audience**: an AI agent (or human operator) with shell + kubectl access
 to a fresh-ish Linux box. No prior context with this repo.
@@ -29,7 +29,7 @@ sudo apt-get update && sudo apt-get install -y kubectl jq curl coreutils
 ```
 
 Docker is **optional** — only needed if you want to rebuild the four
-images. Default path uses pre-published `ghcr.io/k8sstormcenter/log4j-chain-*`
+images. Default path uses pre-published `ghcr.io/k8sstormcenter/java-poc-*`
 images.
 
 ---
@@ -60,17 +60,18 @@ kubectl get ns honey
 ## Step 3 — Deploy the chain (scenario A baseline)
 
 ```bash
-kubectl apply -f log4j-chain.yaml
+kubectl apply -f 00-namespaces.yaml -f sbobs/
+kubectl apply -f 10-postgres.yaml -f 20-frontend.yaml -f 30-backend.yaml \
+  -f 40-observer.yaml -f 50-pathogen.yaml
 
 # Wait for everything to come up.
-for d in chain-postgres chain-frontend chain-backend chain-observer; do
-  kubectl -n log4j-poc rollout status deploy/$d --timeout=120s
+for d in postgres frontend backend observer; do
+  kubectl -n java-poc rollout status deploy/$d --timeout=120s
 done
-kubectl -n attacker-ns rollout status deploy/attacker --timeout=60s
+kubectl -n pathogen-ns rollout status deploy/pathogen --timeout=60s
 
-# (Optional) install the kubescape ContainerProfiles + R1100 binding
-# so the per-scenario rule signatures fire on schedule.
-kubectl apply -f kubescape/application-profiles/
+# (Optional) the R1100 binding, so scenario B's failed-execve signature
+# fires on schedule. The ContainerProfiles went in above, before the pods.
 kubectl apply -f kubescape/rules/R1100_rulespec.yaml
 ```
 
@@ -81,8 +82,8 @@ When BoB-agent (or `bobctl tune`) ships an updated AP/NN, **always**
 new one:
 
 ```bash
-kubectl -n log4j-poc delete containerprofile chain-backend
-kubectl -n log4j-poc apply -f <new-ap-chain-backend.yaml>
+kubectl -n java-poc delete containerprofile backend
+kubectl -n java-poc apply -f <new-ap-backend.yaml>
 # wait ~30 s for node-agent to flush its per-binding cache
 sleep 30
 ```
@@ -104,30 +105,30 @@ refactor (PR #132) wires it up programmatically.
 Sanity check — every pod Ready:
 
 ```bash
-kubectl get pods -A | grep -E 'log4j-poc|attacker-ns'
+kubectl get pods -A | grep -E 'java-poc|pathogen-ns'
 ```
 
 ---
 
 ## Step 4 — Functional traffic (drives sbob learning)
 
-Either let `chain-observer` run for a couple of minutes (its built-in
+Either let `observer` run for a couple of minutes (its built-in
 30-second poll), or fire the FunctionalTestSuite explicitly:
 
 ```bash
-bobctl test apply log4j-functional-tests.yaml
+bobctl test apply java-functional-tests.yaml
 ```
 
 Confirm the four sbobs converged:
 
 ```bash
-kubectl -n log4j-poc get containerprofiles
+kubectl -n java-poc get containerprofiles
 ```
 
 (If you're not using bobctl, you can equivalently run a few of these by hand:)
 
 ```bash
-PORT=$(kubectl -n log4j-poc get svc chain-frontend -o jsonpath='{.spec.ports[0].nodePort}')
+PORT=$(kubectl -n java-poc get svc frontend -o jsonpath='{.spec.ports[0].nodePort}')
 curl -s "http://$(hostname -I | awk '{print $1}'):${PORT}/api/products"
 curl -s "http://$(hostname -I | awk '{print $1}'):${PORT}/api/products?q=widget"
 curl -s -X POST "http://$(hostname -I | awk '{print $1}'):${PORT}/api/login" \
@@ -144,25 +145,25 @@ curl -s -X POST "http://$(hostname -I | awk '{print $1}'):${PORT}/api/login" \
 # eats the `$`. The pod runs two curls (benign login + JNDI probe) and
 # exits with phase=Succeeded.
 sed 's/attack-PLACEHOLDER/attack-a/' attack-pod.yaml | kubectl apply -f -
-kubectl -n log4j-poc wait --for=jsonpath='{.status.phase}'=Succeeded \
+kubectl -n java-poc wait --for=jsonpath='{.status.phase}'=Succeeded \
   pod/attack-a --timeout=60s
 
 # Inspect:
-kubectl -n log4j-poc logs pod/attack-a
-kubectl -n log4j-poc logs deploy/chain-backend --tail=20
-kubectl -n attacker-ns logs deploy/attacker --tail=10
+kubectl -n java-poc logs pod/attack-a
+kubectl -n java-poc logs deploy/backend --tail=20
+kubectl -n pathogen-ns logs deploy/pathogen --tail=10
 ```
 
 Expected for scenario A (with kubescape ContainerProfile learned in step 4):
 
 ```bash
-# kubescape rule fires on chain-backend
-kubectl -n log4j-poc get containerprofiles -o yaml | grep -E 'R0001|R0010|R0011|R1100' | head
+# kubescape rule fires on backend
+kubectl -n java-poc get containerprofiles -o yaml | grep -E 'R0001|R0010|R0011|R1100' | head
 # or via your kubescape_logs sink
 ```
 
-You should observe — on chain-backend — `R0011` (egress to
-attacker:1389), `R0001` (new `/bin/sh` comm under java), and `R0010`
+You should observe — on backend — `R0011` (egress to
+pathogen:1389), `R0001` (new `/bin/sh` comm under java), and `R0010`
 (sensitive-file access if the payload's psql query touches one).
 
 ---
@@ -170,20 +171,20 @@ attacker:1389), `R0001` (new `/bin/sh` comm under java), and `R0010`
 ## Step 6 — Switch to scenario B (contained)
 
 ```bash
-# 1. Replace chain-backend
+# 1. Replace backend
 kubectl apply -f backend-b.yaml
-kubectl -n log4j-poc rollout status deploy/chain-backend --timeout=120s
+kubectl -n java-poc rollout status deploy/backend --timeout=120s
 
 # 2. Restart the frontend — nginx caches the backend's pod IP at startup,
-#    and the new chain-backend has a different IP. Without this,
+#    and the new backend has a different IP. Without this,
 #    /api/products returns 504 until nginx is restarted.
-kubectl -n log4j-poc rollout restart deploy/chain-frontend
-kubectl -n log4j-poc rollout status deploy/chain-frontend --timeout=60s
+kubectl -n java-poc rollout restart deploy/frontend
+kubectl -n java-poc rollout status deploy/frontend --timeout=60s
 
 # 3. Re-fire the attack
-kubectl -n log4j-poc delete pod attack-b --ignore-not-found --wait=true
+kubectl -n java-poc delete pod attack-b --ignore-not-found --wait=true
 sed 's/attack-PLACEHOLDER/attack-b/' attack-pod.yaml | kubectl apply -f -
-kubectl -n log4j-poc wait --for=jsonpath='{.status.phase}'=Succeeded \
+kubectl -n java-poc wait --for=jsonpath='{.status.phase}'=Succeeded \
   pod/attack-b --timeout=60s
 ```
 
@@ -198,21 +199,21 @@ immediately with that errno. R1100 is the "B-vs-A discriminator".
 
 ```bash
 kubectl apply -f backend-c.yaml
-kubectl -n log4j-poc rollout status deploy/chain-backend --timeout=120s
-kubectl -n log4j-poc rollout restart deploy/chain-frontend
-kubectl -n log4j-poc rollout status deploy/chain-frontend --timeout=60s
+kubectl -n java-poc rollout status deploy/backend --timeout=120s
+kubectl -n java-poc rollout restart deploy/frontend
+kubectl -n java-poc rollout status deploy/frontend --timeout=60s
 
-kubectl -n log4j-poc delete pod attack-c --ignore-not-found --wait=true
+kubectl -n java-poc delete pod attack-c --ignore-not-found --wait=true
 sed 's/attack-PLACEHOLDER/attack-c/' attack-pod.yaml | kubectl apply -f -
-kubectl -n log4j-poc wait --for=jsonpath='{.status.phase}'=Succeeded \
+kubectl -n java-poc wait --for=jsonpath='{.status.phase}'=Succeeded \
   pod/attack-c --timeout=60s
 ```
 
-Expected for scenario C: **no kubescape rule fires** on chain-backend.
+Expected for scenario C: **no kubescape rule fires** on backend.
 The JNDI literal is present in the HTTP request (verifiable via Pixie's
-`http_events` table or `kubectl logs deploy/chain-backend`) but log4j
+`http_events` table or `kubectl logs deploy/backend`) but the logging library
 2.17.1 does not perform JNDI substitution at all — so no LDAP egress,
-no class fetch, no exec. The chain-backend's ContainerProfile remains
+no class fetch, no exec. The backend's ContainerProfile remains
 unchanged from the benign baseline.
 
 ---
@@ -222,12 +223,12 @@ unchanged from the benign baseline.
 If you have `bobctl-tune` or a similar diagnosis framework:
 
 ```bash
-bobctl tune --suite log4j-attacks.yaml --baseline log4j-functional-tests.yaml \
+bobctl tune --suite java-attacks.yaml --baseline java-functional-tests.yaml \
   --emit-sbobs ./sbobs/
 ```
 
-The three produced sbobs (chain-backend.A.bob, chain-backend.B.bob,
-chain-backend.C.bob) should differ in:
+The three produced sbobs (backend.A.bob, backend.B.bob,
+backend.C.bob) should differ in:
 
 - A vs B: `R0001` vs `R1100` in the ContainerProfile fires
 - A,B vs C: presence of cross-namespace egress in the ContainerProfile
@@ -237,11 +238,10 @@ chain-backend.C.bob) should differ in:
 ## Cleanup
 
 ```bash
-kubectl delete -f log4j-chain.yaml
 kubectl delete -f backend-b.yaml --ignore-not-found
 kubectl delete -f backend-c.yaml --ignore-not-found
-kubectl -n log4j-poc delete pod attack-a attack-b attack-c --ignore-not-found
-kubectl delete ns log4j-poc attacker-ns --ignore-not-found
+kubectl -n java-poc delete pod attack-a attack-b attack-c --ignore-not-found
+kubectl delete ns java-poc pathogen-ns --ignore-not-found
 ```
 
 ---

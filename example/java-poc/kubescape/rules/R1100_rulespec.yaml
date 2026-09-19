@@ -1,15 +1,15 @@
-# Enables R1100 on the chain-backend workload via node-agent's RuleSpec
+# Enables R1100 on the backend workload via node-agent's RuleSpec
 # CRD (kubescape.io/v1, RuntimeRuleAlertBinding).
 ---
 apiVersion: kubescape.io/v1
 kind: RuntimeRuleAlertBinding
 metadata:
-  name: log4j-poc-r1100-binding
-  namespace: log4j-poc
+  name: java-poc-r1100-binding
+  namespace: java-poc
 spec:
   podSelector:
     matchLabels:
-      app: chain-backend
+      app: backend
   rules:
   - ruleID: R1100        # Failed execve (ENOENT) under JVM
     parameters:

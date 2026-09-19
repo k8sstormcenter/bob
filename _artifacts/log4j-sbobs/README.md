@@ -27,7 +27,7 @@ These are hand-crafted minimal SBOBs (4 ApplicationProfiles + 4 NetworkNeighborh
 
 ## Applying
 
-Pods need to reference the user-supplied AP+NN via labels. Patch the deployments in `log4j-chain.yaml`:
+Pods need to reference the user-supplied AP+NN via labels. Patch the deployments in your chain manifest:
 
 ```yaml
 spec:

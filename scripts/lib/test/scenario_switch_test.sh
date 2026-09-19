@@ -18,7 +18,7 @@ SCENARIOS='{"name":"A-vuln","apply":[],"restart":[]}
 # ── single-shot chain (no scenarios) → rc 2 (yq-free) ─────────────────
 test_no_scenarios_returns_2() {
   install_mocks
-  stub_manifest "log4j-poc" "$PODS" "" "" ""   # empty scenarios
+  stub_manifest "java-poc" "$PODS" "" "" ""   # empty scenarios
   chain_scenario_switch "$FIXTURES/dummy.manifest.yaml" "anything" >/dev/null 2>&1
   assert_rc 2 $? "no-scenarios returns 2"
   assert_log_absent "rollout restart" "no restart attempted on single-shot chain"
@@ -28,11 +28,11 @@ test_no_scenarios_returns_2() {
 test_switch_applies_and_restarts() {
   have_yq || { printf '  skip switch-applies-and-restarts (yq absent)\n'; return; }
   install_mocks
-  stub_manifest "log4j-poc" "$PODS" "" "$SCENARIOS" ""
+  stub_manifest "java-poc" "$PODS" "" "$SCENARIOS" ""
   chain_scenario_switch "$FIXTURES/dummy.manifest.yaml" "B-distroless" >/dev/null 2>&1
   assert_rc 0 $? "switch to B returns 0"
   assert_log_contains "apply -f $FIXTURES/backend-b.yaml" "applies scenario B manifest"
-  assert_log_contains "-n log4j-poc rollout restart deploy/chain-frontend" "restarts frontend"
+  assert_log_contains "-n java-poc rollout restart deploy/chain-frontend" "restarts frontend"
   assert_log_order "apply -f $FIXTURES/backend-b.yaml" "rollout restart deploy/chain-frontend" "apply precedes restart"
 }
 
@@ -40,7 +40,7 @@ test_switch_applies_and_restarts() {
 test_switch_empty_scenario() {
   have_yq || { printf '  skip switch-empty-scenario (yq absent)\n'; return; }
   install_mocks
-  stub_manifest "log4j-poc" "$PODS" "" "$SCENARIOS" ""
+  stub_manifest "java-poc" "$PODS" "" "$SCENARIOS" ""
   chain_scenario_switch "$FIXTURES/dummy.manifest.yaml" "A-vuln" >/dev/null 2>&1
   assert_rc 0 $? "empty scenario returns 0"
   assert_log_absent "rollout restart" "no restart for empty scenario"
@@ -50,7 +50,7 @@ test_switch_empty_scenario() {
 test_unknown_scenario() {
   have_yq || { printf '  skip unknown-scenario (yq absent)\n'; return; }
   install_mocks
-  stub_manifest "log4j-poc" "$PODS" "" "$SCENARIOS" ""
+  stub_manifest "java-poc" "$PODS" "" "$SCENARIOS" ""
   chain_scenario_switch "$FIXTURES/dummy.manifest.yaml" "Z-nonexistent" >/dev/null 2>&1
   assert_rc 1 $? "unknown scenario returns 1"
 }

