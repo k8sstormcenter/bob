@@ -50,11 +50,40 @@ if [ "$DEPLOY" = 1 ]; then
   say "deploying target platform + CVE-2026-47701 prerequisites"
   kubectl apply -f $RAW/prometheus-operator/prometheus-operator/v0.91.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml >/dev/null 2>&1
   kubectl wait --for=condition=Established crd/servicemonitors.monitoring.coreos.com --timeout=90s >/dev/null 2>&1
+  # Namespaces first: 14-sidecar-config.yaml is a ConfigMap in agent-system, and
+  # orchestrator.yaml is what creates that namespace. Applied the other way round
+  # the ConfigMap is rejected, and agent-orchestrator then wedges on FailedMount
+  # for orchestrator-otel-sidecar-config with the CVE leak having nothing to leak.
+  for ns in agent-system oopservability; do
+    kubectl create namespace "$ns" --dry-run=client -o yaml 2>/dev/null | kubectl apply -f - >/dev/null 2>&1
+  done
+
+  # SBoBs before the workloads: node-agent binds a User profile at pod attach, so
+  # a pod that starts first gets a learnt sibling instead and never rebinds.
+  if [ -d "$HERE/sbobs" ]; then
+    kubectl apply -n agent-system -f "$HERE/sbobs/cp-agent-orchestrator-orchestrator.yaml" \
+      -f "$HERE/sbobs/cp-agent-orchestrator-otel-collector.yaml" \
+      -f "$HERE/sbobs/cp-agent-worker.yaml" >/dev/null 2>&1
+    kubectl apply -n oopservability -f "$HERE/sbobs/cp-oopservability-redis-redis.yaml" \
+      -f "$HERE/sbobs/cp-oopservability-redis-metric-receiver.yaml" \
+      -f "$HERE/sbobs/cp-spog-dashboard.yaml" \
+      -f "$HERE/sbobs/cp-target-allocator.yaml" >/dev/null 2>&1
+    say "applied $(ls "$HERE"/sbobs/cp-*.yaml | wc -l) SBoBs"
+  fi
+
   for m in spog.yaml rbac.yaml cve-2026-47701/22-redis-with-metric-receiver.yaml \
            cve-2026-47701/10-target-allocator.yaml cve-2026-47701/14-sidecar-config.yaml; do
     kubectl apply -f "$OOPS/$m" >/dev/null 2>&1 || say "WARN: apply failed: $m"
   done
   kubectl apply -f "$IKT/orchestrator.yaml" >/dev/null 2>&1
+
+  # Bind: node-agent resolves <label>-<containerName>, then the bare label.
+  kubectl -n agent-system patch deploy agent-orchestrator --type=strategic \
+    -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"agent-orchestrator"}}}}}' >/dev/null 2>&1
+  for d in oopservability-redis spog target-allocator; do
+    kubectl -n oopservability patch deploy "$d" --type=strategic \
+      -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"kubescape.io/user-defined-profile\":\"$d\"}}}}}" >/dev/null 2>&1
+  done
 
   # The otel sidecar must be injected into agent-orchestrator or the CVE chain
   # has nothing to leak: no sidecar -> the redis key stays empty -> no token.
@@ -74,6 +103,11 @@ if [ "$DEPLOY" = 1 ]; then
   else
     say "WARN: otel sidecar NOT on agent-orchestrator — the CVE leak will not fire"
   fi
+
+  # confirm the SBoBs actually bound, rather than assuming the labels took
+  BOUND=$(kubectl -n honey logs -l app.kubernetes.io/component=node-agent --tail=2000 2>/dev/null \
+          | grep -c 'adopted user-authored ContainerProfile' || true)
+  say "node-agent adopted ${BOUND:-0} user-authored profile(s)"
 fi
 
 # ── reset prior disease artefacts ───────────────────────────────────────────

@@ -124,12 +124,25 @@ def wait_for_cmd(cmd_id, timeout=300):
     return False, f"no result within {timeout}s"
 
 
+def callback_pod(field="metadata.name"):
+    """The callback worker, newest Running first. Benign twin tasks keep spawning
+    workers during the window, so `.items[0]` is whichever the API happened to
+    return and the foothold, the scan CIDR and the wait can each pick a different
+    pod."""
+    rc, out = sh("kubectl -n agent-system get pod -l task=callback-1 "
+                 "--field-selector=status.phase=Running "
+                 "--sort-by=.metadata.creationTimestamp "
+                 "-o jsonpath='{.items[*]." + field + "}'")
+    if rc != 0:
+        return ""
+    return (out.split() or [""])[-1]
+
+
 def exec_system():
     """Our foothold, as an execution system. A stolen token must be USED from
     here; targeting the token's own pod fails with 'no viable execution channel'."""
-    _, n = sh("kubectl -n agent-system get pod -l task=callback-1 "
-              "-o jsonpath='{.items[0].metadata.name}'")
-    return f"system/{n.strip()}" if n.strip() else None
+    n = callback_pod()
+    return f"system/{n}" if n else None
 
 
 def execute(action, target, args=None, note="", expect_fail=False, exec_timeout=None,
@@ -194,9 +207,8 @@ def step_03_await_callback(ctx):
             print(f"      -> callback caught: {fh}")
             ctx["foothold"] = fh
             return True
-        _, ph = sh("kubectl -n agent-system get pod -l task=callback-1 "
-                   "-o jsonpath='{.items[0].status.phase}'")
-        print(f"      ... pod={ph.strip()} waiting for callback")
+        ph = callback_pod("status.phase") or "<none>"
+        print(f"      ... pod={ph} waiting for callback")
         time.sleep(15)
     return False
 
@@ -248,10 +260,13 @@ def step_10_nmap(ctx):
     # different /27s (worker .197 vs redis .173), which kills all of unit-5.
     def _ips():
         out = []
-        for sel in ("-n agent-system get pod -l task=callback-1",
-                    "-n oopservability get pod -l app.kubernetes.io/name=oopservability-redis"):
-            _, v = sh(f"kubectl {sel} -o jsonpath='{{.items[*].status.podIP}}'")
-            out += [x for x in v.split() if x.count(".") == 3]
+        ip = callback_pod("status.podIP")
+        if ip:
+            out.append(ip)
+        _, v = sh("kubectl -n oopservability get pod "
+                  "-l app.kubernetes.io/name=oopservability-redis "
+                  "-o jsonpath='{.items[*].status.podIP}'")
+        out += [x for x in v.split() if x.count(".") == 3]
         return out
 
     ips = _ips() or ["10.42.0.1"]
