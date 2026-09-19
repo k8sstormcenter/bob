@@ -91,9 +91,9 @@ bobctl test --functional-tests functional/cnpg.yaml    -n postgres-cnpg
 ## 3. Attack suite — expect detections
 
 ```
-bobctl attack --attack-suite attacks/oss.yaml     -n postgres-oss
-bobctl attack --attack-suite attacks/bitnami.yaml -n postgres-bitnami
-bobctl attack --attack-suite attacks/cnpg.yaml    -n postgres-cnpg
+bobctl simulate --suite attacks/oss.yaml     -n postgres-oss
+bobctl simulate --suite attacks/bitnami.yaml -n postgres-bitnami
+bobctl simulate --suite attacks/cnpg.yaml    -n postgres-cnpg
 ```
 
 ## 4. Contrast: functional FPs vs attack TPs
