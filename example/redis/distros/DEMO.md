@@ -39,10 +39,10 @@ bobctl test --functional-tests functional/dragonfly.yaml -n dragonfly
 ## 3. Attack suite — expect detections
 
 ```
-bobctl attack --attack-suite attacks/redis-oss.yaml -n redis
-bobctl attack --attack-suite attacks/valkey.yaml    -n valkey
-bobctl attack --attack-suite attacks/keydb.yaml     -n keydb
-bobctl attack --attack-suite attacks/dragonfly.yaml -n dragonfly
+bobctl simulate --suite attacks/redis-oss.yaml -n redis
+bobctl simulate --suite attacks/valkey.yaml    -n valkey
+bobctl simulate --suite attacks/keydb.yaml     -n keydb
+bobctl simulate --suite attacks/dragonfly.yaml -n dragonfly
 ```
 
 ## 4. Contrast: functional FPs vs attack TPs

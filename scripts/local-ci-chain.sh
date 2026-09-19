@@ -387,8 +387,8 @@ log "=== Run chain-attacks suite ==="
 # table still showed DETECTED because alertmanager still held alerts
 # from earlier ad-hoc /api/cache/eval calls (rabbit-flagged
 # 2026-05-17).
-bin/bobctl attack \
-  --attack-suite example/chain/chain-attacks.yaml \
+bin/bobctl simulate \
+  --suite example/chain/chain-attacks.yaml \
   --namespace "$NS" \
   --format markdown \
   | tee /tmp/chain-attack-results.md
@@ -399,8 +399,8 @@ if $EXTENDED; then
   # the basic chain — it just chains additional outbound traffic onto
   # the same io.popen. Runs AFTER the basic suite so all expectations
   # from both YAMLs land in alertmanager before the coverage step.
-  bin/bobctl attack \
-    --attack-suite example/chain/chain-attacks-extended.yaml \
+  bin/bobctl simulate \
+    --suite example/chain/chain-attacks-extended.yaml \
     --namespace "$NS" \
     --format markdown \
     | tee /tmp/chain-attack-results-extended.md
@@ -451,7 +451,7 @@ EXPECTATIONS=$(mktemp /tmp/chain-expect.XXX.json)
 # 1. Build [{scenario, ruleID, containerName, command}, ...] from YAML.
 # Parses BOTH chain-attacks.yaml AND (when --extended was passed)
 # chain-attacks-extended.yaml so the coverage table covers every
-# expectation that bobctl attack actually ran.
+# expectation that bobctl simulate actually ran.
 SUITE_FILES=( "$REPO_ROOT/example/chain/chain-attacks.yaml" )
 if $EXTENDED; then
   SUITE_FILES+=( "$REPO_ROOT/example/chain/chain-attacks-extended.yaml" )

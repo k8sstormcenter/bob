@@ -34,7 +34,7 @@ run_one() {
   local name
   name="$(basename "$f" .yaml)"
   echo "[START] ${name}"
-  if bobctl attack run "$f" > "${RESULTS_DIR}/${name}.log" 2>&1; then
+  if bobctl simulate run "$f" > "${RESULTS_DIR}/${name}.log" 2>&1; then
     echo "[PASS]  ${name}"
   else
     echo "[FAIL]  ${name} (exit $?)"

@@ -380,7 +380,7 @@ jobs:
             -n ${{ matrix.app_namespace }} \
             --ks-namespace honey \
             --functional-tests ${{ matrix.functional_tests }} \
-            --attack-suite ${{ matrix.attack_suite }} \
+            --suite ${{ matrix.attack_suite }} \
             --alertmanager-service alertmanager \
             --alertmanager-port 9093 \
             --output-dir results \
@@ -721,8 +721,8 @@ jobs:
         if: always()
         run: |
           mkdir -p results
-          bin/bobctl attack \
-            --attack-suite ${{ matrix.attack_suite }} \
+          bin/bobctl simulate \
+            --suite ${{ matrix.attack_suite }} \
             -n ${{ matrix.app_namespace }} \
             --format markdown | tee results/attack-results.md
 
@@ -739,7 +739,7 @@ jobs:
         if: always() && (matrix.protocol == 'http' || matrix.protocol == 'https')
         run: |
           if [ ! -f results/attack-results.md ]; then
-            echo "FAIL: attack-results.md missing — bobctl attack did not run"
+            echo "FAIL: attack-results.md missing — bobctl simulate did not run"
             exit 1
           fi
           # The attack-results.md markdown table has: | type | variant | code | success | error |
@@ -991,7 +991,7 @@ jobs:
             -n ${{ matrix.app_namespace }} \
             --ks-namespace honey \
             --functional-tests ${{ matrix.functional_tests }} \
-            --attack-suite ${{ matrix.attack_suite }} \
+            --suite ${{ matrix.attack_suite }} \
             --output-dir results \
             -v 2>&1 | tee /tmp/port-out.txt
           echo "=== PORTABILITY RESULT (${{ matrix.app }}) ==="
