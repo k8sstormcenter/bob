@@ -1,0 +1,53 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations: {kubescape.io/managed-by: User}
+  name: spog-dashboard
+  namespace: oopservability
+spec:
+  architectures: [amd64]
+  capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
+  egress: null
+  endpoints:
+  - direction: inbound
+    endpoint: :8080/healthz
+    headers:
+      Connection: [close]
+      Host: ['10.42.0.212:8080']
+    internal: true
+    methods: [GET]
+  execs:
+  - args: [/pause]
+    path: /pause
+  - args: [/usr/local/bin/single-pane-of-glass]
+    path: /usr/local/bin/single-pane-of-glass
+  identifiedCallStacks: null
+  imageID: ghcr.io/magier/spog@sha256:9ea5ab39b8c33b8335bd02a04f975f7bb0c4cbd4a153e8138f4a4829cae5d269
+  imageTag: ghcr.io/magier/spog:latest
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: 0a52270744d47da0e770b43cf46a02db90adfdaed097b34c8eacf9c267793a14
+    ipAddress: 10.42.0.1
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - {name: TCP-8080, port: 8080, protocol: TCP}
+    type: external
+  matchLabels: {app.kubernetes.io/name: spog}
+  opens:
+  - flags: [O_RDONLY]
+    path: /etc/localtime
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /proc/sys/net/core/somaxconn
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+    path: "/proc/\u22EF/task/*"
+  - flags: [O_RDONLY]
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags: [O_RDONLY]
+    path: /usr/local/go/lib/time/zoneinfo.zip
+  rulePolicies: {}
+  seccompProfile:
+    spec: {defaultAction: ''}
+  syscalls: null
+status: {}
