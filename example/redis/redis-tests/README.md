@@ -33,7 +33,7 @@ redis-tests/
 ./run-parallel.sh
 
 # Single attack (for one agent)
-bobctl simulate run redis-tests/attack-01-fileless-memfd.yaml
+bobctl simulate --suite redis-tests/attack-01-fileless-memfd.yaml
 ```
 
 ## Agent Assignment
@@ -41,6 +41,6 @@ bobctl simulate run redis-tests/attack-01-fileless-memfd.yaml
 Each agent should:
 1. Pick an unclaimed `attack-NN-*.yaml` file
 2. Deploy the redis-vulnerable manifest if not already running
-3. Run the attack via `bobctl simulate run <file>`
+3. Run the attack via `bobctl simulate --suite <file>`
 4. Verify the expected detection fired in AlertManager
 5. Record results in `results/attack-NN-result.json`
