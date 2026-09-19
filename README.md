@@ -60,7 +60,7 @@ kubectl apply -f example/redis/redis.yaml
 kubectl apply -f example/redis/client.yaml
 
 
-bobctl attack --attack-suite example/redis-attacks.yaml -n redis-demo --service redis --service-port 6379 --format table
+bobctl simulate --suite example/redis-attacks.yaml -n redis-demo --service redis --service-port 6379 --format table
 
 kubectl logs -n honey -l app=node-agent -c node-agent
 ```

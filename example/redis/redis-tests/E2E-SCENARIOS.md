@@ -102,12 +102,12 @@ https://hackviser.com/tactics/pentesting/services/redis
 Same entry-points as the existing single-rule attacks:
 
 ```bash
-bobctl attack --attack-suite example/redis-tests/e2e-01-data-exfiltration.yaml \
+bobctl simulate --suite example/redis-tests/e2e-01-data-exfiltration.yaml \
               --service redis --service-port 6379 -n redis
 
 # Or all E2E scenarios at once
 for f in example/redis-tests/e2e-*.yaml; do
-  bobctl attack --attack-suite "$f" --service redis --service-port 6379 -n redis
+  bobctl simulate --suite "$f" --service redis --service-port 6379 -n redis
 done
 ```
 

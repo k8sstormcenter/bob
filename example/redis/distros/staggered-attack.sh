@@ -4,7 +4,7 @@
 # detections land on distinct, well-separated timestamps instead of one
 # back-to-back burst.
 #
-# bobctl runs a whole --attack-suite back-to-back with no gap. This wrapper loads
+# bobctl runs a whole --suite back-to-back with no gap. This wrapper loads
 # each attack on its own (the same target block + one attack, via yq) so the sleep
 # can sit between fires without touching bobctl or the attack definitions — every
 # attack is byte-identical to the suite, only the pacing changes.
@@ -33,7 +33,7 @@ for i in $(seq 0 $((n - 1))); do
   yq ".attacks = [.attacks[$i]]" "$SUITE" > "$single"
   name=$(yq '.attacks[0].name' "$single")
   echo "### [$((i + 1))/$n] $name"
-  "$BOBCTL" attack --attack-suite "$single" -n "$NAMESPACE" --format markdown
+  "$BOBCTL" simulate --suite "$single" -n "$NAMESPACE" --format markdown
   if [ "$i" -lt "$((n - 1))" ]; then
     sleep "$INTERVAL"
   fi

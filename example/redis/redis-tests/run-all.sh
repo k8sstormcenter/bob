@@ -24,7 +24,7 @@ for attack_file in "${SCRIPT_DIR}"/attack-*.yaml; do
   name="$(basename "${attack_file}" .yaml)"
   echo "=== Running ${name} ==="
 
-  if bobctl attack run ${KUBECONFIG_FLAG} ${CONTEXT_FLAG} "${attack_file}" > "${RESULTS_DIR}/${name}.log" 2>&1; then
+  if bobctl simulate ${KUBECONFIG_FLAG} ${CONTEXT_FLAG} --suite "${attack_file}" > "${RESULTS_DIR}/${name}.log" 2>&1; then
     echo "  PASS"
     PASS=$((PASS + 1))
   else
