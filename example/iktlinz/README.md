@@ -26,6 +26,11 @@ Step-by-step, matching the workshop: [`DEMO-SCRIPT.md`](DEMO-SCRIPT.md).
 
 Needs a cluster, and Ran (`ran emulate`) reachable — default `http://localhost:8080`.
 
+Ran must run as a **container**: step results are read back with `docker logs`,
+because the API does not expose them. Override the name with `RAN_CONTAINER` if
+it is not `ran-ui`, and the endpoint with `RAN_URL`. `relearn-sbobs.sh` also
+needs `bobctl`, and the recording scripts need `ffmpeg`, both on `PATH`.
+
 ```
 ./run-iktlinz-e2e.sh                 # deploy platform, benign baseline, fire the chain
 ./run-iktlinz-e2e.sh --benign-only   # baseline with no disease

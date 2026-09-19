@@ -17,6 +17,7 @@ import argparse, json, os, re, subprocess, sys, time, urllib.request, urllib.err
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 RAN = os.environ.get("RAN_URL", "http://localhost:8080")
+RAN_CONTAINER = os.environ.get("RAN_CONTAINER", "ran-ui")
 HERE = os.path.dirname(os.path.abspath(__file__))
 FRAMES = os.path.join(HERE, "frames")
 KUBECTL = ["kubectl"]
@@ -110,7 +111,8 @@ def wait_for_cmd(cmd_id, timeout=300):
     block until Ran logs this cmd's result."""
     deadline = time.time() + timeout
     while time.time() < deadline:
-        _, out = sh(f"docker logs ran-ui 2>&1 | grep 'Action result' | grep '{cmd_id}' | tail -1")
+        _, out = sh(f"docker logs {RAN_CONTAINER} 2>&1 | grep 'Action result' "
+                    f"| grep '{cmd_id}' | tail -1")
         out = ANSI.sub("", out)          # Ran colourises logs; codes split success=true
         if out.strip():
             ok = "success=true" in out
