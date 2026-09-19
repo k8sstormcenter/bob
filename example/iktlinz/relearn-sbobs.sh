@@ -14,6 +14,7 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 BOBCTL="${BOBCTL:-bobctl}"
+command -v "$BOBCTL" >/dev/null || { echo "need bobctl on PATH (or set BOBCTL=/path/to/bobctl)"; exit 2; }
 LEARN=240; OUT="$HERE/sbobs"
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -105,8 +106,8 @@ for f in "$OUT/recorded"/*.yaml; do
   b=$(basename "$f" .yaml); ns="${b%%__*}"; name="${b#*__}"
   d=$(mktemp -d); cp "$f" "$d/"
   "$BOBCTL" generalize -d "$d" --collapse --sbob "$name" -n "$ns" \
-    -o "$OUT/sbob__${ns}__${name}.yaml" 2>/dev/null \
-    && say "  SBoB: sbob__${ns}__${name}.yaml" || say "  WARN: generalize failed for $name"
+    -o "$OUT/cp-${name}.yaml" 2>/dev/null \
+    && say "  SBoB: cp-${name}.yaml" || say "  WARN: generalize failed for $name"
   rm -rf "$d"
 done
 say "done — SBoBs in $OUT"

@@ -1,4 +1,4 @@
-# IKT-Linz — agentic-platform kill chain, automated end to end
+# IKT-Linz — agentic-platform attack chain, automated end to end
 
 An agent-worker platform (`agent-system`) and an intentionally insecure
 observability stack (`oopservability`) under a full attack chain, driven
@@ -35,7 +35,7 @@ python3 demo_chain.py --only 13      # one step
 
 `run-iktlinz-e2e.sh` writes `window.json`: the window boundaries plus the
 specimens that must survive into a filtered forensic store. It deliberately does
-not touch the detection stack — arm selection stays with the caller.
+not configure a detection stack — that stays with the caller.
 
 ## SBoBs
 

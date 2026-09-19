@@ -37,14 +37,14 @@ spec:
     endpoint: :8080/livez
     headers:
       Connection: [close]
-      Host: ['10.42.0.213:8080']
+      Host: ['*:8080']
     internal: true
     methods: [GET]
   - direction: inbound
     endpoint: :8080/readyz
     headers:
       Connection: [close]
-      Host: ['10.42.0.213:8080']
+      Host: ['*:8080']
     internal: true
     methods: [GET]
   execs:

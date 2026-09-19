@@ -11,8 +11,9 @@
 #   ./compose-split.sh [left.webm] [right.webm] [out.mp4]
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-FFMPEG="$HERE/bin/ffmpeg"
-L="${1:-$HERE/ran-attack-left.webm}"
+FFMPEG="${FFMPEG:-$(command -v ffmpeg || true)}"
+[ -x "$FFMPEG" ] || { echo "need ffmpeg on PATH (or set FFMPEG=/path/to/ffmpeg)"; exit 2; }
+L="${1:-$HERE/iktlinz-demo.webm}"
 R="${2:-$HERE/pixie-detect-right.webm}"
 OUT="${3:-$HERE/iktlinz-split.mp4}"
 

@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
-# run-iktlinz-e2e.sh — one-shot IKT-Linz disease path for dx/AE volume testing.
+# run-iktlinz-e2e.sh — one-shot IKT-Linz attack path, start to finish.
 #
-# Produces ONE tight, repeatable MALIGNANT window on whatever cluster kubectl
-# points at, with machine-readable boundaries and a silent-miss specimen list,
-# so chart-review vs active-diagnosis retention can be measured against it.
+# Produces ONE tight, repeatable MALICIOUS window on whatever cluster kubectl
+# points at, with machine-readable boundaries and a list of the events any
+# detection stack must not miss.
 #
-# It does NOT touch dx/AE. Arm selection is the caller's:
-#   ADAPTIVE_PASSTHROUGH=1 -> chart-review      ADAPTIVE_PASSTHROUGH=0 -> active diagnosis
-# Run it once per arm; the windows are independent and comparable.
+# It configures no detection stack of its own — point yours at the cluster
+# first, then run this to get a labelled window to evaluate it against.
 #
-#   ./run-iktlinz-e2e.sh --out results/chart-review
-#   ./run-iktlinz-e2e.sh --pre 180 --post 180 --out results/active
-#   ./run-iktlinz-e2e.sh --benign-only --out results/baseline   # no disease
+#   ./run-iktlinz-e2e.sh --out results/run1
+#   ./run-iktlinz-e2e.sh --pre 180 --post 180 --out results/run2
+#   ./run-iktlinz-e2e.sh --benign-only --out results/baseline   # no attack
 #
 # Requires on PATH: kubectl, python3, curl. Ran must be reachable at --ran-url
 # (default http://localhost:8080) with its armory loaded.
@@ -78,8 +77,8 @@ if [ "$DEPLOY" = 1 ]; then
 fi
 
 # ── reset prior disease artefacts ───────────────────────────────────────────
-# Without this a second run (the other arm) collides with the pods the first run
-# created, and the windows stop being comparable.
+# Without this a second run collides with the pods the first run created, and
+# the windows stop being comparable.
 say "clearing prior disease artefacts"
 kubectl -n agent-system delete pod ran-privileged --ignore-not-found >/dev/null 2>&1
 # delete ALL worker pods, not just callback-1: benign twins accumulate and then
@@ -123,7 +122,6 @@ else
   ( cd "$HERE" && RAN_URL="$RAN_URL" python3 demo_chain.py --reset --from 1 --to 20 --no-frames ) \
     2>&1 | tee "$OUT/chain.log"
   FIRE_END="$(now)"
-  cp "$HERE/results/timeline.jsonl" "$OUT/timeline.jsonl" 2>/dev/null || true
 fi
 say "fire window $FIRE_START -> $FIRE_END ; POST ${POST}s"; sleep "$POST"
 T1="$(now)"; say "T1=$T1"
@@ -142,7 +140,6 @@ cat > "$OUT/window.json" <<JSON
   "post_seconds": $POST,
   "benign_only": $BENIGN_ONLY,
   "steps_green": $GREEN,
-  "arm_hint": "set by caller via ADAPTIVE_PASSTHROUGH (1=chart-review, 0=active-diagnosis)",
   "silent_miss_gate": [
     {"id":"worker-callback","ns":"agent-system","pod_prefix":"agent-worker",
      "what":"socat TCP to the Ran listener on :1337 (initial foothold)"},

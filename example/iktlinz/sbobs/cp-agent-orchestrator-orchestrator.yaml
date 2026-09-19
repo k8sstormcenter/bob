@@ -34,14 +34,14 @@ spec:
   - direction: inbound
     endpoint: :30080/tasks
     headers:
-      Host: ['192.168.0.191:30080']
+      Host: ['*:30080']
     internal: true
     methods: [POST]
   - direction: inbound
     endpoint: :8080/healthz
     headers:
       Connection: [close]
-      Host: ['10.42.0.215:8080']
+      Host: ['*:8080']
     internal: true
     methods: [GET]
   execs:

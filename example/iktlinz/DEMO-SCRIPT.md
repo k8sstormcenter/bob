@@ -1,13 +1,15 @@
 # IKT-Linz 2027 — the demo script (canonical, do not improvise)
 
-Source of truth: `ixi/iktlinz2027-0a3f45c8/1.lesson-green/unit-{2..7}.md` plus the
-`__static__` screenshots. **This is a demo: most armory buttons are inert.** Only
+Transcribed from the IKT-Linz 2027 workshop units 2-7 and their screenshots.
+**This is a demo: most armory buttons are inert.** Only
 the actions below are real — never free-run Ran's recommendation engine.
 
 RanUI model: **select an entity in the graph → the Actions panel lists its
 "Applicable" TTPs → pick one → a param dialog opens → Execute.**
 
-Executable form: `demo_chain.py` (step numbers below match `--only N`).
+Executable form: `demo_chain.py --list`. The units below are the workshop's
+narrative; a few carry no action of their own, so they do not map one-to-one
+onto the 20 executable steps.
 
 ---
 
