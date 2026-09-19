@@ -24,12 +24,47 @@ Step-by-step, matching the workshop: [`DEMO-SCRIPT.md`](DEMO-SCRIPT.md).
 
 ## Running it
 
-Needs a cluster, and Ran (`ran emulate`) reachable — default `http://localhost:8080`.
+Needs a cluster, and Ran reachable — default `http://localhost:8080`.
+`relearn-sbobs.sh` additionally needs `bobctl`, and the recording scripts need
+`ffmpeg`, both on `PATH`.
 
-Ran must run as a **container**: step results are read back with `docker logs`,
-because the API does not expose them. Override the name with `RAN_CONTAINER` if
-it is not `ran-ui`, and the endpoint with `RAN_URL`. `relearn-sbobs.sh` also
-needs `bobctl`, and the recording scripts need `ffmpeg`, both on `PATH`.
+### Ran, in a container
+
+Ran is not part of this repo: it is [Magier/Ran](https://github.com/Magier/Ran).
+Run it containerised. Its binary is built against GLIBC 2.39, newer than most
+hosts ship, and `demo_chain.py` reads each step's result back out with
+`docker logs` because the API does not return it.
+
+```bash
+mkdir ran && cd ran
+curl -sfL https://github.com/Magier/Ran/releases/download/v0.2.9/ran-linux-amd64.tar.gz | tar -xz
+cp ~/.kube/config kubeconfig && chmod 600 kubeconfig
+
+cat > ran.yaml <<'YAML'
+namespaces:
+  excluded: [kube-system, kube-public, kube-node-lease, local-path-storage]
+ttps:
+  disabled:
+    - read-local-kubeconfig
+YAML
+
+docker run -d --name ran-ui --network host -v "$PWD:/ran" -e KUBECONFIG=/ran/kubeconfig \
+  ubuntu:24.04 /ran/ran emulate --config /ran/ran.yaml --host 0.0.0.0 --port 8080
+
+curl -sf localhost:8080/api/armory >/dev/null && echo "Ran up"
+```
+
+`--network host` is what lets Ran serve the UI and reach the cluster.
+
+Ran will not start without a kubeconfig, but that credential is the tool's, not
+the attacker's: the graph comes up holding **two** entities, and the chain earns
+every identity it uses. `read-local-kubeconfig` is disabled for the same reason
+— leaving it on lets one click hand the cluster over and the demo proves
+nothing. Exclude your own detection stack's namespaces in `ran.yaml` or they
+crowd the graph.
+
+The scripts expect the container to be called `ran-ui`; override with
+`RAN_CONTAINER`, and the endpoint with `RAN_URL`.
 
 ```
 ./run-iktlinz-e2e.sh                 # deploy platform, benign baseline, fire the chain
