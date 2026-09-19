@@ -1,0 +1,62 @@
+##
+## NetworkNeighborhood for chain-postgres (log4j-chain demo).
+##
+## Postgres is a pure server — accepts pg-wire from chain-backend on
+## 5432. Only egress is kube-dns for the rare DNS lookup (mostly
+## startup, pg_hba.conf parsing).
+##
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: NetworkNeighborhood
+metadata:
+  name: chain-postgres
+  namespace: log4j-poc
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/status: completed
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: chain-postgres
+    kubescape.io/workload-namespace: log4j-poc
+spec:
+  matchLabels:
+    app: chain-postgres
+  containers:
+    - name: postgres
+      ingress:
+        - identifier: ingress-from-backend
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: TCP-5432
+              port: 5432
+              protocol: TCP
+          podSelector:
+            matchLabels:
+              app: chain-backend
+          namespaceSelector: null
+          type: internal
+      egress:
+        - identifier: egress-kube-dns
+          ipAddress: ""
+          dns: ""
+          dnsNames: null
+          ports:
+            - name: UDP-53
+              port: 53
+              protocol: UDP
+            - name: TCP-53
+              port: 53
+              protocol: TCP
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+          type: internal
+  initContainers: []
+  ephemeralContainers: []
