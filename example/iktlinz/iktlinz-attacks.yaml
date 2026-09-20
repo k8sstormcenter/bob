@@ -36,11 +36,12 @@ metadata:
     at all. An empty expectedDetections here is a measured zero, never a
     placeholder.
 
-    ACTOR NOTATION. A plain value scopes the whole step to that actor.
-    "X→host" marks a step that crosses the namespace boundary: it exists and
-    is attributed in X, while what it did afterwards belongs to the node.
-    Only host-escape straddles; k3s-credential-read is wholly post-nsenter
-    and so is plain "host".
+    ACTOR SCOPING. A plain value scopes the whole step to that actor. Only
+    k3s-credential-read is actor "host": it runs wholly after nsenter, so its
+    rows carry hostname=<resolved.node> and pod=''. host-escape is NOT a
+    host step — its nsenter process starts and exits inside ran-privileged,
+    so scoping it to the node would lose the exit. No entry in this suite
+    crosses the boundary mid-step.
 
     DETECTION disappears at the end of the chain; EVIDENCE does not. Both of
     those steps run after nsenter, so they are attributed to the node rather
@@ -186,7 +187,7 @@ attacks:
   - name: host-escape
     type: cmdinject
     gateEntry: host-escape
-    actor: ran-privileged→host
+    actor: agent-system/ran-privileged
     exec: { command: ["nsenter", "--target", "1", "--mount", "--uts", "--ipc", "--net", "--pid", "--", "hostname"] }
     notes: |
       Entering the host namespaces from the privileged pod. This is the step
@@ -194,12 +195,14 @@ attacks:
       chain: the only thing raised was the R1017 already credited to
       privileged-pod above, carrying no path and no process detail.
       Deliberately NOT crediting that R1017 twice.
-      ACTOR STRADDLES THE BOUNDARY, hence the arrow. The nsenter execve runs
-      in ran-privileged and is the last pod-attributed act; everything it
-      does after entering the host namespaces belongs to the node. So
-      existence and attribution scope to the pod, content and outcome scope
-      to hostname=<resolved.node> AND pod=''. A predicate demanding pod=''
-      for every row of this step will miss the execve.
+      ACTOR IS THE POD, not the host. The nsenter process both starts and
+      exits in ran-privileged, so its existence AND its outcome are
+      pod-attributed; scoping this step to the node loses the nsenter exit.
+      The "effect on the host" is not this step at all — it is the next one,
+      k3s-credential-read, which is wholly post-nsenter and is actor "host".
+      This entry's own content (which namespaces were entered) is the
+      nsswitch signal and is not captured yet, so its C is honestly 0
+      whatever the scope.
       EVIDENCE SURVIVES even though detection does not — confirmed on the
       Cilium rig, where the post-nsenter rows are present, host-attributed.
       That was the open question on this entry and the answer is measured.
