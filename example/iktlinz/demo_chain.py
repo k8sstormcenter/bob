@@ -505,8 +505,10 @@ def main():
             break
 
     print("\n=== summary ===")
+    ctx.setdefault("node", node_name())
     resolved = {k: ctx[k] for k in
-                ("lhost", "scan_cidr", "redis_ip", "foothold_ip", "foothold")
+                ("lhost", "scan_cidr", "redis_ip", "foothold_ip", "foothold",
+                 "node")
                 if ctx.get(k)}
     if resolved:
         rp = os.path.join(HERE, "resolved.json")

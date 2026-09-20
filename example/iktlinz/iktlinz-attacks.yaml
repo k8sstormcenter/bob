@@ -36,6 +36,13 @@ metadata:
     at all. An empty expectedDetections here is a measured zero, never a
     placeholder.
 
+    DETECTION disappears at the end of the chain; EVIDENCE does not. Both of
+    those steps run after nsenter, so they are attributed to the node rather
+    than to any pod, and their rows are present on the Cilium rig carrying
+    hostname=<resolved.node> and pod=''. Scope by pod and they score a false
+    zero; scope by host and they prove out. Their actor is therefore "host",
+    not the pod that launched the escape.
+
     It is NOT a prediction of PC 0. These fields record what the DETECTION
     stack raised; a proof-coverage KPI scores what the STORE can prove from
     probe rows, and the process forest runs on every node whether or not any
@@ -173,7 +180,7 @@ attacks:
   - name: host-escape
     type: cmdinject
     gateEntry: host-escape
-    actor: agent-system/ran-privileged
+    actor: host
     exec: { command: ["nsenter", "--target", "1", "--mount", "--uts", "--ipc", "--net", "--pid", "--", "hostname"] }
     notes: |
       Entering the host namespaces from the privileged pod. This is the step
@@ -181,23 +188,30 @@ attacks:
       chain: the only thing raised was the R1017 already credited to
       privileged-pod above, carrying no path and no process detail.
       Deliberately NOT crediting that R1017 twice.
-      The nsenter execve itself should still be in the process forest even
-      with nothing raised, so this entry is a good test of whether evidence
-      survives where detection does not.
+      ACTOR IS "host", not the pod. nsenter enters the host namespaces, so
+      everything after it is attributed to the node rather than to any pod:
+      hostname=<resolved.node> AND pod=''. The execve that performs the
+      entry is the last pod-attributed act; the rest is the host.
+      EVIDENCE SURVIVES even though detection does not — confirmed on the
+      Cilium rig, where the post-nsenter rows are present, host-attributed.
+      That was the open question on this entry and the answer is measured.
     expectedDetections: []
 
   - name: k3s-credential-read
     type: cmdinject
     gateEntry: k3s-credential-read
-    actor: agent-system/ran-privileged
+    actor: host
     exec: { command: ["cat", "/host/etc/rancher/k3s/k3s.yaml"] }
     notes: |
       Reading the cluster credentials off the mounted host filesystem — the
       end state of the chain, full cluster compromise.
-      OBSERVED: nothing. No R0010, no R0002, no path-bearing alert of any
-      kind. The file lives on a hostPath mount inside an unprofiled,
-      attacker-created pod, so there is no baseline that could call the read
-      unexpected.
+      OBSERVED: no alert of any kind — no R0010, no R0002, nothing
+      path-bearing. There is no baseline that could call the read unexpected.
+      BUT THE EVIDENCE IS THERE. The read happens after nsenter, so it is
+      host-attributed: confirmed on the Cilium rig as cat rows carrying
+      hostname=<resolved.node> and pod=''. Scope by those two and this proves
+      out; scope by pod and it scores a false zero. The runner emits the node
+      name in window.json's resolved block for exactly this.
       This and host-escape are the two entries I would put in front of anyone
       arguing the chain is well covered: the first and least damaging steps
       raise the most, and the last and most damaging raise nothing.
