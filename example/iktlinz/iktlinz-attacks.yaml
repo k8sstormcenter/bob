@@ -114,6 +114,26 @@ attacks:
       OBSERVED: R1012 once on agent-worker. No per-destination egress alert,
       again because the worker is unprofiled and R0011 needs a declared
       egress set to call a peer undeclared.
+
+      THIS STEP'S CONTENT IS NOT CAPTURABLE FROM conn_stats, and that is a
+      property of the table rather than a gap to be fixed. Measured on the
+      reference run: the worker's ONLY conn_stats peer in-window was the
+      long-lived socat callback; ZERO rows fell inside the scan range. The
+      range predicate is correct and simply has nothing to match.
+
+      The sharper form of the same fact: not even the RCE's worker->redis:6379
+      egress appears, and that connection definitely succeeded. So it is not
+      that failed connects are missing — SHORT-LIVED established egress is
+      aged or sampled away as well, and only long-lived connections survive.
+      A connect-scan is a fan of short-lived and failed attempts by
+      definition, so it is structurally invisible there.
+
+      Do not file this as a capture bug and do not expect C to improve by
+      widening the range. Scoring it would need socket-level or
+      failed-connection rows, and none exist in this stack (dc_snoop is
+      file-access and carries no network destination). redis-rce scores wire
+      despite the same limitation only because it matches on REDIS's ingress
+      side, not on the worker's egress.
       The CIDR is computed at run time by demo_chain.py and anchored on the
       redis address; it is a /27 on every topology.
     expectedDetections:
