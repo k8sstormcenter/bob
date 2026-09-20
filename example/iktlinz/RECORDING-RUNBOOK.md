@@ -137,7 +137,13 @@ records one frozen frame:
 --force-device-scale-factor=1 --window-size=960,1080
 ```
 
-`page.screencast({ fps: 10 })`, continuous. Do **not** settle-wait on the right
+`page.screencast({ fps: 10 })`, continuous.
+
+**Launch the recorder detached** (`setsid`/`nohup`, writing to a log), never as a
+child of an interactive session. The screencast container is only finalised by a
+clean `recorder.stop()`; if the parent dies the file is left **0 bytes** and the
+whole take is lost with nothing to salvage. Stop it by sending SIGTERM to the
+recorded PID, which the recorder traps to close each screencast in turn. Do **not** settle-wait on the right
 panel during a fire: the detection feed accumulates and never settles, so a
 settle-wait parks the recording on an early frame. Nudge the mouse periodically so
 Chrome keeps emitting frames on an otherwise idle page.
@@ -282,6 +288,10 @@ Each of these produced a confident false success before it was understood.
 6. **Recording a static-policy run.** A chain fired under the static arm has no
    worker shadow at all (0 rows in `dx_shadow_trace`, `dc_snoop`, `stack_trace`,
    `conn_stats`). Confirm the policy arm before the fire, not after.
+9. **A killed recorder leaves a 0-byte video.** The screencast is finalised on
+   clean stop only. A recorder run as a session-scoped background job dies with the
+   session and takes the entire take with it — the warm PNGs survive, the video does
+   not. Run it detached and stop it deliberately.
 8. **`BENIGN_ONLY=1` as an environment variable does nothing.** Line 21 of
    `run-iktlinz-e2e.sh` assigns `BENIGN_ONLY=0` unconditionally, so the env form is
    overridden and the disease fires during what was meant to be a benign deploy.
