@@ -34,8 +34,17 @@ metadata:
 
     The two steps that end in full node and cluster compromise raise nothing
     at all. An empty expectedDetections here is a measured zero, never a
-    placeholder — if K-P1 reports PC 0 for those, it is reading the run
-    correctly.
+    placeholder.
+
+    It is NOT a prediction of PC 0. These fields record what the DETECTION
+    stack raised; a proof-coverage KPI scores what the STORE can prove from
+    probe rows, and the process forest runs on every node whether or not any
+    rule referred the step. So an entry with no detections can still prove out
+    above zero. Where it does come out at zero, the two causes need separating:
+    no evidence rows at all, versus an arm that captured nothing for the step
+    because no referral pulled it. Only the KPI rows can tell those apart.
+    Read these zeros as detection truth and let the KPI supply the evidence
+    truth beside them.
 
 target:
   namespace: agent-system
@@ -171,8 +180,10 @@ attacks:
       the workshop builds to, and it is the LEAST visible one in the whole
       chain: the only thing raised was the R1017 already credited to
       privileged-pod above, carrying no path and no process detail.
-      Deliberately NOT crediting that R1017 twice. If K-P1 reports PC 0 here,
-      that is the correct reading of what the run produced.
+      Deliberately NOT crediting that R1017 twice.
+      The nsenter execve itself should still be in the process forest even
+      with nothing raised, so this entry is a good test of whether evidence
+      survives where detection does not.
     expectedDetections: []
 
   - name: k3s-credential-read
