@@ -77,6 +77,24 @@ python3 demo_chain.py --only 13      # one step
 specimens that must survive into a filtered forensic store. It deliberately does
 not configure a detection stack — that stays with the caller.
 
+## Known gap: unit-5's stolen identity is never used
+
+The chain steals the redis ServiceAccount token and reads it successfully, but
+Ran never grounds it as an auth identity, so the two steps that should act *as*
+redis fall through to a direct `kubectl` path on every cluster tested.
+
+The practical consequence is attribution, not outcome. CVE-2026-47701 still
+fires and the sidecar still leaks its token, but the ServiceMonitor that arms it
+arrives as an operator `kubectl apply` rather than as an act by the compromised
+identity — so anything reconstructing the window as an attack path will place
+that step outside it.
+
+The cause is a tension that cannot be resolved in `demo_chain.py`:
+`read-service-account-token` is the TTP whose effects ingest the
+ServiceAccount entity, but it needs an exec channel into the redis pod and none
+exists; reading the token through the RCE works but ingests nothing. Closing it
+needs an armory TTP that promotes a raw token to an auth identity.
+
 ## SBoBs
 
 `sbobs/` holds one ContainerProfile per component, learned from a **benign-only**

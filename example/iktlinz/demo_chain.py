@@ -318,9 +318,12 @@ def step_15_check_redis_token(ctx):
     pod (curl must be installed there; checking on agent-worker would wrongly
     read the worker's own token).
 
-    Local limitation: Ran cannot ground the redis SA as a k8s auth identity here
-    (no exec channel to the redis pod for auth), so if it is rejected we record
-    that and continue — unit-5's payoff is Part 2 (the CVE leak), which works.
+    This falls through on every cluster tested, and it is not environmental.
+    The redis SA never enters the graph: read-service-account-token is the TTP
+    that ingests it, but it needs an exec channel into the redis pod and none
+    exists, which is why step 14 reads the token through the RCE instead — and
+    that form does not ingest. So the identity is stolen but never grounded.
+    Unit-5's payoff is Part 2 (the CVE leak), which works regardless.
     """
     pod = redis_pod_id()
     sa = redis_sa_id()
@@ -336,11 +339,15 @@ def step_16_create_servicemonitor(ctx):
     """unit-5 part2/2: oopservability-redis SA > Create ServiceMonitor with
     Bearer Token File (CVE-2026-47701), defaults kept.
 
-    Ran cannot ground the stolen redis SA as an exec identity in this local
-    reproduction (no exec channel to the redis pod for k8s auth), so if the TTP
-    is rejected we create the very same ServiceMonitor CR the TTP would emit.
-    The CVE effect is identical: the Target Allocator accepts the unsafe
-    bearerTokenFile and the injected sidecar leaks its token to Redis."""
+    The stolen redis SA is never grounded as an exec identity (see step 15), so
+    in practice this ALWAYS takes the fallback and creates the same
+    ServiceMonitor CR the TTP would emit. The CVE effect is identical — the
+    Target Allocator accepts the unsafe bearerTokenFile and the injected sidecar
+    leaks its token to Redis — but the attribution is not: the CR arrives as an
+    operator kubectl apply rather than as an act by the compromised identity.
+    Anything reading the window as an attack path will misattribute this step.
+    Fixing it needs an armory TTP that promotes a raw token to an auth identity;
+    it cannot be resolved here."""
     sa = redis_sa_id()
     if sa and execute("create-servicemonitor-bearer-token-file", sa,
                       note="unit-5: CVE-2026-47701 arm the leak",
