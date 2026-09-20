@@ -506,8 +506,9 @@ def main():
 
     print("\n=== summary ===")
     ctx.setdefault("node", node_name())
+    ctx.setdefault("listener", ctx.get("lhost"))
     resolved = {k: ctx[k] for k in
-                ("lhost", "scan_cidr", "redis_ip", "foothold_ip", "foothold",
+                ("listener", "scan_cidr", "redis_ip", "foothold_ip", "foothold",
                  "node")
                 if ctx.get(k)}
     if resolved:

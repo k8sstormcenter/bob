@@ -36,6 +36,12 @@ metadata:
     at all. An empty expectedDetections here is a measured zero, never a
     placeholder.
 
+    VARIABLE CONTRACT. A dollar-prefixed name here is substituted from window.json's resolved
+    block iff its lowercased name is a key there: $LISTENER <- resolved.listener,
+    $SCAN_CIDR <- resolved.scan_cidr, $REDIS_IP <- resolved.redis_ip. Nothing
+    maps names on the scoring side, so a new variable needs the runner to emit
+    the matching key and nothing else.
+
     ACTOR SCOPING. A plain value scopes the whole step to that actor. Only
     k3s-credential-read is actor "host": it runs wholly after nsenter, so its
     rows carry hostname=<resolved.node> and pod=''. host-escape is NOT a
@@ -100,7 +106,7 @@ attacks:
     type: cmdinject
     gateEntry: nmap-sweep
     actor: agent-system/agent-worker
-    exec: { command: ["nmap", "-sT", "-F", "$POD_CIDR_27"] }
+    exec: { command: ["nmap", "-sT", "-F", "$SCAN_CIDR"] }
     notes: |
       Sweeps the /27 containing the redis target. The discriminant a
       detector should key on is many unique destinations from one process
