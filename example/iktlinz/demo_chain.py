@@ -105,6 +105,55 @@ def frame(label):
                    shell=True, capture_output=True, text=True, timeout=120)
 
 
+def executing_pod_ip():
+    """Where Ran ACTUALLY runs our commands. target_id only names the INTENDED
+    target; the command is tunnelled through whatever reverse-shell session is
+    live (backend_id / route_reason in Ran's log). get-local-ip-address returns
+    the address of the host that session lives on, so it settles the question."""
+    st, resp = api("/api/action/execute", "POST", {
+        "actionId": "get-local-ip-address",
+        "targetId": pod_id("agent-system", "agent-worker"),
+        "reasoning": "preflight: verify execution route"})
+    cmd_id = resp.get("cmdId", "") if st in (200, 202) else ""
+    if not cmd_id:
+        return None
+    wait_for_cmd(cmd_id)
+    _, out = sh(f"docker logs {RAN_CONTAINER} 2>&1 | grep -a 'Action result' "
+                f"| grep -a '{cmd_id}' | tail -1")
+    m = re.search(r"result_preview=([0-9.]+)", ANSI.sub("", out))
+    return m.group(1) if m else None
+
+
+def assert_foothold():
+    """Refuse to run an in-pod step when the live session is not the worker's.
+
+    A stale session — typically ran-privileged (alpine/socat) left over from a
+    previous full run — swallows every command aimed at the worker. Because
+    alpine has neither apt-get nor nmap, unit-4 then fails with a misleading
+    "sh: apt-get: not found" that looks like a broken image, and if the step's
+    success marker is unfailable it looks like nothing happened at all: nmap
+    never reaches the worker's process forest and R1012 never fires.
+    """
+    want = callback_pod("status.podIP")
+    got = executing_pod_ip()
+    if not want:
+        print("      !! no foothold pod resolved — fire the callback steps first")
+        return False
+    if got is None:
+        print("      !! could not determine the execution route; is Ran logging?")
+        return False
+    if got != want:
+        print(f"      !! WRONG EXECUTION ROUTE: commands land on {got}, "
+              f"but the foothold is {want}")
+        print( "         The live reverse-shell session belongs to another pod "
+               "(usually a stale ran-privileged).")
+        print( "         Re-establish the worker foothold — fire the callback steps "
+               "in order against a FRESH worker — rather than editing the step.")
+        print(f"         Confirm with: docker logs {RAN_CONTAINER} | grep 'resolved execution route'")
+        return False
+    return True
+
+
 def wait_for_cmd(cmd_id, timeout=300):
     """The reverse shell is a SINGLE SERIAL pipe: one long command wedges every
     later one (each then burns its own 150s budget). So never fire-and-forget —
@@ -239,6 +288,8 @@ def step_07_check_worker_token(ctx):
 
 def step_08_install_nmap(ctx):
     """unit-4/2: Execution > Install Package (nmap)."""
+    if not assert_foothold():
+        return False
     return execute("install-package", pod_id("agent-system", "agent-worker"),
                    {"PKG": "nmap"}, "unit-4: install nmap")
 
@@ -251,6 +302,8 @@ def step_09_local_ip(ctx):
 
 def step_10_nmap(ctx):
     """unit-4/4: Discovery > NMap Host Scan."""
+    if not assert_foothold():
+        return False
     # Measured in-pod with the TTP's exact command form (`nmap -sT -F <cidr>`,
     # default timing — NOT -T4) against the 150s tunneled-shell budget:
     #     /27 -> 3s     /26 -> 142s     /25 -> 91s     /24 -> 176s (BUDGET BLOWN)
