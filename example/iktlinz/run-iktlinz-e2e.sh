@@ -195,6 +195,16 @@ cat > "$OUT/window.json" <<JSON
 }
 JSON
 
+# Fold in the values this run resolved. The suite states them as variables on
+# purpose: the listener is the node IP and the scan CIDR derives from the redis
+# pod, so both move per cluster and per run. A scorer needs the literals; the
+# shipped suite must not carry them.
+if [ -f "$HERE/resolved.json" ]; then
+  python3 -c 'import json,sys; w=json.load(open(sys.argv[1])); w["resolved"]=json.load(open(sys.argv[2])); json.dump(w,open(sys.argv[1],"w"),indent=2,sort_keys=True)' \
+    "$OUT/window.json" "$HERE/resolved.json" \
+    && say "folded resolved runtime values into window.json"
+fi
+
 say "wrote $OUT/window.json (steps green: $GREEN/20)"
 [ "$BENIGN_ONLY" = 1 ] || [ "$GREEN" = 20 ] || say "WARN: only $GREEN/20 steps green — check $OUT/chain.log before trusting this window"
 say "done"

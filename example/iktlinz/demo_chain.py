@@ -281,6 +281,9 @@ def step_10_nmap(ctx):
     base = ".".join(redis_ip.split(".")[:3])
     net = (int(redis_ip.split(".")[3]) // 32) * 32
     cidr = f"{base}.{net}/27"
+    ctx["scan_cidr"] = cidr
+    ctx["redis_ip"] = redis_ip
+    ctx["foothold_ip"] = ips[0]
     print(f"      scanning {cidr} (foothold+target ips: {','.join(ips)})")
     return execute("nmap-host-scan", pod_id("agent-system", "agent-worker"),
                    {"CIDR": cidr, "FAST_SCAN": "true"},
@@ -502,6 +505,17 @@ def main():
             break
 
     print("\n=== summary ===")
+    resolved = {k: ctx[k] for k in
+                ("lhost", "scan_cidr", "redis_ip", "foothold_ip", "foothold")
+                if ctx.get(k)}
+    if resolved:
+        rp = os.path.join(HERE, "resolved.json")
+        with open(rp, "w") as fh:
+            json.dump(resolved, fh, indent=2, sort_keys=True)
+        print(f"\nresolved runtime values -> {rp}")
+        for k in sorted(resolved):
+            print(f"  {k} = {resolved[k]}")
+
     for i, u, d, ok in results:
         print(f"  {i:2d}. [{u}] {d:42s} {'OK' if ok else 'FAILED'}")
 
