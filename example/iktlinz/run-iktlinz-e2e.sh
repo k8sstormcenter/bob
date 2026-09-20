@@ -59,27 +59,51 @@ if [ "$DEPLOY" = 1 ]; then
   done
 
   # SBoBs before the workloads: node-agent binds a User profile at pod attach, so
-  # a pod that starts first gets a learnt sibling instead and never rebinds.
+  # a pod that starts first comes up on a learnt sibling until it is rebound.
   if [ -d "$HERE/sbobs" ]; then
-    kubectl apply -n agent-system -f "$HERE/sbobs/cp-agent-orchestrator-orchestrator.yaml" \
-      -f "$HERE/sbobs/cp-agent-orchestrator-otel-collector.yaml" \
-      -f "$HERE/sbobs/cp-agent-worker.yaml" >/dev/null 2>&1
-    kubectl apply -n oopservability -f "$HERE/sbobs/cp-oopservability-redis-redis.yaml" \
-      -f "$HERE/sbobs/cp-oopservability-redis-metric-receiver.yaml" \
-      -f "$HERE/sbobs/cp-spog-dashboard.yaml" \
-      -f "$HERE/sbobs/cp-target-allocator.yaml" >/dev/null 2>&1
-    say "applied $(ls "$HERE"/sbobs/cp-*.yaml | wc -l) SBoBs"
+    AGENT_SBOBS="cp-agent-orchestrator-orchestrator.yaml cp-agent-orchestrator-otel-collector.yaml"
+    OOPS_SBOBS="cp-oopservability-redis-redis.yaml cp-oopservability-redis-metric-receiver.yaml \
+                cp-spog-dashboard.yaml cp-target-allocator.yaml"
+    for f in $AGENT_SBOBS; do
+      kubectl apply -n agent-system -f "$HERE/sbobs/$f" >/dev/null 2>&1
+    done
+    for f in $OOPS_SBOBS; do
+      kubectl apply -n oopservability -f "$HERE/sbobs/$f" >/dev/null 2>&1
+    done
+    say "applied $(printf '%s %s' "$AGENT_SBOBS" "$OOPS_SBOBS" | wc -w) SBoBs (agent-worker and ran-privileged are rogue pods, they get none)"
   fi
 
   for m in spog.yaml rbac.yaml cve-2026-47701/22-redis-with-metric-receiver.yaml \
            cve-2026-47701/10-target-allocator.yaml cve-2026-47701/14-sidecar-config.yaml; do
     kubectl apply -f "$OOPS/$m" >/dev/null 2>&1 || say "WARN: apply failed: $m"
   done
-  kubectl apply -f "$IKT/orchestrator.yaml" >/dev/null 2>&1
-
-  # Bind: node-agent resolves <label>-<containerName>, then the bare label.
-  kubectl -n agent-system patch deploy agent-orchestrator --type=strategic \
-    -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"agent-orchestrator"}}}}}' >/dev/null 2>&1
+  # Stamp the binding label into the pod TEMPLATE before applying, so the pod is
+  # born bound instead of coming up on a learnt sibling and rebinding later. The
+  # current node-agent does honour a label added post-start, so the patch below
+  # is a sound fallback rather than the only route. Only agent-orchestrator is
+  # stamped: agent-worker and ran-privileged are rogue pods and stay unprofiled.
+  if curl -sfL "$IKT/orchestrator.yaml" -o "$OUT/orchestrator.yaml"; then
+    python3 - "$OUT/orchestrator.yaml" <<'PYEOF' && kubectl apply -f "$OUT/orchestrator.yaml" >/dev/null 2>&1
+import sys, yaml
+path = sys.argv[1]
+docs = [d for d in yaml.safe_load_all(open(path)) if d]
+stamped = 0
+for d in docs:
+    if d.get("kind") == "Deployment" and d["metadata"]["name"] == "agent-orchestrator":
+        meta = d.setdefault("spec", {}).setdefault("template", {}).setdefault("metadata", {})
+        meta.setdefault("labels", {})["kubescape.io/user-defined-profile"] = "agent-orchestrator"
+        stamped += 1
+if not stamped:
+    sys.exit("no agent-orchestrator Deployment in orchestrator.yaml to stamp")
+yaml.safe_dump_all(docs, open(path, "w"), default_flow_style=False, sort_keys=False)
+PYEOF
+    say "applied orchestrator with the binding label in its pod template"
+  else
+    say "WARN: could not fetch orchestrator.yaml for stamping — falling back to apply + patch"
+    kubectl apply -f "$IKT/orchestrator.yaml" >/dev/null 2>&1
+    kubectl -n agent-system patch deploy agent-orchestrator --type=strategic \
+      -p '{"spec":{"template":{"metadata":{"labels":{"kubescape.io/user-defined-profile":"agent-orchestrator"}}}}}' >/dev/null 2>&1
+  fi
   for d in oopservability-redis spog target-allocator; do
     kubectl -n oopservability patch deploy "$d" --type=strategic \
       -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"kubescape.io/user-defined-profile\":\"$d\"}}}}}" >/dev/null 2>&1
