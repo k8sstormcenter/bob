@@ -113,6 +113,22 @@ With `--keep-ch` the pre-teardown shadows remain in ClickHouse, so disambiguate
 fresh from stale by `OPENED` / `LAST_SEEN` against the fire window, not by
 container alone.
 
+### Time window
+
+Open the (a) panels with **`start_time=-10m`**. The run starts on an empty
+database, so a 10-minute window is clean — nothing earlier exists to pull in.
+
+**The take must therefore finish inside 10 minutes of wall-clock.** The offset is
+relative and the window *slides*: a panel opened at T with `-10m` shows T-10m
+onwards, and twenty minutes later it shows only the last ten, so the early
+detections have aged out of frame. Budget the whole step-locked sequence
+accordingly, or re-open the panel and accept a rebuilt rather than accumulating
+graph.
+
+Absolute timestamps are **not supported** — measured, both
+`start_time=2026-09-20T14:21:00Z` and `start_time=2026-09-20 14:21:00` return
+"Failed to execute script". Relative offsets only.
+
 ### Render-complete
 
 An empty panel with a spinner is **perfectly stable text**, so "wait until the DOM
