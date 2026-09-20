@@ -175,14 +175,94 @@ right recorder a few seconds earlier and stop it a few seconds later.
 
 ## Fire side (edge4)
 
-> **edge4 to complete.** Needed: teardown and preconditions (what is removed, what
-> is deliberately kept, and why `--keep-ch`), the capture-policy arm and how to
-> confirm which arm is live, the deploy/runner invocation and version, how to
-> confirm the platform is healthy and born-bound before any fire, the exact
-> `demo_chain --only N` form used per pause point, the T-2min / T-0 / T-end
-> signalling, and the ClickHouse queries that yield the verified ids
-> (`shadow_id` + `container` + `namespace` from `dx_shadow_trace`, `order_id` +
-> `case_id` for `evidence_graph`), with their `OPENED`/`LAST_SEEN` columns.
+*Authored by edge4; committed here by metal-bob because the branch requires signed commits.*
+
+### 0. Preconditions
+
+- dx capture policy = `adaptive_base` (shipped). The video needs full dark tables
+  for a rich shadow_trace. Confirm via the `DX_CAPTURE_POLICY` env on
+  `kubectl -n honey get ds dx-daemon`. `static` is measurement-only, **never** for video.
+- Clean slate: `bash /home/ubuntu/iktlinz-reset.sh --keep-ch`, run **standalone** —
+  never chained, or the pattern match kills the invoking shell (exit 144).
+  `--keep-ch` preserves the `dx_kpi_proof` scores and the profile mirror; a full
+  truncate would wipe build-agent's scores and never re-emit `profile_compare`.
+  Expect a final line `CLEAN, iktlinz-ns=0 rogueartifacts=0`.
+- Known residue after `--keep-ch`: stale OPEN rogue shadows from prior runs remain
+  in the shadow_trace list. Harmless, because capture navigates by `shadow_id`
+  rather than by the list. Separate them by `t0` / `updated_at >= ` this run's start.
+
+### 1. Deploy bound, no fire
+
+```
+bash run-iktlinz-e2e.sh --benign-only --pre 5 --post 0 --out results/vidcap
+```
+
+Born-bound orchestrator (label stamped into the pod template before apply),
+oopservability (redis / spog / target-allocator), 6 SBoBs. Prints
+`benign-only run: no disease fired`. The benign twin stops when the runner exits,
+so there is no worker churn during capture.
+
+Confirm healthy and bound: orchestrator `Running 2/2`, and **no** open rogue shadow
+for any live pod (`dx_shadow_trace` with `closed_at=0` for the current pod hashes —
+empty means all bound; a hit means binding failed, re-check the SBoBs).
+`agent-worker` and `ran-privileged` are *meant* to be rogue; they get no SBoB.
+
+> Use the `--benign-only` **flag**. The env-var form `BENIGN_ONLY=1 bash …` is
+> silently overridden by line 21 and fires the disease. See Traps 8.
+
+### 2. Step-lock fire
+
+```
+RAN_URL=http://localhost:8080 python3 demo_chain.py --only N
+```
+
+One step, **no `--reset`** (the deploy already reset the campaign). Steps are
+stateful — `exec_sys` pins to the step-2 worker foothold — so fire them in order.
+Plumbing fired through without pausing: 1, 2, 4, 6, 7, 8, 9, 11, 12, 15, 16, 18.
+Pause and capture at: 3, 5, 10, 13, 17, 19, 20.
+
+### 3. Signalling (per detection, UTC)
+
+T-2min heads-up → metal-bob's panels-rolling ack → fire the step and announce T-0
+(`date -u +%H:%M:%SZ`) → metal-bob's capture ack → window bounds + verified ids →
+metal-bob's post-fire deeplink capture → advance ack. Cluster held between
+detections; metal-bob's silence means *not seen*, so hold.
+
+### 4. ClickHouse id extraction
+
+Verified, never invented. `T0` = the fire instant.
+
+```sql
+-- shadow_id: pick the row with t0 >= T0 (separates the attack worker from benign/stale)
+SELECT shadow_id, pod, container, t0, last_epoch, rogue_state
+FROM forensic_db.dx_shadow_trace
+WHERE pod LIKE 'agent-worker%' AND updated_at >= toDateTime('<T0>','UTC')
+ORDER BY updated_at DESC;
+-- t0 = OPENED, last_epoch = LAST_SEEN
+
+-- order_id + case_id; culprit_key = ns/pod/pid = case_id; event_time is UInt64 NANOS
+SELECT order_id, culprit_key
+FROM forensic_db.dx_orders
+WHERE event_time BETWEEN <T0_ns> AND <now_ns>;
+```
+
+### 5. Deeplink forms
+
+Loadable scripts only.
+
+```
+shadow_trace:    /live/clusters/edge4_79f499d2?script=dx%2Fshadow_trace&container=<c>&shadow_id=<hex>&start_time=-30m
+evidence_graph:  /live/clusters/edge4_79f499d2?script=dx%2Fevidence_graph&order_id=<hex>&case_id=<ns/pod/pid urlencoded>&start_time=-30m
+```
+
+Omit `clickhouse_dsn` on evidence_graph — the vis defaults it.
+`process_forest`, `conn_stats` and `redis_events` are ClickHouse **tables**, not
+confirmed loadable scripts; keep them out of deeplinks until they are shown to resolve.
+
+### 6. End of run
+
+dx stays `adaptive_base`. Leave the fired chain up until every post-fire deeplink
+is confirmed captured, **then** reset with `--keep-ch`. Repeat per fix.
 
 ---
 
@@ -202,6 +282,10 @@ Each of these produced a confident false success before it was understood.
 6. **Recording a static-policy run.** A chain fired under the static arm has no
    worker shadow at all (0 rows in `dx_shadow_trace`, `dc_snoop`, `stack_trace`,
    `conn_stats`). Confirm the policy arm before the fire, not after.
+8. **`BENIGN_ONLY=1` as an environment variable does nothing.** Line 21 of
+   `run-iktlinz-e2e.sh` assigns `BENIGN_ONLY=0` unconditionally, so the env form is
+   overridden and the disease fires during what was meant to be a benign deploy.
+   Use the `--benign-only` flag.
 7. **A panel can scroll perfectly and be empty.** The k3s-1 controller shadow
    renders FOREST as "Showing 1 records" over a blank grid. Check content, not
    just mechanics.

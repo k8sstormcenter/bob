@@ -18,7 +18,7 @@ set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 PRE=180; POST=180; OUT="$HERE/results"; RAN_URL="${RAN_URL:-http://localhost:8080}"
-DEPLOY=1; BENIGN_ONLY=0; BENIGN=1
+DEPLOY=${DEPLOY:-1}; BENIGN_ONLY=${BENIGN_ONLY:-0}; BENIGN=${BENIGN:-1}
 while [ $# -gt 0 ]; do
   case "$1" in
     --pre) PRE="$2"; shift 2;;
