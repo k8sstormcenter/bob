@@ -131,9 +131,14 @@ attacks:
       Do not file this as a capture bug and do not expect C to improve by
       widening the range. Scoring it would need socket-level or
       failed-connection rows, and none exist in this stack (dc_snoop is
-      file-access and carries no network destination). redis-rce scores wire
-      despite the same limitation only because it matches on REDIS's ingress
-      side, not on the worker's egress.
+      file-access and carries no network destination).
+
+      redis-rce is subject to the same limitation and only sometimes escapes
+      it, by matching on REDIS's ingress side rather than the worker's
+      egress. Measured across two runs it scored wire once and C=0 once. So
+      the difference between this entry and that one is which side of a
+      connection happened to be recorded, not how detectable the two steps
+      are.
       The CIDR is computed at run time by demo_chain.py and anchored on the
       redis address; it is a /27 on every topology.
     expectedDetections:
@@ -156,6 +161,19 @@ attacks:
       shows the three entries above are limited by profile coverage rather
       than by rule coverage.
       R1001 is also observed on the WORKER for the redis-cli that issues it.
+
+      THE ALERTS ABOVE ARE STABLE; THIS STEP'S WIRE EVIDENCE IS NOT. Across
+      two reference runs its proof-coverage went 0.97 wire, then 0.47 with
+      C=0, on an unchanged suite and an unchanged chain. The cause is the
+      short-lived-egress limitation recorded under nmap-sweep: whether the
+      redis connection is captured at all varies per run.
+
+      So do not treat this entry as a reliable wire baseline, and do not read
+      a drop here as a regression in the chain or the profile. The
+      expectedDetections are what stays put — they are node-agent alerts
+      judged against a bound profile, and they are the contrast this entry
+      exists to draw. The C verdict beside them is a different axis and a
+      flakier one.
     expectedDetections:
       - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis, command: sh }
       - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis, command: id }
