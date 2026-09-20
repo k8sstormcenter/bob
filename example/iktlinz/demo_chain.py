@@ -304,43 +304,11 @@ def step_10_nmap(ctx):
     """unit-4/4: Discovery > NMap Host Scan."""
     if not assert_foothold():
         return False
-    # Measured in-pod with the TTP's exact command form (`nmap -sT -F <cidr>`,
-    # default timing — NOT -T4) against the 150s tunneled-shell budget:
-    #     /27 -> 3s     /26 -> 142s     /25 -> 91s     /24 -> 176s (BUDGET BLOWN)
-    # Non-linear because mostly-empty ranges pay discovery retries. So: scan the
-    # smallest range that provably covers BOTH the foothold and the redis target
-    # — a /27 around the foothold silently misses redis when they land in
-    # different /27s (worker .197 vs redis .173), which kills all of unit-5.
-    def _ips():
-        out = []
-        ip = callback_pod("status.podIP")
-        if ip:
-            out.append(ip)
-        _, v = sh("kubectl -n oopservability get pod "
-                  "-l app.kubernetes.io/name=oopservability-redis "
-                  "-o jsonpath='{.items[*].status.podIP}'")
-        out += [x for x in v.split() if x.count(".") == 3]
-        return out
-
-    ips = _ips() or ["10.42.0.1"]
-    # Anchor a /27 on the REDIS address, never on the foothold. On a multi-node
-    # cluster the two sit in different per-node pod CIDRs and no affordable
-    # prefix spans them; missing the foothold costs nothing (we are executing
-    # inside it) while missing redis loses every later unit-5 step. Measured
-    # in-pod with the TTP's exact command form against the 150s tunnelled-shell
-    # budget: /27=3s, /26=142s, /25=91s, /24=176s -- /27 is the only one with
-    # real headroom, and it is enough to discover the target.
-    redis_ip = ips[-1]
-    base = ".".join(redis_ip.split(".")[:3])
-    net = (int(redis_ip.split(".")[3]) // 32) * 32
-    cidr = f"{base}.{net}/27"
-    ctx["scan_cidr"] = cidr
-    ctx["redis_ip"] = redis_ip
-    ctx["foothold_ip"] = ips[0]
-    print(f"      scanning {cidr} (foothold+target ips: {','.join(ips)})")
+    # The TTP's own defaults: CIDR ${TARGET.IP}/24, SCAN_TYPES [sT], FAST_SCAN
+    # false, THREADS 10 -> `nmap -sT ${TARGET.IP}/24`. Passing no args keeps the
+    # scan identical to the one the IKT instructions invoke from the Ran UI.
     return execute("nmap-host-scan", pod_id("agent-system", "agent-worker"),
-                   {"CIDR": cidr, "FAST_SCAN": "true"},
-                   "unit-4: scan subnet")
+                   note="unit-4: scan subnet")
 
 
 def step_11_redis_rce_fail(ctx):
