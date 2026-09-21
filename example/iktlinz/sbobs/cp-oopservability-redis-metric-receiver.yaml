@@ -17,7 +17,15 @@ spec:
   identifiedCallStacks: null
   imageID: docker.io/library/python@sha256:c4634f578a412db396771b61b064c6e546c9d6414c7fb5b1b05d5871f1885f7b
   imageTag: docker.io/library/python:3.12-alpine
-  ingress: null
+  ingress:
+  - identifier: otel-scrape
+    type: internal
+    podSelector:
+      matchLabels: {app: agent-orchestrator}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: agent-system}
+    ports:
+    - {name: TCP-8080, port: 8080, protocol: TCP}
   matchLabels: {app.kubernetes.io/name: oopservability-redis}
   opens:
   - flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY]
