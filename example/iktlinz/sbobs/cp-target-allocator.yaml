@@ -8,17 +8,13 @@ spec:
   architectures: [amd64]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN]
   egress:
-  - dns: ''
-    dnsNames: null
-    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
-    ipAddress: 10.43.0.1
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: default}
-    podSelector:
-      matchLabels: {component: apiserver, provider: kubernetes}
+  - identifier: apiserver
+    type: internal
+    serviceRefNamespace: default
+    serviceRefName: kubernetes
     ports:
     - {name: TCP-443, port: 443, protocol: TCP}
-    type: internal
+    - {name: TCP-6443, port: 6443, protocol: TCP}
   endpoints:
   - direction: inbound
     endpoint: :80/jobs/serviceMonitor/oopservability/redis-metrics/0/targets
