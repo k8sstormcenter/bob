@@ -20,17 +20,12 @@ spec:
     serviceRefName: redis-metrics
     ports:
     - {name: TCP-8080, port: 8080, protocol: TCP}
-  - dns: ''
-    dnsNames: null
-    identifier: 4380bec7cadc8df8f7321e3ceac7739db245e5db032c59fdb73c104aa0543112
-    ipAddress: 10.43.0.10
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: kube-system}
-    podSelector:
-      matchLabels: {k8s-app: kube-dns}
+  - identifier: kube-dns
+    type: internal
+    serviceRefNamespace: kube-system
+    serviceRefName: kube-dns
     ports:
     - {name: UDP-53, port: 53, protocol: UDP}
-    type: internal
   endpoints:
   - direction: outbound
     endpoint: :80/scrape_configs
