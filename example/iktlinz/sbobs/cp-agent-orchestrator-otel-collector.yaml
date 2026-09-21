@@ -8,17 +8,18 @@ spec:
   architectures: [amd64]
   capabilities: [CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_NET_ADMIN, CAP_SYSLOG]
   egress:
-  - dns: ''
-    dnsNames: null
-    identifier: a8cdac00659dafb0d95d977dad974a012ed5b9b7954ba900d6cc2980e08e508e
-    ipAddress: 10.43.8.195
-    namespaceSelector:
-      matchLabels: {kubernetes.io/metadata.name: oopservability}
-    podSelector:
-      matchLabels: {app: target-allocator}
+  - identifier: target-allocator
+    type: internal
+    serviceRefNamespace: oopservability
+    serviceRefName: target-allocator
     ports:
     - {name: TCP-80, port: 80, protocol: TCP}
+  - identifier: redis-metrics
     type: internal
+    serviceRefNamespace: oopservability
+    serviceRefName: redis-metrics
+    ports:
+    - {name: TCP-8080, port: 8080, protocol: TCP}
   - dns: ''
     dnsNames: null
     identifier: 4380bec7cadc8df8f7321e3ceac7739db245e5db032c59fdb73c104aa0543112
