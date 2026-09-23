@@ -23,7 +23,9 @@ capabilities:
   admissionController: disable
   networkEventsStreaming: enable
 alertCRD:
-  installDefault: true
+  # false: bob owns default-rules.yaml (cp.* dialect). The chart's upstream
+  # ap.*/nn.* defaults would race and win, giving zero detections.
+  installDefault: false
   scopeClustered: true
 clusterName: bobexample
 ksNamespace: honey
