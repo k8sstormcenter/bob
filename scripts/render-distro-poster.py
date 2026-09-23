@@ -15,7 +15,7 @@ column is itself the signal that it covers fewer rules.
 
 Usage:
   render-distro-poster.py --out poster.gif \
-      --ruleset kubescape/default-rules.yaml \
+      --ruleset kubescape/.rules-from-chart.yaml   # make rules-from-chart \
       --config kubescape/rule-coverage.yaml \
       --results results/distros \
       --distro redis-oss --distro valkey --distro keydb --distro dragonfly

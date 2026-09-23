@@ -9,6 +9,9 @@ GO_VERSION ?= 1.24
 KUBESCAPE_CHART_VER ?= 1.41.0-duckling23
 KUBESCAPE_CHART_URL ?= https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz
 KUBESCAPE_NODEAGENT_REPO ?= docker.io/entlein/duckling
+# The ruleset is the chart's. Tools that need it as a file generate it rather
+# than reading a committed copy that can drift from what the cluster runs.
+KUBESCAPE_RULES ?= kubescape/.rules-from-chart.yaml
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
@@ -365,10 +368,10 @@ endif
 #   make rule-coverage-gifs              # all apps
 #   make rule-coverage-gifs APP=argocd   # one app
 .PHONY: rule-coverage-gifs
-rule-coverage-gifs:
+rule-coverage-gifs: rules-from-chart
 	python3 scripts/render-rule-coverage-gif.py \
 	  --config kubescape/rule-coverage.yaml \
-	  --ruleset kubescape/default-rules.yaml \
+	  --ruleset $(KUBESCAPE_RULES) \
 	  $(if $(APP),$(foreach a,$(APP),--app $(a)),)
 
 .PHONY: show-runc
@@ -377,6 +380,15 @@ show-runc:
 	@echo "KS_RUNC_MNT:      $(if $(KS_RUNC_MNT),$(KS_RUNC_MNT),(unset - no extra hostPath mount))"
 	@echo "KS_LEARN_PERIOD:  $(if $(KS_LEARN_PERIOD),$(KS_LEARN_PERIOD),(unset - chart default 2m))"
 	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS)$(KS_LEARN_FLAGS),$(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS),(none))"
+
+.PHONY: rules-from-chart
+rules-from-chart: $(KUBESCAPE_RULES)
+
+$(KUBESCAPE_RULES):
+	@helm template kubescape $(KUBESCAPE_CHART_URL) --set alertCRD.installDefault=true 2>/dev/null \
+	  | python3 -c "import sys,yaml;[yaml.safe_dump(d,sys.stdout) for d in yaml.safe_load_all(sys.stdin) if d and d.get('kind')=='Rules']" > $@
+	@test -s $@ || { rm -f $@; echo 'ERROR: no Rules object in $(KUBESCAPE_CHART_VER)'; exit 1; }
+	@echo "wrote $@ from $(KUBESCAPE_CHART_VER)"
 
 .PHONY: check-registry-auth
 check-registry-auth:

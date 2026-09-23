@@ -23,9 +23,8 @@ capabilities:
   admissionController: disable
   networkEventsStreaming: enable
 alertCRD:
-  # The chart ships the current cp.* ruleset and its binding; bob no longer
-  # overlays either. kubescape/default-rules.yaml is kept only as the --ruleset
-  # input to bobctl and must track the chart.
+  # The chart ships the current cp.* ruleset and its binding; bob overlays
+  # neither. Tools needing the ruleset as a file run `make rules-from-chart`.
   installDefault: true
   scopeClustered: true
 clusterName: bobexample
