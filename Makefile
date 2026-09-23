@@ -424,6 +424,7 @@ alertmanager:
 	@echo "Deploying alertmanager in honey namespace..."
 	kubectl create namespace honey --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n honey -f kubescape/alertmanager.yaml
+	kubectl wait --for=create pod -l app=alertmanager -n honey --timeout=60s
 	kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
@@ -466,6 +467,7 @@ HELM = $(shell which helm)
 .PHONY: sample-app
 sample-app:
 	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor
+	@kubectl wait --for=create pod -l app=harbor -n harbor --timeout=120s
 	@kubectl wait --for=condition=ready pod -l app=harbor -n harbor --timeout=600s
 
 .PHONY: nothing
