@@ -24,8 +24,37 @@ chmod +x bobctl && sudo mv bobctl /usr/local/bin/bobctl
 bobctl portable --help      # this demo needs the portable verb
 ```
 
-Bring up the stack from the repo root (`make kubescape`, `make alertmanager`) as
-in `DEMO.md`.
+Bring up the stack from the repo root. **Do not use `make kubescape` unmodified**:
+it pins `KUBESCAPE_CHART_VER ?= 1.41.0-duckling5`, which predates everything this
+demo depends on. Override it, or install the chart directly:
+
+```
+make kubescape KUBESCAPE_CHART_VER=1.41.0-duckling23
+make alertmanager
+```
+
+(The `kubescape` target adds `https://raw.githubusercontent.com/k8sstormcenter/helm-charts/gh-pages`,
+whose index carries duckling20-23, so the override resolves. `helm repo update`
+first if it does not.)
+
+**Minimum chart: `1.41.0-duckling21`.** Below it the demo does not merely degrade,
+it misleads:
+
+| needed for | lands in |
+|---|---|
+| serviceRef / serviceSelector expansion at all | the chart's node-agent must carry it — duckling5 does not |
+| a port-less serviceRef inheriting the Service's ports | duckling21 |
+| `(address, port)` claimed by a Service carved out of the host peer | duckling21 |
+| `is_host_peer_egress` / `is_host_peer_ingress` in R0011/R0012 | duckling23 (soc#286) |
+| plural `ipAddresses` honoured | node-agent rogue32+ |
+
+On an older chart a portable profile silently admits nothing and every peer
+alerts, which reads exactly like a bad profile rather than an old agent. Check
+what you are actually running before believing a result:
+
+```
+helm -n honey list -o json | python3 -c 'import json,sys;print([r["chart"] for r in json.load(sys.stdin)])'
+```
 
 ## 1. Deploy the database
 
