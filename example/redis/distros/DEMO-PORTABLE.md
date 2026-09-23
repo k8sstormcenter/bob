@@ -12,9 +12,11 @@ internal peer is unmatched — R0011 fires on all of it. Labels, Service names a
 namespaces are identical across clusters. Portability is the act of re-expressing
 addresses as identities.
 
-Verified: the `bobctl portable` step below was run against a live cluster and its
-output passes `bobctl validate`. The deploy / learn / simulate / verify steps are
-the flow `DEMO.md` already establishes.
+Verified on a clean k3s cluster against chart `1.41.0-duckling23` (node-agent
+`v0.1.0-rogue35`, storage `rc-rogue23`): deploy, learn, portable, add client,
+discover by label. Read the step-3 result before relying on this demo to show a
+collapse — on this chart the agent resolves internal peers itself, so `portable`
+is a no-op for them and the collapse it demonstrates is the loopback drop.
 
 ## 0. Prerequisites
 
@@ -25,19 +27,22 @@ minutes later, reporting a registry error rather than a missing login.
 
 
 ```
-curl -L https://github.com/k8sstormcenter/bob/releases/download/v0.1.5/bobctl-linux-amd64 -o bobctl
+curl -L https://github.com/k8sstormcenter/bob/releases/download/v0.1.6-rc1/bobctl-linux-amd64 -o bobctl
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/bobctl
 bobctl portable --help      # this demo needs the portable verb
 ```
 
-Bring up the stack from the repo root. **Do not use `make kubescape` unmodified**:
-it pins `KUBESCAPE_CHART_VER ?= 1.41.0-duckling5`, which predates everything this
-demo depends on. Override it, or install the chart directly:
+Bring up the stack from the repo root:
 
 ```
-make kubescape KUBESCAPE_CHART_VER=1.41.0-duckling23
+make kubescape
 make alertmanager
+kubectl -n honey port-forward svc/alertmanager 9093:9093 &
 ```
+
+`make kubescape` defaults to the chart soc installs, so there is nothing to
+override. The port-forward is not optional: `bobctl verify` reads Alertmanager at
+`http://localhost:9093` and fails with `connection refused` without it.
 
 The `kubescape` target installs the GitHub release **tarball** — the same one
 soc's skaffold uses — so there is no helm-repo index to drift against.
@@ -48,6 +53,13 @@ one a previous install applied. Delete it and re-run:
 
 ```
 kubectl delete rules default-rules -n honey
+```
+
+A change to the node-agent values updates its ConfigMap but does **not** restart
+the pod, and node-agent reads that config at boot. After any values change:
+
+```
+kubectl rollout restart ds/node-agent -n honey
 ```
 
 **Minimum chart: `1.41.0-duckling21`.** Below it the demo does not merely degrade,
@@ -85,8 +97,31 @@ bobctl learn -n redis --functional-tests functional/redis-oss.yaml
 ```
 
 Drive the benign suite while learning, so the profile records what the
-application does rather than what it happens to do while idle. The result is a
-ContainerProfile full of **literal addresses** — correct here, portable nowhere.
+application does rather than what it happens to do while idle.
+
+**Fire the benign traffic at the START of the window.** The window is the
+container's first ~2 minutes. Deploy, then drive traffic immediately — do not
+poll for the profile to appear first, because the poll consumes the window and
+what you get is a profile that is `complete`, `ready` and **empty**. An empty
+profile is not visibly broken: it reads exactly like a healthy one until you
+count its entries, and every legitimate action the app then takes is a false
+positive against it.
+
+There is no `completed` state to wait for. A live container goes `initializing`
+→ `ready` and stays at `ready` for life; `completion: complete` is the done
+signal. Take the profile when it has entries:
+
+```
+bobctl get -n redis -o names
+kubectl get containerprofile <name> -n redis -o yaml > sbobs/cp-redis.yaml
+```
+
+Read profiles **one at a time, by name**. A list request does not return spec
+content, so every profile in a bulk `get -o json` looks empty whatever it holds.
+
+That export is the missing link between what you just learned and what the next
+step collapses: `sbobs/cp-redis.yaml` is otherwise a committed file from an
+earlier run, and step 3 would silently collapse that instead.
 
 ## 3. Collapse to portable
 
@@ -94,7 +129,31 @@ ContainerProfile full of **literal addresses** — correct here, portable nowher
 bobctl portable --file sbobs/cp-redis.yaml --out sbobs/cp-redis-portable.yaml
 ```
 
-Each observed peer is resolved against live cluster state and re-expressed:
+**On the chart this demo pins, expect this to be a no-op for cluster-internal
+peers** — and that is the honest result, not a failure. The node-agent has
+`networkServiceEnabled` by default from `1.41.0-duckling23`, so it resolves peers
+to identities *at learn time*. A freshly learned client profile already reads:
+
+```
+egress:
+- podSelector: {matchLabels: {k8s-app: kube-dns}}
+  namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+  serviceRefName: kube-dns
+  serviceRefNamespace: kube-system
+  ports: [53]
+```
+
+No literal addresses to collapse. Running `bobctl portable` over that profile
+prints no rewrites and returns it byte-identical.
+
+So the premise "a learned profile records addresses, and addresses are
+cluster-specific" is **no longer true for internal peers on this chart**. What
+`portable` is still for is everything the agent cannot resolve: loopback (which
+it drops), external and public addresses, node/host peers, and any pod it could
+not attribute to a Service. Point it at an older profile, or one carrying
+external egress, to see it do work.
+
+When there is something to resolve, each observed peer is re-expressed:
 
 | observed | resolves to | emitted | why |
 |---|---|---|---|
@@ -128,6 +187,20 @@ bobctl verify -n redis --format table
 The client connects to redis on 6379. The db profile does not name it, so **R0012
 fires on the ingress** — correctly. This is the true positive the allowlist has to
 convert into a known peer without blinding the rule.
+
+`bobctl verify` with no `--suite` will report `FAIL` here and count every active
+alert as a false positive: with no suite it checks the built-in cmdinject
+expectations, which this step is not running. That verdict is an artefact of the
+missing argument, not a result. To read what actually fired:
+
+```
+curl -s 'http://localhost:9093/api/v2/alerts?active=true' \
+  | python3 -c 'import json,sys,collections; print(collections.Counter((a["labels"].get("rule_id"), a["labels"].get("container_name")) for a in json.load(sys.stdin)))'
+```
+
+Expect R0012 on `redis`. R1017 (*rogue artefact*) also appears for the interval
+between the container starting and its profile existing — that window is real and
+the alerts are correct; they stop once the profile is bound.
 
 ## 5. Discover the client's identity, by label
 
@@ -171,6 +244,14 @@ will not verify on read. Unique identifier per entry is therefore a signing rule
 not a style rule.
 
 ## 7. Compose and prove it
+
+The profile you apply and patch must be a **user-defined** profile — named
+`redis`, bound by the pod-template label `kubescape.io/user-defined-profile:
+redis` (`./deploy-distros.sh redis sbob` binds it at deploy time). The
+agent-generated profile is not a substitute: its name carries the workload and
+instance hashes, and although `kubectl get` resolves that name, `apply` and
+`patch` against it return `NotFound`. If you exported the learned profile in step
+2, rename it to `redis` before applying it here.
 
 ```
 CP=containerprofiles.spdx.softwarecomposition.kubescape.io
