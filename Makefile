@@ -4,7 +4,10 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.41.0-duckling5
+# Chart truth lives in k8sstormcenter/soc (skaffold.yaml, soc-kubescape). Install
+# the same release tarball it does, so bob cannot drift to an older chart.
+KUBESCAPE_CHART_VER ?= 1.41.0-duckling23
+KUBESCAPE_CHART_URL ?= https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
@@ -259,7 +262,7 @@ attack:
 kubescape-orig:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER)  -n honey --create-namespace --values kubescape/deprecated/values_orig.yaml
+	-$(HELM) upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/deprecated/values_orig.yaml
 	-kubectl apply  -f kubescape/default-rules.yaml
 
 
@@ -377,11 +380,10 @@ show-runc:
 
 .PHONY: kubescape
 kubescape:
-	helm repo add kubescape https://raw.githubusercontent.com/k8sstormcenter/helm-charts/gh-pages
-	helm repo update
+	@echo "chart: $(KUBESCAPE_CHART_URL)"
 	kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f -
 	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --dry-run=client -o yaml | kubectl apply -f -
-	helm upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	helm upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	kubectl apply -f kubescape/default-rules.yaml
 	kubectl apply -f kubescape/default-rule-binding.yaml
 	./kubescape/set-signature-verification.sh $(KS_SIGNATURES)
@@ -417,7 +419,7 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	$(HELM) upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent
