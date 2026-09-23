@@ -30,13 +30,13 @@ spec:
     path: /usr/bin/cat
   - args:
     - /usr/bin/chmod
-    - "03775"
-    - /var/run/postgresql
+    - "00700"
+    - /var/lib/postgresql/data/pgdata
     path: /usr/bin/chmod
   - args:
     - /usr/bin/chmod
-    - "00700"
-    - /var/lib/postgresql/data/pgdata
+    - "03775"
+    - /var/run/postgresql
     path: /usr/bin/chmod
   - args:
     - /usr/bin/chown
@@ -46,14 +46,9 @@ spec:
   - args:
     - /bin/sh
     - -c
-    - exec "/usr/lib/postgresql/17/bin/postgres" -D "/var/lib/postgresql/data/pgdata"
-      -c listen_addresses= -p 5432  < "/dev/null" 2>&1
-    path: /usr/bin/dash
-  - args:
-    - /bin/sh
-    - -c
     - --
-    - '"/usr/lib/postgresql/17/bin/postgres" -V'
+    - '"/usr/lib/postgresql/17/bin/postgres" --boot -F -c log_checkpoints=false  -X
+      16777216'
     path: /usr/bin/dash
   - args:
     - /bin/sh
@@ -82,14 +77,19 @@ spec:
     - /bin/sh
     - -c
     - --
-    - locale -a
+    - '"/usr/lib/postgresql/17/bin/postgres" -V'
     path: /usr/bin/dash
   - args:
     - /bin/sh
     - -c
     - --
-    - '"/usr/lib/postgresql/17/bin/postgres" --boot -F -c log_checkpoints=false  -X
-      16777216'
+    - locale -a
+    path: /usr/bin/dash
+  - args:
+    - /bin/sh
+    - -c
+    - exec "/usr/lib/postgresql/17/bin/postgres" -D "/var/lib/postgresql/data/pgdata"
+      -c listen_addresses= -p 5432  < "/dev/null" 2>&1
     path: /usr/bin/dash
   - args:
     - /usr/local/bin/docker-entrypoint.sh
@@ -139,12 +139,12 @@ spec:
   - args:
     - /usr/bin/mkdir
     - -p
-    - /var/run/postgresql
+    - /var/lib/postgresql/data/pgdata
     path: /usr/bin/mkdir
   - args:
     - /usr/bin/mkdir
     - -p
-    - /var/lib/postgresql/data/pgdata
+    - /var/run/postgresql
     path: /usr/bin/mkdir
   - args:
     - /usr/bin/psql
@@ -171,7 +171,6 @@ spec:
     - postgres
     - --set
     - db=app
-    - --tuples-only
     path: /usr/bin/perl
   - args:
     - /usr/bin/psql
@@ -185,6 +184,7 @@ spec:
     - postgres
     - --set
     - db=app
+    - --tuples-only
     path: /usr/bin/perl
   - args:
     - /usr/lib/postgresql/17/bin/initdb
@@ -214,11 +214,11 @@ spec:
     - ⋯⋯
     path: /usr/lib/postgresql/17/bin/postgres
   - args:
-    - 'postgres:'
+    - postgres
     - ⋯⋯
     path: /usr/lib/postgresql/17/bin/postgres
   - args:
-    - postgres
+    - 'postgres:'
     - ⋯⋯
     path: /usr/lib/postgresql/17/bin/postgres
   - args:
@@ -867,9 +867,6 @@ spec:
     - O_WRONLY
     path: /var/lib/postgresql/data/pgdata/global/⋯
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /var/lib/postgresql/data/pgdata/pg_commit_ts
   - flags:
@@ -894,9 +891,6 @@ spec:
     - O_WRONLY
     path: /var/lib/postgresql/data/pgdata/pg_ident.conf
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /var/lib/postgresql/data/pgdata/pg_logical
   - flags:
@@ -906,7 +900,6 @@ spec:
     - O_RDONLY
     path: /var/lib/postgresql/data/pgdata/pg_logical/mappings
   - flags:
-    - O_RDONLY
     - O_RDWR
     path: /var/lib/postgresql/data/pgdata/pg_logical/replorigin_checkpoint
   - flags:
@@ -928,9 +921,6 @@ spec:
     - O_RDONLY
     path: /var/lib/postgresql/data/pgdata/pg_multixact
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /var/lib/postgresql/data/pgdata/pg_multixact/members
   - flags:
@@ -939,9 +929,6 @@ spec:
     - O_RDWR
     path: /var/lib/postgresql/data/pgdata/pg_multixact/members/⋯
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /var/lib/postgresql/data/pgdata/pg_multixact/offsets
   - flags:
@@ -1033,9 +1020,6 @@ spec:
     - O_RDWR
     path: /var/lib/postgresql/data/pgdata/pg_wal/⋯
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /var/lib/postgresql/data/pgdata/pg_xact
   - flags:
@@ -1063,9 +1047,6 @@ spec:
     - O_WRONLY
     path: /var/lib/postgresql/data/pgdata/postmaster.opts
   - flags:
-    - O_CREAT
-    - O_EXCL
-    - O_RDONLY
     - O_RDWR
     path: /var/lib/postgresql/data/pgdata/postmaster.pid
   rulePolicies: {}

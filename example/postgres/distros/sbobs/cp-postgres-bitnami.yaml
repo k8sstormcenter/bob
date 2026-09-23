@@ -30,17 +30,6 @@ spec:
     path: /opt/bitnami/postgresql/bin/initdb
   - args:
     - /opt/bitnami/postgresql/bin/pg_ctl
-    - stop
-    - -w
-    - -D
-    - /bitnami/postgresql/data
-    - -m
-    - fast
-    - -t
-    - "60"
-    path: /opt/bitnami/postgresql/bin/pg_ctl
-  - args:
-    - /opt/bitnami/postgresql/bin/pg_ctl
     - start
     - -W
     - -D
@@ -52,14 +41,16 @@ spec:
       --hba_file=/opt/bitnami/postgresql/conf/pg_hba.conf
     path: /opt/bitnami/postgresql/bin/pg_ctl
   - args:
-    - /opt/bitnami/postgresql/bin/pg_isready
-    - -U
-    - postgres
-    - -p
-    - "5432"
-    - -h
-    - 127.0.0.1
-    path: /opt/bitnami/postgresql/bin/pg_isready
+    - /opt/bitnami/postgresql/bin/pg_ctl
+    - stop
+    - -w
+    - -D
+    - /bitnami/postgresql/data
+    - -m
+    - fast
+    - -t
+    - "60"
+    path: /opt/bitnami/postgresql/bin/pg_ctl
   - args:
     - /opt/bitnami/postgresql/bin/pg_isready
     - -U
@@ -72,6 +63,15 @@ spec:
     - "5432"
     path: /opt/bitnami/postgresql/bin/pg_isready
   - args:
+    - /opt/bitnami/postgresql/bin/pg_isready
+    - -U
+    - postgres
+    - -p
+    - "5432"
+    - -h
+    - 127.0.0.1
+    path: /opt/bitnami/postgresql/bin/pg_isready
+  - args:
     - 'postgres:'
     - ⋯⋯
     path: /opt/bitnami/postgresql/bin/postgres
@@ -79,6 +79,10 @@ spec:
     - /opt/bitnami/postgresql/bin/postgres
     - ⋯⋯
     path: /opt/bitnami/postgresql/bin/postgres
+  - args:
+    - /opt/bitnami/postgresql/bin/psql
+    - --version
+    path: /opt/bitnami/postgresql/bin/psql
   - args:
     - /opt/bitnami/postgresql/bin/psql
     - -U
@@ -100,14 +104,14 @@ spec:
     - app
     path: /opt/bitnami/postgresql/bin/psql
   - args:
-    - /opt/bitnami/postgresql/bin/psql
-    - --version
-    path: /opt/bitnami/postgresql/bin/psql
-  - args:
     - /pause
     path: /pause
   - args:
     - ⋯
+    - ⋯⋯
+    path: /usr/bin/bash
+  - args:
+    - /bin/bash
     - ⋯⋯
     path: /usr/bin/bash
   - args:
@@ -119,16 +123,12 @@ spec:
     - ⋯⋯
     path: /usr/bin/bash
   - args:
-    - /bin/bash
-    - ⋯⋯
-    path: /usr/bin/bash
-  - args:
     - /usr/bin/cat
     path: /usr/bin/cat
   - args:
     - /usr/bin/chmod
-    - u+rwx
-    - /bitnami/postgresql/data
+    - "600"
+    - /opt/bitnami/postgresql/conf/.pgpass
     path: /usr/bin/chmod
   - args:
     - /usr/bin/chmod
@@ -137,8 +137,8 @@ spec:
     path: /usr/bin/chmod
   - args:
     - /usr/bin/chmod
-    - "600"
-    - /opt/bitnami/postgresql/conf/.pgpass
+    - u+rwx
+    - /bitnami/postgresql/data
     path: /usr/bin/chmod
   - args:
     - /usr/bin/cp
@@ -219,22 +219,17 @@ spec:
   - args:
     - /usr/bin/rm
     - -f
-    - /opt/bitnami/postgresql/tmp/postgresql.pid
-    path: /usr/bin/rm
-  - args:
-    - /usr/bin/rm
-    - -f
     - /bitnami/postgresql/data/postgresql.conf
     - /bitnami/postgresql/data/pg_hba.conf
     path: /usr/bin/rm
   - args:
-    - /usr/bin/sed
-    - "s\x01trust\x01md5\x01g"
-    - /opt/bitnami/postgresql/conf/pg_hba.conf
-    path: /usr/bin/sed
+    - /usr/bin/rm
+    - -f
+    - /opt/bitnami/postgresql/tmp/postgresql.pid
+    path: /usr/bin/rm
   - args:
     - /usr/bin/sed
-    - "s\x01^#*\\s*shared_preload_libraries\\s*=.*\x01shared_preload_libraries = 'pgaudit'\x01g"
+    - "s\x01^#*\\s*client_min_messages\\s*=.*\x01client_min_messages = 'error'\x01g"
     - /opt/bitnami/postgresql/conf/postgresql.conf
     path: /usr/bin/sed
   - args:
@@ -244,12 +239,12 @@ spec:
     path: /usr/bin/sed
   - args:
     - /usr/bin/sed
-    - "s\x01^#*\\s*listen_addresses\\s*=.*\x01listen_addresses = '*'\x01g"
+    - "s\x01^#*\\s*hot_standby\\s*=.*\x01hot_standby = 'on'\x01g"
     - /opt/bitnami/postgresql/conf/postgresql.conf
     path: /usr/bin/sed
   - args:
     - /usr/bin/sed
-    - "s\x01^#*\\s*wal_keep_size\\s*=.*\x01wal_keep_size = '128MB'\x01g"
+    - "s\x01^#*\\s*listen_addresses\\s*=.*\x01listen_addresses = '*'\x01g"
     - /opt/bitnami/postgresql/conf/postgresql.conf
     path: /usr/bin/sed
   - args:
@@ -259,7 +254,7 @@ spec:
     path: /usr/bin/sed
   - args:
     - /usr/bin/sed
-    - "s\x01^#*\\s*client_min_messages\\s*=.*\x01client_min_messages = 'error'\x01g"
+    - "s\x01^#*\\s*log_disconnections\\s*=.*\x01log_disconnections = 'false'\x01g"
     - /opt/bitnami/postgresql/conf/postgresql.conf
     path: /usr/bin/sed
   - args:
@@ -274,17 +269,22 @@ spec:
     path: /usr/bin/sed
   - args:
     - /usr/bin/sed
-    - "s\x01^#*\\s*log_disconnections\\s*=.*\x01log_disconnections = 'false'\x01g"
-    - /opt/bitnami/postgresql/conf/postgresql.conf
-    path: /usr/bin/sed
-  - args:
-    - /usr/bin/sed
     - "s\x01^#*\\s*max_wal_size\\s*=.*\x01max_wal_size = '400MB'\x01g"
     - /opt/bitnami/postgresql/conf/postgresql.conf
     path: /usr/bin/sed
   - args:
     - /usr/bin/sed
-    - "s\x01^#*\\s*hot_standby\\s*=.*\x01hot_standby = 'on'\x01g"
+    - "s\x01^#*\\s*port\\s*=.*\x01port = '5432'\x01g"
+    - /opt/bitnami/postgresql/conf/postgresql.conf
+    path: /usr/bin/sed
+  - args:
+    - /usr/bin/sed
+    - "s\x01^#*\\s*shared_preload_libraries\\s*=.*\x01shared_preload_libraries = 'pgaudit'\x01g"
+    - /opt/bitnami/postgresql/conf/postgresql.conf
+    path: /usr/bin/sed
+  - args:
+    - /usr/bin/sed
+    - "s\x01^#*\\s*wal_keep_size\\s*=.*\x01wal_keep_size = '128MB'\x01g"
     - /opt/bitnami/postgresql/conf/postgresql.conf
     path: /usr/bin/sed
   - args:
@@ -294,8 +294,8 @@ spec:
     path: /usr/bin/sed
   - args:
     - /usr/bin/sed
-    - "s\x01^#*\\s*port\\s*=.*\x01port = '5432'\x01g"
-    - /opt/bitnami/postgresql/conf/postgresql.conf
+    - "s\x01trust\x01md5\x01g"
+    - /opt/bitnami/postgresql/conf/pg_hba.conf
     path: /usr/bin/sed
   - args:
     - /usr/bin/sleep
@@ -424,9 +424,6 @@ spec:
     - O_WRONLY
     path: /bitnami/postgresql/data/global/⋯
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /bitnami/postgresql/data/pg_commit_ts
   - flags:
@@ -450,9 +447,6 @@ spec:
     - O_WRONLY
     path: /bitnami/postgresql/data/pg_ident.conf
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /bitnami/postgresql/data/pg_logical
   - flags:
@@ -462,7 +456,6 @@ spec:
     - O_RDONLY
     path: /bitnami/postgresql/data/pg_logical/mappings
   - flags:
-    - O_RDONLY
     - O_RDWR
     path: /bitnami/postgresql/data/pg_logical/replorigin_checkpoint
   - flags:
@@ -484,9 +477,6 @@ spec:
     - O_RDONLY
     path: /bitnami/postgresql/data/pg_multixact
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /bitnami/postgresql/data/pg_multixact/members
   - flags:
@@ -495,9 +485,6 @@ spec:
     - O_RDWR
     path: /bitnami/postgresql/data/pg_multixact/members/⋯
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /bitnami/postgresql/data/pg_multixact/offsets
   - flags:
@@ -590,9 +577,6 @@ spec:
     - O_RDWR
     path: /bitnami/postgresql/data/pg_wal/⋯
   - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
     - O_RDONLY
     path: /bitnami/postgresql/data/pg_xact
   - flags:
@@ -620,9 +604,6 @@ spec:
     - O_WRONLY
     path: /bitnami/postgresql/data/postmaster.opts
   - flags:
-    - O_CREAT
-    - O_EXCL
-    - O_RDONLY
     - O_RDWR
     path: /bitnami/postgresql/data/postmaster.pid
   - flags:

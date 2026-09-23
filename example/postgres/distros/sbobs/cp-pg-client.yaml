@@ -80,20 +80,16 @@ spec:
     - /tmp/restore-schema.sql
     path: /usr/bin/rm
   - args:
-    - sleep
+    - /usr/bin/sleep
     - ⋯⋯
     path: /usr/bin/sleep
   - args:
-    - /usr/bin/sleep
+    - sleep
     - ⋯⋯
     path: /usr/bin/sleep
   - args:
     - /usr/lib/postgresql/18/bin/clusterdb
     path: /usr/lib/postgresql/18/bin/clusterdb
-  - args:
-    - /usr/lib/postgresql/18/bin/createdb
-    - ft_testdb1
-    path: /usr/lib/postgresql/18/bin/createdb
   - args:
     - /usr/lib/postgresql/18/bin/createdb
     - -O
@@ -107,6 +103,15 @@ spec:
     - ft_testdb3
     path: /usr/lib/postgresql/18/bin/createdb
   - args:
+    - /usr/lib/postgresql/18/bin/createdb
+    - ft_testdb1
+    path: /usr/lib/postgresql/18/bin/createdb
+  - args:
+    - /usr/lib/postgresql/18/bin/createuser
+    - -d
+    - ft_testuser2
+    path: /usr/lib/postgresql/18/bin/createuser
+  - args:
     - /usr/lib/postgresql/18/bin/createuser
     - -s
     - ft_testuser3
@@ -114,11 +119,6 @@ spec:
   - args:
     - /usr/lib/postgresql/18/bin/createuser
     - ft_testuser1
-    path: /usr/lib/postgresql/18/bin/createuser
-  - args:
-    - /usr/lib/postgresql/18/bin/createuser
-    - -d
-    - ft_testuser2
     path: /usr/lib/postgresql/18/bin/createuser
   - args:
     - /usr/lib/postgresql/18/bin/dropdb
@@ -132,19 +132,6 @@ spec:
     path: /usr/lib/postgresql/18/bin/dropuser
   - args:
     - /usr/lib/postgresql/18/bin/pg_dump
-    - -Ft
-    - -f
-    - /tmp/dump.tar
-    path: /usr/lib/postgresql/18/bin/pg_dump
-  - args:
-    - /usr/lib/postgresql/18/bin/pg_dump
-    - -Fp
-    - --inserts
-    - -f
-    - /tmp/dump-inserts.sql
-    path: /usr/lib/postgresql/18/bin/pg_dump
-  - args:
-    - /usr/lib/postgresql/18/bin/pg_dump
     - -Fc
     - -f
     - /tmp/dump.custom
@@ -152,8 +139,16 @@ spec:
   - args:
     - /usr/lib/postgresql/18/bin/pg_dump
     - -Fp
+    - --data-only
     - -f
-    - /tmp/dump.sql
+    - /tmp/dump-data.sql
+    path: /usr/lib/postgresql/18/bin/pg_dump
+  - args:
+    - /usr/lib/postgresql/18/bin/pg_dump
+    - -Fp
+    - --inserts
+    - -f
+    - /tmp/dump-inserts.sql
     path: /usr/lib/postgresql/18/bin/pg_dump
   - args:
     - /usr/lib/postgresql/18/bin/pg_dump
@@ -166,9 +161,15 @@ spec:
   - args:
     - /usr/lib/postgresql/18/bin/pg_dump
     - -Fp
-    - --data-only
+    - --schema-only
     - -f
-    - /tmp/dump-data.sql
+    - /tmp/dump-schema.sql
+    path: /usr/lib/postgresql/18/bin/pg_dump
+  - args:
+    - /usr/lib/postgresql/18/bin/pg_dump
+    - -Fp
+    - -f
+    - /tmp/dump.sql
     path: /usr/lib/postgresql/18/bin/pg_dump
   - args:
     - /usr/lib/postgresql/18/bin/pg_dump
@@ -180,13 +181,24 @@ spec:
     path: /usr/lib/postgresql/18/bin/pg_dump
   - args:
     - /usr/lib/postgresql/18/bin/pg_dump
-    - -Fp
-    - --schema-only
+    - -Ft
     - -f
-    - /tmp/dump-schema.sql
+    - /tmp/dump.tar
     path: /usr/lib/postgresql/18/bin/pg_dump
   - args:
     - /usr/lib/postgresql/18/bin/pg_isready
+    path: /usr/lib/postgresql/18/bin/pg_isready
+  - args:
+    - /usr/lib/postgresql/18/bin/pg_isready
+    - -h
+    - postgres
+    path: /usr/lib/postgresql/18/bin/pg_isready
+  - args:
+    - /usr/lib/postgresql/18/bin/pg_isready
+    - -h
+    - postgres
+    - -p
+    - "5432"
     path: /usr/lib/postgresql/18/bin/pg_isready
   - args:
     - /usr/lib/postgresql/18/bin/pg_isready
@@ -199,36 +211,26 @@ spec:
     path: /usr/lib/postgresql/18/bin/pg_isready
   - args:
     - /usr/lib/postgresql/18/bin/pg_isready
-    - -t
-    - "5"
-    path: /usr/lib/postgresql/18/bin/pg_isready
-  - args:
-    - /usr/lib/postgresql/18/bin/pg_isready
-    - -h
-    - postgres
-    - -p
-    - "5432"
-    path: /usr/lib/postgresql/18/bin/pg_isready
-  - args:
-    - /usr/lib/postgresql/18/bin/pg_isready
     - -q
     path: /usr/lib/postgresql/18/bin/pg_isready
   - args:
     - /usr/lib/postgresql/18/bin/pg_isready
-    - -h
-    - postgres
+    - -t
+    - "5"
     path: /usr/lib/postgresql/18/bin/pg_isready
-  - args:
-    - /usr/lib/postgresql/18/bin/pg_restore
-    - -l
-    - /tmp/dump.custom
-    path: /usr/lib/postgresql/18/bin/pg_restore
   - args:
     - /usr/lib/postgresql/18/bin/pg_restore
     - --clean
     - --if-exists
     - -f
     - /tmp/restore-clean.sql
+    - /tmp/dump.custom
+    path: /usr/lib/postgresql/18/bin/pg_restore
+  - args:
+    - /usr/lib/postgresql/18/bin/pg_restore
+    - --data-only
+    - -f
+    - /tmp/restore-data.sql
     - /tmp/dump.custom
     path: /usr/lib/postgresql/18/bin/pg_restore
   - args:
@@ -240,22 +242,9 @@ spec:
     path: /usr/lib/postgresql/18/bin/pg_restore
   - args:
     - /usr/lib/postgresql/18/bin/pg_restore
-    - --data-only
-    - -f
-    - /tmp/restore-data.sql
+    - -l
     - /tmp/dump.custom
     path: /usr/lib/postgresql/18/bin/pg_restore
-  - args:
-    - /usr/lib/postgresql/18/bin/pgbench
-    - -T
-    - "5"
-    - -c
-    - "2"
-    - -j
-    - "1"
-    - -P
-    - "1"
-    path: /usr/lib/postgresql/18/bin/pgbench
   - args:
     - /usr/lib/postgresql/18/bin/pgbench
     - -T
@@ -268,23 +257,30 @@ spec:
   - args:
     - /usr/lib/postgresql/18/bin/pgbench
     - -T
-    - "5"
+    - "3"
     - -c
-    - "1"
-    - -j
-    - "1"
-    - -S
+    - "2"
+    - -C
     path: /usr/lib/postgresql/18/bin/pgbench
   - args:
     - /usr/lib/postgresql/18/bin/pgbench
     - -T
     - "5"
     - -c
-    - "2"
+    - "1"
     - -j
     - "1"
-    - -b
-    - simple-update
+    - -N
+    path: /usr/lib/postgresql/18/bin/pgbench
+  - args:
+    - /usr/lib/postgresql/18/bin/pgbench
+    - -T
+    - "5"
+    - -c
+    - "1"
+    - -j
+    - "1"
+    - -S
     path: /usr/lib/postgresql/18/bin/pgbench
   - args:
     - /usr/lib/postgresql/18/bin/pgbench
@@ -302,31 +298,22 @@ spec:
     - -T
     - "5"
     - -c
-    - "1"
+    - "2"
     - -j
     - "1"
-    - -N
-    path: /usr/lib/postgresql/18/bin/pgbench
-  - args:
-    - /usr/lib/postgresql/18/bin/pgbench
-    - -i
-    - -s
+    - -P
     - "1"
     path: /usr/lib/postgresql/18/bin/pgbench
   - args:
     - /usr/lib/postgresql/18/bin/pgbench
     - -T
-    - "3"
+    - "5"
     - -c
     - "2"
-    - -C
-    path: /usr/lib/postgresql/18/bin/pgbench
-  - args:
-    - /usr/lib/postgresql/18/bin/pgbench
-    - -i
-    - -s
-    - "2"
-    - --foreign-keys
+    - -j
+    - "1"
+    - -b
+    - simple-update
     path: /usr/lib/postgresql/18/bin/pgbench
   - args:
     - /usr/lib/postgresql/18/bin/pgbench
@@ -339,49 +326,18 @@ spec:
     - -r
     path: /usr/lib/postgresql/18/bin/pgbench
   - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - INSERT INTO tps.tl (source) VALUES ('bobctl-benign');
-    path: /usr/lib/postgresql/18/bin/psql
+    - /usr/lib/postgresql/18/bin/pgbench
+    - -i
+    - -s
+    - "1"
+    path: /usr/lib/postgresql/18/bin/pgbench
   - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - EXPLAIN ANALYZE SELECT * FROM ft.bench WHERE key = 'key-50';
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -X
-    - -c
-    - SELECT 1;
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - SELECT count(*) FROM ft.bench;
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -c
-    - SELECT version();
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -l
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - --version
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - VACUUM ANALYZE ft.bench;
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - SELECT 1;
-    path: /usr/lib/postgresql/18/bin/psql
+    - /usr/lib/postgresql/18/bin/pgbench
+    - -i
+    - -s
+    - "2"
+    - --foreign-keys
+    path: /usr/lib/postgresql/18/bin/pgbench
   - args:
     - /usr/lib/postgresql/18/bin/psql
     - --csv
@@ -390,71 +346,7 @@ spec:
     path: /usr/lib/postgresql/18/bin/psql
   - args:
     - /usr/lib/postgresql/18/bin/psql
-    - -c
-    - \dt
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -c
-    - \dn
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - CREATE SCHEMA IF NOT EXISTS ft;
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - UPDATE ft.bench SET value = 'updated' WHERE id <= 10;
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - DELETE FROM ft.bench WHERE id > 90;
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -e
-    - -c
-    - SELECT current_database();
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -c
-    - \dx
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -c
-    - \di
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - CREATE INDEX IF NOT EXISTS idx_bench_key ON ft.bench (key);
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -c
-    - \conninfo
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - CREATE TABLE IF NOT EXISTS ft.bench (id BIGSERIAL PRIMARY KEY, key TEXT NOT
-      NULL, value TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -c
-    - \du
-    path: /usr/lib/postgresql/18/bin/psql
-  - args:
-    - /usr/lib/postgresql/18/bin/psql
-    - -tAc
-    - INSERT INTO ft.bench (key, value) SELECT 'key-' || g, 'val-' || g FROM generate_series(1,
-      100) g;
+    - --version
     path: /usr/lib/postgresql/18/bin/psql
   - args:
     - /usr/lib/postgresql/18/bin/psql
@@ -464,8 +356,93 @@ spec:
     path: /usr/lib/postgresql/18/bin/psql
   - args:
     - /usr/lib/postgresql/18/bin/psql
+    - -X
+    - -c
+    - SELECT 1;
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -c
+    - SELECT version();
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -c
+    - \conninfo
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -c
+    - \di
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -c
+    - \dn
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -c
+    - \dt
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -c
+    - \du
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -c
+    - \dx
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -e
+    - -c
+    - SELECT current_database();
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -l
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - CREATE INDEX IF NOT EXISTS idx_bench_key ON ft.bench (key);
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - CREATE SCHEMA IF NOT EXISTS ft;
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - CREATE SCHEMA IF NOT EXISTS tps; CREATE TABLE IF NOT EXISTS tps.tl (id BIGSERIAL,
+      timeline TEXT DEFAULT (substring(pg_walfile_name(pg_current_wal_lsn()), 1, 8)),
+      t TIMESTAMP DEFAULT (clock_timestamp() AT TIME ZONE 'UTC'), source TEXT NOT
+      NULL, PRIMARY KEY
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - CREATE TABLE IF NOT EXISTS ft.bench (id BIGSERIAL PRIMARY KEY, key TEXT NOT
+      NULL, value TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - DELETE FROM ft.bench WHERE id > 90;
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
     - -tAc
     - DROP SCHEMA IF EXISTS ft CASCADE; DROP SCHEMA IF EXISTS tps CASCADE;
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - EXPLAIN ANALYZE SELECT * FROM ft.bench WHERE key = 'key-50';
     path: /usr/lib/postgresql/18/bin/psql
   - args:
     - /usr/lib/postgresql/18/bin/psql
@@ -476,11 +453,37 @@ spec:
   - args:
     - /usr/lib/postgresql/18/bin/psql
     - -tAc
-    - CREATE SCHEMA IF NOT EXISTS tps; CREATE TABLE IF NOT EXISTS tps.tl (id BIGSERIAL,
-      timeline TEXT DEFAULT (substring(pg_walfile_name(pg_current_wal_lsn()), 1, 8)),
-      t TIMESTAMP DEFAULT (clock_timestamp() AT TIME ZONE 'UTC'), source TEXT NOT
-      NULL, PRIMARY KEY
+    - INSERT INTO ft.bench (key, value) SELECT 'key-' || g, 'val-' || g FROM generate_series(1,
+      100) g;
     path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - INSERT INTO tps.tl (source) VALUES ('bobctl-benign');
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - SELECT 1;
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - SELECT count(*) FROM ft.bench;
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - UPDATE ft.bench SET value = 'updated' WHERE id <= 10;
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/psql
+    - -tAc
+    - VACUUM ANALYZE ft.bench;
+    path: /usr/lib/postgresql/18/bin/psql
+  - args:
+    - /usr/lib/postgresql/18/bin/reindexdb
+    path: /usr/lib/postgresql/18/bin/reindexdb
   - args:
     - /usr/lib/postgresql/18/bin/reindexdb
     - -i
@@ -492,24 +495,21 @@ spec:
     - ft.bench
     path: /usr/lib/postgresql/18/bin/reindexdb
   - args:
-    - /usr/lib/postgresql/18/bin/reindexdb
-    path: /usr/lib/postgresql/18/bin/reindexdb
+    - /usr/lib/postgresql/18/bin/vacuumdb
+    - --analyze
+    path: /usr/lib/postgresql/18/bin/vacuumdb
+  - args:
+    - /usr/lib/postgresql/18/bin/vacuumdb
+    - --freeze
+    path: /usr/lib/postgresql/18/bin/vacuumdb
   - args:
     - /usr/lib/postgresql/18/bin/vacuumdb
     - --full
     path: /usr/lib/postgresql/18/bin/vacuumdb
   - args:
     - /usr/lib/postgresql/18/bin/vacuumdb
-    - --analyze
-    path: /usr/lib/postgresql/18/bin/vacuumdb
-  - args:
-    - /usr/lib/postgresql/18/bin/vacuumdb
     - -t
     - ft.bench
-    path: /usr/lib/postgresql/18/bin/vacuumdb
-  - args:
-    - /usr/lib/postgresql/18/bin/vacuumdb
-    - --freeze
     path: /usr/lib/postgresql/18/bin/vacuumdb
   identifiedCallStacks: null
   imageID: docker.io/library/postgres@sha256:86c951e05bf56c93d95d397747fb8820ac76cc3bedb78f43abd83eedbe3666ae

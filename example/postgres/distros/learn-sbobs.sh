@@ -22,7 +22,7 @@ drive_benign() {
 wait_for_entries() {
   local ns=$1 obj=$2 n
   for _ in $(seq 1 40); do
-    n=$(bobctl get "$obj" -n "$ns" -o yaml 2>/dev/null | grep -c '^  - path:' || true)
+    n=$(bobctl get "$obj" -n "$ns" -o wide 2>/dev/null | awk '/^  (Execs|Opens):/ {t+=$2} END {print t+0}')
     [ "${n:-0}" -gt 0 ] && return 0
     sleep 10
   done
