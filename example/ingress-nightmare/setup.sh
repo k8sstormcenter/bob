@@ -38,7 +38,7 @@ if [ "${LEARN:-0}" = "1" ]; then
   N=""
   for _ in $(seq 1 40); do
     N=$(kubectl -n "$NS" get "$CP" -o name 2>/dev/null | sed 's|.*/||' | grep controller | head -1)
-    [ -n "$N" ] && [ "$(bobctl get "$N" -n "$NS" -o yaml 2>/dev/null | grep -c '^  - path:')" -gt 0 ] && break
+    [ -n "$N" ] && [ "$(bobctl get "$N" -n "$NS" -o wide 2>/dev/null | awk '/^  (Execs|Opens):/ {t+=$2} END {print t+0}')" -gt 0 ] && break
     sleep 10
   done
   [ -n "$N" ] || { echo "no controller profile with entries" >&2; exit 1; }
