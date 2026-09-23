@@ -264,7 +264,6 @@ kubescape-orig:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
 	-$(HELM) upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/deprecated/values_orig.yaml
-	-kubectl apply  -f kubescape/default-rules.yaml
 
 
 # NOTE: node-agent is NEVER restarted by any target here. It must come up once,
@@ -396,8 +395,6 @@ kubescape: check-registry-auth
 	kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f -
 	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --dry-run=client -o yaml | kubectl apply -f -
 	helm upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
-	kubectl apply -f kubescape/default-rules.yaml
-	kubectl apply -f kubescape/default-rule-binding.yaml
 	./kubescape/set-signature-verification.sh $(KS_SIGNATURES)
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a

@@ -23,9 +23,10 @@ capabilities:
   admissionController: disable
   networkEventsStreaming: enable
 alertCRD:
-  # false: bob owns default-rules.yaml (cp.* dialect). The chart's upstream
-  # ap.*/nn.* defaults would race and win, giving zero detections.
-  installDefault: false
+  # The chart ships the current cp.* ruleset and its binding; bob no longer
+  # overlays either. kubescape/default-rules.yaml is kept only as the --ruleset
+  # input to bobctl and must track the chart.
+  installDefault: true
   scopeClustered: true
 clusterName: bobexample
 ksNamespace: honey
