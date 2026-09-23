@@ -34,12 +34,22 @@ echo "### SBoB: authored (LEARN=1 to record a fresh one instead)"
 if [ "${LEARN:-0}" = "1" ]; then
   kubectl -n "$NS" rollout restart deploy/ingress-nginx-controller
   kubectl -n "$NS" rollout status deploy/ingress-nginx-controller --timeout=120s
-  until kubectl -n "$NS" get "$CP" -o jsonpath='{.items[0].metadata.annotations.kubescape\.io/status}' 2>/dev/null | grep -q completed; do sleep 10; done
-  N=$(kubectl -n "$NS" get "$CP" -o jsonpath='{.items[0].metadata.name}')
-  kubectl -n "$NS" get "$CP" "$N" -o json | python3 "$HERE/hack/cp-to-fragment.py" > "$HERE/frag-base-ingress.yaml"
-else
-  python3 "$HERE/hack/cp-to-fragment.py" < "$HERE/cp-ingress-base.yaml" > "$HERE/frag-base-ingress.yaml"
+  "$HERE/drive-benign.sh"
+  N=""
+  for _ in $(seq 1 40); do
+    N=$(kubectl -n "$NS" get "$CP" -o name 2>/dev/null | sed 's|.*/||' | grep controller | head -1)
+    [ -n "$N" ] && [ "$(bobctl get "$N" -n "$NS" -o yaml 2>/dev/null | grep -c '^  - path:')" -gt 0 ] && break
+    sleep 10
+  done
+  [ -n "$N" ] || { echo "no controller profile with entries" >&2; exit 1; }
+  W="$(mktemp -d)"; mkdir -p "$W/in"
+  bobctl get "$N" -n "$NS" -o yaml > "$W/in/learned.yaml"
+  bobctl generalize -d "$W/in" --sbob ingress-base -o "$W/sbob.yaml" >/dev/null
+  bobctl portable --file "$W/sbob.yaml" --out "$HERE/cp-ingress-base.yaml"
+  bobctl validate --file "$HERE/cp-ingress-base.yaml"
+  rm -rf "$W"
 fi
+python3 "$HERE/hack/cp-to-fragment.py" < "$HERE/cp-ingress-base.yaml" > "$HERE/frag-base-ingress.yaml"
 
 echo "### sign the SBoB (vendor key)"
 [ -x "$SB/sign-object" ] || { curl -fsSL -o "$SB/sign-object" https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.6/sign-object-linux-amd64 && chmod +x "$SB/sign-object"; }
