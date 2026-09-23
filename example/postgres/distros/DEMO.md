@@ -80,6 +80,14 @@ node-agent binds a profile at container start. The inverse also holds: while
 `kubescape.io/user-defined-profile` is set the workload is ENFORCED and does not
 learn, so drop the label before recording a new profile.
 
+## 1b. Re-learn the SBoBs
+
+```
+./learn-sbobs.sh all        # or oss | bitnami | cnpg
+```
+
+Deploy without `sbob` first: a bound workload does not learn.
+
 ## 2. Functional (benign) suite — expect no detections
 
 ```
