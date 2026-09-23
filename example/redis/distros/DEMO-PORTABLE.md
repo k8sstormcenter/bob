@@ -18,6 +18,12 @@ the flow `DEMO.md` already establishes.
 
 ## 0. Prerequisites
 
+**`docker login` first.** node-agent runs from the private
+`docker.io/entlein/duckling` repository. Without credentials `make kubescape`
+builds an empty pull secret and node-agent sits in `ImagePullBackOff` several
+minutes later, reporting a registry error rather than a missing login.
+
+
 ```
 curl -L https://github.com/k8sstormcenter/bob/releases/download/v0.1.5/bobctl-linux-amd64 -o bobctl
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/bobctl
@@ -33,9 +39,16 @@ make kubescape KUBESCAPE_CHART_VER=1.41.0-duckling23
 make alertmanager
 ```
 
-(The `kubescape` target adds `https://raw.githubusercontent.com/k8sstormcenter/helm-charts/gh-pages`,
-whose index carries duckling20-23, so the override resolves. `helm repo update`
-first if it does not.)
+The `kubescape` target installs the GitHub release **tarball** — the same one
+soc's skaffold uses — so there is no helm-repo index to drift against.
+
+Upgrading over an older install fails once with *"invalid ownership metadata"* on
+`rules/default-rules`: the chart now ships that object and helm will not adopt the
+one a previous install applied. Delete it and re-run:
+
+```
+kubectl delete rules default-rules -n honey
+```
 
 **Minimum chart: `1.41.0-duckling21`.** Below it the demo does not merely degrade,
 it misleads:
