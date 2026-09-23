@@ -1,0 +1,10 @@
+spec:
+  ingress:
+  - identifier: redis-client
+    type: internal
+    podSelector:
+      matchLabels: {app: redis-client}
+    namespaceSelector:
+      matchLabels: {kubernetes.io/metadata.name: redis}
+    ports:
+    - {name: TCP-6379, port: 6379, protocol: TCP}
