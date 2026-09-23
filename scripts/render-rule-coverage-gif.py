@@ -25,7 +25,7 @@ should match the reason comments in the suite.
 
 Usage:
   render-rule-coverage-gif.py --out redis-killchain.gif \
-      --ruleset kubescape/default-rules.yaml \
+      --ruleset kubescape/.rules-from-chart.yaml   # make rules-from-chart \
       --suite example/redis-attacks.yaml \
       --metrics results/metrics.json \
       --title "redis" --agent "node-agent v0.3.158" \

@@ -377,7 +377,7 @@ The terminal output ending with `Coverage: 4 / 7 expected detections matched`
 BLIND) is fixed by the cluster's two operator knobs:
 
 - `networkEventsStreaming: disable` (in `kubescape/values.yaml`) → R0005 + R0011 BLIND
-- `R0011.isTriggerAlert: false` (in `kubescape/default-rules.yaml`) → R0011 BLIND
+- `R0011.isTriggerAlert: false` (in the chart's ruleset — `make rules-from-chart`) → R0011 BLIND
 
 A different cluster with `networkEventsStreaming: enable` and R0011
 flipped to `isTriggerAlert: true` would produce `Coverage: 7 / 7`.

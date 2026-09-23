@@ -1,12 +1,6 @@
 imagePullSecrets: duckling-pull
-storage:
-  image:
-    repository: ghcr.io/k8sstormcenter/storage
-    tag: rc-rogue5
 nodeAgent:
   image:
-    repository: docker.io/entlein/duckling
-    tag: v0.1.0-rogue8
     pullPolicy: Always
   config:
     alertManagerExporterUrls:
@@ -29,6 +23,8 @@ capabilities:
   admissionController: disable
   networkEventsStreaming: enable
 alertCRD:
+  # The chart ships the current cp.* ruleset and its binding; bob overlays
+  # neither. Tools needing the ruleset as a file run `make rules-from-chart`.
   installDefault: true
   scopeClustered: true
 clusterName: bobexample
