@@ -38,6 +38,19 @@ import argparse, base64, io, json, os, re, sys, urllib.parse, urllib.request
 # against the apiserver, and the CVE arming. Keeping the two maps side by side
 # is deliberate — the chains are meant to differ only where the protocol does,
 # and a divergence anywhere else should be visible here.
+_VARRE = re.compile(r"\$\{(\w+)\}")
+
+def subst(pred):
+    """Mirror the scorer: ${NAME} <- DX_PROOF_VAR_<NAME> from the environment.
+    An unsubstituted ${...} sent to ClickHouse is a literal it rejects with 400,
+    which read as a probe ERR when the real cause was a var the extraction never
+    set (e.g. SCAN_CIDR)."""
+    return _VARRE.sub(lambda m: os.environ.get("DX_PROOF_VAR_"+m.group(1), m.group(0)), pred or "1")
+
+def unresolved(pred):
+    return _VARRE.findall(pred or "")
+
+
 CHAINS = {
     "1": [
         ("create listener (1337)",                 []),
@@ -217,7 +230,11 @@ def cmd_receipts(a, ch):
                 continue
             for part in sorted(s["parts"]):
                 for p in s["parts"][part]:
-                    t, pred = p["table"], p.get("predicate", "1")
+                    t, pred = p["table"], subst(p.get("predicate", "1"))
+                    if unresolved(pred):
+                        out.append(f"| {i} | {step} | `{name}` | {part} | `{t}` | var | | "
+                                   f"unsubstituted {','.join(unresolved(pred))} |")
+                        continue
                     w = f"{where(t, s.get('pod', ''), a.lo, a.hi)} AND ({pred})"
                     try:
                         cols = [c["name"] for c in ch.rows(
@@ -486,7 +503,14 @@ def cmd_retention(a, ch):
     for s in spec["suspicions"]:
         for part in sorted(s["parts"]):
             for p in s["parts"][part]:
-                t, pred = p["table"], p.get("predicate", "1")
+                t, pred = p["table"], subst(p.get("predicate", "1"))
+                miss = unresolved(pred)
+                if miss:
+                    f = {"step": named.get(s["name"], 0), "name": s["name"], "part": part,
+                         "table": t, "n": 0, "b": 0, "surface": 0, "elsewhere": 0,
+                         "why": "unsubstituted var " + ",".join(miss), "pred": pred}
+                    findings.append(f)
+                    continue
                 # Match the scorer: a node_scope probe queries the node, not the
                 # pod, because the evidence lands off-pod (a hostPID escape is
                 # host-attributed with pod=''). Pod-scoping it here reported a

@@ -110,9 +110,39 @@ def test_step_10_runs_both_sweeps_without_nameerror():
     assert ttl, "reverse-dns-scan TTP must be invoked (graph ingestion)"
     assert fwd, "forward pod-DNS loop must run (dns_events rows)"
 
+
+# ${VAR} in a predicate must be substituted from DX_PROOF_VAR_* like the scorer;
+# an unsubstituted one must NOT be sent to ClickHouse (it 400s) but reported.
+def test_unsubstituted_var_is_flagged_not_fired():
+    import os
+    os.environ.pop("DX_PROOF_VAR_SCAN_CIDR", None)
+    spec={"suite":"t","suspicions":[{"name":"nmap-sweep","rule":"R1007","pod":"ns/w%",
+        "parts":{"C":[{"table":"conn_stats","source":"conn",
+        "predicate":"isIPAddressInRange(remote_addr, '${SCAN_CIDR}')"}]}}]}
+    txt,ch=run(spec, {})
+    assert "unsubstituted var SCAN_CIDR" in txt, txt
+    # no count query for that probe was ever built
+    assert not any("isIPAddressInRange" in q for q in ch.seen), ch.seen
+
+def test_var_is_substituted_when_env_set():
+    import os
+    os.environ["DX_PROOF_VAR_SCAN_CIDR"]="10.42.2.0/24"
+    try:
+        spec={"suite":"t","suspicions":[{"name":"nmap-sweep","rule":"R1007","pod":"ns/w%",
+            "parts":{"C":[{"table":"conn_stats","source":"conn",
+            "predicate":"isIPAddressInRange(remote_addr, '${SCAN_CIDR}')"}]}}]}
+        txt,ch=run(spec, {"conn_stats FINAL WHERE":(0,0)})
+        q=[x for x in ch.seen if "isIPAddressInRange" in x]
+        assert q and "10.42.2.0/24" in q[0] and "${" not in q[0], q
+    finally:
+        os.environ.pop("DX_PROOF_VAR_SCAN_CIDR", None)
+
+
 if __name__=="__main__":
     test_node_scope_probe_is_retained_not_misattributed()
     test_pod_scope_probe_still_flags_misattributed()
     test_worker_sh_quoting_is_the_verified_form()
     test_step_10_runs_both_sweeps_without_nameerror()
+    test_unsubstituted_var_is_flagged_not_fired()
+    test_var_is_substituted_when_env_set()
     print("PASS all")
