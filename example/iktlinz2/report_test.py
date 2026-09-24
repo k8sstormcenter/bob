@@ -138,6 +138,24 @@ def test_var_is_substituted_when_env_set():
         os.environ.pop("DX_PROOF_VAR_SCAN_CIDR", None)
 
 
+
+# A source-side TTP (the extractor) must run FROM system/<pod>, not c2/ran
+# (C2-kind → 422). The generic executor (worker_exec) keeps c2/ran. The two
+# routes are distinct and must not collapse.
+def test_step_17_runs_source_side_from_the_pod_system():
+    d=_load_driver()
+    d.callback_pod=lambda field="metadata.name": "agent-worker-xyz"
+    d.pg_pod_id=lambda: "ns/oopservability/pod/oopservability-postgres-1"
+    seen={}
+    def fake_execute(action,target,args=None,note="",exec_sys=None,**k):
+        seen.update(action=action,target=target,exec_sys=exec_sys); return True
+    d.execute=fake_execute
+    d.step_17_extract_token({})
+    assert seen["exec_sys"]=="system/agent-worker-xyz", seen
+    assert seen["action"]=="extract-serviceaccount-token-via-cve-2026-47702", seen
+    # and the generic executor still routes via the C2 node
+    assert d.foothold_system() != d.C2_NODE
+
 if __name__=="__main__":
     test_node_scope_probe_is_retained_not_misattributed()
     test_pod_scope_probe_still_flags_misattributed()
@@ -145,4 +163,5 @@ if __name__=="__main__":
     test_step_10_runs_both_sweeps_without_nameerror()
     test_unsubstituted_var_is_flagged_not_fired()
     test_var_is_substituted_when_env_set()
+    test_step_17_runs_source_side_from_the_pod_system()
     print("PASS all")

