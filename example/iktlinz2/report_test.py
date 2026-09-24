@@ -165,3 +165,17 @@ if __name__=="__main__":
     test_var_is_substituted_when_env_set()
     test_step_17_runs_source_side_from_the_pod_system()
     print("PASS all")
+
+
+# step 20 must be bounded: nsenter + the single k3s.yaml read, NO whole-fs grep.
+# The search-interesting-files over the k3s data dir DoS'd node-agent and erased
+# three minutes of evidence node-wide (B1c7).
+def test_step_20_is_bounded_no_fs_grep():
+    d=_load_driver()
+    calls=[]
+    d.execute=lambda action,target,args=None,note="",**k: calls.append((action,args)) or True
+    d.step_20_escape_and_loot({})
+    actions=[a for a,_ in calls]
+    assert "search-interesting-files" not in actions, actions
+    assert "escape-container-via-nsenter" in actions and "read-sensitive-file" in actions, actions
+

