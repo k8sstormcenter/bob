@@ -1,0 +1,214 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: oopservability-postgres-postgres
+  namespace: oopservability
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_FOWNER
+    - CAP_SETPCAP
+    - CAP_SYS_ADMIN
+  egress: null
+  endpoints: null
+  execs:
+    - {args: [/bin/bash, /usr/local/bin/docker-entrypoint.sh, postgres], path: /bin/bash}
+    - {args: [/bin/cat, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/chmod, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/chown, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/ls, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/mkdir, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/sh, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/bin/find, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/bin/id, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/local/bin/docker-entrypoint.sh, ⋯⋯], path: /bin/busybox}
+    - {args: [/pause], path: /pause}
+    - {args: [/usr/bin/getent, passwd, "70"], path: /usr/bin/getent}
+    - {args: [/usr/local/bin/gosu, postgres, /usr/local/bin/docker-entrypoint.sh, postgres], path: /usr/local/bin/gosu}
+    - {args: [/usr/local/bin/initdb, --username=oops, --pwfile=/dev/fd/63], path: /usr/local/bin/initdb}
+    - {args: [/usr/local/bin/pg_ctl, -D, /var/lib/postgresql/data/pgdata, -m, fast, -w, stop], path: /usr/local/bin/pg_ctl}
+    - {args: [/usr/local/bin/pg_ctl, -D, /var/lib/postgresql/data/pgdata, -o, '-c listen_addresses= -p 5432 ', -w, start], path: /usr/local/bin/pg_ctl}
+    - {args: [/usr/local/bin/postgres, ⋯⋯], path: /usr/local/bin/postgres}
+    - {args: [postgres, ⋯⋯], path: /usr/local/bin/postgres}
+    - {args: ['postgres:', ⋯⋯], path: /usr/local/bin/postgres}
+    - {args: [/usr/local/bin/psql, -U, oops, -d, oops, -A, -t, -c, 'SELECT value FROM oopservability.receiver WHERE key = ''oopservability:receiver:last-authorization'''], path: /usr/local/bin/psql}
+    - {args: [/usr/local/bin/psql, -U, oops, -d, oops, -c, 'DELETE FROM oopservability.receiver WHERE key = ''oopservability:receiver:last-authorization'';'], path: /usr/local/bin/psql}
+    - {args: [/usr/local/bin/psql, -v, ON_ERROR_STOP=1, --username, oops, --no-password, --no-psqlrc, --dbname, oops, -f, /docker-entrypoint-initdb.d/10-oops.sql], path: /usr/local/bin/psql}
+    - {args: [/usr/local/bin/psql, -v, ON_ERROR_STOP=1, --username, oops, --no-password, --no-psqlrc, --dbname, postgres, --set, db=oops], path: /usr/local/bin/psql}
+    - {args: [/usr/local/bin/psql, -v, ON_ERROR_STOP=1, --username, oops, --no-password, --no-psqlrc, --dbname, postgres, --set, db=oops, --tuples-only], path: /usr/local/bin/psql}
+  identifiedCallStacks: null
+  imageID: docker.io/library/postgres@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+  imageTag: docker.io/library/postgres:16-alpine
+  ingress:
+    - {dns: "", dnsNames: null, identifier: 9caa2f6454607c5d6dc2bb36604e1b3e8a9e7abffd967d4940217743c1e080a2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: agent-system}}, podSelector: {matchLabels: {app: agent-worker, managed-by: agent-orchestrator, task: callback-1}}, ports: [{name: TCP-5432, port: 5432, protocol: TCP}], type: internal}
+  matchLabels:
+    app.kubernetes.io/name: oopservability-postgres
+  opens:
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /dev/fd/⋯}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_LARGEFILE, O_NOFOLLOW, O_NONBLOCK, O_RDWR], path: /dev/shm/⋯}
+    - {flags: [O_LARGEFILE, O_NONBLOCK, O_RDWR], path: /dev/tty}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /docker-entrypoint-initdb.d}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /docker-entrypoint-initdb.d/⋯/10-oops.sql}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/group}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/ld-musl-x86_64.path}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_NONBLOCK, O_RDONLY], path: /etc/localtime}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/passwd}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /etc/ssl/openssl.cnf}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libcom_err.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libcrypto.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libedit.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libgcc_s.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libgssapi_krb5.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libicudata.so.78}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libicui18n.so.78}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libicuuc.so.78}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libk5crypto.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libkeyutils.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libkrb5.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libkrb5support.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/liblber.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libldap.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/liblz4.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/liblzma.so.5}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libncursesw.so.6}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libpq.so.5}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libreadline.so.8}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libsasl2.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libssl.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libstdc++.so.6}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libxml2.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libz.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libzstd.so.1}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/meminfo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY, O_WRONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/postgresql}
+    - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDWR], path: /run/postgresql/.s.PGSQL.5432.lock}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /runc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libcom_err.so.2.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libcrypto.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libedit.so.0.0.77}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libgcc_s.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libgssapi_krb5.so.2.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libicudata.so.78.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libicui18n.so.78.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libicuuc.so.78.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libk5crypto.so.3.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libkeyutils.so.1.10}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libkrb5.so.3.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libkrb5support.so.0.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/liblber.so.2.0.200}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libldap.so.2.0.200}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/liblz4.so.1.10.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/liblzma.so.5.8.4}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libncursesw.so.6.6}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libreadline.so.8.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libsasl2.so.3.0.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libssl.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libstdc++.so.6.0.34}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libxml2.so.2.13.9}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libz.so.1.3.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libzstd.so.1.5.7}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/bin/docker-entrypoint.sh}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libcom_err.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libcrypto.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libedit.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libgcc_s.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libgssapi_krb5.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libicudata.so.78}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libicui18n.so.78}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libicuuc.so.78}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libk5crypto.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libkeyutils.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libkrb5.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libkrb5support.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/liblber.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libldap.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/liblz4.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/liblzma.so.5}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libncursesw.so.6}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libpq.so.5.16}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libreadline.so.8}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libsasl2.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libssl.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libstdc++.so.6}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libxml2.so.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libz.so.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libzstd.so.1}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/postgresql}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/postgresql/dict_snowball.so}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/postgresql/plpgsql.so}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/extension/plpgsql--1.0.control}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/extension/plpgsql--1.0.sql}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/extension/plpgsql.control}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/information_schema.sql}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/pg_hba.conf.sample}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/pg_ident.conf.sample}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/postgres.bki}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/postgresql.conf.sample}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/snowball_create.sql}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/sql_features.txt}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/system_constraints.sql}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/system_functions.sql}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/system_views.sql}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/share/postgresql/timezonesets/Default}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/share/icu/78.1/icudt78l.dat}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /usr/share/zoneinfo}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /usr/share/zoneinfo/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/PG_VERSION}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/backup_label}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/base}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/base/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/global}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/global/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_commit_ts}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_dynshmem}
+    - {flags: [O_APPEND, O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/pg_hba.conf}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/pg_ident.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_logical}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_logical/mappings}
+    - {flags: [O_LARGEFILE, O_RDONLY, O_RDWR], path: /var/lib/postgresql/data/pgdata/pg_logical/replorigin_checkpoint}
+    - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDWR, O_WRONLY], path: /var/lib/postgresql/data/pgdata/pg_logical/replorigin_checkpoint.tmp}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_logical/snapshots}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_multixact}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_multixact/members}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR], path: /var/lib/postgresql/data/pgdata/pg_multixact/members/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_multixact/offsets}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR], path: /var/lib/postgresql/data/pgdata/pg_multixact/offsets/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_notify}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_replslot}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_serial}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_snapshots}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_stat}
+    - {flags: [O_LARGEFILE, O_RDONLY, O_RDWR], path: /var/lib/postgresql/data/pgdata/pg_stat/pgstat.stat}
+    - {flags: [O_CREAT, O_LARGEFILE, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/pg_stat/pgstat.tmp}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_stat_tmp}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_subtrans}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR], path: /var/lib/postgresql/data/pgdata/pg_subtrans/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_tblspc}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_twophase}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_wal}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_LARGEFILE, O_RDONLY, O_RDWR], path: /var/lib/postgresql/data/pgdata/pg_wal/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /var/lib/postgresql/data/pgdata/pg_xact}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR], path: /var/lib/postgresql/data/pgdata/pg_xact/⋯}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/postgresql.auto.conf}
+    - {flags: [O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/postgresql.conf}
+    - {flags: [O_CREAT, O_LARGEFILE, O_TRUNC, O_WRONLY], path: /var/lib/postgresql/data/pgdata/postmaster.opts}
+    - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_RDWR], path: /var/lib/postgresql/data/pgdata/postmaster.pid}
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
