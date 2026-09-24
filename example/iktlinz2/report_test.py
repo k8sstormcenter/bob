@@ -92,8 +92,27 @@ def test_worker_sh_quoting_is_the_verified_form():
     assert "'\\''id'\\''" in pg, pg
     assert '\\"COPY' in pg, pg
 
+# step_10 crashed with NameError: 'fwd' after the reverse-half was moved to the
+# TTP and the forward assignment was deleted but its use left behind. Pin that
+# both sweeps are issued: the TTP (reverse, ingests the graph) AND the forward
+# pod-DNS loop (gives dns_events its pod.cluster.local rows).
+def test_step_10_runs_both_sweeps_without_nameerror():
+    d=_load_driver()
+    calls=[]
+    d.execute=lambda *a,**k: calls.append(("execute",a,k)) or True
+    d.worker_sh=lambda script,note,expect_fail=False: calls.append(("worker_sh",script)) or True
+    d.assert_foothold=lambda: True
+    d.exec_system=lambda: "c2/ran"
+    d.pod_id=lambda ns,p: f"ns/{ns}/pod/{p}"
+    d.step_10_dns_sweep({"scan_cidr":"10.42.2.0/24"})   # must not raise NameError
+    ttl=[c for c in calls if c[0]=="execute" and c[1][0]=="reverse-dns-scan"]
+    fwd=[c for c in calls if c[0]=="worker_sh" and "pod.cluster.local" in c[1]]
+    assert ttl, "reverse-dns-scan TTP must be invoked (graph ingestion)"
+    assert fwd, "forward pod-DNS loop must run (dns_events rows)"
+
 if __name__=="__main__":
     test_node_scope_probe_is_retained_not_misattributed()
     test_pod_scope_probe_still_flags_misattributed()
     test_worker_sh_quoting_is_the_verified_form()
+    test_step_10_runs_both_sweeps_without_nameerror()
     print("PASS all")

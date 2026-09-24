@@ -455,6 +455,9 @@ def step_10_dns_sweep(ctx):
                  {"CIDR": ctx["scan_cidr"]},
                  f"unit-4: reverse sweep of {ctx['scan_cidr']}",
                  exec_sys=exec_system())
+    fwd = (f'for i in $(seq 1 {SWEEP_HOSTS}); do '
+           f'dig +short +time=1 +tries=1 {dashed}-$i.{PG_NS}.pod.cluster.local; '
+           f'done')
     return worker_sh(fwd, f"unit-4: forward pod-DNS sweep of {ctx['scan_cidr']}") and ok
 
 
