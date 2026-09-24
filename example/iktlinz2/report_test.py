@@ -156,15 +156,6 @@ def test_step_17_runs_source_side_from_the_pod_system():
     # and the generic executor still routes via the C2 node
     assert d.foothold_system() != d.C2_NODE
 
-if __name__=="__main__":
-    test_node_scope_probe_is_retained_not_misattributed()
-    test_pod_scope_probe_still_flags_misattributed()
-    test_worker_sh_quoting_is_the_verified_form()
-    test_step_10_runs_both_sweeps_without_nameerror()
-    test_unsubstituted_var_is_flagged_not_fired()
-    test_var_is_substituted_when_env_set()
-    test_step_17_runs_source_side_from_the_pod_system()
-    print("PASS all")
 
 
 # step 20 must be bounded: nsenter + the single k3s.yaml read, NO whole-fs grep.
@@ -179,3 +170,38 @@ def test_step_20_is_bounded_no_fs_grep():
     assert "search-interesting-files" not in actions, actions
     assert "escape-container-via-nsenter" in actions and "read-sensitive-file" in actions, actions
 
+
+
+# A node_scope probe that grounds ONLY node-wide (pod-scoped 0) must read as
+# "node-only", not "retained". privileged-pod's 6 rows in B1c8 were once-a-minute
+# node-wide runc:[1:CHILD] churn with pod=''; the node-scope fix had hidden that
+# as a green. This is the tooling gap that shipped a false green in artifact v3.
+def test_node_only_ground_is_not_reported_retained():
+    spec={"suite":"t","suspicions":[{"name":"privileged-pod","rule":"R1017",
+        "pod":"agent-system/ran-privileged%","parts":{"E":[
+        {"table":"dx_process_forest","predicate":"comm IN ('runc:[1:CHILD]')",
+         "node_scope":True,"source":"forest"}]}}]}
+    class C(FakeCH):
+        def rows(self,sql):
+            self.seen.append(sql)
+            if "system.columns" in sql: return [{"name":"pod"},{"name":"comm"},{"name":"start_ns"}]
+            # node-wide (no pod predicate) finds 6; pod-scoped finds 0
+            if "pod LIKE" in sql: return [{"n":0,"b":0}]
+            if "count()" in sql: return [{"n":6,"b":2400}]
+            return [{"n":0,"b":0}]
+    import types
+    a=types.SimpleNamespace(spec=_specfile(spec),chain="1",lo=1,hi=2,samples=1)
+    out=io.StringIO(); old=sys.stdout; sys.stdout=out
+    try: R.cmd_retention(a, C({}))
+    finally: sys.stdout=old
+    t=out.getvalue()
+    assert "node-only" in t, t
+    assert "retained | 6" not in t, "a node-only ground must not read as retained: "+t
+
+if __name__=="__main__":
+    import types as _t
+    fns=[v for k,v in sorted(globals().items())
+         if k.startswith("test_") and isinstance(v,_t.FunctionType)]
+    for fn in fns:
+        fn(); print("ok", fn.__name__)
+    print(f"PASS all ({len(fns)})")

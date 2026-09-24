@@ -531,7 +531,20 @@ def cmd_retention(a, ch):
                     r = ch.rows(f"SELECT count() AS n, sum({size}) AS b "
                                 f"FROM {t}{final(ch, t)} WHERE {scope} AND ({pred})")[0]
                     f["n"], f["b"] = int(r["n"] or 0), int(r["b"] or 0)
-                    if f["n"]:
+                    if f["n"] and node_scoped:
+                        # A node_scope probe grounded — but node-wide includes
+                        # rows attributed to no pod (pod=''), which for some
+                        # predicates is pure background churn (runc:[1:CHILD]
+                        # fires once/min node-wide forever). If NOTHING matches
+                        # under the pod itself, this is node-only: grounds only
+                        # off-pod, the old "misattributed" case. It must not read
+                        # as plain retained — that hid a false green once.
+                        pod_only = where(t, s.get("pod", ""), a.lo, a.hi)
+                        pn = int(ch.rows(f"SELECT count() AS n FROM {t}{final(ch, t)} "
+                                         f"WHERE {pod_only} AND ({pred})")[0]["n"] or 0)
+                        f["why"] = "retained" if pn else "node-only"
+                        f["elsewhere"] = f["n"] - pn
+                    elif f["n"]:
                         f["why"] = "retained"
                     else:
                         key = (t, node_scoped)
@@ -564,19 +577,23 @@ def cmd_retention(a, ch):
                 findings.append(f)
 
     gaps = [f for f in findings if f["why"] != "retained"]
+    nodeonly = [f for f in gaps if f["why"] == "node-only"]
     lost = [f for f in gaps if f["why"] == "not retained"]
     misfiled = [f for f in gaps if f["why"] == "misattributed"]
     out = [f"Chain {a.chain}, suite `{spec.get('suite')}`, window `{a.lo}`–`{a.hi}`.", ""]
-    other = len(gaps) - len(lost) - len(misfiled)
+    other = len(gaps) - len(lost) - len(misfiled) - len(nodeonly)
     out.append(f"**Retention is {'PERFECT' if not lost else 'NOT perfect'}.** "
                f"{len(findings) - len(gaps)} of {len(findings)} obligation parts have their "
                f"evidence stored; {len(lost)} lost to capture"
                f"{f', {len(misfiled)} captured but attributed to the node rather than the pod' if misfiled else ''}"
+               f"{f', {len(nodeonly)} ground only node-wide (off-pod, not the pod itself)' if nodeonly else ''}"
                f"{'' if not other else f', {other} matched nothing on a populated surface'}.")
     out += ["", "| # | suspicion | part | surface | verdict | rows | cost |",
             "| --- | --- | --- | --- | --- | --- | --- |"]
     for f in sorted(findings, key=lambda x: (x["step"], x["name"], x["part"])):
-        if f["n"]:
+        if f["why"] == "node-only":
+            cost = f"{f['elsewhere']} node-wide, 0 pod-attributed"
+        elif f["n"]:
             cost = human(f["b"])
         elif f["why"] == "not produced":
             cost = f"surface holds {f['surface']}"
@@ -610,7 +627,7 @@ def cmd_retention(a, ch):
                     "predicate does not describe it. The receipts show what the surface did "
                     "hold, which separates the two."]
 
-    kept = [f for f in findings if f["n"]]
+    kept = [f for f in findings if f["n"] and f["why"] == "retained"]
     if kept:
         out += ["", "### What each piece of evidence costs", "",
                 "Bytes of exactly the rows the probe matched. This is the number to choose on: "
