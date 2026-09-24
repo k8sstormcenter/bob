@@ -487,7 +487,12 @@ def cmd_retention(a, ch):
         for part in sorted(s["parts"]):
             for p in s["parts"][part]:
                 t, pred = p["table"], p.get("predicate", "1")
-                scope = where(t, s.get("pod", ""), a.lo, a.hi)
+                # Match the scorer: a node_scope probe queries the node, not the
+                # pod, because the evidence lands off-pod (a hostPID escape is
+                # host-attributed with pod=''). Pod-scoping it here reported a
+                # false "misattributed" for obligations the KPI actually grounds.
+                node_scoped = bool(p.get("node_scope"))
+                scope = where(t, "" if node_scoped else s.get("pod", ""), a.lo, a.hi)
                 f = {"step": named.get(s["name"], 0), "name": s["name"], "part": part,
                      "table": t, "n": 0, "b": 0, "surface": 0, "elsewhere": 0,
                      "why": "", "pred": pred}
@@ -505,12 +510,16 @@ def cmd_retention(a, ch):
                     if f["n"]:
                         f["why"] = "retained"
                     else:
-                        if t not in surface_rows:
-                            surface_rows[t] = int(ch.rows(
+                        key = (t, node_scoped)
+                        if key not in surface_rows:
+                            surface_rows[key] = int(ch.rows(
                                 f"SELECT count() AS n FROM {t}{final(ch, t)} "
                                 f"WHERE {scope}")[0]["n"] or 0)
-                        f["surface"] = surface_rows[t]
-                        if f["surface"]:
+                        f["surface"] = surface_rows[key]
+                        if node_scoped:
+                            # already looked node-wide; a miss is genuine
+                            f["why"] = "not produced" if f["surface"] else "not retained"
+                        elif f["surface"]:
                             f["why"] = "not produced"
                         else:
                             # The surface is empty FOR THIS POD. Before calling
