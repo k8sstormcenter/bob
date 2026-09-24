@@ -292,3 +292,44 @@ address-based entries score once per peer.
 | R0007 appears after collapse | a node peer became `entity: host`; the apiserver is a node address on socket-LB |
 | ports admitted that were never observed | two entries share an `identifier` and storage unioned them |
 | signature fails on read | the signed form was not a deflate fixpoint |
+
+## Expected outcome (measured)
+
+Captured live on k3s (chart `1.41.0-duckling23`, node-agent `v0.1.0-rogue35`,
+storage `rc-rogue23`). Full artifacts in `heal-evidence/`.
+
+| state | redis `R0012` | client `R1017` | client `R0040` | redis-ns total |
+|---|---|---|---|---|
+| client deployed, **unbound**; redis ingress empty | 1 | 1 | 53 | **55** |
+| overlay derived → signed → applied + client **bound** | 0 | 0 | 0 | **0** |
+
+**Before** — the client's ingress to redis is undeclared and the client is rogue:
+
+```
+R0012 | Unexpected Ingress Network Traffic | container=redis  pod=redis-master-0
+        Unexpected ingress network communication from: 10.42.0.54:6379 to: redis
+R1017 | Rogue artefact                     | container=client
+        Container 'client' in namespace 'redis' has no bound profile
+```
+
+**The overlay is derived, not authored** — `bobctl overlay --peer <client-CP>
+--target redis-master` reads the client's own learned egress and emits redis's
+ingress entry (`heal-evidence/overlay-SBOB.yaml`):
+
+```
+admit  redis-client   {app: redis-client}  on [6379]
+```
+
+**After** — both profiles signed (`sign-object`, embed-content) and applied:
+
+```
+Successfully verified object signature       name=redis
+Successfully verified object signature       name=redis-client
+adopted user-authored ContainerProfile as authoritative base   name=redis-client
+```
+
+80s of steady healed traffic → **0 redis-ns alerts**, both pods governed.
+
+Files: `heal-evidence/raw-client-CP.yaml` (as node-agent learned it),
+`overlay-SBOB.yaml` (derived), `{02,03}-before-*` / `{09,10}-after-*` (alerts +
+logs), `redis-healed-signed.yaml` / `client-SBOB-signed.yaml` (signed artifacts).
