@@ -66,7 +66,34 @@ def test_pod_scope_probe_still_flags_misattributed():
     finally: sys.stdout=old
     assert "misattributed" in out.getvalue(), out.getvalue()
 
+# --- driver quoting regression (demo_chain2.worker_sh) -----------------------
+# Pins the ONLY form verified against ClickHouse rows. It broke twice: once by
+# dropping the " escaping (postgres SQL's -c "..." exposed a bare paren), once
+# by using a double-quote wrapper (\$( collapsed to a bare (). Tests the real
+# path by capturing what worker_sh hands worker_exec — no refactor.
+def _load_driver():
+    spec=importlib.util.spec_from_file_location("demo_chain2","demo_chain2.py")
+    m=importlib.util.module_from_spec(spec); sys.modules["demo_chain2"]=m
+    spec.loader.exec_module(m); return m
+
+def test_worker_sh_quoting_is_the_verified_form():
+    d=_load_driver()
+    captured={}
+    d.worker_exec=lambda cmd,args,note,expect_fail=False: captured.update(cmd=cmd,args=args) or True
+    # the two scripts that each broke a different way
+    d.worker_sh("for i in $(seq 1 62); do dig -x 10.42.2.$i; done","sweep")
+    sweep=captured["args"]
+    d.worker_sh("psql -c \"COPY rce FROM PROGRAM 'id'\"","rce")
+    pg=captured["args"]
+    # single-quote wrapper, $ escaped, no double-quote wrapper
+    assert sweep.startswith("-c '") and sweep.endswith("'"), sweep
+    assert "\\$(seq" in sweep and "\\$i" in sweep, sweep
+    # embedded single quote closed-and-reopened; embedded double quote escaped
+    assert "'\\''id'\\''" in pg, pg
+    assert '\\"COPY' in pg, pg
+
 if __name__=="__main__":
     test_node_scope_probe_is_retained_not_misattributed()
     test_pod_scope_probe_still_flags_misattributed()
-    print("PASS both")
+    test_worker_sh_quoting_is_the_verified_form()
+    print("PASS all")
