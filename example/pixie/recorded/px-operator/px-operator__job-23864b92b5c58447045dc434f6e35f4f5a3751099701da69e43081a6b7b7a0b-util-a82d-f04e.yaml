@@ -1,0 +1,71 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-batch/v1/namespace-px-operator/kind-Job/name-23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b/initContainerName-util
+    kubescape.io/otel-span-id: ""
+    kubescape.io/otel-traceparent: ""
+    kubescape.io/resource-size: "8"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: 22863de9b571c10b4f0e1428df1a639b293e878bf4b086bac8bfea5300b17cb9
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-px-operator/job-23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b
+    kubescape.io/workload-container-type: initContainers
+  creationTimestamp: "2026-08-22T07:22:05Z"
+  labels:
+    kubescape.io/learning-period: 2h
+    kubescape.io/workload-api-group: batch
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-container-name: util
+    kubescape.io/workload-kind: Job
+    kubescape.io/workload-name: 23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b
+    kubescape.io/workload-namespace: px-operator
+    kubescape.io/workload-resource-version: "24782"
+  name: job-23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b-util-a82d-f04e
+  namespace: px-operator
+  resourceVersion: "1"
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_SETGID
+  - CAP_SETUID
+  egress: null
+  endpoints: null
+  execs:
+  - args:
+    - /bin/cp
+    - -Rv
+    - /bin/cpb
+    - /util/cpb
+    path: /busybox/busybox
+  identifiedCallStacks: null
+  imageID: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+  imageTag: quay.io/operator-framework/olm@sha256:1b6002156f568d722c29138575733591037c24b4bfabc67946f268ce4752c3e6
+  ingress: null
+  matchLabels:
+    batch.kubernetes.io/controller-uid: 784b463a-e418-4e72-9e8e-05de7b6e8537
+  opens:
+  - flags:
+    - O_RDONLY
+    - O_LARGEFILE
+    path: /bin/cpb
+  - flags:
+    - O_RDONLY
+    - O_DIRECTORY
+    - O_CLOEXEC
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_WRONLY
+    - O_CREAT
+    - O_EXCL
+    - O_LARGEFILE
+    path: /util/cpb
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
