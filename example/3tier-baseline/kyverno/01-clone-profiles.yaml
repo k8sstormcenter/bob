@@ -1,0 +1,49 @@
+# Replicate the tier SBoBs into every application namespace.
+#
+# WHY THIS IS REQUIRED: node-agent resolves the kubescape.io/user-defined-profile
+# label against a ContainerProfile in the POD'S OWN NAMESPACE:
+#
+#     c.storageClient.GetContainerProfile(ctx, ns, name)   // ns = container namespace
+#
+# ContainerProfiles are namespaced, not cluster-scoped. If the profile is absent
+# from the workload's namespace the container ends up with NO profile at all —
+# node-agent does not fall back to learning, it just retries and increments
+# IncUserDefinedProfileUnresolved. That failure is SILENT, so cloning is not a
+# convenience here, it is what makes the demo work at all.
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: clone-tier-sbobs
+  annotations:
+    policies.kyverno.io/title: Clone tier SBoBs into every app namespace
+spec:
+  # generate-only policy: never blocks a deployment
+  background: true
+  rules:
+    - name: clone-sbobs-on-namespace-create
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - kyverno
+                - honey            # kubescape's own namespace
+                - local-path-storage
+      generate:
+        apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+        kind: ContainerProfile
+        # clone every profile living in the library namespace
+        namespace: "{{request.object.metadata.name}}"
+        synchronize: true          # edits to the source propagate to all copies
+        cloneList:
+          namespace: sbob-library
+          kinds:
+            - spdx.softwarecomposition.kubescape.io/v1beta1/ContainerProfile
