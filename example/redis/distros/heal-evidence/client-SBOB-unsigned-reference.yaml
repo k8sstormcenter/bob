@@ -1,0 +1,144 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: redis-client
+  namespace: redis
+spec:
+  architectures:
+  - amd64
+  capabilities: []
+  egress:
+  - dns: ''
+    dnsNames: null
+    identifier: f8ed3623b37b77eb8ee831996a825efe9cbab4d5ad7edabc2d9799e1b352a844
+    ipAddress: ''
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/component: master
+        app.kubernetes.io/instance: redis
+        app.kubernetes.io/name: redis
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    serviceRefName: redis-master
+    serviceRefNamespace: redis
+    type: internal
+  - dns: ''
+    dnsNames: null
+    identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2
+    ipAddress: ''
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    serviceRefName: kube-dns
+    serviceRefNamespace: kube-system
+    type: internal
+  endpoints: null
+  execs:
+  - args:
+    - /bin/sh
+    - "\u22EF\u22EF"
+    path: /bin/busybox
+  - args:
+    - /bin/sleep
+    - "\u22EF\u22EF"
+    path: /bin/busybox
+  - args:
+    - sleep
+    - "\u22EF\u22EF"
+    path: /bin/busybox
+  - args:
+    - /pause
+    path: /pause
+  - args:
+    - /usr/local/bin/redis-cli
+    - -h
+    - redis-master
+    - -p
+    - '6379'
+    - SET
+    - "\u22EF"
+    - "\u22EF"
+    path: /usr/local/bin/redis-cli
+  identifiedCallStacks: null
+  imageID: docker.io/library/redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+  imageTag: docker.io/library/redis:7-alpine
+  ingress: null
+  matchLabels:
+    app: redis-client
+  opens:
+  - flags:
+    - O_CREAT
+    - O_LARGEFILE
+    - O_TRUNC
+    - O_WRONLY
+    path: /dev/null
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/hosts
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/ld-musl-x86_64.path
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/resolv.conf
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /lib/libssl.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/sys/vm/overcommit_memory
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/enabled
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/lib/libssl.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/local/lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/local/lib/libssl.so.3
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ''
+  syscalls: null
+status: {}
