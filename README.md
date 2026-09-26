@@ -1,3 +1,8 @@
+🚨 New preview lab: auto-discovery for profile fragments 
+or "how to compose an SBOB and have different people sign different pieces"
+
+Try the preview on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/2signandverify/blue#suggest) 
+
 # Software Bill of Behavior SBOB 
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/k8sstormcenter/bob/badge)](https://scorecard.dev/viewer/?uri=github.com/k8sstormcenter/bob)
