@@ -1,0 +1,17 @@
+spec:
+  ingress:
+  - dns: ""
+    dnsNames: null
+    identifier: redis-client
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: redis
+    podSelector:
+      matchLabels:
+        app: redis-client
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal

