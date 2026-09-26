@@ -47,6 +47,13 @@ but not pod-create, so the escalation is designed to be contained.
 controller under the signed SBoB, and the `echo` backend + `echo.local` Ingress
 that the chain routes and exfiltrates through.
 
+Two things the script handles so the RCE actually executes in the controller
+(both were silent no-ops before): the PoC's `danger.so` is rebuilt for **musl**,
+because the controller is Alpine and a glibc `.so` fails `ENGINE_by_id` with
+"Exec format error"; and the controller is **restarted right before firing**,
+because the PoC brute-forces pids 5-45 and a churned controller's nginx workers
+climb out of that range so the fd-hunt never lands.
+
 ## Files
 
 - `demo_chain3.py` — the Ran driver (20 steps)
