@@ -46,10 +46,14 @@ Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.
 
 
 
+## Try it out in a lab with a k3s and a k8s
+Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
 
 ## TLDR — run bobctl
 Here for the vulnerable redis example:
+
+⚠️ may currently be broken as stated, due to very frequent rewriting, see lab for pinned workable example please
 
 ```bash
 curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64
@@ -70,8 +74,6 @@ bobctl simulate --suite example/redis-attacks.yaml -n redis-demo --service redis
 kubectl logs -n honey -l app=node-agent -c node-agent
 ```
 
-## Try it out in a lab with a k3s and a k8s
-Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
 
 
