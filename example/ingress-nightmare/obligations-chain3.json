@@ -1,0 +1,271 @@
+{
+  "source": "hand-authored coverage of the 20-step chain-2 (#172); chain-1 shape, different protocols: dig reverse lookups, postgres, CVE-2019-9193 COPY FROM PROGRAM",
+  "suite": "iktlinz-2027-chain3-full",
+  "suspicions": [
+    {
+      "name": "worker-callback",
+      "parts": {
+        "C": [
+          {
+            "minimal": 1,
+            "predicate": "remote_port = 1337",
+            "source": "wire",
+            "table": "conn_stats"
+          }
+        ],
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "comm IN ('socat')",
+            "source": "forest",
+            "table": "dx_process_forest"
+          }
+        ]
+      },
+      "pod": "agent-system/agent-worker%",
+      "rule": "R0002"
+    },
+    {
+      "name": "discovery-env-read",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "comm='env' OR (comm IN ('sh','dash','bash') AND file LIKE '%/env') OR file LIKE '%/environ'",
+            "source": "dc_snoop",
+            "table": "dc_snoop",
+            "node_scope": false
+          }
+        ]
+      },
+      "pod": "agent-system/agent-worker%",
+      "rule": "R0001"
+    },
+    {
+      "name": "sa-token-read-worker",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "file LIKE '%serviceaccount/token%'",
+            "source": "dc_snoop",
+            "table": "dc_snoop"
+          }
+        ]
+      },
+      "pod": "agent-system/agent-worker%",
+      "rule": "R0006"
+    },
+    {
+      "name": "tool-install-kubectl",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "comm IN ('kubectl')",
+            "source": "forest",
+            "table": "dx_process_forest"
+          }
+        ]
+      },
+      "pod": "agent-system/agent-worker%",
+      "rule": "R0001"
+    },
+    {
+      "name": "discovery-hostIP",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "file LIKE '%resolv.conf%'",
+            "source": "dc_snoop",
+            "table": "dc_snoop"
+          }
+        ]
+      },
+      "pod": "agent-system/agent-worker%",
+      "rule": "R0001"
+    },
+    {
+      "name": "privileged-pod",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "node_scope": false,
+            "predicate": "path='socat'",
+            "source": "forest",
+            "table": "dx_process_forest"
+          }
+        ]
+      },
+      "pod": "agent-system/ran-privileged%",
+      "rule": "R1017"
+    },
+    {
+      "name": "host-escape",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "node_scope": true,
+            "predicate": "comm IN ('nsenter')",
+            "source": "nsswitch",
+            "table": "dx_nsswitch"
+          }
+        ]
+      },
+      "pod": "agent-system/ran-privileged%",
+      "rule": "R1000"
+    },
+    {
+      "name": "k3s-credential-read",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "node_scope": true,
+            "predicate": "file LIKE '%rancher/k3s%' OR file LIKE '%k3s.yaml%'",
+            "source": "dc_snoop",
+            "table": "dc_snoop"
+          }
+        ]
+      },
+      "pod": "agent-system/ran-privileged%",
+      "rule": "R0006"
+    },
+    {
+      "name": "tool-install-curl",
+      "pod": "agent-system/agent-worker%",
+      "rule": "R0001",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "comm IN ('curl','apt','apt-get')",
+            "source": "forest",
+            "table": "dx_process_forest"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ingress-recon",
+      "pod": "ing-demo/echo%",
+      "rule": "R0012",
+      "parts": {
+        "C": [
+          {
+            "minimal": 1,
+            "predicate": "local_port = 5678",
+            "source": "wire",
+            "table": "http_events"
+          },
+          {
+            "minimal": 1,
+            "predicate": "alert ILIKE '%ngress%'",
+            "source": "alert",
+            "table": "dx_src__kubescape_logs"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ingress-rce-attempt",
+      "pod": "ingress-nginx/ingress-nginx-controller%",
+      "rule": "R0001",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "remote_port = 443 AND req_path ILIKE '%ngress%'",
+            "source": "wire",
+            "table": "http_events"
+          }
+        ]
+      }
+    },
+    {
+      "name": "tool-install-ing",
+      "pod": "agent-system/agent-worker%",
+      "rule": "R0001",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "comm IN ('ing','chmod')",
+            "source": "forest",
+            "table": "dx_process_forest"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ingress-nightmare-rce",
+      "pod": "ingress-nginx/ingress-nginx-controller%",
+      "rule": "R0002",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "remote_port IN (80,443) AND (req_headers ILIKE '%auth-url%' OR req_body ILIKE '%auth-url%' OR req_body ILIKE '%AdmissionReview%')",
+            "source": "wire",
+            "table": "http_events"
+          },
+          {
+            "minimal": 1,
+            "predicate": "comm IN ('nginx') AND (file LIKE '%/proc/%/fd/%' OR file LIKE '%/tmp/nginx/nginx-cfg%')",
+            "source": "dc_snoop",
+            "table": "dc_snoop",
+            "node_scope": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "controller-token-read",
+      "pod": "ingress-nginx/ingress-nginx-controller%",
+      "rule": "R0006",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "file LIKE '%serviceaccount/token%'",
+            "source": "dc_snoop",
+            "table": "dc_snoop"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cluster-secret-read",
+      "pod": "ingress-nginx/ingress-nginx-controller%",
+      "rule": "R0002",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "req_path ILIKE '%/api/v1/secrets%'",
+            "source": "wire",
+            "table": "http_events"
+          }
+        ]
+      }
+    },
+    {
+      "name": "key-material-on-wire",
+      "pod": "ing-demo/echo%",
+      "rule": "R0006",
+      "parts": {
+        "E": [
+          {
+            "minimal": 1,
+            "predicate": "match(req_body, 'eyJ[A-Za-z0-9_-]{10,}')",
+            "source": "wire",
+            "table": "http_events"
+          }
+        ]
+      }
+    }
+  ]
+}
