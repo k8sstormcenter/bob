@@ -1,0 +1,801 @@
+{
+  "namespace": "flashy-product",
+  "window": "alertmanager retention",
+  "workloads": [
+    {
+      "pod": "api-68778468b4-cvzqh",
+      "ip": "10.42.1.28",
+      "tier": "backend"
+    },
+    {
+      "pod": "cache-7fc68fcd4f-qxxmg",
+      "ip": "10.42.0.23",
+      "tier": "database"
+    },
+    {
+      "pod": "db-fbff4859-5rm2c",
+      "ip": "10.42.1.27",
+      "tier": "database"
+    },
+    {
+      "pod": "frontend-5d5d669787-5qrbg",
+      "ip": "10.42.1.26",
+      "tier": "frontend"
+    },
+    {
+      "pod": "worker-6766f5ffb-l5dnz",
+      "ip": "10.42.0.22",
+      "tier": "unclassified"
+    }
+  ],
+  "broken_before_anything_else": [
+    {
+      "workload": "api-68778468b4-cvzqh",
+      "container": "api",
+      "problem": "CrashLoopBackOff",
+      "restarts": 6,
+      "detail": "back-off 5m0s restarting failed container=api pod=api-68778468b4-cvzqh_flashy-product(50d60837-dfc3-48dd-8904-4dc14efbe78b)",
+      "fix": "the container does not stay up \u2014 fix this before reading any finding below; evidence from a crashing container is partial"
+    }
+  ],
+  "act_on_these_first": [
+    {
+      "adr": "ADR-0001",
+      "decision_broken": "the presentation tier reached the data tier directly",
+      "fix": "route the query through the service labelled tier=backend on 8080/8000/3000",
+      "source": "runtime",
+      "rule": "R0011",
+      "rule_name": "Unexpected Egress Network Traffic",
+      "evidence_class": "observed",
+      "severity": "8",
+      "workload": "frontend-5d5d669787-5qrbg",
+      "container": "web",
+      "tier": "frontend",
+      "node": "node-01",
+      "process": "bash",
+      "pid": "151629",
+      "observed": "Unexpected egress network communication to: 10.42.1.27:5432 using TCP from: web",
+      "timestamp": "2026-08-26T12:54:36.055Z",
+      "corroborated_by": {
+        "rule": "R0012",
+        "workload": "db-fbff4859-5rm2c",
+        "container": "postgres",
+        "observed": "Unexpected ingress network communication from: 10.42.1.26:5432 using TCP to: postgres",
+        "node": "node-01"
+      },
+      "confidence": "both endpoints observed",
+      "flow": "10.42.1.26 -> 10.42.1.27:5432"
+    },
+    {
+      "adr": "ADR-0002",
+      "decision_broken": "the data tier initiated an outbound connection",
+      "fix": "remove the outbound call; if a database genuinely needs egress, it belongs in a sidecar or job labelled tier=backend",
+      "source": "runtime",
+      "rule": "R0011",
+      "rule_name": "Unexpected Egress Network Traffic",
+      "evidence_class": "observed",
+      "severity": "8",
+      "workload": "db-fbff4859-5rm2c",
+      "container": "postgres",
+      "tier": "database",
+      "node": "node-01",
+      "process": "bash",
+      "pid": "151740",
+      "observed": "Unexpected egress network communication to: 1.1.1.1:443 using TCP from: postgres",
+      "timestamp": "2026-08-26T12:54:48.405Z"
+    },
+    {
+      "adr": "ADR-0003",
+      "decision_broken": "the workload read its Kubernetes ServiceAccount token",
+      "fix": "set automountServiceAccountToken: false on the pod spec",
+      "source": "runtime",
+      "rule": "R0006",
+      "rule_name": "Unexpected service account token access",
+      "evidence_class": "observed",
+      "severity": "5",
+      "workload": "frontend-5d5d669787-5qrbg",
+      "container": "web",
+      "tier": "frontend",
+      "node": "node-01",
+      "process": "cat",
+      "pid": "151722",
+      "observed": "Unexpected access to service account token: /run/secrets/kubernetes.io/serviceaccount/..2026_08_26_12_49_22.1672005629/token with flags: O_RDONLY",
+      "timestamp": "2026-08-26T12:54:48.357Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "a process ran that is not part of the image's declared behaviour",
+      "fix": "if it is a package manager or fetch tool, move the work into the image build",
+      "source": "runtime",
+      "rule": "R0001",
+      "rule_name": "Unexpected process launched",
+      "evidence_class": "observed",
+      "severity": "1",
+      "workload": "api-68778468b4-cvzqh",
+      "container": "api",
+      "tier": "backend",
+      "node": "node-01",
+      "process": "uname",
+      "pid": "151256",
+      "observed": "Unexpected process launched: uname with PID 151256",
+      "timestamp": "2026-08-26T12:51:00.455Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "a DNS lookup was made for a name outside the learned set",
+      "fix": "declare the dependency explicitly, or remove it",
+      "source": "runtime",
+      "rule": "R0005",
+      "rule_name": "DNS Anomalies in container",
+      "evidence_class": "observed",
+      "severity": "5",
+      "workload": "api-68778468b4-cvzqh",
+      "container": "api",
+      "tier": "backend",
+      "node": "node-01",
+      "process": "pip",
+      "pid": "151037",
+      "observed": "Unexpected domain communication: pypi.org. from: api",
+      "timestamp": "2026-08-26T12:49:42.506Z"
+    },
+    {
+      "adr": "ADR-0004",
+      "decision_broken": "backend reached an endpoint outside the cluster that its profile does not declare",
+      "fix": "declare or remove the dependency on pypi.org. Do not allow-list the addresses: 3 of them appeared in one run and a CDN will rotate them.",
+      "source": "runtime",
+      "rule": "R0011",
+      "rule_name": "Unexpected Egress Network Traffic",
+      "evidence_class": "observed",
+      "severity": "8",
+      "workload": "api-68778468b4-cvzqh",
+      "container": "api",
+      "tier": "backend",
+      "node": "node-01",
+      "process": "pip",
+      "pid": "151410",
+      "observed": "api reached pypi.org at 151.101.128.223, 151.101.192.223, 151.101.64.223 \u2014 3 addresses for the same dependency",
+      "timestamp": "2026-08-26T12:52:27.517Z",
+      "peers": [
+        "151.101.64.223",
+        "151.101.192.223",
+        "151.101.128.223"
+      ],
+      "resolves_to": [
+        "pypi.org"
+      ]
+    },
+    {
+      "adr": "ADR-0005",
+      "decision_broken": "an unclassified workload ran a process outside the quarantine baseline",
+      "fix": "label the workload with app.kubernetes.io/tier so it gets a profile that fits it",
+      "source": "runtime",
+      "rule": "R0001",
+      "rule_name": "Unexpected process launched",
+      "evidence_class": "observed",
+      "severity": "1",
+      "workload": "worker-6766f5ffb-l5dnz",
+      "container": "worker",
+      "tier": "unclassified",
+      "node": "cplane-01",
+      "process": "uname",
+      "pid": "63842",
+      "observed": "Unexpected process launched: uname with PID 63842",
+      "timestamp": "2026-08-26T12:54:54.564Z"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "the container used a Linux capability, i.e. it starts as root and drops",
+      "fix": "switch to the rootless/distroless image variant; this is an image choice, not a profile gap",
+      "source": "runtime",
+      "rule": "R0004",
+      "rule_name": "Linux Capabilities Anomalies in container",
+      "evidence_class": "observed",
+      "severity": "1",
+      "workload": "db-fbff4859-5rm2c",
+      "container": "postgres",
+      "tier": "database",
+      "node": "node-01",
+      "process": "runc:[2:INIT]",
+      "pid": "151740",
+      "observed": "Unexpected capability used: CAP_SETPCAP in syscall read with PID 151740",
+      "timestamp": "2026-08-26T12:54:48.405Z"
+    }
+  ],
+  "manifest_actions": [
+    {
+      "adr": "ADR-0003",
+      "decision_broken": "Automatic mapping of service account",
+      "source": "static",
+      "evidence_class": "declared+observed",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.automountServiceAccountToken",
+      "value": "false",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0034, C-0190, C-0261",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0034, C-0190, C-0261 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.automountServiceAccountToken = false",
+      "confirmed_at_runtime": {
+        "rule": "R0006",
+        "containers": [
+          "web"
+        ],
+        "evidence": "Unexpected access to service account token: /run/secrets/kubernetes.io/serviceaccount/..2026_08_26_12_49_22.1672005629/token with flags: O_RDONLY"
+      }
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Minimize the admission of HostPath volumes",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "metadata.labels[pod-security.kubernetes.io/enforce]",
+      "value": "baseline",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0193, C-0194, C-0195, C-0196, C-0197, C-0198, C-0199, C-0200, C-0201, C-0202, C-0203, C-0204",
+      "affected": [
+        "flashy-product"
+      ],
+      "observed": "C-0193, C-0194, C-0195, C-0196, C-0197, C-0198, C-0199, C-0200, C-0201, C-0202, C-0203, C-0204 failed on 1 resource(s): flashy-product",
+      "fix": "set metadata.labels[pod-security.kubernetes.io/enforce] = baseline"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "Allow privilege escalation",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.allowPrivilegeEscalation",
+      "value": "false",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0016, C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0016, C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.allowPrivilegeEscalation = false"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Apply Security Context to Your Pods and Containers",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.capabilities.drop[*]",
+      "value": "NET_RAW",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.capabilities.drop[*] = NET_RAW"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "Allow privilege escalation",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.privileged",
+      "value": "false",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0016, C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0016, C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.privileged = false"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "Apply Security Context to Your Pods and Containers",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.readOnlyRootFilesystem",
+      "value": "true",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0017, C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0017, C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.readOnlyRootFilesystem = true"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "Apply Security Context to Your Pods and Containers",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.runAsGroup",
+      "value": "1000",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0013, C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0013, C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.runAsGroup = 1000"
+    },
+    {
+      "adr": "ADR-0006",
+      "decision_broken": "Apply Security Context to Your Pods and Containers",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.runAsNonRoot",
+      "value": "true",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0013, C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0013, C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.runAsNonRoot = true"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Apply Security Context to Your Pods and Containers",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.securityContext.fsGroupChangePolicy",
+      "value": "Always",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.securityContext.fsGroupChangePolicy = Always"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Applications credentials in configuration files",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "remove",
+      "path": "spec.template.spec.containers[*].env[*].name",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": false,
+      "control": "C-0012, C-0259",
+      "affected": [
+        "db"
+      ],
+      "observed": "C-0012, C-0259 failed on 1 resource(s): db",
+      "fix": "remove spec.template.spec.containers[*].env[*].name"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Applications credentials in configuration files",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "remove",
+      "path": "spec.template.spec.containers[*].env[*].value",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": false,
+      "control": "C-0012, C-0259",
+      "affected": [
+        "db"
+      ],
+      "observed": "C-0012, C-0259 failed on 1 resource(s): db",
+      "fix": "remove spec.template.spec.containers[*].env[*].value"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Check if signature exists",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "remove",
+      "path": "spec.template.spec.containers[*].image",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": false,
+      "control": "C-0237",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0237 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "remove spec.template.spec.containers[*].image"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Ensure CPU limits are set",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].resources.limits.cpu",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0009, C-0050, C-0270",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0009, C-0050, C-0270 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].resources.limits.cpu = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Ensure memory limits are set",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].resources.limits.memory",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0004, C-0009, C-0271",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0004, C-0009, C-0271 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].resources.limits.memory = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Ensure CPU requests are set",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].resources.requests.cpu",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0050, C-0268",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0050, C-0268 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].resources.requests.cpu = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Ensure memory requests are set",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].resources.requests.memory",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0004, C-0269",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0004, C-0269 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].resources.requests.memory = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Apply Security Context to Your Pods and Containers",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.seLinuxOptions",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.seLinuxOptions = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Apply Security Context to Your Pods and Containers",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.seccompProfile",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0055, C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0055, C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.seccompProfile = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Apply Security Context to Your Pods and Containers",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "High",
+      "action": "set",
+      "path": "spec.template.spec.securityContext.fsGroup",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0211",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0211 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.securityContext.fsGroup = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Ensure that the seccomp profile is set to docker/default in your pod definitions",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "Medium",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].securityContext.seccompProfile.type",
+      "value": "RuntimeDefault",
+      "agent_can_apply": true,
+      "needs_decision": false,
+      "control": "C-0210",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0210 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].securityContext.seccompProfile.type = RuntimeDefault"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Configured liveness probe",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "Medium",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].livenessProbe",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0056",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0056 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].livenessProbe = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Consider external secret storage",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "Medium",
+      "action": "set",
+      "path": "spec.template.spec.volumes[*].csi.volumeAttributes.secretProviderClass",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0234",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0234 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.volumes[*].csi.volumeAttributes.secretProviderClass = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "K8s common labels usage",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "Low",
+      "action": "set",
+      "path": "metadata.labels[app.kubernetes.io/name]",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0077",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0077 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set metadata.labels[app.kubernetes.io/name] = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Label usage for resources",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "Low",
+      "action": "set",
+      "path": "metadata.labels[app]",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0076",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0076 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set metadata.labels[app] = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "K8s common labels usage",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "Low",
+      "action": "set",
+      "path": "spec.template.metadata.labels[app.kubernetes.io/name]",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0077",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0077 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.metadata.labels[app.kubernetes.io/name] = <choose a value>"
+    },
+    {
+      "adr": "\u2014",
+      "decision_broken": "Configured readiness probe",
+      "source": "static",
+      "evidence_class": "declared",
+      "severity": "Low",
+      "action": "set",
+      "path": "spec.template.spec.containers[*].readinessProbe",
+      "value": null,
+      "agent_can_apply": false,
+      "needs_decision": true,
+      "control": "C-0018",
+      "affected": [
+        "api",
+        "cache",
+        "db",
+        "frontend",
+        "worker"
+      ],
+      "observed": "C-0018 failed on 5 resource(s): api, cache, db, frontend, worker",
+      "fix": "set spec.template.spec.containers[*].readinessProbe = <choose a value>"
+    }
+  ],
+  "manifest_summary": {
+    "apply_directly": 10,
+    "needs_a_decision": 13,
+    "remove": 3
+  },
+  "not_visible_in_node_agent_logs": [
+    {
+      "rule": "R0004",
+      "why": "Linux Capabilities Anomalies \u2014 alerts, but not via node-agent stdout"
+    },
+    {
+      "rule": "R0007",
+      "why": "Workload uses Kubernetes API unexpectedly \u2014 same"
+    },
+    {
+      "rule": "R1009",
+      "why": "Crypto Mining Related Port Communication \u2014 same"
+    },
+    {
+      "rule": "R1016",
+      "why": "Signed profile tampered \u2014 same"
+    }
+  ],
+  "how_to_read_this": {
+    "broken_before_anything_else": "containers that are not running. Findings from a crashing container are partial by construction, so fix these before acting on anything else \u2014 otherwise you will tune rules for a process that never ran.",
+    "observed": "the detector saw this happen. The evidence field is the actual event: container, peer address, port, path. Fix these first \u2014 they are proven, and re-running the review proves the fix.",
+    "declared": "nothing was observed. The manifest permits it, which is worth fixing but is not evidence that it occurred. Collapsed to one entry per control."
+  }
+}
