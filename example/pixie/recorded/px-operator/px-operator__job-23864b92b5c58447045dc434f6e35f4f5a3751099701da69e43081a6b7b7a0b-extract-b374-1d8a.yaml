@@ -1,0 +1,146 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-batch/v1/namespace-px-operator/kind-Job/name-23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b/containerName-extract
+    kubescape.io/otel-span-id: ""
+    kubescape.io/otel-traceparent: ""
+    kubescape.io/resource-size: "21"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: 9d33458f12743bcd0d6c9b08ed6fde731194e9ee29219cc3c5cf45305444b61e
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-px-operator/job-23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b
+    kubescape.io/workload-container-type: containers
+  creationTimestamp: "2026-08-22T07:22:00Z"
+  labels:
+    kubescape.io/learning-period: 2h
+    kubescape.io/workload-api-group: batch
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-container-name: extract
+    kubescape.io/workload-kind: Job
+    kubescape.io/workload-name: 23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b
+    kubescape.io/workload-namespace: px-operator
+    kubescape.io/workload-resource-version: "24782"
+  name: job-23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b-extract-b374-1d8a
+  namespace: px-operator
+  resourceVersion: "1"
+spec:
+  architectures:
+  - amd64
+  capabilities: null
+  egress:
+  - dns: ""
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: default
+    podSelector:
+      matchLabels:
+        component: apiserver
+        provider: kubernetes
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: internal
+  endpoints: null
+  execs:
+  - args:
+    - /bin/opm
+    - alpha
+    - bundle
+    - extract
+    - -m
+    - /bundle/
+    - -n
+    - px-operator
+    - -c
+    - 23864b92b5c58447045dc434f6e35f4f5a3751099701da69e43081a6b7b7a0b
+    - -z
+    path: /bin/opm
+  identifiedCallStacks: null
+  imageID: quay.io/operator-framework/opm@sha256:d999588bd4e9509ec9e75e49adfb6582d256e9421e454c7fb5e9fe57e7b1aada
+  imageTag: quay.io/operator-framework/opm@sha256:d999588bd4e9509ec9e75e49adfb6582d256e9421e454c7fb5e9fe57e7b1aada
+  ingress: null
+  matchLabels:
+    batch.kubernetes.io/controller-uid: 784b463a-e418-4e72-9e8e-05de7b6e8537
+  opens:
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /bin/opm
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /bundle/manifests
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /bundle/manifests/crd.yaml
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /bundle/manifests/csv.yaml
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /bundle/metadata
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /bundle/metadata/annotations.yaml
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/apache/mime.types
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/apache2/mime.types
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/httpd/conf/mime.types
+  - flags:
+    - O_RDONLY
+    path: /etc/localtime
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/mime.types
+  - flags:
+    - O_RDONLY
+    path: /opt/hostedtoolcache/go/1.19.5/x64/lib/time/zoneinfo.zip
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    - O_DIRECTORY
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /usr/local/share/mime/globs2
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /usr/share/mime/globs2
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_13.2786146484/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_13.2786146484/token
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls:
+  - fchdir
+status: {}

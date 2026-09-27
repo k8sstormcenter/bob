@@ -1,0 +1,419 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/completion: complete
+    kubescape.io/instance-id: apiVersion-apps/v1/namespace-pl/kind-ReplicaSet/name-vizier-cloud-connector-767584bf68/containerName-app
+    kubescape.io/otel-span-id: ""
+    kubescape.io/otel-traceparent: ""
+    kubescape.io/resource-size: "102"
+    kubescape.io/status: completed
+    kubescape.io/sync-checksum: 8b7c632521d4240d8414c2c3722ee5df2f7a5609163fe6805d167b6d6ca75457
+    kubescape.io/wlid: wlid://cluster-bobexample/namespace-pl/deployment-vizier-cloud-connector
+    kubescape.io/workload-container-type: containers
+  creationTimestamp: "2026-08-22T07:24:25Z"
+  labels:
+    kubescape.io/instance-template-hash: 767584bf68
+    kubescape.io/learning-period: 2h
+    kubescape.io/workload-api-group: apps
+    kubescape.io/workload-api-version: v1
+    kubescape.io/workload-container-name: app
+    kubescape.io/workload-kind: Deployment
+    kubescape.io/workload-name: vizier-cloud-connector
+    kubescape.io/workload-namespace: pl
+    kubescape.io/workload-resource-version: "25276"
+  name: replicaset-vizier-cloud-connector-767584bf68-app-92b9-c7bc
+  namespace: pl
+  resourceVersion: "2"
+spec:
+  architectures:
+  - amd64
+  capabilities:
+  - CAP_DAC_OVERRIDE
+  - CAP_DAC_READ_SEARCH
+  - CAP_NET_ADMIN
+  egress:
+  - dns: ""
+    dnsNames: null
+    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: ceb1bd1c4e29911ce508482bd2e727fce6fe7e157ae0d62e4b5cce145343ff16
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+    ports:
+    - name: TCP-50300
+      port: 50300
+      protocol: TCP
+    type: internal
+  - dns: work.test.austrianopencloudcommunity.org.
+    dnsNames:
+    - work.test.austrianopencloudcommunity.org.
+    identifier: 284d617ca3e493147f79f2c7f185037100a9c2636930eec7995122394206e7fe
+    ipAddress: 100.103.139.51
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: external
+  - dns: ""
+    dnsNames: null
+    identifier: a08590764670db9042dbda79f3deaa0eee333ec6950ccadc5dd0262fcd994e42
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        name: pl-nats
+    ports:
+    - name: TCP-4222
+      port: 4222
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: dd18fa52244005a49761004e6173ec450c0779087cedb1eaf1ae49142a6550a2
+    ipAddress: 10.43.0.1
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: default
+    podSelector:
+      matchLabels:
+        component: apiserver
+        provider: kubernetes
+    ports:
+    - name: TCP-443
+      port: 443
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: e23b35d90d5eaf9f53654dc4ce085c87b57a167a44f9567c1448423131aeb405
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-50300
+      port: 50300
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: be971f99ebb4711c4b6e7c0c841a69031c22bcf1b3a3c0195b23f7cefc76a653
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        apps.kubernetes.io/pod-index: "0"
+        component: vizier
+        name: vizier-metadata
+        plane: control
+        statefulset.kubernetes.io/pod-name: vizier-metadata-0
+        vizier-name: pixie
+    ports:
+    - name: TCP-50400
+      port: 50400
+      protocol: TCP
+    type: internal
+  endpoints: null
+  execs:
+  - args:
+    - /app/src/vizier/services/cloud_connector/cloud_connector_server
+    path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+  identifiedCallStacks: null
+  imageID: ghcr.io/k8sstormcenter/vizier-cloud_connector_server_image@sha256:9997f1e46e1027bc814c7e72c3ef2cb78692f8fdfce3461c7fe4551295e2c3f4
+  imageTag: ghcr.io/k8sstormcenter/vizier-cloud_connector_server_image:0.14.19-pemdq1
+  ingress:
+  - dns: ""
+    dnsNames: null
+    identifier: 209567a3863579abd33381b8530e8ba80051db1f3ed6c9cf0672c6b27ab4e936
+    ipAddress: 10.42.1.1
+    namespaceSelector: null
+    podSelector: null
+    ports:
+    - name: TCP-50800
+      port: 50800
+      protocol: TCP
+    type: external
+  - dns: ""
+    dnsNames: null
+    identifier: e23b35d90d5eaf9f53654dc4ce085c87b57a167a44f9567c1448423131aeb405
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+        plane: control
+        vizier-name: pixie
+    ports:
+    - name: TCP-50800
+      port: 50800
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: 62ee591d43b945c22a6b4d20155af717cb843a2b85b56ded1939857603480152
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: kelvin
+        plane: data
+        vizier-name: pixie
+    ports:
+    - name: TCP-50800
+      port: 50800
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: 45d5ad2344012200296b36dd59abfae78c961c8a703540a298ae24ecc2fad58d
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: px-operator
+    podSelector:
+      matchLabels:
+        app: pixie-operator
+        component: pixie-operator
+        name: vizier-operator
+        plane: control
+    ports:
+    - name: TCP-50800
+      port: 50800
+      protocol: TCP
+    type: internal
+  matchLabels:
+    app: pl-monitoring
+    component: vizier
+    name: vizier-cloud-connector
+    vizier-bootstrap: "true"
+  opens:
+  - flags:
+    - O_RDONLY
+    path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/bazel-out/k8-opt/bin/external/io_bazel_rules_go/stdlib_/lib/time/zoneinfo.zip
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3665827503/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3665827503/client.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3665827503/client.key
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3665827503/server.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /certs/..2026_08_22_07_21_40.3665827503/server.key
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/hosts
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/ld.so.cache
+  - flags:
+    - O_RDONLY
+    path: /etc/localtime
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/nsswitch.conf
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    - O_DIRECTORY
+    path: /etc/pki/tls/certs
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/resolv.conf
+  - flags:
+    - O_DIRECTORY
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /etc/ssl/certs
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /etc/ssl/certs/ca-certificates.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libc.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/libresolv.so.2
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/tls/x86_64/x86_64/libm.so.6
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /lib/x86_64-linux-gnu/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /lib/x86_64-linux-gnu/x86_64/x86_64/libm.so.6
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/maps
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /proc/⋯/net/core/somaxconn
+  - flags:
+    - O_RDONLY
+    - O_DIRECTORY
+    - O_CLOEXEC
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_40.37260400/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_07_21_40.37260400/token
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_10_12.2326290468/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_10_12.2326290468/token
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_58_46.825657694/ca.crt
+  - flags:
+    - O_RDONLY
+    - O_CLOEXEC
+    path: /var/run/secrets/kubernetes.io/serviceaccount/..2026_08_22_08_58_46.825657694/token
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls:
+  - accept4
+  - access
+  - bind
+  - brk
+  - chdir
+  - clone
+  - close
+  - connect
+  - epoll_create1
+  - epoll_ctl
+  - epoll_pwait
+  - execve
+  - fchown
+  - fcntl
+  - fstat
+  - futex
+  - getcwd
+  - getpeername
+  - getpid
+  - getppid
+  - getrandom
+  - getsockname
+  - getsockopt
+  - gettid
+  - ioctl
+  - listen
+  - madvise
+  - mmap
+  - mprotect
+  - munmap
+  - nanosleep
+  - newfstatat
+  - openat
+  - pread64
+  - prlimit64
+  - read
+  - recvfrom
+  - rseq
+  - rt_sigaction
+  - rt_sigprocmask
+  - rt_sigreturn
+  - sched_getaffinity
+  - sched_yield
+  - set_robust_list
+  - setgid
+  - setsockopt
+  - setuid
+  - sigaltstack
+  - socket
+  - tgkill
+  - uname
+  - write
+status: {}
