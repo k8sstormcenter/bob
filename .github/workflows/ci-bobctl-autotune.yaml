@@ -668,9 +668,10 @@ jobs:
             echo "No rule-coverage.yaml entry for ${{ matrix.app }} — skipping coverage GIF"
             exit 0
           fi
+          make rules-from-chart
           python3 scripts/render-rule-coverage-gif.py \
             --config kubescape/rule-coverage.yaml --app "${{ matrix.app }}" \
-            --ruleset kubescape/default-rules.yaml \
+            --ruleset kubescape/.rules-from-chart.yaml \
             --metrics results/metrics.json || { echo "coverage GIF render failed (non-fatal)"; exit 0; }
           cp "$OUT" results/coverage.gif
           echo "coverage GIF: $(ls -lh results/coverage.gif 2>/dev/null | awk '{print $5}')"
