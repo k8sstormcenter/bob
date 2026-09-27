@@ -1,0 +1,146 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+    signature.kubescape.io/certificate: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJXakNDQVFHZ0F3SUJBZ0lRSkpFUGxxQTRaeGUvMnlHQ0VSWFRGVEFLQmdncWhrak9QUVFEQWpBVU1SSXcKRUFZRFZRUURFd2xzYjJOaGJDMXJaWGt3SGhjTk1qWXdPVEkwTVRBd05EUXhXaGNOTWpjd09USTBNVEF3TkRReApXakFVTVJJd0VBWURWUVFERXdsc2IyTmhiQzFyWlhrd1dUQVRCZ2NxaGtqT1BRSUJCZ2dxaGtqT1BRTUJCd05DCkFBUVdkZUU3MmxlQWp3NllNakh4dmxRb0VYRWtFZXl5QU94b3I0c2l1VWtuSzkvcjJYTTlDOFZDLzJiR0x5eG4KUDRpZ1R6dStIL3VSaVBvazE2anl4aHI0b3pVd016QU9CZ05WSFE4QkFmOEVCQU1DQjRBd0V3WURWUjBsQkF3dwpDZ1lJS3dZQkJRVUhBd013REFZRFZSMFRBUUgvQkFJd0FEQUtCZ2dxaGtqT1BRUURBZ05IQURCRUFpQkRSbTR1ClpaU3BEMG1zMWFHSHMxNWUwekh1NjFHTzFLeURoTERoOG1HM3l3SWdFUTZuOWhpRkVHQVJEV0oyOTJXaGFXSWEKK1ZwSDZFU1l6NDRvcTNFTmVuTT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    signature.kubescape.io/content: H4sIAAAAAAAA/7RWWW7jOBC9S33Llm3t+prA8QwaCJIgyyxoGAGXkk2YIgmSzsQwfII+TN+pTzKg5HbiiTNbMh8JqGLVY/Gp9J63QIz4Ga0TWkENzvCnodON/51YZLo12gkvtBqu1hQdIwaHQsePY4qejCGClVAcaphq5YlQaK+tboREiKBFTzjxBOotSEJROqjVWsoIFGkRarDIhRswKVB52EXgDLKQTCxbCo/Mry06qD8DaXmewjwCRgyhQgovuo15BPiELCy3YIhfQg0xFSqma7eh+gkiIHbRQXRht4QIvn35+u3LV5jvon9WIxHNvyr7qwpD1g5fHtEHjnLWzsZSMyI7/ANJL6veThmEK/aBljiPNsRCN3lSVBDB7eyub23/f76bR6ANqmMSOT7G4V1BBI0k/alXD9Ob2Vkov3q4OLv5afbjp4tZ93R3c3857Va/3FxdXvx2fB/0LF5q592fwC6uZr/Opifgbs5Pg0g+aNdODp7K/CFPh93WOyEtOi0fh0yr5j1QUtDwx+zGeD10eph8AJpz8t1QxmoWu42LH9tYP6Jlum2Ff2ix1XbzNvApqICyQqtQxm0be0uUM8Si8g/L9QINWWCMilCJ/Bj3FFY3vx/K2QvEj+Dt+QP7H9p8ifufm51H4DaOEfksqw5ZEOzvClxvD4rKsSFr6c+Y70UedrsIUHGjhfKHetGSBX46hxq4Ziu0QeiloJbYTa8xP7glmWR5XWZlMxpVTVWMKoZZkTdIWZGkhBQlLZuc55OUlpOsGDcV5zSnnKRJUbAySWiSVkGHurPuyOLtw+piQKQRKsilXUu81lKwTve3uwgER+VFI5BPiZS3nrDV4R4t8Wx5sXecYG/mhNkItbDoDjW4f/q8fYa2UENTIk/ySUKTghYF0hKxTMZVlZNykmGDFaOEpjwjvEBOKJvwqqgqHNMkm5AyTSECvzHB7YTyaBUJksqD2kK/uCQtHrow2vq+ib1F3k2vB3vlNlZ7zbTso9AnQx12wzAYzW9RIvPahku/5qAzcKvQowtcd9auAhk1HJzidZpQzhPFDnZ9Mumln3ejFQLOEIbPLe1HzJxx3jMNED6MY7LHaTNpWMM5a0ZVklW8oKO0LGkx5iwZVXmJ4yy8hiJv8jJP0jFFmmWjSTEaFQmdvJPs+/PrQZYcU31//kx1lvw90avSDfqBCxQNwuFvEPK69IjT77+ehvvmOji3cR7bDvGYyflu90cAAAD//3W48zTICQAA
+    signature.kubescape.io/identity: local-key
+    signature.kubescape.io/issuer: local
+    signature.kubescape.io/signature: MEQCIHPe1XuE3aVXPZCaq8pkrOPkqIqBzIW066vn3P/dpSNPAiBC/BR1CvZ2kId2YbyNKmcGkzDUjvaoexPAaH3+wdtYPQ==
+    signature.kubescape.io/timestamp: "1790244281"
+  name: redis-client
+  namespace: redis
+spec:
+  architectures:
+  - amd64
+  capabilities: []
+  egress:
+  - dns: ""
+    dnsNames: null
+    identifier: f8ed3623b37b77eb8ee831996a825efe9cbab4d5ad7edabc2d9799e1b352a844
+    ipAddress: ""
+    namespaceSelector: null
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/component: master
+        app.kubernetes.io/instance: redis
+        app.kubernetes.io/name: redis
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
+  - dns: ""
+    dnsNames: null
+    identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2
+    ipAddress: ""
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+    type: internal
+  endpoints: null
+  execs:
+  - args:
+    - /bin/sh
+    - ⋯⋯
+    path: /bin/busybox
+  - args:
+    - /bin/sleep
+    - ⋯⋯
+    path: /bin/busybox
+  - args:
+    - sleep
+    - ⋯⋯
+    path: /bin/busybox
+  - args:
+    - /pause
+    path: /pause
+  - args:
+    - /usr/local/bin/redis-cli
+    - -h
+    - redis-master
+    - -p
+    - "6379"
+    - SET
+    - ⋯
+    - ⋯
+    path: /usr/local/bin/redis-cli
+  identifiedCallStacks: null
+  imageID: docker.io/library/redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+  imageTag: docker.io/library/redis:7-alpine
+  ingress: null
+  matchLabels:
+    app: redis-client
+  opens:
+  - flags:
+    - O_CREAT
+    - O_LARGEFILE
+    - O_TRUNC
+    - O_WRONLY
+    path: /dev/null
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/hosts
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/ld-musl-x86_64.path
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/resolv.conf
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /lib/libssl.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/sys/vm/overcommit_memory
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/enabled
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/lib/libssl.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/local/lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/local/lib/libssl.so.3
+  rulePolicies: {}
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
