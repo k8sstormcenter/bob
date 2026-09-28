@@ -1,0 +1,24 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: redis-client-ingress
+  namespace: redis
+  labels:
+    signature.kubescape.io/bundle: redis
+    signature.kubescape.io/fragment-class: admission
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  ingress:
+    - identifier: allowed-client
+      type: internal
+      podSelector:
+        matchLabels:
+          app: redis-client
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: redis
+      ports:
+        - name: TCP-6379
+          port: 6379
+          protocol: TCP

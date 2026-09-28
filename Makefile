@@ -484,3 +484,22 @@ nothing:
 	#helm dependency update myredis-umbrella-chart/redis-bob/
 	#helm upgrade --install bob -n bob --create-namespace --set bob.create=false --set bob.ignore=true ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
 	#helm upgrade --install bob -n bob --create-namespace --set bob.create=true --set bob.ignore=false  --set bob.templateHash=$$(kubectl get statefulset -n bob -o jsonpath='{.items[0].status.currentRevision}'|cut -f4 -d '-')  ./myredis-umbrella-chart/redis-bob --values ./myredis-umbrella-chart/redis-bob/values_compromised.yaml
+
+# --- signed-bundle demo (retuned for chart-wins: chart tarball is the base, signed
+# rules are an OVERLAY; the default `kubescape` target stays pure-chart) ---
+KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" && echo "--server-side=true --force-conflicts")
+KS_CD_FLAGS := $(if $(KS_SIGNED_CLUSTERDATA),--set-file nodeAgent.bundleSigning.signedClusterData=$(KS_SIGNED_CLUSTERDATA))
+SIGNED_BUNDLES_DIR ?= example/redis/distros/signed-bundles
+KUBESCAPE_TRUST_CM ?= kubescape-trust-bundle
+
+.PHONY: trust-bundle
+trust-bundle:
+	kubectl create namespace honey --dry-run=client -o yaml | kubectl apply -f -
+	kubectl -n honey create configmap $(KUBESCAPE_TRUST_CM) \
+	  --from-file=trust-policy.json=$(SIGNED_BUNDLES_DIR)/trust-policy.signed.json \
+	  --dry-run=client -o yaml | kubectl apply -f -
+
+.PHONY: kubescape-mounted
+kubescape-mounted: trust-bundle
+	$(HELM) upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/values.yaml --set nodeAgent.bundleSigning.existingConfigMap=$(KUBESCAPE_TRUST_CM) --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_CD_FLAGS) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
