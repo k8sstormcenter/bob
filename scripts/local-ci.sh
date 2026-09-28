@@ -251,7 +251,7 @@ bin/bobctl tune \
   --alertmanager-service alertmanager \
   --alertmanager-port 9093 \
   --functional-tests "$APP_FUNC_TESTS" \
-  --attack-suite "$APP_ATTACKS" \
+  --suite "$APP_ATTACKS" \
   --output-dir results \
   --max-rounds 3 \
   --debug \
@@ -418,8 +418,8 @@ fi
 # ── run attacks (separate pass for detection report) ─────────────────────────
 log "=== Run attacks ==="
 set +e
-bin/bobctl attack \
-  --attack-suite "$APP_ATTACKS" \
+bin/bobctl simulate \
+  --suite "$APP_ATTACKS" \
   -n "$APP_NS" \
   --service "$APP_SERVICE" \
   --service-port "$APP_PORT" \
@@ -432,7 +432,7 @@ set -e
 # both the attack step and the downstream score gate.
 if [[ "$APP_SCHEME" == "http" || "$APP_SCHEME" == "https" ]]; then
   if [[ ! -f results/attack-results.md ]]; then
-    log "FAIL: attack-results.md missing — bobctl attack did not run"
+    log "FAIL: attack-results.md missing — bobctl simulate did not run"
     exit 1
   fi
   NONZERO=$(awk -F'|' '/^\| *[a-z]/ && !/---/ && !/^\| Type \|/ {gsub(/ /,"",$4); if ($4 != "0" && $4 != "") n++} END {print n+0}' results/attack-results.md)

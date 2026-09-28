@@ -1,0 +1,271 @@
+{
+ "source": "hand-authored coverage of the 20-step chain-2 (#172); chain-1 shape, different protocols: dig reverse lookups, postgres, CVE-2019-9193 COPY FROM PROGRAM",
+ "suite": "iktlinz-2027-chain2-full",
+ "suspicions": [
+  {
+   "name": "worker-callback",
+   "parts": {
+    "C": [
+     {
+      "minimal": 1,
+      "predicate": "remote_port = 1337",
+      "source": "wire",
+      "table": "conn_stats"
+     }
+    ],
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "comm IN ('socat')",
+      "source": "forest",
+      "table": "dx_process_forest"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R0002"
+  },
+  {
+   "name": "discovery-env-read",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "file LIKE '%/environ' OR comm='env'",
+      "source": "dc_snoop",
+      "table": "dc_snoop"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R0001"
+  },
+  {
+   "name": "sa-token-read-worker",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "file LIKE '%serviceaccount/token%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R0006"
+  },
+  {
+   "name": "tool-install-kubectl",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "comm IN ('kubectl')",
+      "source": "forest",
+      "table": "dx_process_forest"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R0001"
+  },
+  {
+   "name": "tool-install-dig",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "comm IN ('dig','apt','apt-get')",
+      "source": "forest",
+      "table": "dx_process_forest"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R0001"
+  },
+  {
+   "name": "discovery-hostIP",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "file LIKE '%resolv.conf%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R0001"
+  },
+  {
+   "name": "dns-sweep",
+   "parts": {
+    "C": [
+     {
+      "minimal": 1,
+      "predicate": "req_body ILIKE '%pod.cluster.local%'",
+      "source": "wire",
+      "table": "dns_events"
+     },
+     {
+      "minimal": 1,
+      "predicate": "alert ILIKE '%in-addr.arpa%'",
+      "source": "alert",
+      "table": "dx_src__kubescape_logs"
+     }
+    ],
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "comm IN ('dig')",
+      "source": "forest",
+      "table": "dx_process_forest"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R1007"
+  },
+  {
+   "name": "psql-not-found",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "comm IN ('sh','dash','bash') AND exit_code=127",
+      "source": "forest",
+      "table": "dx_process_forest"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R0001"
+  },
+  {
+   "name": "tool-install-psql",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "comm IN ('psql','apt','apt-get')",
+      "source": "forest",
+      "table": "dx_process_forest"
+     }
+    ]
+   },
+   "pod": "agent-system/agent-worker%",
+   "rule": "R0001"
+  },
+  {
+   "name": "rce-postgres",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "req ILIKE '%COPY%FROM PROGRAM%'",
+      "source": "wire",
+      "table": "pgsql_events"
+     }
+    ]
+   },
+   "pod": "oopservability/oopservability-postgres%",
+   "rule": "R0002"
+  },
+  {
+   "name": "sa-token-read-postgres",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "file LIKE '%serviceaccount/token%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop"
+     }
+    ]
+   },
+   "pod": "oopservability/oopservability-postgres%",
+   "rule": "R0006"
+  },
+  {
+   "name": "cve-2026-47702-extract",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "req ILIKE 'SELECT%' AND req ILIKE '%last-authorization%'",
+      "source": "wire",
+      "table": "pgsql_events"
+     }
+    ]
+   },
+   "pod": "oopservability/oopservability-postgres%",
+   "rule": "R0002"
+  },
+  {
+   "name": "privileged-pod",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "node_scope": true,
+      "predicate": "comm IN ('runc:[1:CHILD]','nsenter')",
+      "source": "forest",
+      "table": "dx_process_forest"
+     }
+    ]
+   },
+   "pod": "agent-system/ran-privileged%",
+   "rule": "R1017"
+  },
+  {
+   "name": "host-escape",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "node_scope": true,
+      "predicate": "comm IN ('nsenter')",
+      "source": "nsswitch",
+      "table": "dx_nsswitch"
+     }
+    ]
+   },
+   "pod": "agent-system/ran-privileged%",
+   "rule": "R1000"
+  },
+  {
+   "name": "k3s-credential-read",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "node_scope": true,
+      "predicate": "file LIKE '%rancher/k3s%' OR file LIKE '%k3s.yaml%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop"
+     }
+    ]
+   },
+   "pod": "agent-system/ran-privileged%",
+   "rule": "R0006"
+  },
+  {
+   "name": "key-material-on-wire",
+   "parts": {
+    "E": [
+     {
+      "minimal": 1,
+      "predicate": "(match(resp, '(?s)eyJ[A-Za-z0-9_-]{10,}\\\\.eyJ[A-Za-z0-9_-]{10,}\\\\.[A-Za-z0-9_-]{10,}') OR match(resp, '(?s)-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----') OR match(resp, '(?s)-----BEGIN CERTIFICATE-----') OR match(resp, '(?s)AKIA[0-9A-Z]{16}') OR match(resp, '(?s)ASIA[0-9A-Z]{16}') OR match(resp, '(?s)AIza[0-9A-Za-z_-]{35}') OR match(resp, '(?s)glpat-[0-9A-Za-z_-]{20}') OR match(resp, '(?s)ghp_[0-9A-Za-z]{36}') OR match(resp, '(?s)xox[baprs]-[0-9A-Za-z-]{10,}') OR match(resp, '(?s)[A-Za-z0-9+/]{40,}={0,2}')) OR (match(req, '(?s)eyJ[A-Za-z0-9_-]{10,}\\\\.eyJ[A-Za-z0-9_-]{10,}\\\\.[A-Za-z0-9_-]{10,}') OR match(req, '(?s)-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----') OR match(req, '(?s)-----BEGIN CERTIFICATE-----') OR match(req, '(?s)AKIA[0-9A-Z]{16}') OR match(req, '(?s)ASIA[0-9A-Z]{16}') OR match(req, '(?s)AIza[0-9A-Za-z_-]{35}') OR match(req, '(?s)glpat-[0-9A-Za-z_-]{20}') OR match(req, '(?s)ghp_[0-9A-Za-z]{36}') OR match(req, '(?s)xox[baprs]-[0-9A-Za-z-]{10,}') OR match(req, '(?s)[A-Za-z0-9+/]{40,}={0,2}'))",
+      "source": "wire",
+      "table": "pgsql_events"
+     }
+    ]
+   },
+   "pod": "oopservability/oopservability-postgres%",
+   "rule": "R0006"
+  }
+ ]
+}

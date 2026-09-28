@@ -87,8 +87,14 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
+          # The version vars live in the cmd package, not main — stamping
+          # main.version silently no-ops and every release reports "dev".
+          LDFLAGS="-s -w"
+          LDFLAGS="$LDFLAGS -X github.com/entlein/bob/cmd.Version=${{ steps.version.outputs.version }}"
+          LDFLAGS="$LDFLAGS -X github.com/entlein/bob/cmd.GitCommit=${GITHUB_SHA::7}"
+          LDFLAGS="$LDFLAGS -X github.com/entlein/bob/cmd.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           go build -trimpath \
-            -ldflags="-s -w -X main.version=${{ steps.version.outputs.version }}" \
+            -ldflags="$LDFLAGS" \
             -o ../bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} \
             ./main.go
 

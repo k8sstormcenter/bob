@@ -4,7 +4,14 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-KUBESCAPE_CHART_VER ?= 1.40.3-node-agent-rc-sofia
+# Chart truth lives in k8sstormcenter/soc (skaffold.yaml, soc-kubescape). Install
+# the same release tarball it does, so bob cannot drift to an older chart.
+KUBESCAPE_CHART_VER ?= 1.41.0-duckling23
+KUBESCAPE_CHART_URL ?= https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz
+KUBESCAPE_NODEAGENT_REPO ?= docker.io/entlein/duckling
+# The ruleset is the chart's. Tools that need it as a file generate it rather
+# than reading a committed copy that can drift from what the cluster runs.
+KUBESCAPE_RULES ?= kubescape/.rules-from-chart.yaml
 
 OUTPUT_PATH := $(BUILD_DIR)/$(NAME)
 HELM := $(shell which helm)
@@ -259,8 +266,7 @@ attack:
 kubescape-orig:
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	-$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER)  -n honey --create-namespace --values kubescape/deprecated/values_orig.yaml
-	-kubectl apply  -f kubescape/default-rules.yaml
+	-$(HELM) upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/deprecated/values_orig.yaml
 
 
 # NOTE: node-agent is NEVER restarted by any target here. It must come up once,
@@ -344,6 +350,17 @@ endif
 endif
 
 KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.maxLearningPeriod=$(KS_LEARN_PERIOD))
+#
+# node-agent ContainerProfile signature verification. bobctl emits UNSIGNED
+# SBoBs; with verification ON, node-agent silently refuses to enforce them and
+# falls back to learning mode (no detection, no error). Default off for this
+# demo repo; production should `bobctl sign` and set KS_SIGNATURES=on. Applied
+# after helm by kubescape/set-signature-verification.sh — the upstream chart
+# does not template this key and post-render is not helm-4 safe.
+KS_SIGNATURES ?= off
+ifneq ($(filter-out on off,$(KS_SIGNATURES)),)
+$(error KS_SIGNATURES must be 'on' or 'off', got "$(KS_SIGNATURES)")
+endif
 
 # One rule-coverage card per contrast SBoB, defined in kubescape/rule-coverage.yaml.
 # Every rule in the ruleset is accounted for as verified / probe / excluded / gap,
@@ -351,10 +368,10 @@ KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.maxLearningPeri
 #   make rule-coverage-gifs              # all apps
 #   make rule-coverage-gifs APP=argocd   # one app
 .PHONY: rule-coverage-gifs
-rule-coverage-gifs:
+rule-coverage-gifs: rules-from-chart
 	python3 scripts/render-rule-coverage-gif.py \
 	  --config kubescape/rule-coverage.yaml \
-	  --ruleset kubescape/default-rules.yaml \
+	  --ruleset $(KUBESCAPE_RULES) \
 	  $(if $(APP),$(foreach a,$(APP),--app $(a)),)
 
 .PHONY: show-runc
@@ -364,37 +381,33 @@ show-runc:
 	@echo "KS_LEARN_PERIOD:  $(if $(KS_LEARN_PERIOD),$(KS_LEARN_PERIOD),(unset - chart default 2m))"
 	@echo "extra helm flags: $(if $(KS_RUNC_FLAGS)$(KS_LEARN_FLAGS),$(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS),(none))"
 
+.PHONY: rules-from-chart
+rules-from-chart: $(KUBESCAPE_RULES)
+
+$(KUBESCAPE_RULES):
+	@helm template kubescape $(KUBESCAPE_CHART_URL) --set alertCRD.installDefault=true 2>/dev/null \
+	  | python3 -c "import sys,yaml;[yaml.safe_dump(d,sys.stdout) for d in yaml.safe_load_all(sys.stdin) if d and d.get('kind')=='Rules']" > $@
+	@test -s $@ || { rm -f $@; echo 'ERROR: no Rules object in $(KUBESCAPE_CHART_VER)'; exit 1; }
+	@echo "wrote $@ from $(KUBESCAPE_CHART_VER)"
+
+.PHONY: check-registry-auth
+check-registry-auth:
+	@python3 -c "import json,os,sys;p=os.path.expanduser('~/.docker/config.json');\
+	d=json.load(open(p)) if os.path.exists(p) else {};\
+	a=(d.get('auths') or {});\
+	ok=any(v.get('auth') or v.get('identitytoken') for v in a.values()) or bool(d.get('credsStore')) or bool(d.get('credHelpers'));\
+	sys.exit(0) if ok else sys.exit('ERROR: no docker registry credentials in ~/.docker/config.json.\n'\
+	  '       node-agent runs from the PRIVATE $(KUBESCAPE_NODEAGENT_REPO) repository, so the\n'\
+	  '       duckling-pull secret would be created empty and node-agent would sit in\n'\
+	  '       ImagePullBackOff. Run: docker login')"
+
 .PHONY: kubescape
-# helm 4 applies server-side and refuses fields owned by the kubectl applies
-# below (default-rules / rule-binding); --force-conflicts overrides that.
-# --server-side=true is pinned with it because "auto" (the default) inherits
-# client-side from a release previously upgraded by helm 3, and helm 4 rejects
-# --force-conflicts without server-side apply. helm 3 has neither flag.
-KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" && echo "--server-side=true --force-conflicts")
-KS_CD_FLAGS := $(if $(KS_SIGNED_CLUSTERDATA),--set-file nodeAgent.bundleSigning.signedClusterData=$(KS_SIGNED_CLUSTERDATA))
-
-kubescape:
-	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_CD_FLAGS) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
-	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
-	kubectl apply -f kubescape/default-rule-binding.yaml
-
-# Same install, but the trust policy comes from a ConfigMap YOU own instead of
-# being inlined in values.yaml. The chart mounts it and renders none, so the
-# policy can be rotated (kubectl apply on the ConfigMap) without a helm upgrade
-# and without pasting the signed artifact into values.
-SIGNED_BUNDLES_DIR ?= example/redis/distros/signed-bundles
-KUBESCAPE_TRUST_CM ?= kubescape-trust-bundle
-
-trust-bundle:
-	kubectl create namespace honey --dry-run=client -o yaml | kubectl apply -f -
-	kubectl -n honey create configmap $(KUBESCAPE_TRUST_CM) \
-	  --from-file=trust-policy.json=$(SIGNED_BUNDLES_DIR)/trust-policy.signed.json \
-	  --dry-run=client -o yaml | kubectl apply -f -
-
-kubescape-mounted: trust-bundle
-	$(HELM) upgrade --install kubescape https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz -n honey --create-namespace --values kubescape/values.yaml --set nodeAgent.bundleSigning.existingConfigMap=$(KUBESCAPE_TRUST_CM) --set-file nodeAgent.bundleSigning.signedDefaultRules=$(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml $(KS_CD_FLAGS) $(KS_HELM_V4_FLAGS) $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
-	kubectl apply -f $(SIGNED_BUNDLES_DIR)/rules/baseline-rules-signed.yaml
-	kubectl apply -f kubescape/default-rule-binding.yaml
+kubescape: check-registry-auth
+	@echo "chart: $(KUBESCAPE_CHART_URL)"
+	kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f -
+	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --dry-run=client -o yaml | kubectl apply -f -
+	helm upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	./kubescape/set-signature-verification.sh $(KS_SIGNATURES)
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
 # restart: node-agent binds user-supplied profiles and starts its learning
@@ -411,6 +424,7 @@ alertmanager:
 	@echo "Deploying alertmanager in honey namespace..."
 	kubectl create namespace honey --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n honey -f kubescape/alertmanager.yaml
+	kubectl wait --for=create pod -l app=alertmanager -n honey --timeout=60s
 	kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s
 	@echo "Alertmanager ready. Forward with: kubectl -n honey port-forward svc/alertmanager 9093:9093"
 
@@ -427,7 +441,7 @@ fwd-autotune:
 kubescape-vendor: 
 	-$(HELM) repo add kubescape https://kubescape.github.io/helm-charts/
 	-$(HELM) repo update
-	$(HELM) upgrade --install kubescape kubescape/kubescape-operator --version $(KUBESCAPE_CHART_VER) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	$(HELM) upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/deprecated/values_vendor.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
 	-kubectl apply  -f kubescape/runtimerules.yaml
 	-kubectl rollout status -n honey deploy/kubevuln --timeout=120s
 	$(MAKE) wait-node-agent
@@ -453,6 +467,7 @@ HELM = $(shell which helm)
 .PHONY: sample-app
 sample-app:
 	$(MAKE) --makefile=example/myharbor/Makefile install-helm install-harbor
+	@kubectl wait --for=create pod -l app=harbor -n harbor --timeout=120s
 	@kubectl wait --for=condition=ready pod -l app=harbor -n harbor --timeout=600s
 
 .PHONY: nothing

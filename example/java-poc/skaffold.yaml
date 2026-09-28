@@ -1,4 +1,4 @@
-# Golden source: the java-poc test apps (log4j chain + pathogen) for the SOC e2e suite.
+# Golden source: the java-poc test apps (Java chain + pathogen) for the SOC e2e suite.
 #
 # This Skaffold deploys ONLY the sample workloads and their user-defined SBoBs.
 # It assumes the detection/forensics stack (kubescape + its CRDs, vector,
@@ -12,7 +12,7 @@
 #
 #   skaffold deploy -m java-poc-apps -p k3s
 #
-# Images are prebuilt (ghcr.io/k8sstormcenter/log4j-chain-*), so this config only
+# Images are prebuilt in ghcr.io/k8sstormcenter, so this config only
 # deploys — it never builds.
 apiVersion: skaffold/v4beta11
 kind: Config

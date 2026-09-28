@@ -55,7 +55,7 @@ manifest_scenarios() {
 
 # manifest_field <manifest.yaml> <yq-path>
 #   Generic accessor for top-level fields. Returns empty on missing.
-#   Example: manifest_field foo.yaml '.namespace' → "log4j-poc"
+#   Example: manifest_field foo.yaml '.namespace' → "java-poc"
 manifest_field() {
   local f=$1
   local path=$2

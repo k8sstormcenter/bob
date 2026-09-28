@@ -10,24 +10,24 @@ PODS=$'chain-backend\treplicaset-chain-backend\tbackend\tfalse\nchain-frontend\t
 # ── happy path: applies both pods, delete precedes apply (D4) ──────────
 test_happy_path() {
   install_mocks
-  stub_manifest "log4j-poc" "$PODS" "" "" ""
+  stub_manifest "java-poc" "$PODS" "" "" ""
   chain_apply_sbobs "$FIXTURES/dummy.manifest.yaml" "$FIXTURES/sbobs" >/dev/null 2>&1
   assert_rc 0 $? "happy path returns 0"
 
-  assert_log_contains "delete containerprofile chain-backend -n log4j-poc --ignore-not-found" "deletes backend CP first"
-  assert_log_contains "apply -n log4j-poc -f $FIXTURES/sbobs/cp-chain-backend.yaml" "applies backend CP"
+  assert_log_contains "delete containerprofile chain-backend -n java-poc --ignore-not-found" "deletes backend CP first"
+  assert_log_contains "apply -n java-poc -f $FIXTURES/sbobs/cp-chain-backend.yaml" "applies backend CP"
   # The D4 guarantee: every delete happens before any apply.
-  assert_log_order "delete containerprofile chain-backend" "apply -n log4j-poc -f $FIXTURES/sbobs/cp-chain-backend.yaml" "delete precedes apply (D4)"
-  assert_log_order "delete containerprofile chain-frontend" "apply -n log4j-poc -f $FIXTURES/sbobs/cp-chain-frontend.yaml" "frontend CP delete precedes apply (D4)"
+  assert_log_order "delete containerprofile chain-backend" "apply -n java-poc -f $FIXTURES/sbobs/cp-chain-backend.yaml" "delete precedes apply (D4)"
+  assert_log_order "delete containerprofile chain-frontend" "apply -n java-poc -f $FIXTURES/sbobs/cp-chain-frontend.yaml" "frontend CP delete precedes apply (D4)"
   # managed-by verification queried for each pod.
-  assert_log_contains "get containerprofile chain-backend -n log4j-poc" "verifies managed-by on backend"
+  assert_log_contains "get containerprofile chain-backend -n java-poc" "verifies managed-by on backend"
 }
 
 # ── managed-by != User aborts (webhook/strip detection) ───────────────
 test_managed_by_strip_detected() {
   install_mocks
   export MOCK_MANAGED_BY="Learning"   # simulate node-agent reclaiming it
-  stub_manifest "log4j-poc" "$PODS" "" "" ""
+  stub_manifest "java-poc" "$PODS" "" "" ""
   chain_apply_sbobs "$FIXTURES/dummy.manifest.yaml" "$FIXTURES/sbobs" >/dev/null 2>&1
   assert_rc 1 $? "managed-by!=User returns 1"
   unset MOCK_MANAGED_BY
@@ -38,18 +38,18 @@ test_missing_file_aborts_clean() {
   install_mocks
   # Add a third pod whose ap/nn fixtures don't exist.
   local pods="$PODS"$'\nchain-observer\treplicaset-chain-observer\tobserver\ttrue'
-  stub_manifest "log4j-poc" "$pods" "" "" ""
+  stub_manifest "java-poc" "$pods" "" "" ""
   chain_apply_sbobs "$FIXTURES/dummy.manifest.yaml" "$FIXTURES/sbobs" >/dev/null 2>&1
   assert_rc 1 $? "missing file returns 1"
   # Critical: nothing was deleted/applied — fail fast, no partial state.
   assert_log_absent "delete containerprofile" "no delete on missing-file abort"
-  assert_log_absent "apply -n log4j-poc -f" "no apply on missing-file abort"
+  assert_log_absent "apply -n java-poc -f" "no apply on missing-file abort"
 }
 
 # ── nonexistent sbob_dir returns 2 ────────────────────────────────────
 test_bad_sbob_dir() {
   install_mocks
-  stub_manifest "log4j-poc" "$PODS" "" "" ""
+  stub_manifest "java-poc" "$PODS" "" "" ""
   chain_apply_sbobs "$FIXTURES/dummy.manifest.yaml" "/no/such/dir" >/dev/null 2>&1
   assert_rc 2 $? "missing sbob_dir returns 2"
 }

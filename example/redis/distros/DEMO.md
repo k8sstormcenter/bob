@@ -1,11 +1,30 @@
 # Redis-distro SBoB demo — deploy, bind, contrast
 
+## 0. Get bobctl
+
+Download the released binary (linux/amd64; swap `amd64` for `arm64` on ARM):
+
+```
+curl -L https://github.com/k8sstormcenter/bob/releases/download/v0.1.5/bobctl-linux-amd64 -o bobctl
+chmod +x bobctl && sudo mv bobctl /usr/local/bin/bobctl
+bobctl simulate --help
+```
+
 Bring up the fork stack from the bob repo root first:
 
 ```
 make kubescape
 make alertmanager
 ```
+
+`make kubescape` installs the runtime rules and the `all-rules-all-pods`
+RuntimeRuleAlertBinding. It must set `global.overrideRuntimePath` to the
+**resolved** k3s runc path (`readlink -f …/current/bin/runc`, not the `current`
+symlink — the symlink target is not mounted inside the node-agent pod), point
+`nodeAgent.config.alertManagerExporterUrls` at `alertmanager.<ns>.svc:9093`, and
+keep `nodeAgent.config.maxLearningPeriod` greater than `initialDelay` so a
+container is not dropped from monitoring before enforcement begins. R0003
+(syscalls) is intentionally not bound — SBoBs carry no syscalls.
 
 Each distro is installed by its native vendor installer and its SBoB (learned
 against that same vendor image) is bound at deploy time via the `sbob` toggle.
@@ -39,10 +58,10 @@ bobctl test --functional-tests functional/dragonfly.yaml -n dragonfly
 ## 3. Attack suite — expect detections
 
 ```
-bobctl attack --attack-suite attacks/redis-oss.yaml -n redis
-bobctl attack --attack-suite attacks/valkey.yaml    -n valkey
-bobctl attack --attack-suite attacks/keydb.yaml     -n keydb
-bobctl attack --attack-suite attacks/dragonfly.yaml -n dragonfly
+bobctl simulate --suite attacks/redis-oss.yaml -n redis
+bobctl simulate --suite attacks/valkey.yaml    -n valkey
+bobctl simulate --suite attacks/keydb.yaml     -n keydb
+bobctl simulate --suite attacks/dragonfly.yaml -n dragonfly
 ```
 
 ## 4. Contrast: functional FPs vs attack TPs
@@ -87,4 +106,21 @@ Allowlist that identity — R0012 stops within ~30s (profile-projection refresh)
 
 ```
 kubectl -n redis patch $CP redis --type merge -p '{"spec":{"ingress":[{"type":"internal","podSelector":{"matchLabels":{"app":"redis-client"}},"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"redis"}},"ports":[{"name":"TCP-6379","port":6379,"protocol":"TCP"}]}]}}'
+```
+
+## 6. Egress port allowlist — internal + external (#80)
+
+The client's profile allows the redis pod on TCP/6379 and an external IP on
+TCP/80. The same IPs on any other port fire R0011 — an allowlisted address is
+no longer sufficient.
+
+```
+./port-alerts.sh redis-port
+```
+
+R0011 fires only on the violating ports; `:6379` and `:80` stay silent:
+
+```
+Unexpected egress network communication to: <redis-pod-ip>:6380 using TCP
+Unexpected egress network communication to: 162.0.217.171:443 using TCP
 ```

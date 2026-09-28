@@ -3,20 +3,20 @@
 This directory is the **single source of truth** for the sample workloads the SOC
 end-to-end / calibration suite drives (pixie fork `src/e2e_test/adaptive_export_loadtest`,
 `TestJavaPocCalibration`). Previously these manifests lived only ephemerally on a
-rig (applied inline, medical-named) while the on-disk copies under
-`../log4j-chain/` used the older `log4j-poc` / `chain-*` / `attacker-ns` naming.
-This dir captures the exact working, medically-named, digest-pinned deployment.
+rig (applied inline, medical-named) while the retired on-disk copies used older
+`chain-*` / `attacker-ns` naming. This dir captures the exact working,
+medically-named, digest-pinned deployment.
 
 ## What it deploys
 
 | Namespace | Workload | Image | Role |
 |---|---|---|---|
-| `java-poc` | `backend` | `log4j-chain-backend-vulnerable@sha256:72655e…` | the vulnerable Java app (scenario A) |
+| `java-poc` | `backend` | `<backend-vulnerable>@sha256:72655e…` | the vulnerable Java app (scenario A) |
 | `java-poc` | `frontend` | `nginx:1.27-alpine` | edge |
 | `java-poc` | `postgres` | `postgres:16` | app DB (PII the disease hemorrhages) |
 | `java-poc` | `observer` | `curlimages/curl:8.6.0` | benign traffic generator |
 | `java-poc` | `cleannoise` | `busybox:1.36` | benign noise (x3) → frontend `/api/products?q=noise`; a true-negative in the confusion matrix |
-| `pathogen-ns` | `pathogen` | `log4j-chain-attacker@sha256:c4dd5f…` | serves the LDAP Specimen (disease origin) |
+| `pathogen-ns` | `pathogen` | `<attacker>@sha256:c4dd5f…` | serves the LDAP Specimen (disease origin) |
 
 Plus the **user-defined SBoBs** (`sbobs/*-cp.yaml`) — one unified
 ContainerProfile per java-poc workload (process view + inline network shape),
@@ -28,7 +28,7 @@ being SBoB-bound).
 
 - app namespace `java-poc`, pathogen namespace `pathogen-ns`
 - workloads `backend` / `frontend` / `observer` / `postgres` / `pathogen`
-- **image names stay literal** (`log4j-chain-*`) — they are external wire, digest-pinned.
+- **image names stay literal** — they are external wire, digest-pinned.
 
 The `TestJavaPocCalibration` config defaults (`appNS=java-poc`, `backend`,
 `pathogenNS=pathogen-ns`, `pathogen`) match these names exactly, so the e2e suite
@@ -48,6 +48,28 @@ kubectl apply -f 00-namespaces.yaml -f sbobs/ -f 10-postgres.yaml \
 If a pod started before its SBoB (e.g. CRDs not yet ready), `kubectl delete pod`
 it to rebind — do **not** `rollout restart` (that clobbers the managed-by
 annotation).
+
+## Sources, suites and scenario variants
+
+The retired chain tree folded into this directory, so everything the demo needs
+now lives here:
+
+| Path | What |
+|---|---|
+| `backend/` | the vulnerable Java app — `Dockerfile.{vulnerable,contained,patched}`, `pom.xml`, `App.java` |
+| `pathogen/` | the LDAP Specimen server — `Dockerfile`, `Payload.java`, `run.sh` |
+| `backend-b.yaml` / `backend-c.yaml` | scenario B (distroless + hardened SC) and C (patched library) overlays for `backend` |
+| `java-attacks.yaml` | bobctl `AttackSuite` — one payload, three scenarios |
+| `java-functional-tests.yaml` | bobctl `FunctionalTestSuite` — the benign baseline to learn against |
+| `attack-pod.yaml`, `exfil-dns.yaml` | in-cluster probe and the DNS egress surface |
+| `kubescape/rules/R1100_rulespec.yaml` | the failed-execve binding scenario B turns on |
+| `RUNBOOK-FOR-AGENTS.md` | step-by-step operation |
+
+Images are built by `.github/workflows/ci-java-poc-images.yaml` and published as
+`ghcr.io/k8sstormcenter/java-poc-<component>`. The digests pinned in
+`30-backend.yaml` and `50-pathogen.yaml` still carry the old repository name:
+they are immutable and resolve, and re-pinning waits on either a registry retag
+or the first publish under the new name.
 
 ## Layering
 

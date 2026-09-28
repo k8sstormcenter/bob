@@ -25,7 +25,7 @@ manifest_validate "$BAD" >/dev/null 2>&1
 assert_rc 1 $? "validate rejects manifest missing namespace/deploy/pods"
 
 # ── manifest_field returns scalar fields ──────────────────────────────
-assert_eq "log4j-poc" "$(manifest_field "$GOOD" '.metadata.namespace')" "field: namespace"
+assert_eq "java-poc" "$(manifest_field "$GOOD" '.metadata.namespace')" "field: namespace"
 assert_eq "sbobs/"    "$(manifest_field "$GOOD" '.sbob_dir')"           "field: sbob_dir"
 
 # ── manifest_pods emits one TSV row per pod with the right columns ─────
@@ -39,7 +39,7 @@ assert_eq "chain-observer	replicaset-chain-observer	observer	true" "$obs_row" "p
 # ── manifest_deploy emits path + optional flag ────────────────────────
 deploy_out="$(manifest_deploy "$GOOD")"
 assert_eq "2" "$(printf '%s\n' "$deploy_out" | grep -c .)" "deploy: 2 rows"
-assert_eq "log4j-chain.yaml	false" "$(printf '%s\n' "$deploy_out" | head -1)" "deploy: first row not optional"
+assert_eq "java-chain.yaml	false" "$(printf '%s\n' "$deploy_out" | head -1)" "deploy: first row not optional"
 assert_eq "kubescape/rules/R1100_rulespec.yaml	true" "$(printf '%s\n' "$deploy_out" | sed -n 2p)" "deploy: R1100 optional=true"
 
 # ── manifest_scenarios emits one JSON object per scenario ─────────────

@@ -1,3 +1,8 @@
+🚨 New preview lab: auto-discovery for profile fragments 
+or "how to compose an SBOB and have different people sign different pieces"
+
+Try the preview on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/2signandverify/blue#suggest) 
+
 # Software Bill of Behavior SBOB 
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/k8sstormcenter/bob/badge)](https://scorecard.dev/viewer/?uri=github.com/k8sstormcenter/bob)
@@ -30,9 +35,6 @@ It's understood to be an abstraction of linux kernel level behavior to express `
 ### Stay informed when more applications get SBOBs
 Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.com/86141f7462), follow us on [Linkedin](https://www.linkedin.com/in/croedig/), or talk to us on [slack](https://join.slack.com/t/k8sstorm/signup) 
 
-Next up release: Argo CD with all of its seven components:
-
-![Argo CD kill-chain — all 7 containers](example/argocd/argocd-killchain.gif)
 
 
 
@@ -44,10 +46,14 @@ Next up release: Argo CD with all of its seven components:
 
 
 
+## Try it out in a lab with a k3s and a k8s
+Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
 
 ## TLDR — run bobctl
 Here for the vulnerable redis example:
+
+⚠️ may currently be broken as stated, due to very frequent rewriting, see lab for pinned workable example please
 
 ```bash
 curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64
@@ -63,13 +69,11 @@ kubectl apply -f example/redis/redis.yaml
 kubectl apply -f example/redis/client.yaml
 
 
-bobctl attack --attack-suite example/redis-attacks.yaml -n redis-demo --service redis --service-port 6379 --format table
+bobctl simulate --suite example/redis-attacks.yaml -n redis-demo --service redis --service-port 6379 --format table
 
 kubectl logs -n honey -l app=node-agent -c node-agent
 ```
 
-## Try it out in a lab with a k3s and a k8s
-Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
 
 

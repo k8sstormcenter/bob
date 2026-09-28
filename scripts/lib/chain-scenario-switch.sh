@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # chain-scenario-switch.sh — execute scenarios[].apply + .restart for a
-# named scenario in a ChainManifest. Used by the log4j-chain demo to
+# named scenario in a ChainManifest. Used by the Java chain demo to
 # swap the backend image between scenarios A/B/C without re-deploying
 # the rest of the topology.
 #

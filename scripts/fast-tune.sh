@@ -207,7 +207,7 @@ bin/bobctl tune \
   --namespace "$NS" \
   --ks-namespace honey \
   ${SERVICE_SCHEME:+--service-scheme "$SERVICE_SCHEME"} \
-  --attack-suite "$SUITE" \
+  --suite "$SUITE" \
   ${FUNCTESTS:+--functional-tests "$FUNCTESTS"} \
   --output-dir results \
   --max-rounds 3 2>&1 | tee results/fast-tune.log
