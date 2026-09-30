@@ -1,0 +1,70 @@
+name: CI - SBoB self-disabling wildcard (ADR-0007)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'example/**/sbobs/**'
+      - 'scripts/lint-sbob-selfdisable.py'
+      - '.github/workflows/ci-sbob-adr0007.yaml'
+  pull_request:
+    paths:
+      - 'example/**/sbobs/**'
+      - 'scripts/lint-sbob-selfdisable.py'
+      - '.github/workflows/ci-sbob-adr0007.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  adr0007:
+    name: no wildcard above a protected path
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pyyaml
+        run: pip install --no-cache-dir pyyaml
+
+      - name: Protected paths under test
+        run: ./scripts/lint-sbob-selfdisable.py --list-protected
+
+      - name: Lint every shipped SBoB
+        run: ./scripts/lint-sbob-selfdisable.py
+
+      - name: Prove the lint actually fails a poisoned profile
+        run: |
+          set -e
+          tmp=$(mktemp -d)
+          cat > "$tmp/cp-poisoned.yaml" <<'EOF'
+          apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+          kind: ContainerProfile
+          metadata:
+            name: poisoned
+            namespace: CHANGEME
+            annotations:
+              kubescape.io/managed-by: User
+          spec:
+            architectures: [amd64]
+            imageID: docker.io/library/nginx@sha256:0000000000000000000000000000000000000000000000000000000000000000
+            imageTag: docker.io/library/nginx:1.27
+            execs:
+              - path: /bin/sh
+            opens:
+              - path: /etc/⋯
+          EOF
+          if ./scripts/lint-sbob-selfdisable.py "$tmp/cp-poisoned.yaml"; then
+            echo "FAIL: the lint passed a profile whose /etc/⋯ disables R0010"
+            exit 1
+          fi
+          echo "ok: poisoned profile rejected as expected"
