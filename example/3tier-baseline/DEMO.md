@@ -209,4 +209,32 @@ The API container runs `pip install flask` at startup, which is the ADR-0004 vio
 learned from *that* container contains pip's whole footprint — 107 of 189 `opens` on the first
 attempt — so ADR-0004 can never fire against it again. `tier-backend` here is therefore learned from
 a compliant python container that only serves HTTP, and the violating one is left as the subject.
-Nothing in the toolchain warns about this; check what your learning window was doing.
+
+It is not limited to file opens, and it is not hypothetical. On a second cluster the profiles were
+left to learn while the violations were being driven — the drive ran at 20:58:01–20:58:15, inside the
+20:57:49–20:58:19 window that wrote them — and **all three network ADRs landed in the baseline as
+permitted egress**:
+
+```
+frontend: {"podSelector":{"matchLabels":{"app":"db"}},"ports":[{"port":5432}],"type":"internal"}
+db:       {"ipAddress":"1.1.1.1","ports":[{"port":443}],"type":"external"}
+worker:   {"dns":"one.one.one.one.","ipAddress":"1.1.1.1","ports":[{"port":443},{"port":80}]}
+```
+
+That is ADR-0001, ADR-0002 and ADR-0005 each written in as normal behaviour. `R0011`/`R0012` then
+cannot fire on them — not because the agent cannot see the traffic, but because it has been taught to
+expect it. The run produced zero alerts on the whole namespace and looked like a detection failure.
+
+So: **never drive a violation during a learning window**, and before trusting any profile, read what
+it permits. The profiles shipped here were learned from an idle app and carry no `egress`, `ingress`
+or `endpoints` at all, which is why ADR-0001 still fires against them.
+
+Two checks that tell you a profile is bound rather than learned, because a learned one silently
+replaces the authored allowlist: every pod must carry `kubescape.io/user-defined-profile`, and
+node-agent must log `adopted user-authored ContainerProfile as authoritative base` once per
+container. Timestamped per-replicaset profile names mean it is learning.
+
+One trap when checking any of this: `kubectl get containerprofile <name>` — singular — is **not a
+resource type**. It errors, and grepping the error text finds nothing, which reads exactly like "the
+profile is clean". Use `containerprofiles.spdx.softwarecomposition.kubescape.io`, and fetch by name,
+because a `List` returns the objects with `.spec` nulled.
