@@ -6,7 +6,7 @@ GO ?= go
 GO_VERSION ?= 1.24
 # Chart truth lives in k8sstormcenter/soc (skaffold.yaml, soc-kubescape). Install
 # the same release tarball it does, so bob cannot drift to an older chart.
-KUBESCAPE_CHART_VER ?= 1.41.0-duckling23
+KUBESCAPE_CHART_VER ?= 1.41.0-duckling36
 KUBESCAPE_CHART_URL ?= https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz
 KUBESCAPE_NODEAGENT_REPO ?= docker.io/entlein/duckling
 # The ruleset is the chart's. Tools that need it as a file generate it rather
