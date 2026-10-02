@@ -92,20 +92,45 @@ string reading "Total ApplicationProfile entries".
 `HasFinalApplicationProfile` is a special case — the name is legacy but it appears in the
 NodeProfile wire payload, so changing it is a compatibility decision rather than a cleanup.
 
-## Image currency
+## Image currency — how to check it, not what it is
 
-Tested on k3s 2026-10-02: node-agent rolled out clean on `rogue56` with 27 of 31 rules enabled
-and no error or fatal log lines; storage unchanged and healthy.
+Any version named here is stale on arrival. During active integration the chart is cut once per
+integration batch, which in practice meant **three releases in about two hours** on 2026-10-01.
+So check currency rather than trusting a number:
 
-| Component | was | now | note |
+```
+# newest published chart
+gh api 'repos/k8sstormcenter/helm-charts/releases?per_page=1' --jq '.[0].tag_name'
+# what it pins
+helm template ks <that release's .tgz url> | grep -oE 'duckling:v[0-9.]+-rogue[0-9]+|storage:[^"]*' | sort -u
+# what this repo pins
+grep KUBESCAPE_CHART_VER Makefile
+```
+
+The gap measured at audit time, for scale — this is the failure mode to watch for, not a target:
+
+| Component | pinned | newest then | gap |
 |---|---|---|---|
-| chart | `1.41.0-duckling23` | `1.41.0-duckling36` | 13 releases behind |
-| node-agent | `duckling:v0.1.0-rogue35` | `duckling:v0.1.0-rogue56` | 21 releases behind |
-| storage | `storage:rc-rogue23` | `storage:rc-rogue23` | already current |
+| chart | `1.41.0-duckling23` | `1.41.0-duckling36` | 13 releases |
+| node-agent | `duckling:v0.1.0-rogue35` | `duckling:v0.1.0-rogue56` | 21 releases |
+| storage | `storage:rc-rogue23` | `storage:rc-rogue23` | current |
 
-The chart version is pinned in `Makefile` (`KUBESCAPE_CHART_VER`). The soc repo pins the same
-chart as a hardcoded URL in `skaffold.yaml` rather than a variable, so the two drift
-independently — worth parameterising there.
+The pin had not moved since 2026-09-25. Verified on k3s before bumping: node-agent rolled out
+clean on `rogue56`, 27 of 31 rules enabled, zero error or fatal log lines, storage healthy. A
+jump of that size is worth a cluster test rather than a version bump on faith.
+
+**The chart maps one-to-one onto an integration batch**, so the tag tells you which node-agent
+work is in it — `duckling36`=`rogue56`, `duckling37`=`rogue57`, `duckling38`=`rogue58`. Pin to a
+tag whose batch is green on both CNI lanes, not to whatever is newest mid-batch.
+
+**Name the image in any behavioural claim.** At this cadence "node-agent does X" is ambiguous:
+the D16 reload guards, for instance, are enforced only from `rogue58`, while `rogue56` and
+`rogue57` apply the downgrade and warn that scope is reduced. A reproduction on the wrong tag
+looks like a contradiction when it is a version difference.
+
+Two pins drift independently: `Makefile` (`KUBESCAPE_CHART_VER`) here, and the soc repo's
+`skaffold.yaml`, which hardcodes the full release URL rather than using a variable — worth
+parameterising there.
 
 ## Tuning after the move
 
