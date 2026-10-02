@@ -191,8 +191,25 @@ route back to enabled-by-default is the completion gate, which is a follow-up.
 This matters when reading any R0002 number here. On a chart from duckling36 on, leaving it off
 would make every count above read `0` — identical to a perfectly tuned profile, and for an
 entirely different reason. `demo.sh setup` therefore arms R0002 itself before deploying anything,
-the way the component tests do, and the setup check fails loudly if it is not armed. If you
-measure this example by hand, arm it the same way or your zeros mean nothing:
+the way the component tests do, and the setup check fails loudly if it is not armed.
+
+**There are two switches, not one.** Ruling X-28 also stops node-agent alerting on file opens
+while a container is under **deny-all**, since a `find /` in a rogue container floods. Opens
+judged against a *governing* profile are untouched, so this example's bound-profile measurements
+are unaffected — but anything measured before a profile is in force is not. The full
+measurement precondition is therefore both of:
+
+| switch | where | default | needed here |
+|---|---|---|---|
+| `R0002` `enabled` | `default-rules` Rules CR | off from duckling36 | **on** |
+| `denyAllAlertsOnOpens` | node-agent ConfigMap | `false` | **true**, for pre-profile windows |
+
+The second lands in the image after `rogue61`; on earlier images the key is absent and deny-all
+opens alert as they always did, so the precondition holds by default there. Human users should
+keep both defaults — they exist because the flood is real. These are the settings a *measurement*
+needs, not the settings a cluster wants.
+
+If you measure this example by hand, arm R0002 the same way or your zeros mean nothing:
 
 ```
 kubectl -n honey get rules.kubescape.io default-rules -o json \
