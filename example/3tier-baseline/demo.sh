@@ -42,18 +42,35 @@ setup() {
   ( cd "$BOB_DIR" && make kubescape && make alertmanager )
   kubectl -n "$KS_NS" rollout status ds/node-agent --timeout=300s
 
-  log "  network rules must be armed before anything is deployed"
+  # Charts from 1.41.0-duckling36 ship R0002 disabled (ruling D2, node-agent#43:
+  # it judged against partial profiles). ADR-0004 has no other loud signal here,
+  # so this demo arms it itself, the way the component tests do.
+  log "  arming R0002: the chart ships it off from duckling36 on"
+  kubectl get rules.kubescape.io -n "$KS_NS" default-rules -o json |
+    python3 -c "
+import sys, json
+doc = json.load(sys.stdin)
+for r in doc['spec']['rules']:
+    if r.get('id') == 'R0002':
+        r['enabled'] = True
+json.dump(doc, sys.stdout)
+" | kubectl apply --server-side --force-conflicts -f - >/dev/null
+
+  log "  the rules this demo depends on must be armed before anything is deployed"
   kubectl get rules.kubescape.io -n "$KS_NS" default-rules -o json |
     python3 -c "
 import sys, json
 rules = json.load(sys.stdin)['spec']['rules']
-ok = True
+need = {'R0011': 'the tier skip', 'R0012': 'the tier skip, seen from the receiving end',
+        'R0002': 'ADR-0004, runtime file writes'}
+missing = []
 for r in rules:
-    if r.get('id') in ('R0011', 'R0012'):
+    if r.get('id') in need:
         print('   %s enabled=%s severity=%s' % (r['id'], r.get('enabled'), r.get('severity')))
-        ok = ok and r.get('enabled')
-if not ok:
-    raise SystemExit('   R0011/R0012 are not enabled — the demo cannot detect the tier skip')
+        if not r.get('enabled'):
+            missing.append('%s (%s)' % (r['id'], need[r['id']]))
+if missing:
+    raise SystemExit('   not enabled: %s' % ', '.join(missing))
 "
 
   log "2/4 kyverno"

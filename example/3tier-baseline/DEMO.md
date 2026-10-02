@@ -183,6 +183,23 @@ These profiles are **learned**, not authored: each was captured from the real im
 `bobctl get | generalize --sbob` and validated. Idle false positives measured on k3s with the
 released chart: `web 0, postgres 0, worker 0, api 0, redis 1`.
 
+Those counts are **R0002 counts, and R0002's default changed mid-chart**. Charts up to
+`1.41.0-duckling35` ship it enabled; `duckling36` and later ship it **disabled** — ruling D2,
+because R0002 judged against partial profiles (node-agent#43), not because of profile noise. The
+route back to enabled-by-default is the completion gate, which is a follow-up.
+
+This matters when reading any R0002 number here. On a chart from duckling36 on, leaving it off
+would make every count above read `0` — identical to a perfectly tuned profile, and for an
+entirely different reason. `demo.sh setup` therefore arms R0002 itself before deploying anything,
+the way the component tests do, and the setup check fails loudly if it is not armed. If you
+measure this example by hand, arm it the same way or your zeros mean nothing:
+
+```
+kubectl -n honey get rules.kubescape.io default-rules -o json \
+  | python3 -c "import sys,json;d=json.load(sys.stdin);[r.update(enabled=True) for r in d['spec']['rules'] if r['id']=='R0002'];json.dump(d,sys.stdout)" \
+  | kubectl apply --server-side --force-conflicts -f -
+```
+
 1. apply, run the app's real traffic, collect alerts;
 2. for each alert decide **"is this my architecture being wrong, or my stack being different?"**;
 3. stack difference → add the entry; architecture wrong → fix the architecture.
