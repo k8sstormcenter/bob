@@ -204,10 +204,23 @@ measurement precondition is therefore both of:
 | `R0002` `enabled` | `default-rules` Rules CR | off from duckling36 | **on** |
 | `denyAllAlertsOnOpens` | node-agent ConfigMap | `false` | **true**, for pre-profile windows |
 
-The second lands in the image after `rogue61`; on earlier images the key is absent and deny-all
-opens alert as they always did, so the precondition holds by default there. Human users should
-keep both defaults — they exist because the flood is real. These are the settings a *measurement*
-needs, not the settings a cluster wants.
+**Read the second switch off the node-agent build, not off whether the key is set.** Up to
+`rogue61` an absent key means deny-all opens alert, so the precondition holds by default. From
+`rogue62` the exclusion is in the agent, its default is off, and the chart writes no key at all —
+so on `rogue62`+ an absent key means opens are *silent*. The same absence means opposite things
+either side of that build:
+
+```
+kubectl -n honey get ds node-agent \
+  -o jsonpath='{.spec.template.spec.containers[?(@.name=="node-agent")].image}'
+kubectl -n honey get cm node-agent -o jsonpath='{.data.config\.json}' | grep -o 'denyAllAlertsOnOpens[^,]*'
+```
+
+Explicit `true` is measurable on any build and explicit `false` is suppressed on any build. Absent
+is only safe below `rogue62`.
+
+Human users should keep both defaults — they exist because the flood is real. These are the
+settings a *measurement* needs, not the settings a cluster wants.
 
 If you measure this example by hand, arm R0002 the same way or your zeros mean nothing:
 
