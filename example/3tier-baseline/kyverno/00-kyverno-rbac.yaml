@@ -1,0 +1,18 @@
+# Kyverno's controllers hold no permissions on CRDs they did not install.
+# Cloning ContainerProfiles therefore fails at policy-admission time with:
+#   "requires permissions list,get for resource
+#    spdx.softwarecomposition.kubescape.io/v1beta1/ContainerProfile"
+# Kyverno aggregates any ClusterRole carrying these labels into its own roles.
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kyverno:containerprofiles
+  labels:
+    rbac.kyverno.io/aggregate-to-admission-controller: "true"
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+    rbac.kyverno.io/aggregate-to-reports-controller: "true"
+rules:
+  - apiGroups: ["spdx.softwarecomposition.kubescape.io"]
+    resources: ["containerprofiles"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
