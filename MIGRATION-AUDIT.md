@@ -3,7 +3,7 @@
 Audit of what still depends on the retired `ApplicationProfile` / `ApplicationActivity` /
 `NetworkNeighborhood` / `NetworkNeighbors` types, and what to tune after moving to
 `ContainerProfile`. Dated 2026-10-02, against `storage` main `04cd064` and chart
-`1.41.0-duckling39`.
+`1.41.0-duckling40`.
 
 ## Verdict
 
@@ -111,26 +111,28 @@ The gap measured at audit time, for scale — this is the failure mode to watch 
 
 | Component | pinned | newest then | gap |
 |---|---|---|---|
-| chart | `1.41.0-duckling23` | `1.41.0-duckling39` | 16 releases |
-| node-agent | `duckling:v0.1.0-rogue35` | `duckling:v0.1.0-rogue59` | 24 releases |
+| chart | `1.41.0-duckling23` | `1.41.0-duckling40` | 17 releases |
+| node-agent | `duckling:v0.1.0-rogue35` | `duckling:v0.1.0-rogue60` | 25 releases |
 | storage | `storage:rc-rogue23` | `storage:rc-rogue23` | current |
 
 The pin had not moved since 2026-09-25. Verified on k3s before each bump rather than on faith —
-a jump of that size deserves a cluster test: `rogue56` and then `rogue59` both rolled out clean,
+a jump of that size deserves a cluster test: `rogue56`, `rogue59` and `rogue60` all rolled out clean,
 all five `honey` pods 1/1 with zero restarts, zero error or fatal log lines, storage healthy.
 Note the rule count moved from 28 enabled to 27 between them, which is the R0002 change below,
 not a failure.
 
 **The chart maps one-to-one onto an integration batch**, so the tag tells you which node-agent
-work is in it — `duckling36`=`rogue56` … `duckling39`=`rogue59`. Pin to a tag whose batch is green on both CNI
-lanes, not to whatever is newest mid-batch — `duckling39` is that tag as of 2026-10-02, being
-integration/batch2 at 50/50 on both conformance lanes.
+work is in it — `duckling36`=`rogue56` … `duckling40`=`rogue60`. Pin to a tag whose batch is green on both CNI
+lanes, not to whatever is newest mid-batch — `duckling40` is that tag as of 2026-10-02, 50/50 on
+both conformance lanes.
 
 **A chart bump can change the rule set, not just the images.** `duckling36` disabled **R0002** by
 default — ruling D2, because it judged against partial profiles, with the completion gate as the
 route back. Charts up to `duckling35` ship it on. The toggle is hard-coded in the chart's
 `templates/node-agent/default-rules.yaml` with no values key, so a consumer that needs it armed
-patches the `default-rules` Rules CR after install, as the component tests do. This is easy to
+patches the `default-rules` Rules CR after install, as the component tests do. A server-side
+apply survives a later `helm upgrade` — after bumping the chart the CR showed both `helm` and
+`kubectl` as field managers with the patch intact — so arming it once holds. This is easy to
 miss and flattering when missed: with R0002 off, an example measured in R0002 reports zero
 findings, which is indistinguishable from a perfectly tuned profile. Diff the rule set across a
 bump, not only the image tags:
