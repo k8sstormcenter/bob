@@ -56,7 +56,21 @@ spec:
     - '{print $1;}'
     path: /usr/bin/gawk
   identifiedCallStacks: null
-  ingress: null
+  ingress:
+  - dns: ''
+    dnsNames: null
+    identifier: 0480f067c6cdd4fda2f09c4ead104f475f2d178b74eca03744ed6d016e6ba4e5
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: valkey
+    podSelector:
+      matchLabels:
+        app: valkey-client
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+    type: internal
   matchLabels:
     app.kubernetes.io/component: primary
     app.kubernetes.io/instance: valkey

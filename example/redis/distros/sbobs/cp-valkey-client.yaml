@@ -1,0 +1,128 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  name: valkey-client
+  namespace: valkey
+  annotations:
+    kubescape.io/managed-by: User
+spec:
+  architectures:
+  - amd64
+  capabilities: []
+  execs:
+  - path: /usr/local/bin/redis-cli
+    args:
+    - /usr/local/bin/redis-cli
+    - -h
+    - valkey-primary
+    - -p
+    - '6379'
+    - SET
+    - ⋯⋯
+  - path: /bin/busybox
+    args:
+    - /bin/sh
+    - -c
+    - |
+      i=0
+      while true; do
+        redis-cli -h valkey-primary -p 6379 SET "k:$i" "v:$i" >/dev/null
+        i=$((i+1)); sleep 2
+      done
+  - path: /bin/busybox
+    args:
+    - /bin/sleep
+    - '2'
+  opens:
+  - flags:
+    - O_CREAT
+    - O_LARGEFILE
+    - O_TRUNC
+    - O_WRONLY
+    path: /dev/null
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/hosts
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/ld-musl-x86_64.path
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /etc/resolv.conf
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /lib/libssl.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_DIRECTORY
+    - O_RDONLY
+    path: /proc/⋯/task/1/fd
+  - flags:
+    - O_CLOEXEC
+    - O_RDONLY
+    path: /proc/⋯/vm/overcommit_memory
+  - flags:
+    - O_RDONLY
+    path: /sys/kernel/mm/transparent_hugepage/enabled
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/lib/libssl.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/local/lib/libcrypto.so.3
+  - flags:
+    - O_CLOEXEC
+    - O_LARGEFILE
+    - O_RDONLY
+    path: /usr/local/lib/libssl.so.3
+  egress:
+  - identifier: e88c3238d6ef6796bb54b39166d5c941a9164daec5fecd2bb4a4899dbac293f4
+    type: internal
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/component: primary
+        app.kubernetes.io/instance: valkey
+        app.kubernetes.io/name: valkey
+    ports:
+    - name: TCP-6379
+      port: 6379
+      protocol: TCP
+  - identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
+    type: internal
+    podSelector:
+      matchLabels:
+        k8s-app: kube-dns
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: kube-system
+    ports:
+    - name: UDP-53
+      port: 53
+      protocol: UDP
+  ingress: null
+  matchLabels:
+    app: valkey-client
+  syscalls: []
+  identifiedCallStacks: null
