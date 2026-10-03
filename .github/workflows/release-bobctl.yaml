@@ -26,8 +26,35 @@ permissions:
   contents: write
 
 jobs:
+  # A release must not be able to ship a red test: build gates on this and
+  # release gates on build. Runs once, not per build-matrix entry.
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo and private submodules
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.ENTLEIN_PAT}}
+
+      - name: Clone storage dependency
+        run: |
+          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: pkg/go.sum
+
+      - name: go test
+        working-directory: pkg
+        run: go test ./... -count=1
+
   build:
     name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    needs: test
     runs-on: ubuntu-latest
     strategy:
       matrix:
