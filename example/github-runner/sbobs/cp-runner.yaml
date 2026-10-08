@@ -761,6 +761,8 @@ spec:
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/apt/history.log}
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/apt/term.log}
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/dpkg.log}
+    - {flags: [O_RDONLY], path: /home/runner/.curlrc}
+    - {flags: [O_RDONLY], path: /home/runner/.config/curlrc}
   rulePolicies:
     R0002:
       processAllowed:
