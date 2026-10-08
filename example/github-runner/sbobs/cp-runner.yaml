@@ -771,6 +771,16 @@ spec:
     R0002:
       processAllowed:
         - dpkg
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
     R1030:
       processAllowed:
         - DelayedTaskSche
