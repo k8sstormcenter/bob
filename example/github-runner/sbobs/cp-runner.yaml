@@ -518,10 +518,11 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/certs}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/current}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR, O_RDONLY], path: /home/runner/.docker/buildx/instances/⋯}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/refs/*}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/refs/*}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/refs/*/3f0qan5z3ackotueqvlza3lgu}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/refs/*/mfioz5hcf1d5pxolt2fncpa9p}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯/3f0qan5z3ackotueqvlza3lgu}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯/mfioz5hcf1d5pxolt2fncpa9p}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/refs/⋯/⋯/⋯}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/cli-plugins}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/config.json}
@@ -781,13 +782,12 @@ spec:
         - runc:[1:CHILD]
         - runc:[2:INIT]
         - runc:[3:INIT]
+    R0011:
+      processAllowed:
+        - Runner.Worker
     R1030:
       processAllowed:
-        - DelayedTaskSche
-        - MainThread
         - Runner.Worker
-        - node
-        - run.sh
   seccompProfile:
     spec:
       defaultAction: ""
