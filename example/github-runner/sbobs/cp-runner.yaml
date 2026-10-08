@@ -172,14 +172,12 @@ spec:
     - {args: [/usr/bin/curl, -L, 'https://github.com/inspektor-gadget/inspektor-gadget/releases/download/v0.45.0/ig_0.45.0_amd64.deb', -O], path: /usr/bin/curl}
     - {args: [/usr/bin/df, -h, /], path: /usr/bin/df}
     - {args: [/usr/bin/dirname, ⋯], path: /usr/bin/dirname}
+    - {args: [/usr/bin/docker, buildx, history, export, --builder, ⋯, --output, ⋯, ⋯, --finalize], path: /usr/bin/docker}
     - {args: [/usr/bin/docker, buildx], path: /usr/bin/docker}
     - {args: [/usr/bin/docker, buildx, build, --build-arg, ⋯, --build-arg, BUILD_TAGS=directalerts, --file, build/Dockerfile, --iidfile, /home/runner/_work/_temp/⋯/⋯, --platform, linux/amd64, --attest, 'type=provenance,mode=min,inline-only=true,builder-id=https://github.com/entlein/node-agent/actions/runs/⋯/attempts/⋯', --tag, docker.io/entlein/⋯, --metadata-file, /home/runner/_work/_temp/⋯/⋯, --push], path: /usr/bin/docker}
     - {args: [/usr/bin/docker, buildx, build, --build-arg, ⋯, --build-arg, BUILD_TAGS=directalerts, --file, build/Dockerfile, --iidfile, /home/runner/_work/_temp/⋯/⋯, --platform, linux/amd64, --attest, 'type=provenance,mode=min,inline-only=true,builder-id=https://github.com/entlein/node-agent/actions/runs/⋯/attempts/⋯', --tag, docker.io/entlein/⋯, --metadata-file, /home/runner/_work/_temp/⋯/⋯, --push, .], path: /usr/bin/docker}
     - {args: [/usr/bin/docker, buildx, build, --file, build/Dockerfile.ct, --iidfile, /home/runner/_work/_temp/⋯/⋯, --platform, linux/amd64, --attest, 'type=provenance,mode=min,inline-only=true,builder-id=https://github.com/entlein/node-agent/actions/runs/⋯/attempts/⋯', --tag, docker.io/entlein/⋯, --metadata-file, /home/runner/_work/_temp/⋯/⋯, --push, .], path: /usr/bin/docker}
-    - {args: [/usr/bin/docker, buildx, history, export, --builder, ⋯, --output, /home/runner/_work/_temp/⋯/export/entlein~node-agent~MFIOZ5.dockerbuild, mfioz5hcf1d5pxolt2fncpa9p, --finalize], path: /usr/bin/docker}
-    - {args: [/usr/bin/docker, buildx, history, export, --builder, ⋯, --output, /home/runner/_work/_temp/⋯/export/⋯, 3f0qan5z3ackotueqvlza3lgu, --finalize], path: /usr/bin/docker}
-    - {args: [/usr/bin/docker, buildx, history, inspect, --format, json, --builder, ⋯, 3f0qan5z3ackotueqvlza3lgu], path: /usr/bin/docker}
-    - {args: [/usr/bin/docker, buildx, history, inspect, --format, json, --builder, ⋯, mfioz5hcf1d5pxolt2fncpa9p], path: /usr/bin/docker}
+    - {args: [/usr/bin/docker, buildx, history, inspect, --format, json, --builder, ⋯, ⋯], path: /usr/bin/docker}
     - {args: [/usr/bin/docker, buildx, inspect], path: /usr/bin/docker}
     - {args: [/usr/bin/docker, buildx, inspect, ⋯], path: /usr/bin/docker}
     - {args: [/usr/bin/docker, buildx, rm, ⋯], path: /usr/bin/docker}
@@ -330,14 +328,12 @@ spec:
     - {args: [/usr/lib/git-core/git-sh-i18n--envsubst, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git-sh-i18n--envsubst}
     - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1, -quiet, -v, -imultiarch, x86_64-linux-gnu, /home/runner/_work/_temp/sha.c, -quiet, -dumpdir, /home/runner/_work/_temp/, -dumpbase, sha.c, -dumpbase-ext, .c, -mtune=generic, -march=x86-64, -version, -fasynchronous-unwind-tables, -fstack-protector-strong, -Wformat, -Wformat-security], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1}
     - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2, -plugin, /usr/libexec/gcc/x86_64-linux-gnu/⋯/liblto_plugin.so, -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/⋯/lto-wrapper, -plugin-opt=-fresolution=/tmp/cc1hqqa5.res, -plugin-opt=-pass-through=-lgcc, -plugin-opt=-pass-through=-lgcc_s, -plugin-opt=-pass-through=-lc, -plugin-opt=-pass-through=-lgcc, -plugin-opt=-pass-through=-lgcc_s, --build-id, --eh-frame-hdr, -m, elf_x86_64, --hash-style=gnu, --as-needed, -dynamic-linker, /lib64/ld-linux-x86-64.so.2, -pie, -z], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, export, --builder, ⋯, --output, ⋯, ⋯, --finalize], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --build-arg, ⋯, --build-arg, BUILD_TAGS=directalerts, --file, build/Dockerfile, --iidfile, /home/runner/_work/_temp/⋯/⋯, --platform, linux/amd64, --attest, 'type=provenance,mode=min,inline-only=true,builder-id=https://github.com/entlein/node-agent/actions/runs/⋯/attempts/⋯', --tag, docker.io/entlein/⋯, --metadata-file, /home/runner/_work/_temp/⋯/⋯, --push], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --build-arg, ⋯, --build-arg, BUILD_TAGS=directalerts, --file, build/Dockerfile, --iidfile, /home/runner/_work/_temp/⋯/⋯, --platform, linux/amd64, --attest, 'type=provenance,mode=min,inline-only=true,builder-id=https://github.com/entlein/node-agent/actions/runs/⋯/attempts/⋯', --tag, docker.io/entlein/⋯, --metadata-file, /home/runner/_work/_temp/⋯/⋯, --push, .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --file, build/Dockerfile.ct, --iidfile, /home/runner/_work/_temp/⋯/⋯, --platform, linux/amd64, --attest, 'type=provenance,mode=min,inline-only=true,builder-id=https://github.com/entlein/node-agent/actions/runs/⋯/attempts/⋯', --tag, docker.io/entlein/⋯, --metadata-file, /home/runner/_work/_temp/⋯/⋯, --push, .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, export, --builder, ⋯, --output, /home/runner/_work/_temp/⋯/export/entlein~node-agent~MFIOZ5.dockerbuild, mfioz5hcf1d5pxolt2fncpa9p, --finalize], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, export, --builder, ⋯, --output, /home/runner/_work/_temp/⋯/export/⋯, 3f0qan5z3ackotueqvlza3lgu, --finalize], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, inspect, --format, json, --builder, ⋯, 3f0qan5z3ackotueqvlza3lgu], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, inspect, --format, json, --builder, ⋯, mfioz5hcf1d5pxolt2fncpa9p], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, inspect, --format, json, --builder, ⋯, ⋯], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, inspect], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, inspect, ⋯], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, rm, ⋯], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
@@ -520,9 +516,7 @@ spec:
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR, O_RDONLY], path: /home/runner/.docker/buildx/instances/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯/3f0qan5z3ackotueqvlza3lgu}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯/mfioz5hcf1d5pxolt2fncpa9p}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/refs/⋯/⋯/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯/⋯}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/cli-plugins}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/config.json}
