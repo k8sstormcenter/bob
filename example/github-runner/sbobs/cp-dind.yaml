@@ -1,0 +1,292 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: arc-runner-dind
+  namespace: arc-systems
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_BPF
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_NET_ADMIN
+    - CAP_NET_RAW
+    - CAP_PERFMON
+    - CAP_SETFCAP
+    - CAP_SETGID
+    - CAP_SYS_ADMIN
+    - CAP_SYS_CHROOT
+    - CAP_SYS_RESOURCE
+  egress:
+    - {dns: ghcr.io., dnsNames: [ghcr.io.], identifier: d7211206906d3a79f8ff3dd6a6340fbec43d32a47e0ad84f964f22184c417251, ipAddress: 20.250.119.73, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: 4aa13ba51009bedc1b376423e063ea820bcd24da14b6cfe4ff3891fb4266191f, ipAddress: 185.199.108.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: 4e32e51ad294f4a8795e408f8fcc801165e7769d40f45a1c6f5bb0a64e5f1317, ipAddress: 185.199.109.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: dc93fbad0ac0bf8cba186db8b4ebd16185e5588cb8aa01f6b62cb12848fbf444, ipAddress: 185.199.110.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
+  endpoints:
+    - {direction: outbound, endpoint: ':80/_ping', headers: {Host: [api.moby.localhost]}, internal: false, methods: [HEAD]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/0dcd381a2a5611b09ffba8b80c008e56d020ddbc584d3ffc1935b30b7391f6f1', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/0dcd381a2a5611b09ffba8b80c008e56d020ddbc584d3ffc1935b30b7391f6f1/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/0dcd381a2a5611b09ffba8b80c008e56d020ddbc584d3ffc1935b30b7391f6f1/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/0dcd381a2a5611b09ffba8b80c008e56d020ddbc584d3ffc1935b30b7391f6f1/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/21167d4f4fdaa9024adf5c92f020a72cf29ecc0c995cb59b04af8bedbadf9c87/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/21167d4f4fdaa9024adf5c92f020a72cf29ecc0c995cb59b04af8bedbadf9c87/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/21167d4f4fdaa9024adf5c92f020a72cf29ecc0c995cb59b04af8bedbadf9c87/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/3541e130b209fd6a338b46e016094fc6ab0a5f74255c5bfb49b4e4bdd918b454', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/3541e130b209fd6a338b46e016094fc6ab0a5f74255c5bfb49b4e4bdd918b454/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/3541e130b209fd6a338b46e016094fc6ab0a5f74255c5bfb49b4e4bdd918b454/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/3541e130b209fd6a338b46e016094fc6ab0a5f74255c5bfb49b4e4bdd918b454/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/368b47e994d3e47b66c857ba3d2ee78ee51e469a812ab9449b1c805e0e56dedf', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/368b47e994d3e47b66c857ba3d2ee78ee51e469a812ab9449b1c805e0e56dedf/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/368b47e994d3e47b66c857ba3d2ee78ee51e469a812ab9449b1c805e0e56dedf/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/368b47e994d3e47b66c857ba3d2ee78ee51e469a812ab9449b1c805e0e56dedf/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/589e0eb2391df8b5456ffb3a6b9ae91d189bf65e700c7467052d35be7d68c4e2', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/589e0eb2391df8b5456ffb3a6b9ae91d189bf65e700c7467052d35be7d68c4e2/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/589e0eb2391df8b5456ffb3a6b9ae91d189bf65e700c7467052d35be7d68c4e2/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6ed9cb31618d5a87d3753e1d74062d30051295cf69cc1e926c6a61e2610240df', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6ed9cb31618d5a87d3753e1d74062d30051295cf69cc1e926c6a61e2610240df/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6ed9cb31618d5a87d3753e1d74062d30051295cf69cc1e926c6a61e2610240df/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6ed9cb31618d5a87d3753e1d74062d30051295cf69cc1e926c6a61e2610240df/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/84765957e36cd87b295bc781a3e6e4a4a87c7b75665446fa28299fffbb203d44', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/84765957e36cd87b295bc781a3e6e4a4a87c7b75665446fa28299fffbb203d44/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/84765957e36cd87b295bc781a3e6e4a4a87c7b75665446fa28299fffbb203d44/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/a58808b575b49575062728f91262316856090347b064612c1d06bddc00e91b1d', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/a58808b575b49575062728f91262316856090347b064612c1d06bddc00e91b1d/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/a58808b575b49575062728f91262316856090347b064612c1d06bddc00e91b1d/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c8297104c232fbff3b4075b4d7d08ac7ed742729a92a88474e8e1f83439cc425', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c8297104c232fbff3b4075b4d7d08ac7ed742729a92a88474e8e1f83439cc425/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c8297104c232fbff3b4075b4d7d08ac7ed742729a92a88474e8e1f83439cc425/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c8297104c232fbff3b4075b4d7d08ac7ed742729a92a88474e8e1f83439cc425/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/create', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/df6d316a1235d8892615544a1339e451df5a4ff487c4afb39b7f37bec330ccac', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/df6d316a1235d8892615544a1339e451df5a4ff487c4afb39b7f37bec330ccac/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/df6d316a1235d8892615544a1339e451df5a4ff487c4afb39b7f37bec330ccac/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/df6d316a1235d8892615544a1339e451df5a4ff487c4afb39b7f37bec330ccac/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f23a24a4643587d1eab8bd770397934e5c758885889981968abff7235cd89dd3', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f23a24a4643587d1eab8bd770397934e5c758885889981968abff7235cd89dd3/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f23a24a4643587d1eab8bd770397934e5c758885889981968abff7235cd89dd3/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/faa600f6140b0c85e02faebd478899a16c422af2001cd106f8bd8111151c3963', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/faa600f6140b0c85e02faebd478899a16c422af2001cd106f8bd8111151c3963/logs?stderr=1&tail=', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/faa600f6140b0c85e02faebd478899a16c422af2001cd106f8bd8111151c3963/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/faa600f6140b0c85e02faebd478899a16c422af2001cd106f8bd8111151c3963/wait?condition=not-running', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/images/create?fromImage=ghcr.io%2Finspektor-gadget%2Fgadget-builder&tag=sha256%3Aa012029e172428ffb99734eea152185a3ba94c999fdd9ff74e88a2b3ffb67f55', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-53811fc3-4672-46a0-bbc6-f69a52eddab30/exec', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-53811fc3-4672-46a0-bbc6-f69a52eddab30/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-53811fc3-4672-46a0-bbc6-f69a52eddab30/stop', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-53811fc3-4672-46a0-bbc6-f69a52eddab30?force=1&v=1', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.56/containers/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.56/info', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.56/version', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+  execs:
+    - {args: [/bin/cat, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/echo, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/mkdir, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/mount, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/mountpoint, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/sed, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/bin/find, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/bin/id, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/local/bin/dind, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/local/bin/dockerd-entrypoint.sh, ⋯⋯], path: /bin/busybox}
+    - {args: [/pause], path: /pause}
+    - {args: [/proc/self/fd/⋯, init], path: /runc}
+    - {args: [/usr/bin/getent, group, ⋯], path: /usr/bin/getent}
+    - {args: [/usr/bin/git, version], path: /usr/bin/git}
+    - {args: [/usr/bin/unpigz, -d, -c], path: /usr/bin/pigz}
+    - {args: [/usr/local/bin/containerd, --config, /var/run/docker/containerd/containerd.toml], path: /usr/local/bin/containerd}
+    - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -address, /var/run/docker/containerd/containerd.sock, -publish-binary, /usr/local/bin/containerd, -id, ⋯, -bundle, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯, delete], path: /usr/local/bin/containerd-shim-runc-v2}
+    - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -address, /var/run/docker/containerd/containerd.sock, -publish-binary, /usr/local/bin/containerd, -id, ⋯, start], path: /usr/local/bin/containerd-shim-runc-v2}
+    - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -id, ⋯, -address, /var/run/docker/containerd/containerd.sock], path: /usr/local/bin/containerd-shim-runc-v2}
+    - {args: [/usr/local/bin/docker, ⋯⋯], path: /usr/local/bin/docker}
+    - {args: [docker, ⋯⋯], path: /usr/local/bin/docker}
+    - {args: [/usr/local/bin/docker-init, ⋯⋯], path: /usr/local/bin/docker-init}
+    - {args: [docker-init, ⋯⋯], path: /usr/local/bin/docker-init}
+    - {args: [/usr/local/bin/dockerd, ⋯⋯], path: /usr/local/bin/dockerd}
+    - {args: [dockerd, ⋯⋯], path: /usr/local/bin/dockerd}
+    - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, delete, --force, ⋯], path: /usr/local/bin/runc}
+    - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, create, --bundle, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯, --pid-file, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/init.pid, ⋯], path: /usr/local/bin/runc}
+    - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, delete, ⋯], path: /usr/local/bin/runc}
+    - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, start, ⋯], path: /usr/local/bin/runc}
+    - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, exec, --process, /tmp/⋯, --detach, --pid-file, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/⋯, ⋯], path: /usr/local/bin/runc}
+    - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, kill, ⋯, ⋯], path: /usr/local/bin/runc}
+    - {args: [/usr/local/bin/runc, --version], path: /usr/local/bin/runc}
+    - {args: [/usr/local/bin/runc, features], path: /usr/local/bin/runc}
+    - {args: [/usr/local/libexec/docker/cli-plugins/docker-buildx, docker-cli-plugin-metadata], path: /usr/local/libexec/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/libexec/docker/cli-plugins/docker-compose, docker-cli-plugin-metadata], path: /usr/local/libexec/docker/cli-plugins/docker-compose}
+    - {args: [/usr/sbin/iptables, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/sbin/ip6tables, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/bin/xargs, -rn1], path: /bin/busybox}
+  identifiedCallStacks: null
+  imageID: docker.io/library/docker@sha256:7dcdfc4a20246236f558175182ccace1eb15a41bd3eb119dd2284f393498b7c1
+  imageTag: docker.io/library/docker:dind
+  ingress: null
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bsg}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus/usb}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus/usb/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/cpu}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/cpu/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/dma_heap}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/dri}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/input}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/mapper}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/net}
+    - {flags: [O_CLOEXEC, O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /dev/null}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/snd}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/vfio}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/cdi}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/docker/daemon.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/docker/plugins}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/group}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/ld-musl-x86_64.path}
+    - {flags: [O_RDONLY], path: /etc/localtime}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/passwd}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/ssl/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs/ca-certificates.crt}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libmnl.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libnftnl.so.11}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libpcre2-8.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libxtables.so.12}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libz.so.1}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /net/proxy}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /opt/containerd/lib/libz.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/meminfo}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/net/arp_tables_names}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/net/ip6_tables_names}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/keys/root_maxkeys}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/threads-max}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/ip_forward}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /proc/sys/net/ipv6/conf/docker0/accept_ra}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /proc/sys/net/ipv6/conf/eth0/disable_ipv6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/fd/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/maps}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/⋯/net/*}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_RDWR, O_WRONLY], path: /proc/⋯/oom_score_adj}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/uid_map}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /root/.docker/cli-plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /root/.docker/config.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /run/docker.pid}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /run/docker/containerd/containerd.pid}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /run/docker/containerd/containerd.toml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /run/docker/containerd/daemon/io.containerd.mount-manager.v1.bolt/mounts.db}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run/docker/containerd/daemon/io.containerd.mount-manager.v1.bolt/t}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /run/docker/containerd/daemon/io.containerd.runtime.v2.task}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /run/docker/containerd/daemon/io.containerd.sandbox.controller.v1.shim}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_WRONLY], path: /run/docker/containerd/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /run/docker/netns/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /run/docker/plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/docker/runtime-runc/moby}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR], path: /run/docker/runtime-runc/moby/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /runc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/kernel/security/apparmor/profiles}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR], path: /tmp/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/lib/docker/cli-plugins}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/lib/docker/plugins}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libmnl.so.0.2.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libnftnl.so.11.7.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libpcre2-8.so.0.16.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libxtables.so.12.7.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libz.so.1.3.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/os-release}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/xtables/libxt_NAT.so}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/xtables/libxt_addrtype.so}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/xtables/libxt_conntrack.so}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/xtables/libxt_set.so}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/xtables/libxt_standard.so}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/libexec/docker/cli-plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/containerd}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/containerd-shim-runc-v2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/bin/dind}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/docker}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/dockerd}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/bin/dockerd-entrypoint.sh}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/runc}
+    - {flags: [O_RDONLY], path: /usr/local/go/lib/time/zoneinfo.zip}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/local/lib/docker/cli-plugins}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libmnl.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libnftnl.so.11}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libpcre2-8.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libxtables.so.12}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libz.so.1}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/local/libexec/docker/cli-plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/libexec/docker/cli-plugins/docker-buildx}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/libexec/docker/cli-plugins/docker-compose}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/docker/buildkit/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/docker/containerd/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/docker/containers}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/docker/containers/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/docker/engine-id}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /var/lib/docker/image/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /var/lib/docker/network/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/docker/plugins}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC], path: /var/lib/docker/plugins/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/docker/policy/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/docker/rootfs/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/docker/swarm/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/docker/volumes}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /var/lib/docker/volumes/metadata.db}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/docker/volumes/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/cachemounts}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/content}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/content/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/executor}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯/fs}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯/fs/.git/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯/fs/.github/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯/fs/⋯/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯/fs/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯/fs/*/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯/work}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/docker/volumes/⋯/_data/runc-overlayfs/snapshots/snapshots/⋯/work/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /var/lib/docker/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/run/cdi}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker.pid}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker/containerd/containerd.pid}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker/runtime-runc/moby/⋯/state.json}
+  rulePolicies:
+    R0009:
+      processAllowed:
+        - runc
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

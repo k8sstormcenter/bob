@@ -9,5173 +9,689 @@ metadata:
   namespace: honey
 spec:
   architectures:
-  - amd64
+    - amd64
   capabilities:
-  - CAP_AUDIT_WRITE
-  - CAP_BPF
-  - CAP_CHOWN
-  - CAP_DAC_OVERRIDE
-  - CAP_DAC_READ_SEARCH
-  - CAP_FOWNER
-  - CAP_FSETID
-  - CAP_KILL
-  - CAP_NET_ADMIN
-  - CAP_NET_RAW
-  - CAP_PERFMON
-  - CAP_SETGID
-  - CAP_SETUID
-  - CAP_SYSLOG
-  - CAP_SYS_ADMIN
-  - CAP_SYS_CHROOT
-  - CAP_SYS_PTRACE
-  - CAP_SYS_RESOURCE
+    - CAP_AUDIT_WRITE
+    - CAP_BPF
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_KILL
+    - CAP_NET_ADMIN
+    - CAP_NET_RAW
+    - CAP_PERFMON
+    - CAP_SETGID
+    - CAP_SETUID
+    - CAP_SYSLOG
+    - CAP_SYS_ADMIN
+    - CAP_SYS_CHROOT
+    - CAP_SYS_PTRACE
+    - CAP_SYS_RESOURCE
   egress:
-  - dns: ""
-    dnsNames: null
-    identifier: tuned-169.254.169.254
-    ipAddress: ""
-    ipAddresses:
-    - 169.254.169.254
-    namespaceSelector: null
-    podSelector: null
-    ports:
-    - name: TCP-80
-      port: 80
-      protocol: TCP
-    type: external
-  - dns: ""
-    dnsNames:
-    - ghcr.io
-    identifier: tuned-ghcr.io
-    ipAddress: ""
-    ipAddresses:
-    - 140.82.121.34
-    namespaceSelector: null
-    podSelector: null
-    ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
-    type: external
-  - dns: ""
-    dnsNames:
-    - pkg-containers.githubusercontent.com
-    identifier: tuned-pkg-containers.githubusercontent.com
-    ipAddress: ""
-    ipAddresses:
-    - 185.199.108.154
-    namespaceSelector: null
-    podSelector: null
-    ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
-    type: external
-  - dns: ""
-    dnsNames:
-    - pkg-containers.githubusercontent.com
-    identifier: tuned-pkg-containers.githubusercontent.com-2
-    ipAddress: ""
-    ipAddresses:
-    - 185.199.109.154
-    namespaceSelector: null
-    podSelector: null
-    ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
-    type: external
-  - dns: ""
-    dnsNames:
-    - pkg-containers.githubusercontent.com
-    identifier: tuned-pkg-containers.githubusercontent.com-3
-    ipAddress: ""
-    ipAddresses:
-    - 185.199.110.154
-    namespaceSelector: null
-    podSelector: null
-    ports:
-    - name: TCP-443
-      port: 443
-      protocol: TCP
-    type: external
-  - dns: ""
-    dnsNames: null
-    entity: host
-    identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8
-    ipAddress: ""
-    namespaceSelector: null
-    podSelector: null
-    ports:
-    - name: TCP-4240
-      port: 4240
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: c924288807839675b5baf36fd82432f7d1536d34240a1f9c1de7592334c7aba7
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: cert-manager
-    podSelector:
-      matchLabels:
-        app: cert-manager
-        app.kubernetes.io/component: controller
-        app.kubernetes.io/instance: cert-manager
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: cert-manager
-        app.kubernetes.io/version: v1.19.3
-        helm.sh/chart: cert-manager-v1.19.3
-    ports:
-    - name: TCP-9403
-      port: 9403
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: 287c036fc8ba129f45516390eb4c3ccef356b69b659680d86f363a9fc3b867fd
-    ipAddress: ""
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
-        app: dx-daemon
-        shoot.gardener.cloud/no-cleanup: "true"
-    ports:
-    - name: TCP-9099
-      port: 9099
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: a2037a57c4f9c48e5c1e1e4b763d343a5058c0585f8b4033ef56aae7fead0764
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: pl
-    podSelector:
-      matchLabels:
-        app: dx-daemon
-        shoot.gardener.cloud/no-cleanup: "true"
-    ports:
-    - name: TCP-9099
-      port: 9099
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: 75e49b750df9c3d3a09a69c4452cda87148769088f4f6d03f5dad20656337ad2
-    ipAddress: ""
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
-        app: node-agent
-        app.kubernetes.io/component: node-agent
-        app.kubernetes.io/instance: kubescape
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: kubescape-operator
-        app.kubernetes.io/part-of: kubescape
-        app.kubernetes.io/version: v0.1.0-rogue77
-        helm.sh/chart: kubescape-operator-1.41.0-duckling57
-        shoot.gardener.cloud/no-cleanup: "true"
-        tier: ks-control-plane
-    ports:
-    - name: TCP-7888
-      port: 7888
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: f06648478a61d8d50a178512a55d103891ab7cb3f4e06fa23ddb92c8e5736bdd
-    ipAddress: ""
-    namespaceSelector: null
-    podSelector:
-      matchLabels:
-        app: node-agent
-        app.kubernetes.io/component: node-agent
-        app.kubernetes.io/instance: kubescape
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: kubescape-operator
-        app.kubernetes.io/part-of: kubescape
-        app.kubernetes.io/version: v0.1.0-rogue78
-        helm.sh/chart: kubescape-operator-1.41.0-duckling58
-        shoot.gardener.cloud/no-cleanup: "true"
-        tier: ks-control-plane
-    ports:
-    - name: TCP-7888
-      port: 7888
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: 1e95a5d916068b5b00fe008cc88bfbfd3cba42768235ac91c9ca2475df802d11
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: pl
-    podSelector:
-      matchLabels:
-        app: pl-monitoring
-        component: vizier
-        name: vizier-cloud-connector
-        plane: control
-        vizier-bootstrap: "true"
-        vizier-name: pixie
-    ports:
-    - name: TCP-50800
-      port: 50800
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: b82ea87816db254ba9b7de9a6a08499182181b72c07f293c20e3bf12edf820e6
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: pl
-    podSelector:
-      matchLabels:
-        app: pl-monitoring
-        component: vizier
-        name: vizier-cloud-connector
-        plane: control
-        vizier-bootstrap: "true"
-        vizier-name: pixie
-    ports:
-    - name: TCP-50800
-      port: 50800
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: b0104ab776080c72f1dc6e52bfa8021ecfd96f937454ef487a0b8e5a63d8422c
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: pl
-    podSelector:
-      matchLabels:
-        app: pl-monitoring
-        component: vizier
-        name: vizier-metadata
-        plane: control
-        vizier-name: pixie
-    ports:
-    - name: TCP-50400
-      port: 50400
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: bb03d9b514392e31420ff23bf723afc46b7ccdd95ac7b272b1bb071edffa4d6e
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: pl
-    podSelector:
-      matchLabels:
-        app: pl-monitoring
-        component: vizier
-        name: vizier-query-broker
-        plane: control
-        vizier-name: pixie
-    ports:
-    - name: TCP-50300
-      port: 50300
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: 1bfa630b86b6f18454274f590cac4de0d322b878e5c9fa550b1a391244fe7cb7
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: pl
-    podSelector:
-      matchLabels:
-        app: pl-monitoring
-        name: pl-nats
-        plane: control
-        vizier-name: pixie
-    ports:
-    - name: TCP-8222
-      port: 8222
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: 54ebb4b0bf299d11355c3dc7e9d51b2aa487c0c3912e4b1a207fd4bc8ec8b071
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: cert-manager
-    podSelector:
-      matchLabels:
-        app: webhook
-        app.kubernetes.io/component: webhook
-        app.kubernetes.io/instance: cert-manager
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: webhook
-        app.kubernetes.io/version: v1.19.3
-        helm.sh/chart: cert-manager-v1.19.3
-    ports:
-    - name: TCP-6080
-      port: 6080
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: 4c6ceeae1430d944146effbc571d094f753410bd408dc36e5b915f1fed593002
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: traefik
-    podSelector:
-      matchLabels:
-        app.kubernetes.io/instance: traefik-traefik
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: traefik
-        helm.sh/chart: traefik-38.0.2
-    ports:
-    - name: TCP-8080
-      port: 8080
-      protocol: TCP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: kube-system
-    podSelector:
-      matchLabels:
-        k8s-app: kube-dns
-    ports:
-    - name: UDP-53
-      port: 53
-      protocol: UDP
-    type: internal
-  - dns: ""
-    dnsNames: null
-    identifier: 6b48170d9c9673f0c7a21ce1eb16d21dc1c7256546231720ba993c9fdc2fb5b1
-    ipAddress: ""
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: kube-system
-    podSelector:
-      matchLabels:
-        k8s-app: metrics-server
-    ports:
-    - name: TCP-10250
-      port: 10250
-      protocol: TCP
-    type: internal
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9879, port: 9879, protocol: TCP}, {name: TCP-9878, port: 9878, protocol: TCP}, {name: TCP-10250, port: 10250, protocol: TCP}, {name: TCP-10010, port: 10010, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 9348f813c49f5494afed66e231bb03cccb257d901e4604464b7fc2a081d55ad0, ipAddress: 127.0.0.53, namespaceSelector: null, podSelector: null, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 5bca24c2b9628bbc0dff00fd5645b9483e04c9e505cbd482aa966f8796a3bc28, ipAddress: 169.254.169.254, namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
+    - {dns: ghcr.io., dnsNames: [ghcr.io.], identifier: 5e3613830a4ce975415a91fd9225e464c65e0ce0315cfd80529efca44be95f75, ipAddress: 140.82.121.34, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: 4aa13ba51009bedc1b376423e063ea820bcd24da14b6cfe4ff3891fb4266191f, ipAddress: 185.199.108.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: 4e32e51ad294f4a8795e408f8fcc801165e7769d40f45a1c6f5bb0a64e5f1317, ipAddress: 185.199.109.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: dc93fbad0ac0bf8cba186db8b4ebd16185e5588cb8aa01f6b62cb12848fbf444, ipAddress: 185.199.110.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-4240, port: 4240, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: c924288807839675b5baf36fd82432f7d1536d34240a1f9c1de7592334c7aba7, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: cert-manager}}, podSelector: {matchLabels: {app: cert-manager, app.kubernetes.io/component: controller, app.kubernetes.io/instance: cert-manager, app.kubernetes.io/managed-by: Helm, app.kubernetes.io/name: cert-manager, app.kubernetes.io/version: v1.19.3, helm.sh/chart: cert-manager-v1.19.3}}, ports: [{name: TCP-9403, port: 9403, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 287c036fc8ba129f45516390eb4c3ccef356b69b659680d86f363a9fc3b867fd, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: dx-daemon, resources.gardener.cloud/managed-by: gardener, shoot.gardener.cloud/no-cleanup: "true"}}, ports: [{name: TCP-9099, port: 9099, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: a2037a57c4f9c48e5c1e1e4b763d343a5058c0585f8b4033ef56aae7fead0764, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pl}}, podSelector: {matchLabels: {app: dx-daemon, resources.gardener.cloud/managed-by: gardener, shoot.gardener.cloud/no-cleanup: "true"}}, ports: [{name: TCP-9099, port: 9099, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 75e49b750df9c3d3a09a69c4452cda87148769088f4f6d03f5dad20656337ad2, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: node-agent, app.kubernetes.io/component: node-agent, app.kubernetes.io/instance: kubescape, app.kubernetes.io/managed-by: Helm, app.kubernetes.io/name: kubescape-operator, app.kubernetes.io/part-of: kubescape, app.kubernetes.io/version: v0.1.0-rogue77, helm.sh/chart: kubescape-operator-1.41.0-duckling57, kubescape.io/ignore: "true", kubescape.io/tier: core, resources.gardener.cloud/managed-by: gardener, shoot.gardener.cloud/no-cleanup: "true", tier: ks-control-plane}}, ports: [{name: TCP-7888, port: 7888, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: f06648478a61d8d50a178512a55d103891ab7cb3f4e06fa23ddb92c8e5736bdd, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: node-agent, app.kubernetes.io/component: node-agent, app.kubernetes.io/instance: kubescape, app.kubernetes.io/managed-by: Helm, app.kubernetes.io/name: kubescape-operator, app.kubernetes.io/part-of: kubescape, app.kubernetes.io/version: v0.1.0-rogue78, helm.sh/chart: kubescape-operator-1.41.0-duckling58, kubescape.io/ignore: "true", kubescape.io/tier: core, resources.gardener.cloud/managed-by: gardener, shoot.gardener.cloud/no-cleanup: "true", tier: ks-control-plane}}, ports: [{name: TCP-7888, port: 7888, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 1e95a5d916068b5b00fe008cc88bfbfd3cba42768235ac91c9ca2475df802d11, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pl}}, podSelector: {matchLabels: {app: pl-monitoring, cluster-id: b431341c-38d4-4cfc-b87c-3310d8069db6, component: vizier, name: vizier-cloud-connector, plane: control, vizier-bootstrap: "true", vizier-name: pixie}}, ports: [{name: TCP-50800, port: 50800, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: b82ea87816db254ba9b7de9a6a08499182181b72c07f293c20e3bf12edf820e6, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pl}}, podSelector: {matchLabels: {app: pl-monitoring, component: vizier, name: vizier-cloud-connector, plane: control, vizier-bootstrap: "true", vizier-name: pixie}}, ports: [{name: TCP-50800, port: 50800, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: b0104ab776080c72f1dc6e52bfa8021ecfd96f937454ef487a0b8e5a63d8422c, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pl}}, podSelector: {matchLabels: {app: pl-monitoring, component: vizier, name: vizier-metadata, plane: control, vizier-name: pixie}}, ports: [{name: TCP-50400, port: 50400, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: bb03d9b514392e31420ff23bf723afc46b7ccdd95ac7b272b1bb071edffa4d6e, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pl}}, podSelector: {matchLabels: {app: pl-monitoring, component: vizier, name: vizier-query-broker, plane: control, vizier-name: pixie}}, ports: [{name: TCP-50300, port: 50300, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 1bfa630b86b6f18454274f590cac4de0d322b878e5c9fa550b1a391244fe7cb7, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: pl}}, podSelector: {matchLabels: {app: pl-monitoring, name: pl-nats, plane: control, vizier-name: pixie}}, ports: [{name: TCP-8222, port: 8222, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 54ebb4b0bf299d11355c3dc7e9d51b2aa487c0c3912e4b1a207fd4bc8ec8b071, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: cert-manager}}, podSelector: {matchLabels: {app: webhook, app.kubernetes.io/component: webhook, app.kubernetes.io/instance: cert-manager, app.kubernetes.io/managed-by: Helm, app.kubernetes.io/name: webhook, app.kubernetes.io/version: v1.19.3, helm.sh/chart: cert-manager-v1.19.3}}, ports: [{name: TCP-6080, port: 6080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 4c6ceeae1430d944146effbc571d094f753410bd408dc36e5b915f1fed593002, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: traefik}}, podSelector: {matchLabels: {app.kubernetes.io/instance: traefik-traefik, app.kubernetes.io/managed-by: Helm, app.kubernetes.io/name: traefik, helm.sh/chart: traefik-38.0.2}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 6b48170d9c9673f0c7a21ce1eb16d21dc1c7256546231720ba993c9fdc2fb5b1, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: metrics-server}}, ports: [{name: TCP-10250, port: 10250, protocol: TCP}], type: internal}
   endpoints:
-  - direction: outbound
-    endpoint: :10250/exec/DOLlVON7
-    headers:
-      Connection:
-      - Upgrade
-      Host:
-      - 10.0.3.119:10250
-    internal: false
-    methods:
-    - POST
-  - direction: outbound
-    endpoint: :6080/healthz
-    headers:
-      Connection:
-      - close
-      Host:
-      - 10.42.2.236:6080
-    internal: true
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :6080/livez
-    headers:
-      Connection:
-      - close
-      Host:
-      - 10.42.2.236:6080
-    internal: true
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :7888/livez
-    headers:
-      Connection:
-      - close
-      Host:
-      - 10.42.2.26:7888
-      - 10.42.2.248:7888
-      - 10.42.2.120:7888
-    internal: true
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :7888/readyz
-    headers:
-      Connection:
-      - close
-      Host:
-      - 10.42.2.248:7888
-      - 10.42.2.26:7888
-      - 10.42.2.120:7888
-    internal: true
-    methods:
-    - GET
-  - direction: inbound
-    endpoint: :80/localapi/v0/status
-    headers:
-      Accept-Encoding:
-      - gzip
-      Host:
-      - local-tailscaled.sock
-    internal: false
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :80/openstack/latest/meta_data.json
-    headers:
-      Host:
-      - 169.254.169.254
-    internal: false
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :80/v1/config
-    headers:
-      Host:
-      - localhost
-    internal: false
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :80/v1/endpoint
-    headers:
-      Host:
-      - localhost
-    internal: false
-    methods:
-    - DELETE
-  - direction: outbound
-    endpoint: :80/v1/endpoint/cilium-local:0
-    headers:
-      Host:
-      - localhost
-    internal: false
-    methods:
-    - PUT
-  - direction: outbound
-    endpoint: :80/v1/ipam
-    headers:
-      Host:
-      - localhost
-    internal: false
-    methods:
-    - POST
-  - direction: outbound
-    endpoint: :8080/ping
-    headers:
-      Connection:
-      - close
-      Host:
-      - 10.42.2.74:8080
-    internal: true
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :8222/
-    headers:
-      Connection:
-      - close
-      Host:
-      - 10.42.2.228:8222
-    internal: true
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :9403/livez
-    headers:
-      Connection:
-      - close
-      Host:
-      - 10.42.2.138:9403
-    internal: true
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :9878/healthz
-    headers:
-      Connection:
-      - close
-      Host:
-      - 127.0.0.1:9878
-    internal: false
-    methods:
-    - GET
-  - direction: outbound
-    endpoint: :9879/healthz
-    headers:
-      Connection:
-      - close
-      Host:
-      - 127.0.0.1:9879
-    internal: false
-    methods:
-    - GET
+    - {direction: outbound, endpoint: ':10250/exec/DOLlVON7', headers: {Connection: [Upgrade], Host: ['10.0.3.119:10250']}, internal: false, methods: [POST]}
+    - {direction: outbound, endpoint: ':6080/healthz', headers: {Connection: [close], Host: ['10.42.2.236:6080']}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':6080/livez', headers: {Connection: [close], Host: ['10.42.2.236:6080']}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':7888/livez', headers: {Connection: [close], Host: ['10.42.2.26:7888', '10.42.2.248:7888', '10.42.2.120:7888']}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':7888/readyz', headers: {Connection: [close], Host: ['10.42.2.248:7888', '10.42.2.26:7888', '10.42.2.120:7888']}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/localapi/v0/status', headers: {Accept-Encoding: [gzip], Host: [local-tailscaled.sock]}, internal: false, methods: [GET]}
+    - {direction: outbound, endpoint: ':80/openstack/latest/meta_data.json', headers: {Host: [169.254.169.254]}, internal: false, methods: [GET]}
+    - {direction: outbound, endpoint: ':80/v1/config', headers: {Host: [localhost]}, internal: false, methods: [GET]}
+    - {direction: outbound, endpoint: ':80/v1/endpoint', headers: {Host: [localhost]}, internal: false, methods: [DELETE]}
+    - {direction: outbound, endpoint: ':80/v1/endpoint/cilium-local:0', headers: {Host: [localhost]}, internal: false, methods: [PUT]}
+    - {direction: outbound, endpoint: ':80/v1/ipam', headers: {Host: [localhost]}, internal: false, methods: [POST]}
+    - {direction: outbound, endpoint: ':8080/ping', headers: {Connection: [close], Host: ['10.42.2.74:8080']}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':8222/', headers: {Connection: [close], Host: ['10.42.2.228:8222']}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':9403/livez', headers: {Connection: [close], Host: ['10.42.2.138:9403']}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':9878/healthz', headers: {Connection: [close], Host: ['127.0.0.1:9878']}, internal: false, methods: [GET]}
+    - {direction: outbound, endpoint: ':9879/healthz', headers: {Connection: [close], Host: ['127.0.0.1:9879']}, internal: false, methods: [GET]}
   execs:
-  - args:
-    - /app/cmd/cainjector/cainjector
-    - --v=2
-    - --leader-election-namespace=kube-system
-    path: /app/cmd/cainjector/cainjector
-  - args:
-    - /app/cmd/controller/controller
-    - --v=2
-    - --cluster-resource-namespace=cert-manager
-    - --leader-election-namespace=kube-system
-    - --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.19.3
-    - --max-concurrent-challenges=60
-    path: /app/cmd/controller/controller
-  - args:
-    - /app/cmd/webhook/webhook
-    - --v=2
-    - --secure-port=10250
-    - --dynamic-serving-ca-secret-namespace=cert-manager
-    - --dynamic-serving-ca-secret-name=cert-manager-webhook-ca
-    - --dynamic-serving-dns-names=cert-manager-webhook
-    - --dynamic-serving-dns-names=cert-manager-webhook.cert-manager
-    - --dynamic-serving-dns-names=cert-manager-webhook.cert-manager.svc
-    path: /app/cmd/webhook/webhook
-  - args:
-    - /app/src/vizier/services/agent/pem/pem
-    path: /app/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem/pem
-  - args:
-    - /app/src/vizier/services/cloud_connector/cloud_connector_server
-    path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
-  - args:
-    - /app/src/vizier/services/metadata/metadata
-    path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
-  - args:
-    - /app/src/vizier/services/query_broker/query_broker
-    path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
-  - args:
-    - sleep
-    - ⋯
-    path: /bin/busybox
-  - args:
-    - /metrics-server
-    - --cert-dir=/tmp
-    - --secure-port=10250
-    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
-    - --kubelet-use-node-status-port
-    - --metric-resolution=15s
-    - --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
-    path: /metrics-server
-  - args:
-    - nats-server
-    - --config
-    - /etc/nats-config/nats.conf
-    path: /nats-server
-  - args:
-    - /opt/cni/bin/cilium-cni
-    path: /opt/cni/bin/cilium-cni
-  - args:
-    - /opt/cni/bin/loopback
-    path: /opt/cni/bin/loopback
-  - args:
-    - /pause
-    path: /pause
-  - args:
-    - /proc/self/fd/⋯
-    - init
-    path: /runc
-  - args:
-    - /usr/local/bin/metadata-runner.sh
-    path: /usr/bin/bash
-  - args:
-    - cilium-agent
-    - --config-dir=/tmp/cilium/config-map
-    path: /usr/bin/cilium-agent
-  - args:
-    - /usr/bin/cilium-envoy
-    - -c /var/run/cilium/envoy/bootstrap-config.json
-    - --base-id 0
-    - --log-level info
-    path: /usr/bin/cilium-envoy
-  - args:
-    - /usr/bin/cilium-envoy-starter
-    - --
-    - -c /var/run/cilium/envoy/bootstrap-config.json
-    - --base-id 0
-    - --log-level info
-    path: /usr/bin/cilium-envoy-starter
-  - args:
-    - cilium-health-responder
-    - --listen
-    - ⋯
-    - --pidfile
-    - /var/run/cilium/state/health-endpoint.pid
-    path: /usr/bin/cilium-health-responder
-  - args:
-    - /usr/bin/curl
-    - -s
-    - http://169.254.169.254/openstack/latest/meta_data.json
-    path: /usr/bin/curl
-  - args:
-    - /usr/lib/sysstat/debian-sa1
-    - ⋯⋯
-    path: /usr/bin/dash
-  - args:
-    - /usr/lib/sysstat/sa1
-    - ⋯⋯
-    path: /usr/bin/dash
-  - args:
-    - '@dbus-daemon'
-    - --system
-    - '--address=systemd:'
-    - --nofork
-    - --nopidfile
-    - --systemd-activation
-    - --syslog-only
-    path: /usr/bin/dbus-daemon
-  - args:
-    - /usr/bin/grep
-    - ^once_
-    path: /usr/bin/grep
-  - args:
-    - /usr/bin/grep
-    - ^run_
-    path: /usr/bin/grep
-  - args:
-    - /usr/bin/jq
-    - -r
-    - .BackendState // "Stopped"
-    path: /usr/bin/jq
-  - args:
-    - /usr/bin/jq
-    - -r
-    - .meta | keys[]
-    path: /usr/bin/jq
-  - args:
-    - /usr/bin/jq
-    - -r
-    - .meta.tailscale_auth_key // empty
-    path: /usr/bin/jq
-  - args:
-    - /usr/bin/jq
-    - -r
-    - .meta.tailscale_routes // empty
-    path: /usr/bin/jq
-  - args:
-    - local-path-provisioner
-    - start
-    - --config
-    - /etc/config/config.json
-    path: /usr/bin/local-path-provisioner
-  - args:
-    - /usr/bin/mount
-    - -t
-    - tmpfs
-    - -o
-    - ⋯
-    - tmpfs
-    - ⋯
-    path: /usr/bin/mount
-  - args:
-    - /usr/bin/mount
-    - -o
-    - bind
-    - /var/lib/rancher/k3s/storage/⋯
-    - /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~local-volume/⋯
-    path: /usr/bin/mount
-  - args:
-    - /usr/bin/mount
-    - -o
-    - bind,remount
-    - /var/lib/rancher/k3s/storage/⋯
-    - /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~local-volume/⋯
-    path: /usr/bin/mount
-  - args:
-    - node-agent
-    path: /usr/bin/node-agent
-  - args:
-    - /usr/lib/update-notifier/package-data-downloader
-    path: /usr/bin/python3.12
-  - args:
-    - /usr/bin/run-parts
-    - --report
-    - /etc/cron.hourly
-    path: /usr/bin/run-parts
-  - args:
-    - /usr/bin/sort
-    path: /usr/bin/sort
-  - args:
-    - /usr/bin/systemd-tmpfiles
-    - --clean
-    path: /usr/bin/systemd-tmpfiles
-  - args:
-    - /usr/bin/tailscale
-    - status
-    - --json
-    path: /usr/bin/tailscale
-  - args:
-    - (udev-worker)
-    - ⋯⋯
-    path: /usr/bin/udevadm
-  - args:
-    - /usr/lib/systemd/systemd-udevd
-    - ⋯⋯
-    path: /usr/bin/udevadm
-  - args:
-    - /usr/bin/vector
-    - --config-dir
-    - /etc/vector/
-    path: /usr/bin/vector
-  - args:
-    - /usr/lib/polkit-1/polkitd
-    - --no-debug
-    path: /usr/lib/polkit-1/polkitd
-  - args:
-    - /usr/lib/sysstat/sadc
-    - -F
-    - -L
-    - -S
-    - DISK
-    - ⋯
-    - ⋯
-    - /var/log/sysstat
-    path: /usr/lib/sysstat/sadc
-  - args:
-    - /usr/lib/systemd/systemd
-    - --system
-    - --deserialize=159
-    path: /usr/lib/systemd/systemd
-  - args:
-    - /proc/self/fd/⋯
-    - --deserialize
-    - ⋯
-    - --log-level
-    - info
-    - --log-target
-    - journal-or-kmsg
-    path: /usr/lib/systemd/systemd-executor
-  - args:
-    - /usr/lib/systemd/systemd-journald
-    path: /usr/lib/systemd/systemd-journald
-  - args:
-    - /usr/lib/systemd/systemd-logind
-    path: /usr/lib/systemd/systemd-logind
-  - args:
-    - /usr/lib/systemd/systemd-networkd
-    path: /usr/lib/systemd/systemd-networkd
-  - args:
-    - /usr/lib/systemd/systemd-resolved
-    path: /usr/lib/systemd/systemd-resolved
-  - args:
-    - /usr/lib/systemd/systemd-timesyncd
-    path: /usr/lib/systemd/systemd-timesyncd
-  - args:
-    - /usr/libexec/fwupd/fwupd
-    path: /usr/libexec/fwupd/fwupd
-  - args:
-    - /usr/libexec/udisks2/udisksd
-    path: /usr/libexec/udisks2/udisksd
-  - args:
-    - /usr/local/bin/adaptive-export
-    path: /usr/local/bin/adaptive-export
-  - args:
-    - /usr/local/bin/dx-daemon
-    path: /usr/local/bin/dx-daemon
-  - args:
-    - /usr/local/bin/operator
-    path: /usr/local/bin/operator
-  - args:
-    - traefik
-    - traefik
-    - --entryPoints.metrics.address=:9100/tcp
-    - --entryPoints.traefik.address=:8080/tcp
-    - --entryPoints.web.address=:8000/tcp
-    - --entryPoints.websecure.address=:8443/tcp
-    - --api.dashboard=true
-    - --ping=true
-    - --metrics.prometheus=true
-    - --metrics.prometheus.entrypoint=metrics
-    - --providers.kubernetescrd
-    - --providers.kubernetescrd.allowEmptyServices=true
-    - --providers.kubernetesingress
-    - --providers.kubernetesingress.allowEmptyServices=true
-    - --providers.kubernetesingress.ingressendpoint.publishedservice=traefik/traefik
-    - --entryPoints.web.http.redirections.entryPoint.to=:443
-    - --entryPoints.web.http.redirections.entryPoint.scheme=https
-    - --entryPoints.websecure.http.tls=true
-    - --log.level=INFO
-    path: /usr/local/bin/traefik
-  - args:
-    - /usr/sbin/ModemManager
-    path: /usr/sbin/ModemManager
-  - args:
-    - /sbin/agetty
-    - -o
-    - -p -- \u
-    - --keep-baud
-    - ⋯
-    - '-'
-    - vt220
-    path: /usr/sbin/agetty
-  - args:
-    - /sbin/agetty
-    - -o
-    - -p -- \u
-    - --noclear
-    - '-'
-    - linux
-    path: /usr/sbin/agetty
-  - args:
-    - /usr/sbin/cron
-    - -f
-    - -P
-    path: /usr/sbin/cron
-  - args:
-    - /sbin/multipathd
-    - -d
-    - -s
-    path: /usr/sbin/multipathd
-  - args:
-    - /usr/sbin/rsyslogd
-    - -n
-    - -iNONE
-    path: /usr/sbin/rsyslogd
-  - args:
-    - /usr/sbin/tailscaled
-    - --state=/var/lib/tailscale/tailscaled.state
-    - --socket=/run/tailscale/tailscaled.sock
-    - --port=41641
-    path: /usr/sbin/tailscaled
-  - args:
-    - /usr/sbin/ip6tables-save
-    - ⋯⋯
-    path: /usr/sbin/xtables-nft-multi
-  - args:
-    - /usr/sbin/iptables-save
-    - ⋯⋯
-    path: /usr/sbin/xtables-nft-multi
-  - args:
-    - /usr/sbin/ip6tables-restore
-    - ⋯⋯
-    path: /usr/sbin/xtables-nft-multi
-  - args:
-    - /usr/sbin/iptables-restore
-    - ⋯⋯
-    path: /usr/sbin/xtables-nft-multi
-  - args:
-    - /usr/sbin/ip6tables
-    - ⋯⋯
-    path: /usr/sbin/xtables-nft-multi
-  - args:
-    - /usr/sbin/iptables
-    - ⋯⋯
-    path: /usr/sbin/xtables-nft-multi
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/umount
-    - ⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/busybox
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2
-    - -namespace
-    - k8s.io
-    - -address
-    - /run/k3s/containerd/containerd.sock
-    - -publish-binary
-    - /var/lib/rancher/k3s/data/⋯/bin/k3s
-    - -id
-    - ⋯
-    - -bundle
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯
-    - delete
-    path: /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2
-    - -namespace
-    - k8s.io
-    - -address
-    - /run/k3s/containerd/containerd.sock
-    - -publish-binary
-    - /var/lib/rancher/k3s/data/⋯/bin/k3s
-    - -id
-    - ⋯
-    - start
-    path: /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2
-    - -namespace
-    - k8s.io
-    - -id
-    - ⋯
-    - -address
-    - /run/k3s/containerd/containerd.sock
-    path: /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2
-  - args:
-    - /usr/local/bin/k3s agent
-    - ⋯⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/k3s
-  - args:
-    - 'containerd '
-    - ⋯⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/k3s
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/unpigz
-    - -d
-    - -c
-    path: /var/lib/rancher/k3s/data/⋯/bin/pigz
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/runc
-    - --root
-    - /run/containerd/runc/k8s.io
-    - --log
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json
-    - --log-format
-    - json
-    - --systemd-cgroup
-    - create
-    - --bundle
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯
-    - --pid-file
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/init.pid
-    - ⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/runc
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/runc
-    - --root
-    - /run/containerd/runc/k8s.io
-    - --log
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json
-    - --log-format
-    - json
-    - --systemd-cgroup
-    - delete
-    - ⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/runc
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/runc
-    - --root
-    - /run/containerd/runc/k8s.io
-    - --log
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json
-    - --log-format
-    - json
-    - --systemd-cgroup
-    - kill
-    - --all
-    - ⋯
-    - ⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/runc
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/runc
-    - --root
-    - /run/containerd/runc/k8s.io
-    - --log
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json
-    - --log-format
-    - json
-    - --systemd-cgroup
-    - start
-    - ⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/runc
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/runc
-    - --root
-    - /run/containerd/runc/k8s.io
-    - --log
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json
-    - --log-format
-    - json
-    - --systemd-cgroup
-    - exec
-    - --process
-    - /tmp/⋯
-    - --detach
-    - --pid-file
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/⋯
-    - ⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/runc
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/runc
-    - --root
-    - /run/containerd/runc/k8s.io
-    - --log
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json
-    - --log-format
-    - json
-    - --systemd-cgroup
-    - kill
-    - ⋯
-    - ⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/runc
-  - args:
-    - /var/lib/rancher/k3s/data/⋯/bin/runc
-    - --root
-    - /run/containerd/runc/k8s.io
-    - --log
-    - /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json
-    - --log-format
-    - json
-    - delete
-    - --force
-    - ⋯
-    path: /var/lib/rancher/k3s/data/⋯/bin/runc
-  - args:
-    - sh
-    - -c
-    - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/healthz"; until [ $(curl
-      -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ]; do echo "waiting
-      for ${URL}"; sleep 2; done; '
-    path: /bin/busybox
-  - args:
-    - /bin/sh
-    - -c
-    - cd / && run-parts --report /etc/cron.hourly
-    path: /usr/bin/dash
-  - args:
-    - /bin/sh
-    - -c
-    - command -v debian-sa1 > /dev/null && debian-sa1 1 1
-    path: /usr/bin/dash
-  - args:
-    - /usr/bin/python3
-    - /usr/share/unattended-upgrades/unattended-upgrade-shutdown
-    - --wait-for-signal
-    path: /usr/bin/python3.12
+    - {args: [/app/cmd/cainjector/cainjector, --v=2, --leader-election-namespace=kube-system], path: /app/cmd/cainjector/cainjector}
+    - {args: [/app/cmd/controller/controller, --v=2, --cluster-resource-namespace=cert-manager, --leader-election-namespace=kube-system, '--acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.19.3', --max-concurrent-challenges=60], path: /app/cmd/controller/controller}
+    - {args: [/app/cmd/webhook/webhook, --v=2, --secure-port=10250, --dynamic-serving-ca-secret-namespace=cert-manager, --dynamic-serving-ca-secret-name=cert-manager-webhook-ca, --dynamic-serving-dns-names=cert-manager-webhook, --dynamic-serving-dns-names=cert-manager-webhook.cert-manager, --dynamic-serving-dns-names=cert-manager-webhook.cert-manager.svc], path: /app/cmd/webhook/webhook}
+    - {args: [/app/src/vizier/services/agent/pem/pem], path: /app/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem/pem}
+    - {args: [/app/src/vizier/services/cloud_connector/cloud_connector_server], path: /app/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server}
+    - {args: [/app/src/vizier/services/metadata/metadata], path: /app/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata}
+    - {args: [/app/src/vizier/services/query_broker/query_broker], path: /app/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker}
+    - {args: [sleep, ⋯], path: /bin/busybox}
+    - {args: [/metrics-server, --cert-dir=/tmp, --secure-port=10250, '--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname', --kubelet-use-node-status-port, --metric-resolution=15s, '--tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'], path: /metrics-server}
+    - {args: [nats-server, --config, /etc/nats-config/nats.conf], path: /nats-server}
+    - {args: [/opt/cni/bin/cilium-cni], path: /opt/cni/bin/cilium-cni}
+    - {args: [/opt/cni/bin/loopback], path: /opt/cni/bin/loopback}
+    - {args: [/pause], path: /pause}
+    - {args: [/proc/self/fd/⋯, init], path: /runc}
+    - {args: [cilium-agent, --config-dir=/tmp/cilium/config-map], path: /usr/bin/cilium-agent}
+    - {args: [/usr/bin/cilium-envoy, -c /var/run/cilium/envoy/bootstrap-config.json, --base-id 0, --log-level info], path: /usr/bin/cilium-envoy}
+    - {args: [/usr/bin/cilium-envoy-starter, --, -c /var/run/cilium/envoy/bootstrap-config.json, --base-id 0, --log-level info], path: /usr/bin/cilium-envoy-starter}
+    - {args: [cilium-health-responder, --listen, ⋯, --pidfile, /var/run/cilium/state/health-endpoint.pid], path: /usr/bin/cilium-health-responder}
+    - {args: [/usr/bin/curl, -s, 'http://⋯/openstack/latest/meta_data.json'], path: /usr/bin/curl}
+    - {args: ['@dbus-daemon', --system, '--address=systemd:', --nofork, --nopidfile, --systemd-activation, --syslog-only], path: /usr/bin/dbus-daemon}
+    - {args: [/usr/bin/grep, ^once_], path: /usr/bin/grep}
+    - {args: [/usr/bin/grep, ^run_], path: /usr/bin/grep}
+    - {args: [/usr/bin/jq, -r, .BackendState // "Stopped"], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, '.meta | keys[]'], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, .meta.tailscale_auth_key // empty], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, .meta.tailscale_routes // empty], path: /usr/bin/jq}
+    - {args: [local-path-provisioner, start, --config, /etc/config/config.json], path: /usr/bin/local-path-provisioner}
+    - {args: [/usr/bin/mount, -t, tmpfs, -o, ⋯, tmpfs, ⋯], path: /usr/bin/mount}
+    - {args: [/usr/bin/mount, -o, bind, /var/lib/rancher/k3s/storage/⋯, /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~local-volume/⋯], path: /usr/bin/mount}
+    - {args: [/usr/bin/mount, -o, 'bind,remount', /var/lib/rancher/k3s/storage/⋯, /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~local-volume/⋯], path: /usr/bin/mount}
+    - {args: [node-agent], path: /usr/bin/node-agent}
+    - {args: [/usr/lib/update-notifier/package-data-downloader], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/run-parts, --report, /etc/cron.hourly], path: /usr/bin/run-parts}
+    - {args: [/usr/bin/sort], path: /usr/bin/sort}
+    - {args: [/usr/bin/systemd-tmpfiles, --clean], path: /usr/bin/systemd-tmpfiles}
+    - {args: [/usr/bin/tailscale, status, --json], path: /usr/bin/tailscale}
+    - {args: [(udev-worker), ⋯⋯], path: /usr/bin/udevadm}
+    - {args: [/usr/lib/systemd/systemd-udevd, ⋯⋯], path: /usr/bin/udevadm}
+    - {args: [/usr/bin/vector, --config-dir, /etc/vector/], path: /usr/bin/vector}
+    - {args: [/usr/lib/polkit-1/polkitd, --no-debug], path: /usr/lib/polkit-1/polkitd}
+    - {args: [/usr/lib/sysstat/sadc, -F, -L, -S, DISK, ⋯, ⋯, /var/log/sysstat], path: /usr/lib/sysstat/sadc}
+    - {args: [/usr/lib/systemd/systemd, --system, --deserialize=159], path: /usr/lib/systemd/systemd}
+    - {args: [/proc/self/fd/⋯, --deserialize, ⋯, --log-level, info, --log-target, journal-or-kmsg], path: /usr/lib/systemd/systemd-executor}
+    - {args: [/usr/lib/systemd/systemd-journald], path: /usr/lib/systemd/systemd-journald}
+    - {args: [/usr/lib/systemd/systemd-logind], path: /usr/lib/systemd/systemd-logind}
+    - {args: [/usr/lib/systemd/systemd-networkd], path: /usr/lib/systemd/systemd-networkd}
+    - {args: [/usr/lib/systemd/systemd-resolved], path: /usr/lib/systemd/systemd-resolved}
+    - {args: [/usr/lib/systemd/systemd-timesyncd], path: /usr/lib/systemd/systemd-timesyncd}
+    - {args: [/usr/libexec/fwupd/fwupd], path: /usr/libexec/fwupd/fwupd}
+    - {args: [/usr/libexec/udisks2/udisksd], path: /usr/libexec/udisks2/udisksd}
+    - {args: [/usr/local/bin/adaptive-export], path: /usr/local/bin/adaptive-export}
+    - {args: [/usr/local/bin/dx-daemon], path: /usr/local/bin/dx-daemon}
+    - {args: [/usr/local/bin/operator], path: /usr/local/bin/operator}
+    - {args: [traefik, traefik, '--entryPoints.metrics.address=:9100/tcp', '--entryPoints.traefik.address=:8080/tcp', '--entryPoints.web.address=:8000/tcp', '--entryPoints.websecure.address=:8443/tcp', --api.dashboard=true, --ping=true, --metrics.prometheus=true, --metrics.prometheus.entrypoint=metrics, --providers.kubernetescrd, --providers.kubernetescrd.allowEmptyServices=true, --providers.kubernetesingress, --providers.kubernetesingress.allowEmptyServices=true, --providers.kubernetesingress.ingressendpoint.publishedservice=traefik/traefik, '--entryPoints.web.http.redirections.entryPoint.to=:443', --entryPoints.web.http.redirections.entryPoint.scheme=https, --entryPoints.websecure.http.tls=true, --log.level=INFO], path: /usr/local/bin/traefik}
+    - {args: [/usr/sbin/ModemManager], path: /usr/sbin/ModemManager}
+    - {args: [/sbin/agetty, -o, -p -- \u, --keep-baud, ⋯, '-', vt220], path: /usr/sbin/agetty}
+    - {args: [/sbin/agetty, -o, -p -- \u, --noclear, '-', linux], path: /usr/sbin/agetty}
+    - {args: [/usr/sbin/cron, -f, -P], path: /usr/sbin/cron}
+    - {args: [/sbin/multipathd, -d, -s], path: /usr/sbin/multipathd}
+    - {args: [/usr/sbin/rsyslogd, -n, -iNONE], path: /usr/sbin/rsyslogd}
+    - {args: [/usr/sbin/tailscaled, --state=/var/lib/tailscale/tailscaled.state, --socket=/run/tailscale/tailscaled.sock, --port=41641], path: /usr/sbin/tailscaled}
+    - {args: [/usr/sbin/ip6tables-save, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/sbin/iptables-save, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/sbin/ip6tables-restore, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/sbin/iptables-restore, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/sbin/ip6tables, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/sbin/iptables, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/umount, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/busybox}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2, -namespace, k8s.io, -address, /run/k3s/containerd/containerd.sock, -publish-binary, /var/lib/rancher/k3s/data/⋯/bin/k3s, -id, ⋯, -bundle, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯, delete], path: /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2, -namespace, k8s.io, -address, /run/k3s/containerd/containerd.sock, -publish-binary, /var/lib/rancher/k3s/data/⋯/bin/k3s, -id, ⋯, start], path: /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2, -namespace, k8s.io, -id, ⋯, -address, /run/k3s/containerd/containerd.sock], path: /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2}
+    - {args: [/usr/local/bin/k3s agent, ⋯⋯], path: /var/lib/rancher/k3s/data/⋯/bin/k3s}
+    - {args: ['containerd ', ⋯⋯], path: /var/lib/rancher/k3s/data/⋯/bin/k3s}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/unpigz, -d, -c], path: /var/lib/rancher/k3s/data/⋯/bin/pigz}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/runc, --root, /run/containerd/runc/k8s.io, --log, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json, --log-format, json, --systemd-cgroup, create, --bundle, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯, --pid-file, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/init.pid, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/runc}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/runc, --root, /run/containerd/runc/k8s.io, --log, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json, --log-format, json, --systemd-cgroup, delete, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/runc}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/runc, --root, /run/containerd/runc/k8s.io, --log, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json, --log-format, json, --systemd-cgroup, kill, --all, ⋯, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/runc}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/runc, --root, /run/containerd/runc/k8s.io, --log, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json, --log-format, json, --systemd-cgroup, start, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/runc}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/runc, --root, /run/containerd/runc/k8s.io, --log, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json, --log-format, json, --systemd-cgroup, exec, --process, /tmp/⋯, --detach, --pid-file, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/⋯, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/runc}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/runc, --root, /run/containerd/runc/k8s.io, --log, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json, --log-format, json, --systemd-cgroup, kill, ⋯, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/runc}
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/runc, --root, /run/containerd/runc/k8s.io, --log, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json, --log-format, json, delete, --force, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/runc}
+    - {args: [sh, -c, 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/healthz"; until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ]; do echo "waiting for ${URL}"; sleep 2; done; '], path: /bin/busybox}
+    - {args: [/usr/local/bin/metadata-runner.sh], path: /usr/bin/bash}
+    - {args: [/bin/sh, -c, cd / && run-parts --report /etc/cron.hourly], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, command -v debian-sa1 > /dev/null && debian-sa1 1 1], path: /usr/bin/dash}
+    - {args: [/usr/lib/sysstat/debian-sa1, ⋯, ⋯], path: /usr/bin/dash}
+    - {args: [/usr/lib/sysstat/sa1, ⋯, ⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/python3, /usr/share/unattended-upgrades/unattended-upgrade-shutdown, --wait-for-signal], path: /usr/bin/python3.12}
   identifiedCallStacks: null
   imageID: ""
   imageTag: ""
-  ingress: null
+  ingress:
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-10250, port: 10250, protocol: TCP}, {name: TCP-10010, port: 10010, protocol: TCP}], type: external}
   opens:
-  - flags:
-    - O_LARGEFILE
-    - O_RDONLY
-    path: /
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /.docker/config.json
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /.dockercfg
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /config.json
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/block
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/bsg
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/bus
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/bus/usb
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/bus/usb/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/char
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_WRONLY
-    path: /dev/console
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/cpu
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/cpu/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/disk
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/disk/by-diskseq
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /dev/disk/by-id
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/disk/by-label
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/disk/by-partuuid
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/disk/by-path
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/disk/by-uuid
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/dma_heap
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/dri
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/dri/by-path
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/fuse
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/hugepages
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/input
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/input/by-id
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/input/by-path
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/kvm
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/loop-control
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/mapper
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/net
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/net/tun
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /dev/null
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/shm
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/snd
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/snd/seq
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/snd/timer
-  - flags:
-    - O_NONBLOCK
-    - O_RDWR
-    path: /dev/tty
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /dev/vfio
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/vfio/vfio
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/vhost-net
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /dev/vhost-vsock
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/01-vendor-ubuntu
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/01autoremove
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/10periodic
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/15update-stamp
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/20apt-esm-hook.conf
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/20archive
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/20auto-upgrades
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/20packagekit
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/20snapd.conf
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/50appstream
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/50command-not-found
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/50unattended-upgrades
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/70debconf
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/99needrestart
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /etc/apt/apt.conf.d/99update-notifier
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/cadvisor/container_hints.json
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/credstore
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/credstore.encrypted
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /etc/cron.hourly
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/default
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/default/keyboard
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/default/locale
-  - flags:
-    - O_RDONLY
-    path: /etc/environment
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/fstab
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/gai.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/gnutls/config
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/group
-  - flags:
-    - O_CLOEXEC
-    - O_LARGEFILE
-    - O_RDONLY
-    path: /etc/hosts
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/ld.so.cache
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/locale.alias
-  - flags:
-    - O_RDONLY
-    path: /etc/locale.conf
-  - flags:
-    - O_RDONLY
-    path: /etc/login.defs
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/machine-id
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /etc/modprobe.d
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/modprobe.d/blacklist-ath_pci.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/modprobe.d/blacklist-firewire.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/modprobe.d/blacklist-framebuffer.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/modprobe.d/blacklist-rare-network.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/modprobe.d/blacklist.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/modprobe.d/disable-algif_aead.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/modprobe.d/iwlwifi.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/modprobe.d/mdadm.conf
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/mtab
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/nri/conf.json
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/nsswitch.conf
-  - flags:
-    - O_RDONLY
-    path: /etc/pam.d/common-account
-  - flags:
-    - O_RDONLY
-    path: /etc/pam.d/common-auth
-  - flags:
-    - O_RDONLY
-    path: /etc/pam.d/common-password
-  - flags:
-    - O_RDONLY
-    path: /etc/pam.d/common-session
-  - flags:
-    - O_RDONLY
-    path: /etc/pam.d/common-session-noninteractive
-  - flags:
-    - O_RDONLY
-    path: /etc/pam.d/cron
-  - flags:
-    - O_RDONLY
-    path: /etc/pam.d/other
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/passwd
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/polkit-1
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/polkit-1/rules.d
-  - flags:
-    - O_RDONLY
-    path: /etc/security/capability.conf
-  - flags:
-    - O_RDONLY
-    path: /etc/security/limits.conf
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /etc/security/limits.d
-  - flags:
-    - O_RDONLY
-    path: /etc/security/pam_env.conf
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /etc/sensors.d
-  - flags:
-    - O_RDONLY
-    path: /etc/sensors3.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/shadow
-  - flags:
-    - O_RDONLY
-    path: /etc/ssl/openssl.cnf
-  - flags:
-    - O_RDONLY
-    path: /etc/sysstat/sysstat
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /etc/tmpfiles.d
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /etc/tmpfiles.d/screen-cleanup.conf
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/userdb
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /etc/vconsole.conf
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /home
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /lib/dbus-1/system-services
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /opt/cni/bin/cilium-cni
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /proc
-  - flags:
-    - O_RDONLY
-    path: /proc/net/ip6_tables_names
-  - flags:
-    - O_RDONLY
-    path: /proc/net/rpc/nfs
-  - flags:
-    - O_RDONLY
-    path: /proc/net/rpc/nfsd
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /proc/pressure/cpu
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /proc/pressure/io
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /proc/pressure/memory
-  - flags:
-    - O_RDONLY
-    path: /proc/sys/crypto/fips_enabled
-  - flags:
-    - O_RDONLY
-    path: /proc/sys/fs/dentry-state
-  - flags:
-    - O_RDONLY
-    path: /proc/sys/fs/file-nr
-  - flags:
-    - O_RDONLY
-    path: /proc/sys/fs/inode-state
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/fs/nr_open
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/kernel/cap_last_cap
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/kernel/ngroups_max
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/kernel/osrelease
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/kernel/pid_max
-  - flags:
-    - O_RDONLY
-    path: /proc/sys/kernel/pty/nr
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/kernel/random/boot_id
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/kernel/threads-max
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/net/core/somaxconn
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    - O_RDWR
-    path: /proc/sys/net/ipv4/ip_local_reserved_ports
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/sys/net/ipv6/conf
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /proc/sys/net/ipv6/conf/tailscale0
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /proc/sys/net/ipv6/conf/tailscale0/disable_ipv6
-  - flags:
-    - O_RDONLY
-    path: /proc/tty/driver/serial
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /proc/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/⋯/attr/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/⋯/cgroup
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /proc/⋯/cmdline
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/⋯/comm
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/⋯/environ
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /proc/⋯/fd/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /proc/⋯/fdinfo/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/⋯/limits
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    - O_RDWR
-    path: /proc/⋯/loginuid
-  - flags:
-    - O_RDONLY
-    path: /proc/⋯/maps
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/⋯/mountinfo
-  - flags:
-    - O_LARGEFILE
-    - O_RDONLY
-    path: /proc/⋯/mounts
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    - O_RDWR
-    path: /proc/⋯/net/*
-  - flags:
-    - O_LARGEFILE
-    - O_RDWR
-    path: /proc/⋯/oom_score_adj
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/⋯/sessionid
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /proc/⋯/stat
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_RDONLY
-    path: /proc/⋯/status
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /proc/⋯/task/*
-  - flags:
-    - O_RDONLY
-    path: /proc/⋯/uid_map
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /root
-  - flags:
-    - O_RDONLY
-    path: /root/.curlrc
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /root/.docker/config.json
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /root/.dockercfg
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /root/.ssh
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/cilium
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/cilium/cgroupv2/*/cpu.max
-  - flags:
-    - O_APPEND
-    - O_CLOEXEC
-    - O_WRONLY
-    path: /run/cilium/cilium-cni.log
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/containerd/runc/k8s.io
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_DIRECTORY
-    - O_EXCL
-    - O_NOFOLLOW
-    - O_RDONLY
-    - O_RDWR
-    path: /run/containerd/runc/k8s.io/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/containerd/runc/k8s.io/*
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/credentials/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/credentials/⋯/login.issue
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/credentials/⋯/login.motd
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/credentials/⋯/network.hosts
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/credentials/⋯/ssh.authorized_keys.root
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/credentials/⋯/tmpfiles.extra
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/credstore
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/credstore.encrypted
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/cryptsetup
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/dbus
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/dbus/containers
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/host
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/host/container-manager
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers/⋯/io
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    - O_WRONLY
-    path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers/⋯/io/*
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.grpc.v1.cri/image-volumes/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/⋯/shm
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_DIRECTORY
-    - O_DSYNC
-    - O_EXCL
-    - O_NOFOLLOW
-    - O_RDONLY
-    - O_RDWR
-    path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/*
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_RDONLY
-    - O_TRUNC
-    - O_WRONLY
-    path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    - O_RDWR
-    - O_WRONLY
-    path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/*
-  - flags:
-    - O_APPEND
-    - O_CLOEXEC
-    - O_CREAT
-    - O_DSYNC
-    - O_RDONLY
-    - O_WRONLY
-    path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/*
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/*
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/lock
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/lock/lvm
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/lock/subsys
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/log
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/log/journal
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/log/journal/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/lvm
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/motd.d
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/multipath
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_EXCL
-    - O_LARGEFILE
-    - O_RDONLY
-    - O_RDWR
-    path: /run/netns/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/screen
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/sendsigs.omit.d
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/setrans
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/shm
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/sudo
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/ask-password
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/systemd/container
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/systemd/efivars/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_EXCL
-    - O_NOCTTY
-    - O_RDWR
-    path: /run/systemd/journal/streams/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/machines
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/netif
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/netif/leases
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/netif/links
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/netif/lldp
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/systemd/resolve/resolv.conf
-  - flags:
-    - O_CLOEXEC
-    - O_LARGEFILE
-    - O_RDONLY
-    path: /run/systemd/resolve/stub-resolv.conf
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/seats
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/sessions
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/shutdown
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_EXCL
-    - O_NOCTTY
-    - O_RDWR
-    - O_TRUNC
-    - O_WRONLY
-    path: /run/systemd/transient/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/systemd/units/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /run/systemd/userdb
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/systemd/users
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/systemd/users/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /run/tmpfiles.d
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/tmpfiles.d/static-nodes.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/udev/data/b259:0
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/udev/data/b8:1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/udev/data/b8:15
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/udisks2/loop
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/udisks2/mdraid
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/udisks2/mounted-fs
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /run/udisks2/unlocked-crypto-dev
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/user
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /run/userdb
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /runc
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /srv
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /sys
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /sys/block
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /sys/class/fc_host
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /sys/class/hwmon
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /sys/class/i2c-adapter
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /sys/class/net
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /sys/dev
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /sys/dev/block
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /sys/dev/block/259:0
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /sys/dev/block/8:1
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /sys/dev/block/8:15
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /sys/devices
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /sys/devices/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /sys/fs/cgroup
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_DIRECTORY
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    - O_TRUNC
-    - O_WRONLY
-    path: /sys/fs/cgroup/*
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /sys/kernel/mm/hugepages
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /sys/kernel/mm/hugepages/⋯/nr_hugepages
-  - flags:
-    - O_RDONLY
-    path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /sys/kernel/security/apparmor/profiles
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /sys/module/apparmor/parameters/enabled
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /sys/module/compression
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /tmp
-  - flags:
-    - O_DIRECTORY
-    - O_EXCL
-    - O_RDWR
-    path: /tmp/#2186
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /tmp/.ICE-unix
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /tmp/.X11-unix
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /tmp/.XIM-unix
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /tmp/.font-unix
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_DIRECTORY
-    - O_EXCL
-    - O_NOATIME
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    - O_RDWR
-    path: /tmp/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /tmp/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /tmp/⋯/tmp
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/bin
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/bin/bash
-  - flags:
-    - O_RDONLY
-    path: /usr/bin/pybuilddir.txt
-  - flags:
-    - O_RDONLY
-    path: /usr/bin/python3.12._pth
-  - flags:
-    - O_RDONLY
-    path: /usr/bin/python3._pth
-  - flags:
-    - O_RDONLY
-    path: /usr/bin/pyvenv.cfg
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/bin/systemd-tmpfiles
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/lib
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_ADDRESS
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_COLLATE
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_CTYPE
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_IDENTIFICATION
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_MEASUREMENT
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_MESSAGES
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_MONETARY
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_NAME
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_NUMERIC
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_PAPER
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_TELEPHONE
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.UTF-8/LC_TIME
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_ADDRESS
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_COLLATE
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_CTYPE
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_IDENTIFICATION
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_MEASUREMENT
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_MESSAGES
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_MESSAGES/SYS_LC_MESSAGES
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_MONETARY
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_NAME
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_NUMERIC
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_PAPER
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_TELEPHONE
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/C.utf8/LC_TIME
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/locale/locale-archive
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/lib/modprobe.d
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modprobe.d/aliases.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modprobe.d/blacklist_linux_6.8.0-139-generic.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modprobe.d/blacklist_linux_6.8.0-142-generic.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modprobe.d/fbdev-blacklist.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modprobe.d/systemd.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modules/⋯/modules.alias.bin
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modules/⋯/modules.builtin.alias.bin
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modules/⋯/modules.builtin.bin
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modules/⋯/modules.dep.bin
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modules/⋯/modules.softdep
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/modules/⋯/modules.symbols.bin
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/os-release
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/lib/python3.12
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/lib/python3.12/*
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/lib/python3/*
-  - flags:
-    - O_RDONLY
-    path: /usr/lib/sysstat/debian-sa1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/sysstat/sa1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/systemd/system/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/00rsyslog.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/apport.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/credstore.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/cron-daemon-common.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/cryptsetup.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/dbus.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/debian.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/home.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/journal-nocow.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/legacy.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/libselinux1.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/lvm2.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/man-db.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/multipath.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/passwd.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/polkitd.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/provision.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/snapd.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/static-nodes-permissions.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/sudo.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/systemd-network.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/systemd-nologin.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/systemd-pstore.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/systemd-resolve.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/systemd-tmp.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/systemd.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/tmp.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/tpm-udev.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/var.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/tmpfiles.d/x11.conf
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/lib/update-notifier
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/update-notifier/package-data-downloader
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/lib/userdb
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/gconv-modules.cache
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/glibc-hwcaps/x86-64-v2/libsystemd-core-255.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/glibc-hwcaps/x86-64-v2/libsystemd-shared-255.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/glibc-hwcaps/x86-64-v3/libsystemd-core-255.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/glibc-hwcaps/x86-64-v3/libsystemd-shared-255.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libacl.so.1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libapparmor.so.1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libc.so.6
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libipt_REJECT.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libpam.so.0
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libseccomp.so.2
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libselinux.so.1
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libsystemd-core-255.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libsystemd-shared-255.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_MARK.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_NAT.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_addrtype.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_comment.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_conntrack.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_mark.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_nfacct.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_standard.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_statistic.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_tcp.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/libxt_udp.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_cap.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_deny.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_env.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_limits.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_loginuid.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_permit.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_systemd.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_umask.so
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/lib/x86_64-linux-gnu/⋯/pam_unix.so
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/local
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/local/bin/metadata-runner.sh
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/local/bin/systemd-tmpfiles
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/local/lib
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/local/lib/python3.12/*
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/local/lib/tmpfiles.d
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/local/lib/userdb
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/local/sbin/systemd-tmpfiles
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/local/share/dbus-1/system-services
-  - flags:
-    - O_RDONLY
-    path: /usr/pyvenv.cfg
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /usr/sbin/systemd-tmpfiles
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/share
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/share/dbus-1/system-services
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/share/doc
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/share/doc/systemd
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /usr/share/doc/systemd/README.logs
-  - flags:
-    - O_RDONLY
-    path: /usr/share/dpkg/cputable
-  - flags:
-    - O_RDONLY
-    path: /usr/share/dpkg/tupletable
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /usr/share/package-data-downloads
-  - flags:
-    - O_RDONLY
-    path: /usr/share/zoneinfo/Etc/UTC
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/cache
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/cache/fwupd
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/cache/fwupdmgr
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat2
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat3
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat4
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat6
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat7
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cat9
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cs
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cs/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cs/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/cs/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/da
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/da/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/da/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/da/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/de
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/de/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/de/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/de/cat7
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/de/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/es
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/es/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/es/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/es/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/fi
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/fi/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/fr
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/fr/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/fr/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/fr/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/hr
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/hr/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/hu
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/hu/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/hu/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/hu/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/id
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/id/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/id/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/id/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/it
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/it/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/it/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/it/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ja
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ja/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ja/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ja/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ko
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ko/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ko/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ko/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/nl
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/nl/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/nl/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/nl/cat7
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/nl/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pl
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pl/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pl/cat3
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pl/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pl/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt/cat7
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt_BR
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt_BR/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt_BR/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/pt_BR/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ro
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ro/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ro/cat3
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ro/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ro/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ru
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ru/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ru/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/ru/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sl
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sl/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sl/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sr
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sr/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sr/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sr/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sv
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sv/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sv/cat3
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sv/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/sv/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/tr
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/tr/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/tr/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/tr/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/uk
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/uk/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/uk/cat3
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/uk/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/uk/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/zh_CN
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/zh_CN/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/zh_CN/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/zh_CN/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/zh_TW
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/zh_TW/cat1
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/zh_TW/cat5
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/cache/man/zh_TW/cat8
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/cache/private
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/apport
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/lib/apport/coredump
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/cni/results/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/dbus
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/dbus/machine-id
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/fwupd
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/kubelet/*/volumes/kubernetes.io~configmap/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/volumes/kubernetes.io~empty-dir/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/containers
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_RDONLY
-    - O_RDWR
-    - O_TRUNC
-    path: /var/lib/kubelet/*/containers/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/plugins
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/plugins/kubernetes.io~empty-dir
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/kubelet/*/plugins/kubernetes.io~empty-dir/wrapped_certs
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/kubelet/*/plugins/kubernetes.io~empty-dir/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/volume-subpaths/certs
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/volume-subpaths/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/lib/kubelet/*/volumes
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/kubelet/*/etc-hosts
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_RDWR
-    - O_TRUNC
-    path: /var/lib/kubelet/*/plugins/kubernetes.io~empty-dir/⋯/ready
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/volumes/kubernetes.io~local-volume
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/volumes/kubernetes.io~configmap
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/kubelet/*/volumes/kubernetes.io~local-volume/*
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/polkit-1
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/private
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/client-k3s-controller.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/client-k3s-controller.key
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/client-kube-proxy.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/client-kube-proxy.key
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/client-kubelet.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/client-kubelet.key
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/blobs/sha256/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/ingest
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/ingest/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/ingest/⋯/data
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/ingest/⋯/ref
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_DSYNC
-    - O_RDWR
-    - O_TRUNC
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/ingest/⋯/startedat.tmp
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/ingest/⋯/total
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_DSYNC
-    - O_RDWR
-    - O_TRUNC
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/ingest/⋯/updatedat.tmp
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_EXCL
-    - O_RDWR
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/containers/*
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/sandboxes
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/sandboxes/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/sandboxes/⋯/hostname
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/sandboxes/⋯/hosts
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/sandboxes/⋯/resolv.conf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.introspection/uuid
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/.config
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/.config/gops
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/.config/tsnet-operator
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/bundle
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/cilium
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/cilium/cgroupv2
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/cilium/envoy
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/config
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/credentials
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/dx
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/dx/proof
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/etc
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/etc/cni
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/etc/cni/net.d
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/fs
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/fs/cgroup
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/cilium
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/cilium/bpf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/cilium/bpf/include
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/cilium/bpf/include/bpf
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/cilium/clustermesh
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/cilium/tls
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/cilium/tls/hubble
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/modules
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/tailscale
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/libpx-java-agent.so
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/linux-headers-x86_64-4.18.20.tar.gz
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/linux-headers-x86_64-5.10.252.tar.gz
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/linux-headers-x86_64-5.14.21.tar.gz
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/linux-headers-x86_64-6.1.167.tar.gz
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/linux-headers-x86_64-6.12.80.tar.gz
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/linux-headers-x86_64-6.18.21.tar.gz
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/linux-headers-x86_64-6.19.10.tar.gz
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/linux-headers-x86_64-6.6.132.tar.gz
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/modules
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/modules/6.8.0-139-generic
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/nats-config
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/nats-server-tls-certs
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/opt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/opt/cni
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/opt/cni/bin
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/proc
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/proc/sys
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/proc/sys/kernel
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/proc/sys/net
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/px_jattach
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/run
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/run/nats
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/run/secrets
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/run/secrets/kubernetes.io
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/run/secrets/kubernetes.io/serviceaccount
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/sbin
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/secrets
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/secrets/kubernetes.io
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/secrets/kubernetes.io/serviceaccount
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/com_google_protobuf
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/com_google_protobuf/protoc
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/px
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/px/src
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/agent/pem/pem.runfiles/px/src/vizier/services/agent/pem/pem
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector/cloud_connector_server.runfiles
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/cloud_connector/cloud_connector_server.runfiles/px/src/vizier/services/cloud_connector/cloud_connector_server_/cloud_connector_server
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata/metadata.runfiles
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata/metadata.runfiles/px
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata/metadata.runfiles/px/src
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata/metadata.runfiles/px/src/vizier
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/metadata/metadata.runfiles/px/src/vizier/services/metadata/metadata_/metadata
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/com_google_protobuf
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/com_google_protobuf/protoc
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/px
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/px/src
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/vizier/services/query_broker/query_broker.runfiles/px/src/vizier/services/query_broker/query_broker_/query_broker
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/stirling_ctrl
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/sys
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/timeconst_100.h
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/timeconst_1000.h
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/timeconst_250.h
-  - flags:
-    - O_CLOEXEC
-    - O_CREAT
-    - O_TRUNC
-    - O_WRONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/timeconst_300.h
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/work
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/work/work
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/tmpmounts/⋯/etc/passwd
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/containerd/tmpmounts/⋯/etc/group
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/pod-manifests
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/serving-kubelet.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/agent/serving-kubelet.key
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/data/⋯/bin/containerd-shim-runc-v2
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/data/⋯/bin/runc
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/server/tls/client-k3s-controller.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/server/tls/client-k3s-controller.key
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/server/tls/client-kube-proxy.crt
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/server/tls/client-kube-proxy.key
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/server/tls/client-kubelet.key
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/rancher/k3s/server/tls/serving-kubelet.key
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/lib/snapd/dbus-1/system-services
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/systemd
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/lib/systemd/coredump
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/lib/systemd/ephemeral-trees
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/lib/systemd/pstore
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lib/systemd/timers/stamp-fwupd-refresh.timer
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/lib/udisks2/mounted-fs-persistent
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/lib/update-notifier/package-data-downloads
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/lock
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/README
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/auth.log
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/btmp
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/log/containers
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/journal
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/log/journal/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/journal/⋯/system.journal
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/journal/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/kern.log
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/lastlog
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/mail.err
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/mail.log
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/pods/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/cert-manager-controller
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/cert-manager-cainjector
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/cert-manager-webhook
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/pods/⋯/dx-daemon
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/log/pods/⋯/dx-daemon/0.log
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/node-agent
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/log/pods/⋯/node-agent/0.log
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/vector
-  - flags:
-    - O_CLOEXEC
-    - O_RDONLY
-    path: /var/log/pods/⋯/vector/0.log
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/cilium-agent
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/cilium-envoy
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/local-path-provisioner
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/metrics-server
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/adaptive-export
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/pl-nats
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/pods/⋯/app
-  - flags:
-    - O_APPEND
-    - O_CLOEXEC
-    - O_CREAT
-    - O_WRONLY
-    path: /var/log/pods/⋯/app/0.log
-  - flags:
-    - O_APPEND
-    - O_CLOEXEC
-    - O_CREAT
-    - O_WRONLY
-    path: /var/log/pods/⋯/nats-wait/0.log
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/pods/⋯/nats-wait
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/pods/⋯/pem
-  - flags:
-    - O_APPEND
-    - O_CLOEXEC
-    - O_CREAT
-    - O_WRONLY
-    path: /var/log/pods/⋯/pem/0.log
-  - flags:
-    - O_APPEND
-    - O_CLOEXEC
-    - O_CREAT
-    - O_WRONLY
-    path: /var/log/pods/⋯/qb-wait/0.log
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/pods/⋯/qb-wait
-  - flags:
-    - O_APPEND
-    - O_CLOEXEC
-    - O_CREAT
-    - O_WRONLY
-    path: /var/log/pods/⋯/cc-wait/0.log
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/mds-wait
-  - flags:
-    - O_APPEND
-    - O_CLOEXEC
-    - O_CREAT
-    - O_WRONLY
-    path: /var/log/pods/⋯/mds-wait/0.log
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/operator
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_RDONLY
-    path: /var/log/pods/⋯/traefik
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/private
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/syslog
-  - flags:
-    - O_APPEND
-    - O_RDWR
-    path: /var/log/sysstat/sa07
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/log/wtmp
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/run
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/spool
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/spool/cron
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/spool/cron/crontabs
-  - flags:
-    - O_CLOEXEC
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/spool/rsyslog
-  - flags:
-    - O_CLOEXEC
-    - O_NOFOLLOW
-    - O_RDONLY
-    path: /var/tmp
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOCTTY
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/tmp/⋯
-  - flags:
-    - O_CLOEXEC
-    - O_DIRECTORY
-    - O_NOATIME
-    - O_NOFOLLOW
-    - O_NONBLOCK
-    - O_RDONLY
-    path: /var/tmp/⋯/tmp
-  rulePolicies:
-    R0002:
-      processAllowed:
-      - k3s-agent
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.docker/config.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.dockercfg}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /config.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/block}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bsg}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus/usb}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus/usb/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/char}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_WRONLY], path: /dev/console}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/cpu}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/cpu/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/disk}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/disk/by-diskseq}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /dev/disk/by-id}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/disk/by-label}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/disk/by-partuuid}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/disk/by-path}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/disk/by-uuid}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/dma_heap}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/dri}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/dri/by-path}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/fuse}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/hugepages}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/input}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/input/by-id}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/input/by-path}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/kvm}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/loop-control}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/mapper}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/net}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/net/tun}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /dev/null}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/shm}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/snd}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/snd/seq}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/snd/timer}
+    - {flags: [O_NONBLOCK, O_RDWR], path: /dev/tty}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/vfio}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/vfio/vfio}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/vhost-net}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /dev/vhost-vsock}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apt/apt.conf.d}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/01-vendor-ubuntu}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/01autoremove}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/10periodic}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/15update-stamp}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/20apt-esm-hook.conf}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/20archive}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/20auto-upgrades}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/20packagekit}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/20snapd.conf}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/50appstream}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/50command-not-found}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/50unattended-upgrades}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/70debconf}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/99needrestart}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/99update-notifier}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/cadvisor/container_hints.json}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/credstore}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/credstore.encrypted}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/cron.hourly}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/default}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/default/keyboard}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/default/locale}
+    - {flags: [O_RDONLY], path: /etc/environment}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/fstab}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gnutls/config}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/locale.alias}
+    - {flags: [O_RDONLY], path: /etc/locale.conf}
+    - {flags: [O_RDONLY], path: /etc/login.defs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/machine-id}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/modprobe.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/modprobe.d/blacklist-ath_pci.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/modprobe.d/blacklist-firewire.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/modprobe.d/blacklist-framebuffer.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/modprobe.d/blacklist-rare-network.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/modprobe.d/blacklist.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/modprobe.d/iwlwifi.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/modprobe.d/mdadm.conf}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/mtab}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nri/conf.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-account}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-auth}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-password}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-session}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-session-noninteractive}
+    - {flags: [O_RDONLY], path: /etc/pam.d/cron}
+    - {flags: [O_RDONLY], path: /etc/pam.d/other}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/polkit-1}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/polkit-1/rules.d}
+    - {flags: [O_RDONLY], path: /etc/security/capability.conf}
+    - {flags: [O_RDONLY], path: /etc/security/limits.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/security/limits.d}
+    - {flags: [O_RDONLY], path: /etc/security/pam_env.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/sensors.d}
+    - {flags: [O_RDONLY], path: /etc/sensors3.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/shadow}
+    - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf}
+    - {flags: [O_RDONLY], path: /etc/sysstat/sysstat}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/tmpfiles.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/tmpfiles.d/screen-cleanup.conf}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/userdb}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/vconsole.conf}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /home}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /lib/dbus-1/system-services}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/cni/bin/cilium-cni}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /proc}
+    - {flags: [O_RDONLY], path: /proc/net/ip6_tables_names}
+    - {flags: [O_RDONLY], path: /proc/net/rpc/nfs}
+    - {flags: [O_RDONLY], path: /proc/net/rpc/nfsd}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /proc/pressure/cpu}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /proc/pressure/io}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /proc/pressure/memory}
+    - {flags: [O_RDONLY], path: /proc/sys/crypto/fips_enabled}
+    - {flags: [O_RDONLY], path: /proc/sys/fs/dentry-state}
+    - {flags: [O_RDONLY], path: /proc/sys/fs/file-nr}
+    - {flags: [O_RDONLY], path: /proc/sys/fs/inode-state}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/fs/nr_open}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/ngroups_max}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/osrelease}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/pid_max}
+    - {flags: [O_RDONLY], path: /proc/sys/kernel/pty/nr}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/random/boot_id}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/threads-max}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_RDWR], path: /proc/sys/net/ipv4/ip_local_reserved_ports}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv6/conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /proc/sys/net/ipv6/conf/tailscale0}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /proc/sys/net/ipv6/conf/tailscale0/disable_ipv6}
+    - {flags: [O_RDONLY], path: /proc/tty/driver/serial}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /proc/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/attr/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /proc/⋯/cmdline}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/comm}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/environ}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/fd}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /proc/⋯/fdinfo/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/limits}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY, O_RDWR], path: /proc/⋯/loginuid}
+    - {flags: [O_RDONLY], path: /proc/⋯/maps}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/⋯/mounts}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_RDWR], path: /proc/⋯/net/*}
+    - {flags: [O_LARGEFILE, O_RDWR], path: /proc/⋯/oom_score_adj}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/sessionid}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /proc/⋯/status}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_RDONLY], path: /proc/⋯/uid_map}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /root}
+    - {flags: [O_RDONLY], path: /root/.curlrc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /root/.docker/config.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /root/.dockercfg}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /root/.ssh}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/cilium}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/cilium/cgroupv2/system.slice/k3s-agent.service/cpu.max}
+    - {flags: [O_APPEND, O_CLOEXEC, O_WRONLY], path: /run/cilium/cilium-cni.log}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/containerd/runc/k8s.io}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR], path: /run/containerd/runc/k8s.io/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /run/credentials/fwupd-refresh.service}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/fwupd.service}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/metadata-runner.service}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/sysstat-collect.service}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/systemd-tmpfiles-clean.service}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/credentials/systemd-tmpfiles-clean.service/login.issue}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/credentials/systemd-tmpfiles-clean.service/login.motd}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/credentials/systemd-tmpfiles-clean.service/network.hosts}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/credentials/systemd-tmpfiles-clean.service/ssh.authorized_keys.root}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/credentials/systemd-tmpfiles-clean.service/tmpfiles.extra}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/update-notifier-download.service}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/⋯}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run/credstore}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run/credstore.encrypted}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/cryptsetup}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/dbus}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/dbus/containers}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run/host}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/host/container-manager}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers/⋯/io}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers/⋯/io/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/image-volumes/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/⋯/shm}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/*}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/lock}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/lock/lvm}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/lock/subsys}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/log}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/log/journal}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run/log/journal/⋯}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/lvm}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_RDONLY], path: /run/motd.d}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/multipath}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_RDWR], path: /run/netns/⋯}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/screen}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/sendsigs.omit.d}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/setrans}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/shm}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/sudo}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/ask-password}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/container}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/efivars/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_RDWR], path: /run/systemd/journal/streams/⋯}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/machines}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/netif}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/netif/leases}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/netif/links}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/netif/lldp}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/resolve/resolv.conf}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /run/systemd/resolve/stub-resolv.conf}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/seats}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/sessions}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/shutdown}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_RDWR, O_TRUNC, O_WRONLY], path: /run/systemd/transient/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:cron.service'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:dbus.service'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:fwupd.service'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:init.scope'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:k3s-agent.service'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:systemd-networkd.service'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:systemd-resolved.service'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:tailscaled.service'}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /run/systemd/userdb}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/users}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/users/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /run/tmpfiles.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/tmpfiles.d/static-nodes.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/udev/data/b8:1'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/udev/data/b8:15'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/udev/data/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/udisks2/loop}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/udisks2/mdraid}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/udisks2/mounted-fs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/udisks2/unlocked-crypto-dev}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/user}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run/userdb}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /runc}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /srv}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /sys}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/block}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/class/fc_host}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/class/hwmon}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/class/i2c-adapter}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/class/net}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /sys/dev}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /sys/dev/block}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: '/sys/dev/block/259:0'}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: '/sys/dev/block/8:1'}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: '/sys/dev/block/8:15'}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /sys/devices}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /sys/devices/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_TRUNC, O_WRONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/kernel/mm/hugepages/⋯/nr_hugepages}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/kernel/security/apparmor/profiles}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/module/apparmor/parameters/enabled}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/module/compression}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /tmp}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOATIME, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR], path: /tmp/*}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/bin}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/bin/bash}
+    - {flags: [O_RDONLY], path: /usr/bin/pybuilddir.txt}
+    - {flags: [O_RDONLY], path: /usr/bin/python3.12._pth}
+    - {flags: [O_RDONLY], path: /usr/bin/python3._pth}
+    - {flags: [O_RDONLY], path: /usr/bin/pyvenv.cfg}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/bin/systemd-tmpfiles}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/lib}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/locale/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib/modprobe.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modprobe.d/aliases.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modprobe.d/blacklist_linux_6.8.0-139-generic.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modprobe.d/blacklist_linux_6.8.0-142-generic.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modprobe.d/fbdev-blacklist.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modprobe.d/systemd.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modules/⋯/modules.alias.bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modules/⋯/modules.builtin.alias.bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modules/⋯/modules.builtin.bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modules/⋯/modules.dep.bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modules/⋯/modules.softdep}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/modules/⋯/modules.symbols.bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/os-release}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib/python3.12}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib/python3.12/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib/python3/*}
+    - {flags: [O_RDONLY], path: /usr/lib/sysstat/debian-sa1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/sysstat/sa1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/systemd/system/fwupd.service}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /usr/lib/tmpfiles.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/00rsyslog.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/apport.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/credstore.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/cron-daemon-common.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/cryptsetup.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/dbus.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/debian.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/home.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/journal-nocow.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/legacy.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/libselinux1.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/lvm2.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/man-db.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/multipath.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/passwd.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/polkitd.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/provision.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/snapd.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/static-nodes-permissions.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/sudo.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/systemd-network.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/systemd-nologin.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/systemd-pstore.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/systemd-resolve.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/systemd-tmp.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/systemd.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/tmp.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/tpm-udev.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/var.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tmpfiles.d/x11.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib/update-notifier}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/update-notifier/package-data-downloader}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/lib/userdb}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/*}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/local}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/metadata-runner.sh}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/systemd-tmpfiles}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/local/lib}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/*}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/local/lib/tmpfiles.d}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/local/lib/userdb}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/sbin/systemd-tmpfiles}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/share/dbus-1/system-services}
+    - {flags: [O_RDONLY], path: /usr/pyvenv.cfg}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/systemd-tmpfiles}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /usr/share}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /usr/share/*}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /var}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/cache}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOATIME, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/cache/*}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/lib}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/lib/apport}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOATIME, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/apport/coredump}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/cni/results/⋯}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/lib/dbus}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/lib/dbus/machine-id}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_RDONLY], path: /var/lib/fwupd}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/.dockercfg}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/config.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/kubelet/pods}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/kubelet/pods/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/containers}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /var/lib/kubelet/pods/⋯/containers/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/kubelet/pods/⋯/etc-hosts}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir/wrapped_certs}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR, O_TRUNC], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir/wrapped_certs/ready}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR, O_TRUNC], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir/wrapped_kube-api-access-bwsgg/ready}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir/wrapped_kube-api-access-sfbcn}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir/wrapped_proof-suite}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR, O_TRUNC], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir/wrapped_proof-suite/ready}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR, O_TRUNC], path: /var/lib/kubelet/pods/⋯/plugins/kubernetes.io~empty-dir/⋯/ready}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volume-subpaths/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volume-subpaths/host-root}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volume-subpaths/kube-api-access-sfbcn}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volume-subpaths/proof-suite}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volume-subpaths/sys}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volume-subpaths/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~configmap}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~configmap/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~empty-dir/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~local-volume}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~local-volume/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~projected}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~projected/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~projected/*/ca.crt}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~projected/*/namespace}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~projected/*/token}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/certs/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/certs/⋯/ca.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/certs/⋯/client.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/certs/⋯/client.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/certs/⋯/server.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/certs/⋯/server.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/cloud-secret}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/cloud-secret/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/cloud-secret/⋯/accessKey}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/cloud-secret/⋯/account}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/nats-server-tls-volume}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/nats-server-tls-volume/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/nats-server-tls-volume/⋯/ca.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/nats-server-tls-volume/⋯/client.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/nats-server-tls-volume/⋯/client.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/nats-server-tls-volume/⋯/server.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/nats-server-tls-volume/⋯/server.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/oauth}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/oauth/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/oauth/⋯/client_id}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/kubelet/pods/⋯/volumes/kubernetes.io~secret/oauth/⋯/client_secret}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /var/lib/kubelet/⋯}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/lib/polkit-1}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/lib/private}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/client-k3s-controller.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/client-k3s-controller.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/client-kube-proxy.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/client-kube-proxy.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/client-kubelet.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/client-kubelet.key}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.introspection/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/.config/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/cilium/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/dx/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/etc/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/fs/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/lib/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/modules/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/opt/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/proc/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/secrets/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/⋯/src/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/fs/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/work}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/⋯/work/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/containerd/tmpmounts/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/pod-manifests}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/serving-kubelet.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/agent/serving-kubelet.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/data/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/server/tls/client-k3s-controller.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/server/tls/client-k3s-controller.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/server/tls/client-kube-proxy.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/server/tls/client-kube-proxy.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/server/tls/client-kubelet.key}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/rancher/k3s/server/tls/serving-kubelet.key}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/snapd/dbus-1/system-services}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/lib/systemd}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOATIME, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/systemd/coredump}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOATIME, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/systemd/ephemeral-trees}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOATIME, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/systemd/pstore}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /var/lib/systemd/timers/stamp-fwupd-refresh.timer}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/udisks2/mounted-fs-persistent}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/update-notifier/package-data-downloads}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/lock}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/README}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/auth.log}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/btmp}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/log/containers}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/journal}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /var/log/journal/remote}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/log/journal/⋯}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/journal/⋯/system.journal}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/kern.log}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/lastlog}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /var/log/mail.err}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /var/log/mail.log}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/log/pods/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/adaptive-export}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/log/pods/⋯/app}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/log/pods/⋯/app/0.log}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/log/pods/⋯/cc-wait/0.log}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/cert-manager-cainjector}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/cert-manager-controller}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/cert-manager-webhook}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/cilium-agent}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/cilium-envoy}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/log/pods/⋯/dx-daemon}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/log/pods/⋯/dx-daemon/0.log}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/local-path-provisioner}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/mds-wait}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/log/pods/⋯/mds-wait/0.log}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/metrics-server}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/log/pods/⋯/nats-wait}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/log/pods/⋯/nats-wait/0.log}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/node-agent}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/log/pods/⋯/node-agent/0.log}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/operator}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/log/pods/⋯/pem}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/log/pods/⋯/pem/0.log}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/pl-nats}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/log/pods/⋯/qb-wait}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/log/pods/⋯/qb-wait/0.log}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/traefik}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/log/pods/⋯/vector}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/log/pods/⋯/vector/0.log}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/private}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/syslog}
+    - {flags: [O_APPEND, O_RDWR], path: /var/log/sysstat/sa07}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/log/wtmp}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/run}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/spool}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/spool/cron}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/spool/cron/crontabs}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/spool/rsyslog}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /var/tmp}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOATIME, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/tmp/*}
+    - {flags: [O_RDONLY, O_CLOEXEC], path: /etc/modprobe.d/disable-algif_aead.conf}
+  rulePolicies: null
   seccompProfile:
     spec:
       defaultAction: ""
