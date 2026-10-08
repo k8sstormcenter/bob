@@ -888,16 +888,15 @@ attacks:
       command: ["sh", "-c", "echo 'rm -rf $HOME would run here'; ls -d ~/ >/dev/null && echo 'target resolvable'"]
     expectedDetections: []
 
-  # T1564 — io_uring file access, invisible to the path-based open rules
+  # T1564 — io_uring file access, invisible to the path-based open rules.
+  # PLACEHOLDER: this command performs no io_uring I/O, so it cannot test R1030
+  # and must not be scored as R1030 coverage. A real io_uring read of a
+  # credential path, from a node process, is measured on k3s-2 separately.
   - name: evade-io-uring-sensitive-read
     type: fileless
     exec:
       command: ["sh", "-c", "cat /proc/sys/kernel/io_uring_disabled 2>/dev/null; ls /proc/self/fd | head -3"]
-    expectedDetections:
-      - attackType: fileless
-        ruleID: R1030
-        ruleName: Unexpected io_uring Operation Detected
-        containerName: runner
+    expectedDetections: []
 
   # T1222 — remove the staged artefacts, leaving the shared volume clean
   - name: evade-cleanup-staged-artefacts
