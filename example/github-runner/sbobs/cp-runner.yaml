@@ -590,8 +590,7 @@ spec:
     - {flags: [O_RDONLY], path: /home/runner/run-helper.sh.template}
     - {flags: [O_RDONLY], path: /home/runner/run.sh}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /lib/glibc-hwcaps}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/glibc-hwcaps/⋯/liblttng-ust.so.0}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/glibc-hwcaps/⋯/libnss_db.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/glibc-hwcaps/*}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.75}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.76}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.77}
@@ -766,6 +765,7 @@ spec:
     R0002:
       processAllowed:
         - dpkg
+        - update-alternat
         - runc:[1:INIT]
         - runc:[1:CHILD]
         - runc:[2:INIT]
