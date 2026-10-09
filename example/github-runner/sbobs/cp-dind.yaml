@@ -193,7 +193,6 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /runc}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*}
     - {flags: [O_CLOEXEC, O_CREAT, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /sys/fs/cgroup/*}
@@ -226,6 +225,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker.pid}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker/containerd/containerd.pid}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker/runtime-runc/moby/⋯/state.json}
+    - {flags: [O_RDONLY], path: /proc/⋯/status}
+    - {flags: [O_RDONLY], path: /proc/⋯/fd}
   rulePolicies:
     R0002:
       processAllowed:

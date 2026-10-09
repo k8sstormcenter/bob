@@ -499,9 +499,9 @@ spec:
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.cache/*}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/go/env}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.config/go/telemetry/local}
-    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR], path: /home/runner/.config/go/telemetry/local/go@go1.25.14-go1.25.14-linux-amd64-2026-10-08.v1.count}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY], path: /home/runner/.config/go/telemetry/local/upload.token}
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.config/go/telemetry/local/weekends}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR], path: /home/runner/.config/go/telemetry/local/⋯}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/go/telemetry/mode}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.config/go/telemetry/upload}
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.credentials}
@@ -514,14 +514,11 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/certs}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/current}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR, O_RDONLY], path: /home/runner/.docker/buildx/instances/⋯}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR, O_RDONLY], path: /home/runner/.docker/buildx/refs/⋯/⋯/⋯}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/refs/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR, O_RDONLY], path: /home/runner/.docker/buildx/refs/*}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/cli-plugins}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/config.json}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/contexts/meta}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/⋯}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.netrc}
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.runner}
     - {flags: [O_CREAT, O_EXCL, O_NONBLOCK, O_WRONLY], path: /home/runner/.sudo_as_admin_successful}
