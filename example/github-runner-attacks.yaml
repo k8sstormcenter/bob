@@ -326,7 +326,7 @@ attacks:
   - name: inject-github-env-file-write
     type: cmdinject
     exec:
-      command: ["sh", "-c", "echo 'LD_PRELOAD=/tmp/evil.so' >> ${GITHUB_ENV:-/_work/_temp/_runner_file_commands/set_env_probe}"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; echo 'LD_PRELOAD=/tmp/evil.so' >> ${GITHUB_ENV:-$R/_work/_temp/_runner_file_commands/set_env_probe}"]
     expectedDetections:
       - attackType: cmdinject
         ruleID: R0002
