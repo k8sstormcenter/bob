@@ -99,7 +99,7 @@ spec:
     - {args: [/proc/self/fd/⋯, init], path: /runc}
     - {args: [/usr/bin/getent, group, ⋯], path: /usr/bin/getent}
     - {args: [/usr/bin/git, version], path: /usr/bin/git}
-    - {args: [/usr/bin/unpigz, -d, -c], path: /usr/bin/pigz}
+    - {args: [/usr/bin/unpigz, ⋯⋯], path: /usr/bin/pigz}
     - {args: [/usr/local/bin/containerd, --config, /var/run/docker/containerd/containerd.toml], path: /usr/local/bin/containerd}
     - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -address, /var/run/docker/containerd/containerd.sock, -publish-binary, /usr/local/bin/containerd, -id, ⋯, -bundle, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯, delete], path: /usr/local/bin/containerd-shim-runc-v2}
     - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -address, /var/run/docker/containerd/containerd.sock, -publish-binary, /usr/local/bin/containerd, -id, ⋯, start], path: /usr/local/bin/containerd-shim-runc-v2}
@@ -123,6 +123,21 @@ spec:
     - {args: [/usr/sbin/ip6tables, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
     - {args: [/usr/sbin/iptables, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
     - {args: [/usr/bin/xargs, -rn1], path: /bin/busybox}
+    - {args: [/bin/cat, ⋯⋯], path: /bin/cat}
+    - {args: [/bin/echo, ⋯⋯], path: /bin/echo}
+    - {args: [/bin/mkdir, ⋯⋯], path: /bin/mkdir}
+    - {args: [/bin/mount, ⋯⋯], path: /bin/mount}
+    - {args: [/bin/mountpoint, ⋯⋯], path: /bin/mountpoint}
+    - {args: [/bin/sed, ⋯⋯], path: /bin/sed}
+    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
+    - {args: [/usr/bin/id, ⋯⋯], path: /usr/bin/id}
+    - {args: [/usr/local/bin/dind, ⋯⋯], path: /usr/local/bin/dind}
+    - {args: [/usr/local/bin/dockerd-entrypoint.sh, ⋯⋯], path: /usr/local/bin/dockerd-entrypoint.sh}
+    - {args: [/proc/self/fd/⋯, init], path: /proc/self/fd/⋯}
+    - {args: [/usr/bin/unpigz, ⋯⋯], path: /usr/bin/unpigz}
+    - {args: [/usr/sbin/ip6tables, ⋯⋯], path: /usr/sbin/ip6tables}
+    - {args: [/usr/sbin/iptables, ⋯⋯], path: /usr/sbin/iptables}
+    - {args: [/usr/bin/xargs, -rn1], path: /usr/bin/xargs}
   identifiedCallStacks: null
   imageID: docker.io/library/docker@sha256:7dcdfc4a20246236f558175182ccace1eb15a41bd3eb119dd2284f393498b7c1
   imageTag: docker.io/library/docker:dind
@@ -242,10 +257,17 @@ spec:
         - runc:[1:CHILD]
         - runc:[2:INIT]
         - runc:[3:INIT]
+    R0005:
+      processAllowed:
+        - dockerd
     R0009:
       processAllowed:
         - runc
-        - docker-init
+    R0011:
+      processAllowed:
+        - http
+        - https
+        - dockerd
   seccompProfile:
     spec:
       defaultAction: ""
