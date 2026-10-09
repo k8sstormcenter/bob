@@ -1,0 +1,146 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/host-fragment: overlay
+    kubescape.io/host-fragment-base: arc-runner
+    kubescape.io/sbom-type: node
+  name: arc-runner-overlay-arc-runner-tf
+  namespace: default
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress:
+    - {dns: "", dnsNames: null, identifier: 39b98d152c9e8e04a0261848ab2c52b900542f0dae6a909772b0beea80b7ab94, ipAddress: 140.82.113.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 545cae1a5f956e0adcde3f046d9be5e0d462969329261a948ffda7ed9dd81ca7, ipAddress: 140.82.113.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 3c2c850e46dd3e727e857e2f274663511ceb5c92a647d25cd9b22c3921d4b0a2, ipAddress: 20.209.226.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 0cc4f3cabcb6a8c2dee0480141a8e536f8f009ca242b1ad25f0b88ff8ff935a7, ipAddress: 20.209.227.33, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 748222cffe8126c3cae84d544e65b38c7c4175f626171c419adbd6b9f07601f9, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: checkpoint-api.hashicorp.com., dnsNames: [checkpoint-api.hashicorp.com.], identifier: dfffdcb87a0ad5184b0af8aeae048b673273c4c43608ab8db06f6befab0ab16b, ipAddress: 3.161.119.62, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: 02af45f7f50ace1ea55889e4c289c5372c1f597bc323827aca1a3bc27ec3ca62, ipAddress: 140.82.112.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: a03f1d3059bf75bc3ae047bb95a30aa869d83a2578818a7b22f9f588b8ea19c9, ipAddress: 20.150.82.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: eb78f92477b5e7af8e9e81bbe8ff3fbbe03d70c1aeb5445c3acfd2aeddeea8c4, ipAddress: 20.150.88.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: 65d28e4f492b66622ea02624573c4fbfe7d8032d03618a8f25732c299cca132f, ipAddress: 52.239.172.36, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 2d2f29a113fe78e7a8ad9298146e8459640a5d11bca5434c13e1997c5d2a72db, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 50ff9b1c9c46bb8fc49dca62c7a3b93f9248551d4e83fc9ec272bf973584a195, ipAddress: 20.209.113.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 1fa95d3a727088c796695eb47023adf080c1942ed9bf5530a5a70a86b79b3a03, ipAddress: 20.209.178.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry.terraform.io., dnsNames: [registry.terraform.io.], identifier: 7c5d43580bfbf95ac874275b5ef841b35f3df36228a03ec5e87fd663a2287774, ipAddress: 99.84.91.123, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry.terraform.io., dnsNames: [registry.terraform.io.], identifier: f0d5f76c6190006f2cb089760536fbfbd60601fddeff59dd42d6a69a192e0ae1, ipAddress: 99.84.91.129, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: b1e785fbe88a2e78859fc503412eaabb3cfe9432c374c1539147fb66524e749e, ipAddress: 185.199.110.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: releases.hashicorp.com., dnsNames: [releases.hashicorp.com.], identifier: 43209be0f33c9f952d70f27d07b54a7af034fb390b059034858bfc50d44ab933, ipAddress: 99.84.91.37, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: releases.hashicorp.com., dnsNames: [releases.hashicorp.com.], identifier: 7546773ec0f26a2117dd7f04833ce570775b21e773a92f404237ba8175f74dc1, ipAddress: 99.84.91.97, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-3-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-3-azure-eastus.actions.githubusercontent.com.], identifier: 5face5a7ca6a6d89f6f127c61a39945146856be2025f928952fed0fac449bf30, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run.actions.githubusercontent.com., dnsNames: [run.actions.githubusercontent.com.], identifier: 57c0e639ab26d239ad86f7eb0a14befdc72925c1068c587b81015308ed7a5e80, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
+    - {args: [/bin/sh, -c, gzip], path: /bin/sh}
+    - {args: [/home/runner/.local/bin/trivy-bin/trivy, fs, src], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {args: [.terraform/providers/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64/terraform-provider-aws_v6.68.0_x5], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64/terraform-provider-aws_v6.68.0_x5}
+    - {args: [/home/runner/_work/_temp/⋯/terraform, ⋯⋯], path: /home/runner/_work/_temp/⋯/terraform}
+    - {args: [terraform, ⋯⋯], path: /home/runner/_work/_temp/⋯/terraform}
+    - {args: [/home/runner/_work/_temp/⋯/tflint, --act-as-bundled-plugin], path: /home/runner/_work/_temp/⋯/tflint}
+    - {args: [/home/runner/_work/_temp/⋯/tflint, --act-as-worker, ⋯, --force], path: /home/runner/_work/_temp/⋯/tflint}
+    - {args: [/home/runner/_work/_temp/⋯/tflint, --format, junit], path: /home/runner/_work/_temp/⋯/tflint}
+    - {args: [/home/runner/_work/_temp/⋯/tflint, --init], path: /home/runner/_work/_temp/⋯/tflint}
+    - {args: [/home/runner/_work/_temp/⋯/tflint, --recursive], path: /home/runner/_work/_temp/⋯/tflint}
+    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/dorny/test-reporter/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-post-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/hashicorp/setup-terraform/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/terraform-linters/setup-tflint/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.1SAnJK.asc, verify, --status-fd, ⋯, /tmp/apt.sig.uZnZMG, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.ZyphRe, /tmp/apt.data.LuDkof], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.adkNVp, /tmp/apt.data.fJorA4], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.lmKa24], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.yfDgGC], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.1SAnJK.asc, verify, --status-fd, ⋯, /tmp/apt.sig.uZnZMG, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.ZyphRe, /tmp/apt.data.LuDkof], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.adkNVp, /tmp/apt.data.fJorA4], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.lmKa24], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.yfDgGC], path: /usr/bin/dash}
+    - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
+    - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/v5.13.0*:refs/remotes/origin/⋯', '+refs/tags/v5.13.0*:refs/tags/⋯'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, origin/⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --global, --add, safe.directory, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --unset-all, 'http.https://github.com/.extraheader'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, init, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/terraform-aws-modules/terraform-aws-vpc'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, rev-parse, HEAD], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, ⋯], path: /usr/bin/gpg-connect-agent}
+    - {args: [gzip, ⋯⋯], path: /usr/bin/gzip}
+    - {args: [/usr/bin/mv, ⋯⋯], path: /usr/bin/mv}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/sudo, DEBIAN_FRONTEND=noninteractive, apt-get, install, -y, --no-install-recommends, build-essential, git, curl, ca-certificates, jq, unzip, xz-utils, python3, python3-venv], path: /usr/bin/sudo}
+    - {args: [/usr/bin/sudo, apt-get, update], path: /usr/bin/sudo}
+    - {args: [/usr/bin/touch, ⋯⋯], path: /usr/bin/touch}
+    - {args: [/usr/bin/unzip, ⋯⋯], path: /usr/bin/unzip}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, unpack-objects, -q, '--pack_header=2,74'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/terraform-aws-modules/terraform-aws-vpc'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/terraform-aws-modules/terraform-aws-vpc'], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/terraform-aws-modules/terraform-aws-vpc'], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_RDONLY], path: /etc/mailname}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin/trivy-bin}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/Trivy.gitlab-ci.yml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/asff.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab-codequality.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/html.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/install.sh}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/junit.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /home/runner/.terraform.d/checkpoint_cache}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.terraform.d/checkpoint_signature}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/credentials.tfrc.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64/LICENSE.txt}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64/terraform-provider-aws_v6.68.0_x5}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugins/linux_amd64}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraformrc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.tflint.hcl}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.tflint.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.trivy/plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.3ntzmy}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

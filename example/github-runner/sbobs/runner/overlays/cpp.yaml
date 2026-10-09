@@ -1,0 +1,361 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/host-fragment: overlay
+    kubescape.io/host-fragment-base: arc-runner
+    kubescape.io/sbom-type: node
+  name: arc-runner-overlay-arc-runner-cpp
+  namespace: default
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress:
+    - {dns: "", dnsNames: null, identifier: b17b537d3a28b77a263e485e0c79a78bc3c64049e346ea19a402060928a9a525, ipAddress: 140.82.112.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 748222cffe8126c3cae84d544e65b38c7c4175f626171c419adbd6b9f07601f9, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 37f03771119071c0ffabd166e8b85b1dad36ffc83830ef10b6330b055e14fd54, ipAddress: 57.150.86.161, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: check.trivy.dev., dnsNames: [check.trivy.dev.], identifier: da54e1043ac6175d18fbca5c6c07ba2ea92782a557e758632b980d36abcbadb5, ipAddress: 104.26.2.26, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: ab78af177e4d7a6a62c6afd71ad2133745172947b707f51a71eb10e6e45bbd54, ipAddress: 140.82.114.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: a03f1d3059bf75bc3ae047bb95a30aa869d83a2578818a7b22f9f588b8ea19c9, ipAddress: 20.150.82.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: eb78f92477b5e7af8e9e81bbe8ff3fbbe03d70c1aeb5445c3acfd2aeddeea8c4, ipAddress: 20.150.88.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: 65d28e4f492b66622ea02624573c4fbfe7d8032d03618a8f25732c299cca132f, ipAddress: 52.239.172.36, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 2d2f29a113fe78e7a8ad9298146e8459640a5d11bca5434c13e1997c5d2a72db, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 50ff9b1c9c46bb8fc49dca62c7a3b93f9248551d4e83fc9ec272bf973584a195, ipAddress: 20.209.113.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 1fa95d3a727088c796695eb47023adf080c1942ed9bf5530a5a70a86b79b3a03, ipAddress: 20.209.178.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa3.blob.core.windows.net., dnsNames: [productionresultssa3.blob.core.windows.net.], identifier: 2fadd7779a8a7231ec1db5f4f625820c7782ab6370163978f88ed2120b85460a, ipAddress: 57.150.86.161, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa3.blob.core.windows.net., dnsNames: [productionresultssa3.blob.core.windows.net.], identifier: 109f70d769976d03df06ac63b5651650a0f1a7759559bfb3076af3577bba2658, ipAddress: 57.150.87.97, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-2-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-2-azure-eastus.actions.githubusercontent.com.], identifier: 216e10194f0f070b426e7deb146427dae666d677beb3e4464668c20d236fe781, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++   --coverage    -v -o CMakeFiles/⋯/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++   --coverage -o CMakeFiles/⋯/CheckSymbolExists.cxx.o -c /home/runner/_work/node-agent/node-agent/src/build/CMakeFiles/CMakeScratch/TryCompile-jUVKXX/CheckSymbolExists.cxx], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++   --coverage -o CMakeFiles/⋯/detect-stdfs.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/detect-stdfs.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++  -I/home/runner/_work/node-agent/node-agent/src/include --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT CMakeFiles/fmt.dir/src/format.cc.o -MF CMakeFiles/fmt.dir/src/format.cc.o.d -o CMakeFiles/fmt.dir/src/format.cc.o -c], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++  -I/home/runner/_work/node-agent/node-agent/src/include --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT CMakeFiles/fmt.dir/src/os.cc.o -MF CMakeFiles/fmt.dir/src/os.cc.o.d -o CMakeFiles/fmt.dir/src/os.cc.o -c /home/runne], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++  -I/home/runner/_work/node-agent/node-agent/src/include --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT test/CMakeFiles/perf-sanity.dir/perf-sanity.cc.o -MF test/CMakeFiles/perf-sanity.dir/perf-sanity.cc.o.d -o test/CMak], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  --coverage -o CMakeFiles/⋯/src.cxx.o -c /home/runner/_work/node-agent/node-agent/src/build/CMakeFiles/CMakeScratch/⋯/src.cxx], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_ENFORCE_COMPILE_STRING -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvi], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HAVE_STRPTIME -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --cover], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HAVE_STRPTIME -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/scan-test.dir/gtest-extra.cc.o -MF test/CMakeFiles/scan-test.dir/gtest-extra.cc.o.d -o test/CMakeFiles/scan-test.dir/gtest-extra.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/gtest-extra.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HAVE_STRPTIME -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/scan-test.dir/util.cc.o -MF test/CMakeFiles/scan-test.dir/util.cc.o.d -o test/CMakeFiles/scan-test.dir/util.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/util.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/format-impl-test.dir/header-only-test.cc.o -MF test/CMakeFiles/format-impl-test.dir/header-only-test.cc.o.d -o test/CMakeFiles/format-impl-test.dir/header-only-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/header-only-test.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/base-test.dir/base-test.cc.o -MF test/CMakeFiles/base-test.dir/base-test.cc.o.d -o test/CMakeFiles/base-test.dir/base-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/base-test.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/chrono-test.dir/chrono-test.cc.o -MF test/CMakeFiles/chrono-test.dir/chrono-test.cc.o.d -o test/CMakeFiles/chrono-test.dir/chrono-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/chrono-test.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/format-test.dir/format-test.cc.o -MF test/CMakeFiles/format-test.dir/format-test.cc.o.d -o test/CMakeFiles/format-test.dir/format-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/format-test.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/printf-test.dir/printf-test.cc.o -MF test/CMakeFiles/printf-test.dir/printf-test.cc.o.d -o test/CMakeFiles/printf-test.dir/printf-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/printf-test.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/ranges-test.dir/ranges-test.cc.o -MF test/CMakeFiles/ranges-test.dir/ranges-test.cc.o.d -o test/CMakeFiles/ranges-test.dir/ranges-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/ranges-test.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/xchar-test.dir/xchar-test.cc.o -MF test/CMakeFiles/xchar-test.dir/xchar-test.cc.o.d -o test/CMakeFiles/xchar-test.dir/xchar-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/xchar-test.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT test/gtest/CMakeFiles/gtest.dir/], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT test/gtest/CMakeFiles/gtest.dir/gmock-gtest-all.cc.o -MF test/gtest/CMakeFiles/gtest.dir/gmock-gtest-all.cc.o.d -o test/gtest/CMakeFiles/gtest.dir/gmock-gtest-all.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/gtest/gmock-gtest-all.cc], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage --coverage -v CMakeFiles/⋯/⋯'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage --coverage CMakeFiles/⋯/⋯'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/args-test.dir/args-test.cc.o -o bin/args-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/assert-test.dir/assert-test.cc.o -o bin/assert-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/base-test.dir/base-test.cc.o -o bin/base-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/chrono-test.dir/chrono-test.cc.o -o bin/chrono-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/color-test.dir/color-test.cc.o -o bin/color-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/compile-fp-test.dir/compile-fp-test.cc.o test/CMakeFiles/compile-fp-test.dir/test-main.cc.o test/CMakeFiles/compile-fp-test.dir/gtest-extra.cc.o test/CMakeFiles/compile-fp-test.dir/util.cc.o test/'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/compile-test.dir/compile-test.cc.o -o bin/compile-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/enforce-checks-test.dir/enforce-checks-test.cc.o -o bin/enforce-checks-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/format-impl-test.dir/format-impl-test.cc.o test/CMakeFiles/format-impl-test.dir/header-only-test.cc.o test/CMakeFiles/format-impl-test.dir/test-main.cc.o test/CMakeFiles/format-impl-test.dir/gtest'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/format-test.dir/format-test.cc.o -o bin/format-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/gtest-extra-test.dir/gtest-extra-test.cc.o -o bin/gtest-extra-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/os-test.dir/os-test.cc.o -o bin/os-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/ostream-test.dir/ostream-test.cc.o -o bin/ostream-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/perf-sanity.dir/perf-sanity.cc.o -o bin/perf-sanity  libfmtd.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/posix-mock-test.dir/posix-mock-test.cc.o test/CMakeFiles/posix-mock-test.dir/__/src/format.cc.o test/CMakeFiles/posix-mock-test.dir/test-main.cc.o test/CMakeFiles/posix-mock-test.dir/gtest-extra.c'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/printf-test.dir/printf-test.cc.o -o bin/printf-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/ranges-test.dir/ranges-test.cc.o test/CMakeFiles/ranges-test.dir/ranges-odr-test.cc.o -o bin/ranges-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/scan-test.dir/scan-test.cc.o test/CMakeFiles/scan-test.dir/test-main.cc.o test/CMakeFiles/scan-test.dir/gtest-extra.cc.o test/CMakeFiles/scan-test.dir/util.cc.o test/CMakeFiles/scan-test.dir/__/sr'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/std-test.dir/std-test.cc.o -o bin/std-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/unicode-test.dir/unicode-test.cc.o test/CMakeFiles/unicode-test.dir/test-main.cc.o test/CMakeFiles/unicode-test.dir/gtest-extra.cc.o test/CMakeFiles/unicode-test.dir/util.cc.o test/CMakeFiles/unic'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/xchar-test.dir/xchar-test.cc.o -o bin/xchar-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/cmake -E rm -f libfmtd.a && /usr/bin/ar qc libfmtd.a  CMakeFiles/fmt.dir/src/format.cc.o CMakeFiles/fmt.dir/src/os.cc.o && /usr/bin/ranlib libfmtd.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/cmake -E rm -f test/gtest/libgtest.a && /usr/bin/ar qc test/gtest/libgtest.a  test/gtest/CMakeFiles/gtest.dir/gmock-gtest-all.cc.o && /usr/bin/ranlib test/gtest/libgtest.a && :'], path: /bin/sh}
+    - {args: [/bin/sh, -c, ': && /usr/bin/cmake -E rm -f test/libtest-main.a && /usr/bin/ar qc test/libtest-main.a  test/CMakeFiles/test-main.dir/test-main.cc.o test/CMakeFiles/test-main.dir/gtest-extra.cc.o test/CMakeFiles/test-main.dir/util.cc.o && /usr/bin/ranlib test/libtest-mai'], path: /bin/sh}
+    - {args: [/home/runner/.local/bin/trivy-bin/trivy, fs, src], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/args-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/args-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/assert-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/assert-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/assert-test, --gtest_filter=assert_test.fail, --gtest_internal_run_death_test=/home/runner/_work/node-agent/node-agent/src/test/assert-test.cc|17|1|5], path: /home/runner/_work/node-agent/node-agent/src/build/bin/assert-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/base-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/base-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/chrono-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/chrono-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/color-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/color-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/compile-fp-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/compile-fp-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/compile-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/compile-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/enforce-checks-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/enforce-checks-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/format-impl-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/format-impl-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/format-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/format-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/gtest-extra-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/gtest-extra-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/os-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/os-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/ostream-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/ostream-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/posix-mock-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/posix-mock-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/printf-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/printf-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/ranges-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/ranges-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/scan-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/scan-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/std-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/std-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/unicode-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/unicode-test}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/build/bin/xchar-test], path: /home/runner/_work/node-agent/node-agent/src/build/bin/xchar-test}
+    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/dorny/test-reporter/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-post-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.oJVNVZ], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.7LiMxH, /tmp/apt.data.VbvdMh], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.DpWPgo, /tmp/apt.data.CZvIsB], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.O331uL, /tmp/apt.data.JbnBZJ], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/ar, ⋯⋯], path: /usr/bin/ar}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/as}
+    - {args: [/usr/bin/bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
+    - {args: [/usr/bin/c++, ⋯⋯], path: /usr/bin/c++}
+    - {args: [/usr/bin/g++, ⋯⋯], path: /usr/bin/c++}
+    - {args: [/usr/bin/cmake, ⋯⋯], path: /usr/bin/cmake}
+    - {args: [cmake, ⋯⋯], path: /usr/bin/cmake}
+    - {args: [/usr/bin/cpack, -G, TGZ], path: /usr/bin/cpack}
+    - {args: [/usr/bin/cppcheck, ⋯⋯], path: /usr/bin/cppcheck}
+    - {args: [cppcheck, ⋯⋯], path: /usr/bin/cppcheck}
+    - {args: [/usr/bin/ctest, --test-dir, build, --output-junit, /home/runner/_work/node-agent/node-agent/src/reports/junit.xml, -j4], path: /usr/bin/ctest}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++   --coverage    -v -o CMakeFiles/⋯/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++   --coverage -o CMakeFiles/⋯/CheckSymbolExists.cxx.o -c /home/runner/_work/node-agent/node-agent/src/build/CMakeFiles/CMakeScratch/TryCompile-jUVKXX/CheckSymbolExists.cxx], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++   --coverage -o CMakeFiles/⋯/detect-stdfs.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/detect-stdfs.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++  -I/home/runner/_work/node-agent/node-agent/src/include --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT CMakeFiles/fmt.dir/src/format.cc.o -MF CMakeFiles/fmt.dir/src/format.cc.o.d -o CMakeFiles/fmt.dir/src/format.cc.o -c], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++  -I/home/runner/_work/node-agent/node-agent/src/include --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT CMakeFiles/fmt.dir/src/os.cc.o -MF CMakeFiles/fmt.dir/src/os.cc.o.d -o CMakeFiles/fmt.dir/src/os.cc.o -c /home/runne], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++  -I/home/runner/_work/node-agent/node-agent/src/include --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT test/CMakeFiles/perf-sanity.dir/perf-sanity.cc.o -MF test/CMakeFiles/perf-sanity.dir/perf-sanity.cc.o.d -o test/CMak], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  --coverage -o CMakeFiles/⋯/src.cxx.o -c /home/runner/_work/node-agent/node-agent/src/build/CMakeFiles/CMakeScratch/⋯/src.cxx], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_ENFORCE_COMPILE_STRING -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvi], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HAVE_STRPTIME -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --cover], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HAVE_STRPTIME -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/scan-test.dir/gtest-extra.cc.o -MF test/CMakeFiles/scan-test.dir/gtest-extra.cc.o.d -o test/CMakeFiles/scan-test.dir/gtest-extra.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/gtest-extra.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HAVE_STRPTIME -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/scan-test.dir/util.cc.o -MF test/CMakeFiles/scan-test.dir/util.cc.o.d -o test/CMakeFiles/scan-test.dir/util.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/util.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DFMT_HEADER_ONLY=1 -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/format-impl-test.dir/header-only-test.cc.o -MF test/CMakeFiles/format-impl-test.dir/header-only-test.cc.o.d -o test/CMakeFiles/format-impl-test.dir/header-only-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/header-only-test.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/base-test.dir/base-test.cc.o -MF test/CMakeFiles/base-test.dir/base-test.cc.o.d -o test/CMakeFiles/base-test.dir/base-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/base-test.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/chrono-test.dir/chrono-test.cc.o -MF test/CMakeFiles/chrono-test.dir/chrono-test.cc.o.d -o test/CMakeFiles/chrono-test.dir/chrono-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/chrono-test.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/format-test.dir/format-test.cc.o -MF test/CMakeFiles/format-test.dir/format-test.cc.o.d -o test/CMakeFiles/format-test.dir/format-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/format-test.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/printf-test.dir/printf-test.cc.o -MF test/CMakeFiles/printf-test.dir/printf-test.cc.o.d -o test/CMakeFiles/printf-test.dir/printf-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/printf-test.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/ranges-test.dir/ranges-test.cc.o -MF test/CMakeFiles/ranges-test.dir/ranges-test.cc.o.d -o test/CMakeFiles/ranges-test.dir/ranges-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/ranges-test.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -I/home/runner/_work/node-agent/node-agent/src/include -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -Wno-stringop-overflow -MD -MT test/CMakeFiles/xchar-test.dir/xchar-test.cc.o -MF test/CMakeFiles/xchar-test.dir/xchar-test.cc.o.d -o test/CMakeFiles/xchar-test.dir/xchar-test.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/xchar-test.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT test/gtest/CMakeFiles/gtest.dir/], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/bin/c++ -DGTEST_HAS_STD_WSTRING=1 -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING=1 -isystem /home/runner/_work/node-agent/node-agent/src/test/gtest/. --coverage -g -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT test/gtest/CMakeFiles/gtest.dir/gmock-gtest-all.cc.o -MF test/gtest/CMakeFiles/gtest.dir/gmock-gtest-all.cc.o.d -o test/gtest/CMakeFiles/gtest.dir/gmock-gtest-all.cc.o -c /home/runner/_work/node-agent/node-agent/src/test/gtest/gmock-gtest-all.cc], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage --coverage -v CMakeFiles/⋯/⋯'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage --coverage CMakeFiles/⋯/⋯'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/args-test.dir/args-test.cc.o -o bin/args-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/assert-test.dir/assert-test.cc.o -o bin/assert-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/base-test.dir/base-test.cc.o -o bin/base-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/chrono-test.dir/chrono-test.cc.o -o bin/chrono-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/color-test.dir/color-test.cc.o -o bin/color-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/compile-fp-test.dir/compile-fp-test.cc.o test/CMakeFiles/compile-fp-test.dir/test-main.cc.o test/CMakeFiles/compile-fp-test.dir/gtest-extra.cc.o test/CMakeFiles/compile-fp-test.dir/util.cc.o test/'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/compile-test.dir/compile-test.cc.o -o bin/compile-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/enforce-checks-test.dir/enforce-checks-test.cc.o -o bin/enforce-checks-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/format-impl-test.dir/format-impl-test.cc.o test/CMakeFiles/format-impl-test.dir/header-only-test.cc.o test/CMakeFiles/format-impl-test.dir/test-main.cc.o test/CMakeFiles/format-impl-test.dir/gtest'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/format-test.dir/format-test.cc.o -o bin/format-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/gtest-extra-test.dir/gtest-extra-test.cc.o -o bin/gtest-extra-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/os-test.dir/os-test.cc.o -o bin/os-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/ostream-test.dir/ostream-test.cc.o -o bin/ostream-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/perf-sanity.dir/perf-sanity.cc.o -o bin/perf-sanity  libfmtd.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/posix-mock-test.dir/posix-mock-test.cc.o test/CMakeFiles/posix-mock-test.dir/__/src/format.cc.o test/CMakeFiles/posix-mock-test.dir/test-main.cc.o test/CMakeFiles/posix-mock-test.dir/gtest-extra.c'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/printf-test.dir/printf-test.cc.o -o bin/printf-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/ranges-test.dir/ranges-test.cc.o test/CMakeFiles/ranges-test.dir/ranges-odr-test.cc.o -o bin/ranges-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/scan-test.dir/scan-test.cc.o test/CMakeFiles/scan-test.dir/test-main.cc.o test/CMakeFiles/scan-test.dir/gtest-extra.cc.o test/CMakeFiles/scan-test.dir/util.cc.o test/CMakeFiles/scan-test.dir/__/sr'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/std-test.dir/std-test.cc.o -o bin/std-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/unicode-test.dir/unicode-test.cc.o test/CMakeFiles/unicode-test.dir/test-main.cc.o test/CMakeFiles/unicode-test.dir/gtest-extra.cc.o test/CMakeFiles/unicode-test.dir/util.cc.o test/CMakeFiles/unic'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/c++ --coverage -g --coverage test/CMakeFiles/xchar-test.dir/xchar-test.cc.o -o bin/xchar-test  -Wno-stringop-overflow  test/libtest-main.a  libfmtd.a  test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/cmake -E rm -f libfmtd.a && /usr/bin/ar qc libfmtd.a  CMakeFiles/fmt.dir/src/format.cc.o CMakeFiles/fmt.dir/src/os.cc.o && /usr/bin/ranlib libfmtd.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/cmake -E rm -f test/gtest/libgtest.a && /usr/bin/ar qc test/gtest/libgtest.a  test/gtest/CMakeFiles/gtest.dir/gmock-gtest-all.cc.o && /usr/bin/ranlib test/gtest/libgtest.a && :'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, ': && /usr/bin/cmake -E rm -f test/libtest-main.a && /usr/bin/ar qc test/libtest-main.a  test/CMakeFiles/test-main.dir/test-main.cc.o test/CMakeFiles/test-main.dir/gtest-extra.cc.o test/CMakeFiles/test-main.dir/util.cc.o && /usr/bin/ranlib test/libtest-mai'], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.oJVNVZ], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.7LiMxH, /tmp/apt.data.VbvdMh], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.DpWPgo, /tmp/apt.data.CZvIsB], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.O331uL, /tmp/apt.data.JbnBZJ], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/emacs/site-start.d/50cmake-data.el, 3.21.3-1~, --, configure], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/emacs/site-start.d/50cmake-data.el, 3.21.3-1~, --, install], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/cmake-data.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/gcovr.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/python3-jinja2.postinst, configure], path: /usr/bin/dash}
+    - {args: ['/var/lib/dpkg/info/python3-lxml:amd64.postinst', configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/python3-markupsafe.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/python3-pygments.postinst, configure], path: /usr/bin/dash}
+    - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/emacs/site-start.d/50cmake-data.el, 3.21.3-1~, --, configure], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/emacs/site-start.d/50cmake-data.el, 3.21.3-1~, --, install], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/c++, ⋯⋯], path: /usr/bin/g++}
+    - {args: [/usr/bin/g++, ⋯⋯], path: /usr/bin/g++}
+    - {args: [/usr/bin/gcov, ⋯⋯], path: /usr/bin/gcov}
+    - {args: [/usr/bin/gcovr, ⋯⋯], path: /usr/bin/gcovr}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/11.0.2*:refs/remotes/origin/11.0.2*', '+refs/tags/11.0.2*:refs/tags/11.0.2*'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, origin/11.0.2], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/11.0.2], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --global, --add, safe.directory, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --unset-all, 'http.https://github.com/.extraheader'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, init, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/fmtlib/fmt'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, rev-parse, HEAD], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, 11.0.2], path: /usr/bin/git}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, ⋯], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/ld, ⋯⋯], path: /usr/bin/ld}
+    - {args: [/usr/bin/ninja, --version], path: /usr/bin/ninja}
+    - {args: [/usr/bin/ninja, -C, ⋯, -t, recompact], path: /usr/bin/ninja}
+    - {args: [/usr/bin/ninja, -C, ⋯, -t, restat, build.ninja], path: /usr/bin/ninja}
+    - {args: [/usr/bin/ninja, -j, ⋯], path: /usr/bin/ninja}
+    - {args: [/usr/bin/ninja, -v, ⋯], path: /usr/bin/ninja}
+    - {args: [/usr/bin/nproc], path: /usr/bin/nproc}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/bin/py3compile, ⋯⋯], path: /usr/bin/py3compile}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
+    - {args: [/usr/bin/gcovr, ⋯⋯], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/py3compile, ⋯⋯], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, -c, import importlib.util; print(importlib.util.MAGIC_NUMBER)], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, -c, import sys; print(sys.implementation.cache_tag)], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, -m, py_compile, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/ranlib, ⋯⋯], path: /usr/bin/ranlib}
+    - {args: [/usr/bin/sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [/usr/bin/touch, ⋯⋯], path: /usr/bin/touch}
+    - {args: [/usr/bin/ar, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ar}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
+    - {args: [as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
+    - {args: [/usr/bin/c++, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-g++-13}
+    - {args: [/usr/bin/g++, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-g++-13}
+    - {args: [/usr/bin/gcov, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcov-13}
+    - {args: [/usr/bin/ld, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ld.bfd}
+    - {args: [/usr/bin/ranlib, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ranlib}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, ⋯, '--pack_header=2,156'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/fmtlib/fmt'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/fmtlib/fmt'], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/fmtlib/fmt'], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1plus, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1plus}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
+    - {args: [/var/lib/dpkg/info/cmake-data.postinst, configure], path: /var/lib/dpkg/info/cmake-data.postinst}
+    - {args: [/var/lib/dpkg/info/gcovr.postinst, configure], path: /var/lib/dpkg/info/gcovr.postinst}
+    - {args: [/var/lib/dpkg/info/python3-jinja2.postinst, configure], path: /var/lib/dpkg/info/python3-jinja2.postinst}
+    - {args: ['/var/lib/dpkg/info/python3-lxml:amd64.postinst', configure], path: '/var/lib/dpkg/info/python3-lxml:amd64.postinst'}
+    - {args: [/var/lib/dpkg/info/python3-markupsafe.postinst, configure], path: /var/lib/dpkg/info/python3-markupsafe.postinst}
+    - {args: [/var/lib/dpkg/info/python3-pygments.postinst, configure], path: /var/lib/dpkg/info/python3-pygments.postinst}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_RDONLY], path: /etc/mailname}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin/trivy-bin}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/Trivy.gitlab-ci.yml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/asff.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab-codequality.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/html.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/install.sh}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/junit.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.trivy/plugins}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Core.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Storage.Blobs.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Storage.Common.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.deps.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.runtimeconfig.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ClientModel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.Immutable.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.StackTrace.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.FileSystem.DriveInfo.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.Hashing.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.Pipes.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Linq.Parallel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.NetworkInformation.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Quic.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.WebHeaderCollection.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.WebSockets.Client.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.WebSockets.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Numerics.Vectors.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Reflection.Metadata.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Runtime.Extensions.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Threading.Channels.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Web.HttpUtility.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/YamlDotNet.dll}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/hashFiles/index.js}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/hashFiles/package.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/package.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_RDONLY], path: /usr/cfg/std.cfg}
+    - {flags: [O_NOCTTY, O_RDONLY], path: /usr/local/include/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.49NhhL}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/⋯}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/adduser.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/apt.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/base-files.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/base-passwd.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bash.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-common.triggers}
+    - {flags: [O_RDONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.list'}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.list-new'}
+    - {flags: [O_RDONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.triggers'}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/binutils.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bsdutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/build-essential.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/build-essential.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/build-essential.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bzip2.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/bzip2.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bzip2.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/ca-certificates.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cmake-data.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cmake-data.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cmake-data.postinst}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cmake-data.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cmake.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cmake.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cmake.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/coreutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-13.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.postinst}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cppcheck.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cppcheck.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cppcheck.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/curl.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dash.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-bin.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-daemon.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/updates/tmp.i}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

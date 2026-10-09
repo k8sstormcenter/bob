@@ -1,0 +1,204 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/host-fragment: overlay
+    kubescape.io/host-fragment-base: arc-runner
+    kubescape.io/sbom-type: node
+  name: arc-runner-overlay-arc-runner-dotnet
+  namespace: default
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress:
+    - {dns: aka.ms., dnsNames: [aka.ms.], identifier: af40e9d8a6e078f669ed9cfe5d31c8032f0128e94ef4248e8be49b487552e2c3, ipAddress: 23.52.181.141, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.nuget.org., dnsNames: [api.nuget.org.], identifier: 3634655a585ec181d59d88c120cf92c55016810ec3ceb7cba21023ecccc14b09, ipAddress: 150.171.109.100, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.nuget.org., dnsNames: [api.nuget.org.], identifier: d1ef8c85da43e794a4e19d15dd1c9c8185a128415385e4235ad49266233f1888, ipAddress: 150.171.109.107, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.nuget.org., dnsNames: [api.nuget.org.], identifier: 019edccdab26b004f7f5686e01d782af6acad30e64ce5911863246b7f570c5d3, ipAddress: 150.171.110.54, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: builds.dotnet.microsoft.com., dnsNames: [builds.dotnet.microsoft.com.], identifier: e24231711fadc89c62d8ef13daa46a61218238d54372e9b90104efd874c09e87, ipAddress: 2.18.79.138, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: builds.dotnet.microsoft.com., dnsNames: [builds.dotnet.microsoft.com.], identifier: 1d34f0f83f0da65169cdf1a7e1525d1ff5d0bf168f1e2d91b6e076176f529503, ipAddress: 2.18.79.141, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: check.trivy.dev., dnsNames: [check.trivy.dev.], identifier: da54e1043ac6175d18fbca5c6c07ba2ea92782a557e758632b980d36abcbadb5, ipAddress: 104.26.2.26, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: crl3.digicert.com., dnsNames: [crl3.digicert.com.], identifier: 3fd4244a6afb7776cf699c2035c84fd09678cc9ab6d71ff5512624e51cb97193, ipAddress: 23.11.41.157, namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
+    - {dns: dc.services.visualstudio.com., dnsNames: [dc.services.visualstudio.com.], identifier: 0bed3360a5595f4747ed925ebba5bb2cfc84be5ca0c03acbbc3e1329ae0d7caf, ipAddress: 20.50.88.241, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: dc.services.visualstudio.com., dnsNames: [dc.services.visualstudio.com.], identifier: fb842906c8e71b18a5839efac6b99483933f40ba76ea75a6b0ec0c9f55ec8f4c, ipAddress: 20.50.88.242, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: dc.services.visualstudio.com., dnsNames: [dc.services.visualstudio.com.], identifier: 9e34012bde14ea7a14aa9f7459979be19cbd803883844a4deaa7918946b12fb2, ipAddress: 20.50.88.245, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: ba3d948d0b29a6e8d6fd6952dd9a5e4192cd57066395066cea5796b3f7c9180c, ipAddress: 140.82.113.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: a03f1d3059bf75bc3ae047bb95a30aa869d83a2578818a7b22f9f588b8ea19c9, ipAddress: 20.150.82.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: eb78f92477b5e7af8e9e81bbe8ff3fbbe03d70c1aeb5445c3acfd2aeddeea8c4, ipAddress: 20.150.88.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: 65d28e4f492b66622ea02624573c4fbfe7d8032d03618a8f25732c299cca132f, ipAddress: 52.239.172.36, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 2d2f29a113fe78e7a8ad9298146e8459640a5d11bca5434c13e1997c5d2a72db, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 50ff9b1c9c46bb8fc49dca62c7a3b93f9248551d4e83fc9ec272bf973584a195, ipAddress: 20.209.113.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 1fa95d3a727088c796695eb47023adf080c1942ed9bf5530a5a70a86b79b3a03, ipAddress: 20.209.178.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa4.blob.core.windows.net., dnsNames: [productionresultssa4.blob.core.windows.net.], identifier: f3ef9cd47b8fef0dc438405376969bf842895c89f8b6f3413aef351b1e3973a7, ipAddress: 57.150.27.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa4.blob.core.windows.net., dnsNames: [productionresultssa4.blob.core.windows.net.], identifier: da65b706f09f2d4b478545114cfb6a27c3ca9d2f5a2e11663128c386507b5cc6, ipAddress: 57.150.86.161, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-2-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-2-azure-eastus.actions.githubusercontent.com.], identifier: 216e10194f0f070b426e7deb146427dae666d677beb3e4464668c20d236fe781, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run.actions.githubusercontent.com., dnsNames: [run.actions.githubusercontent.com.], identifier: 57c0e639ab26d239ad86f7eb0a14befdc72925c1068c587b81015308ed7a5e80, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ts-crl.ws.symantec.com., dnsNames: [ts-crl.ws.symantec.com.], identifier: 075f17e937d7086a39913b37ac90a6f2c39a410ab66f553b1761755265795d34, ipAddress: 23.11.41.157, namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
+    - {dns: www.microsoft.com., dnsNames: [www.microsoft.com.], identifier: 2a5e5976dccb55cb02e4a093d5f2211ca4002602484fc470ae506b7c608003c7, ipAddress: 23.217.49.217, namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/bin/sh, -c, gzip], path: /bin/sh}
+    - {args: [/home/runner/.local/bin/trivy-bin/trivy, fs, src], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-dotnet/⋯/dist/setup/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/dorny/test-reporter/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-post-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.Fqsr03], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.3jyq6d, /tmp/apt.data.gMPVaO], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.fpYh41, /tmp/apt.data.WlTgre], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.soph04, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/bash, /home/runner/_work/_actions/actions/setup-dotnet/⋯/externals/install-dotnet.sh, --skip-non-versioned-files, --channel, "8.0"], path: /usr/bin/bash}
+    - {args: [/usr/bin/bash, /home/runner/_work/_actions/actions/setup-dotnet/⋯/externals/install-dotnet.sh, --skip-non-versioned-files, --runtime, dotnet, --channel, LTS], path: /usr/bin/bash}
+    - {args: [/usr/bin/bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
+    - {args: [/usr/bin/ldd, --version], path: /usr/bin/bash}
+    - {args: [/usr/bin/cat, ⋯⋯], path: /usr/bin/cat}
+    - {args: [/usr/bin/curl, --head, -o, /dev/null, -w, '%{http_code}', -s, --fail, 'https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-linux-x64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --head, -o, /dev/null, -w, '%{http_code}', -s, --fail, 'https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-linux-x64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --retry, ⋯, --retry-delay, ⋯, --connect-timeout, ⋯, -sSL, -f, --create-dirs, -o, /tmp/dotnet.6xFvpB61Y, 'https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-linux-x64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --retry, ⋯, --retry-delay, ⋯, --connect-timeout, ⋯, -sSL, -f, --create-dirs, -o, /tmp/⋯, 'https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-linux-x64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -I, -sSL, --retry, ⋯, --retry-delay, ⋯, --connect-timeout, ⋯, 'https://aka.ms/dotnet/8.0/dotnet-sdk-linux-x64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -I, -sSL, --retry, ⋯, --retry-delay, ⋯, --connect-timeout, ⋯, 'https://aka.ms/dotnet/LTS/dotnet-runtime-linux-x64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -s, --fail, 'https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/runtime-productVersion.txt'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -s, --fail, 'https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/sdk-productVersion.txt'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -sI, 'https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-linux-x64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -sI, 'https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-linux-x64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/cut, ⋯⋯], path: /usr/bin/cut}
+    - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.Fqsr03], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.3jyq6d, /tmp/apt.data.gMPVaO], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.fpYh41, /tmp/apt.data.WlTgre], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.soph04, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/sh, -c, umask], path: /usr/bin/dash}
+    - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
+    - {args: [/home/runner/_work/_actions/actions/setup-dotnet/⋯/externals/install-dotnet.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/11.10.0*:refs/remotes/origin/11.10.0*', '+refs/tags/11.10.0*:refs/tags/11.10.0*'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, origin/11.10.0], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/11.10.0], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --global, --add, safe.directory, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, init, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ls-files, '*Test*.csproj', '*test*.csproj'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/FluentValidation/FluentValidation'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, rev-parse, HEAD], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, 11.10.0], path: /usr/bin/git}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, ⋯], path: /usr/bin/gpg-connect-agent}
+    - {args: [gzip, ⋯⋯], path: /usr/bin/gzip}
+    - {args: [/usr/bin/ldd, --version], path: /usr/bin/ldd}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/sh, -c, umask], path: /usr/bin/sh}
+    - {args: [/usr/bin/sort, ⋯⋯], path: /usr/bin/sort}
+    - {args: [/usr/bin/stat, ⋯⋯], path: /usr/bin/stat}
+    - {args: [/usr/bin/sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [/usr/bin/tail, ⋯⋯], path: /usr/bin/tail}
+    - {args: [/usr/bin/touch, ⋯⋯], path: /usr/bin/touch}
+    - {args: [/usr/bin/tr, ⋯⋯], path: /usr/bin/tr}
+    - {args: [/usr/bin/uniq, ⋯⋯], path: /usr/bin/uniq}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, ⋯, '--pack_header=2,314'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/FluentValidation/FluentValidation'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/FluentValidation/FluentValidation'], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/FluentValidation/FluentValidation'], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_RDONLY], path: /etc/mailname}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/pki/ca-trust/extracted/pem/objsign-ca-bundle.pem}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.cache/deviceid}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /home/runner/.dotnet/.workloadAdvertisingManifestSentinel8.0.400}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.dotnet/.workloadAdvertisingUpdates8.0.400}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /home/runner/.dotnet/8.0.425.aspNetCertificateSentinel}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /home/runner/.dotnet/8.0.425.dotnetFirstUseSentinel}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /home/runner/.dotnet/8.0.425.toolpath.sentinel}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.dotnet/8.0.425_IsDockerContainer.dotnetUserLevelCache}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.dotnet/8.0.425_MachineId.dotnetUserLevelCache}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.dotnet/MachineId.v1.dotnetUserLevelCache}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.dotnet/TelemetryStorageService}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.dotnet/TelemetryStorageService/⋯}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.dotnet/corefx/cryptography/crls/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.dotnet/corefx/cryptography/x509stores/my}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /home/runner/.dotnet/corefx/cryptography/x509stores/my/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.android/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.android/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.aspire/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.aspire/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.ios/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.ios/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.maccatalyst/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.maccatalyst/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.macos/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.macos/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.maui/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.maui/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.tvos/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.sdk.tvos/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.emscripten.current/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.emscripten.current/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.emscripten.net6/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.emscripten.net6/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.emscripten.net7/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.emscripten.net7/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.mono.toolchain.current/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.mono.toolchain.current/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.mono.toolchain.net6/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.mono.toolchain.net6/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.mono.toolchain.net7/AdvertisedManifestFeatureBand.txt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.dotnet/sdk-advertising/8.0.400/microsoft.net.workload.mono.toolchain.net7/WorkloadManifest.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin/trivy-bin}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/Trivy.gitlab-ci.yml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/asff.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab-codequality.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/html.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/install.sh}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/junit.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /home/runner/.local/share/NuGet/Migrations/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR], path: /home/runner/.local/share/NuGet/http-cache/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR], path: /home/runner/.nuget/NuGet/NuGet.Config}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.nuget/packages}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_WRONLY], path: /home/runner/.nuget/packages/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.trivy/plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/hostfxr.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.86}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.87}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.88}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.89}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.90}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/liblibc.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/conf/docker0/forwarding}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/conf/eth0/forwarding}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/conf/lo/forwarding}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/net/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/⋯}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

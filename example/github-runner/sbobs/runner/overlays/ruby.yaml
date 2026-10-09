@@ -1,0 +1,174 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/host-fragment: overlay
+    kubescape.io/host-fragment-base: arc-runner
+    kubescape.io/sbom-type: node
+  name: arc-runner-overlay-arc-runner-ruby
+  namespace: default
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress:
+    - {dns: "", dnsNames: null, identifier: b17b537d3a28b77a263e485e0c79a78bc3c64049e346ea19a402060928a9a525, ipAddress: 140.82.112.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 80a4e69c79a05b9f0192b24ed1468b8260c04c4b7e308eda42ee607aa1bbdd26, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 748222cffe8126c3cae84d544e65b38c7c4175f626171c419adbd6b9f07601f9, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 6d794e44c7b6be2c1e92c359442a54d71772d69d3ded27285b29dd64b257b832, ipAddress: 57.150.27.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: check.trivy.dev., dnsNames: [check.trivy.dev.], identifier: d6830229c8a8d74cc38b9ffbea9f1fad86b5f28eda952638a70f165e04889e65, ipAddress: 172.67.72.165, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: index.rubygems.org., dnsNames: [index.rubygems.org.], identifier: 6316887747486bc88983f1d33b5e5b40a0150d665b8f1cf70ba9f9669015e2e5, ipAddress: 151.101.193.227, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: index.rubygems.org., dnsNames: [index.rubygems.org.], identifier: 07750f60f2d7e8ce4a70d0186f7d65ef5fbd9f05ab7c751117223aedbca61fd8, ipAddress: 151.101.65.227, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: a03f1d3059bf75bc3ae047bb95a30aa869d83a2578818a7b22f9f588b8ea19c9, ipAddress: 20.150.82.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: eb78f92477b5e7af8e9e81bbe8ff3fbbe03d70c1aeb5445c3acfd2aeddeea8c4, ipAddress: 20.150.88.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: 65d28e4f492b66622ea02624573c4fbfe7d8032d03618a8f25732c299cca132f, ipAddress: 52.239.172.36, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 2d2f29a113fe78e7a8ad9298146e8459640a5d11bca5434c13e1997c5d2a72db, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 50ff9b1c9c46bb8fc49dca62c7a3b93f9248551d4e83fc9ec272bf973584a195, ipAddress: 20.209.113.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 1fa95d3a727088c796695eb47023adf080c1942ed9bf5530a5a70a86b79b3a03, ipAddress: 20.209.178.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa2.blob.core.windows.net., dnsNames: [productionresultssa2.blob.core.windows.net.], identifier: 396025693910fb38a2d3c1e74aadd22520a7450d5a79ffa68ffe8a402afa333c, ipAddress: 57.150.87.97, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: 9f9ab9d95deb2a8d637d7b3926cc57fc4f5a19a2221900af54f3cb0528bc76bb, ipAddress: 185.199.111.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: rubygems.org., dnsNames: [rubygems.org.], identifier: 1cc3107b473c9add83ffb17a0e0cc7a75465faedc6a9ad01284dadb4cda00d56, ipAddress: 151.101.1.227, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: rubygems.org., dnsNames: [rubygems.org.], identifier: 74a26b4fa41afa6d411bf7cb6f7a94154cd1b1c0b70631ea6e2358137f0568b5, ipAddress: 151.101.129.227, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: rubygems.org., dnsNames: [rubygems.org.], identifier: d4e8e13775a0fbcb1263d3121f3a9acb94d734f535e753dde82aa76a31cfdc92, ipAddress: 151.101.193.227, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: rubygems.org., dnsNames: [rubygems.org.], identifier: cdf1a6a06b3de2971addeadbc2de6a43752ec7a8656b5197ebe72be4e3fc01fc, ipAddress: 151.101.65.227, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-2-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-2-azure-eastus.actions.githubusercontent.com.], identifier: 216e10194f0f070b426e7deb146427dae666d677beb3e4464668c20d236fe781, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run.actions.githubusercontent.com., dnsNames: [run.actions.githubusercontent.com.], identifier: 57c0e639ab26d239ad86f7eb0a14befdc72925c1068c587b81015308ed7a5e80, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
+    - {args: [/bin/sh, -c, exit > .sitearchdir.-.json.-.ext.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, exit > .sitearchdir.-.prism.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, exit > .sitearchdir.-.racc.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, exit > .sitearchdir.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, rm -fr bigdecimal.so false bigdecimal.o missing.o *.bak mkmf.log .*.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, rm -fr cparse.so false cparse.o *.bak mkmf.log .*.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, rm -fr false  *.bak mkmf.log .*.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, rm -fr generator.so false generator.o *.bak mkmf.log .*.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, rm -fr parser.so false parser.o *.bak mkmf.log .*.time], path: /bin/sh}
+    - {args: [/bin/sh, -c, rm -fr prism.so false api_node.o api_pack.o extension.o diagnostic.o encoding.o node.o options.o pack.o prettyprint.o prism.o regexp.o serialize.o static_literals.o token_type.o pm_buffer.o pm_char.o pm_constant_pool.o pm_integer.o pm_list.o pm_memchr.o p], path: /bin/sh}
+    - {args: [/bin/sh, -c, rm -fr strscan.so false strscan.o *.bak mkmf.log .*.time], path: /bin/sh}
+    - {args: [/home/runner/.local/bin/trivy-bin/trivy, fs, src], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/dorny/test-reporter/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-post-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/ruby/setup-ruby/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/rubocop, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby, --version], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby, -e, 'Dir[''lib/**/*.rb''].first(200).each { |f| RubyVM::InstructionSequence.compile_file(f) }'], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby, /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, install], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby, /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, install, rubocop, --no-document], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby, extconf.rb], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/apt.sig.ArvCfM, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.CDECvf, /tmp/apt.data.qSTRXb], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.QRTpu6, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.oHlcLR, /tmp/apt.data.oWyuWI], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.wsSMU5, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/as}
+    - {args: [/usr/bin/bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/cc}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/cc}
+    - {args: [/usr/bin/chown, ⋯⋯], path: /usr/bin/chown}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exit > .sitearchdir.-.json.-.ext.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exit > .sitearchdir.-.prism.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exit > .sitearchdir.-.racc.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exit > .sitearchdir.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, rm -fr bigdecimal.so false bigdecimal.o missing.o *.bak mkmf.log .*.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, rm -fr cparse.so false cparse.o *.bak mkmf.log .*.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, rm -fr false  *.bak mkmf.log .*.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, rm -fr generator.so false generator.o *.bak mkmf.log .*.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, rm -fr parser.so false parser.o *.bak mkmf.log .*.time], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, rm -fr prism.so false api_node.o api_pack.o extension.o diagnostic.o encoding.o node.o options.o pack.o prettyprint.o prism.o regexp.o serialize.o static_literals.o token_type.o pm_buffer.o pm_char.o pm_constant_pool.o pm_integer.o pm_list.o pm_memchr.o p], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, rm -fr strscan.so false strscan.o *.bak mkmf.log .*.time], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/apt.sig.ArvCfM, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.CDECvf, /tmp/apt.data.qSTRXb], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.QRTpu6, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.oHlcLR, /tmp/apt.data.oWyuWI], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.wsSMU5, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
+    - {args: [/usr/bin/echo, ⋯⋯], path: /usr/bin/echo}
+    - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/gcc}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/gcc}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/v6.5.0*:refs/remotes/origin/⋯', '+refs/tags/v6.5.0*:refs/tags/⋯'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, origin/v6.5.0], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/v6.5.0], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --global, --add, safe.directory, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --unset-all, 'http.https://github.com/.extraheader'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, init, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/thoughtbot/factory_bot'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, rev-parse, HEAD], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, v6.5.0], path: /usr/bin/git}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, ⋯], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/install, -c, -m, ⋯, bigdecimal.so, ./⋯], path: /usr/bin/install}
+    - {args: [/usr/bin/install, -c, -m, ⋯, cparse.so, ./⋯/racc], path: /usr/bin/install}
+    - {args: [/usr/bin/install, -c, -m, ⋯, generator.so, ./⋯/json/ext], path: /usr/bin/install}
+    - {args: [/usr/bin/install, -c, -m, ⋯, parser.so, ./⋯/json/ext], path: /usr/bin/install}
+    - {args: [/usr/bin/install, -c, -m, ⋯, prism.so, ./⋯/prism], path: /usr/bin/install}
+    - {args: [/usr/bin/install, -c, -m, ⋯, strscan.so, ./⋯], path: /usr/bin/install}
+    - {args: [/usr/bin/ld, ⋯⋯], path: /usr/bin/ld}
+    - {args: [/usr/bin/make, ⋯⋯], path: /usr/bin/make}
+    - {args: [make, ⋯⋯], path: /usr/bin/make}
+    - {args: [/usr/bin/mv, ⋯⋯], path: /usr/bin/mv}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [/usr/bin/touch, ⋯⋯], path: /usr/bin/touch}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [/usr/bin/ld, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ld.bfd}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, ⋯, '--pack_header=2,324'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/thoughtbot/factory_bot'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/thoughtbot/factory_bot'], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/thoughtbot/factory_bot'], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_RDONLY], path: /etc/mailname}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.bundle/cache/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.cache/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.gemrc}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin/trivy-bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.local/share/gem/ruby/3.3.0/plugins}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.local/share/gem/ruby/3.3.0/specifications}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.trivy/plugins}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /opt/hostedtoolcache/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_RDONLY], path: /usr/etc/ld.so.conf}
+    - {flags: [O_NOCTTY, O_RDONLY], path: /usr/local/include/*}
+    - {flags: [O_RDONLY], path: /usr/local/lib/libcrypt.so.1}
+    - {flags: [O_RDONLY], path: /usr/local/lib/libgmp.so.10}
+    - {flags: [O_RDONLY], path: /usr/local/lib/libz.so.1}
+    - {flags: [O_RDONLY], path: /usr/local/lib/x86_64-linux-gnu/libcrypt.so.1}
+    - {flags: [O_RDONLY], path: /usr/local/lib/x86_64-linux-gnu/libgmp.so.10}
+    - {flags: [O_RDONLY], path: /usr/local/lib/x86_64-linux-gnu/libz.so.1}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.opcqsB}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

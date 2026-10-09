@@ -1,0 +1,144 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/host-fragment: overlay
+    kubescape.io/host-fragment-base: arc-runner
+    kubescape.io/sbom-type: node
+  name: arc-runner-overlay-arc-runner-gradle
+  namespace: default
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress:
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-33557, port: 33557, protocol: TCP}, {name: TCP-36181, port: 36181, protocol: TCP}, {name: TCP-44239, port: 44239, protocol: TCP}, {name: TCP-46753, port: 46753, protocol: TCP}, {name: TCP-41671, port: 41671, protocol: TCP}, {name: TCP-32770, port: 32770, protocol: TCP}, {name: TCP-35657, port: 35657, protocol: TCP}, {name: TCP-33113, port: 33113, protocol: TCP}, {name: TCP-32769, port: 32769, protocol: TCP}, {name: TCP-43929, port: 43929, protocol: TCP}, {name: TCP-32768, port: 32768, protocol: TCP}, {name: TCP-37019, port: 37019, protocol: TCP}, {name: TCP-33647, port: 33647, protocol: TCP}, {name: TCP-34403, port: 34403, protocol: TCP}, {name: TCP-34721, port: 34721, protocol: TCP}, {name: TCP-34665, port: 34665, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: b17b537d3a28b77a263e485e0c79a78bc3c64049e346ea19a402060928a9a525, ipAddress: 140.82.112.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: b4709603e80704a16917f8fbda7c7f8267258b9992fb20205e58ddd5454dd5f5, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: f99b2920c00beeac4368ffec7e200755ee08b1423ce74ef3c568d9a721d28b3b, ipAddress: 20.209.113.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 8092a3bc275233a76432d8e9e115d4449df4bd65a857ec89e70a4b99daab9ac7, ipAddress: 20.209.178.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 748222cffe8126c3cae84d544e65b38c7c4175f626171c419adbd6b9f07601f9, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.adoptium.net., dnsNames: [api.adoptium.net.], identifier: 12651f50abdf2aac779f099fa8a9c5b79330be5d08e13600ce329c4034264e6d, ipAddress: 104.18.20.66, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.adoptium.net., dnsNames: [api.adoptium.net.], identifier: f4a066648d246093890c6ace6325c032ec07a0e394a6c9635cf1fee8808b24a4, ipAddress: 104.18.21.66, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: 9af1f1e8d02d2b78462d8c84582fd7afbb553a64792938d39362c0cd8ee02899, ipAddress: 140.82.113.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: plugins-artifacts.gradle.org., dnsNames: [plugins-artifacts.gradle.org.], identifier: 936f7e4768b64adfd44b7aed7ea2b4fbb995f372695560e8fe419ede14c39ba1, ipAddress: 104.16.72.101, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: plugins-artifacts.gradle.org., dnsNames: [plugins-artifacts.gradle.org.], identifier: 38c9361fa97e761fb0be9e4eaf2413dd9a48ad3abbfe146d3c50d1e1109deece, ipAddress: 104.16.73.101, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa7.blob.core.windows.net., dnsNames: [productionresultssa7.blob.core.windows.net.], identifier: e10ca6546e9cd07ba0df233f4d11f01fdfff3b9b63a4bcd39a570289d33ac836, ipAddress: 57.150.4.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa7.blob.core.windows.net., dnsNames: [productionresultssa7.blob.core.windows.net.], identifier: 422ed1f514fece5ef293eabc85b8da4179e79ffe701114db7d6f579f8cfbcf2f, ipAddress: 57.150.75.161, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa7.blob.core.windows.net., dnsNames: [productionresultssa7.blob.core.windows.net.], identifier: b0d1bfd3fb7fa2dc2a23996bc4565e3e1e579f283b4628169630a007ed470ffc, ipAddress: 57.150.84.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c4c7c3ffbdf29d685a6a8017c1cd4177740b8ffa457ec08485c0d7cde374fefd, ipAddress: 185.199.108.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c0f55cf46b0842a93d323381a0916e63fcc8c3ca0cd4faacf25e152a9cddd6a9, ipAddress: 185.199.109.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: repo.maven.apache.org., dnsNames: [repo.maven.apache.org.], identifier: a4eaccd0479764ea2cd7392b4e35f1f7622ad2a26aa2600135598d044750d0f0, ipAddress: 104.18.18.12, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: repo.maven.apache.org., dnsNames: [repo.maven.apache.org.], identifier: 08d4996c657bf2d9aee3b7d936f75da8e7dc73fc164b5086e39db59379feb283, ipAddress: 104.18.19.12, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-2-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-2-azure-eastus.actions.githubusercontent.com.], identifier: 216e10194f0f070b426e7deb146427dae666d677beb3e4464668c20d236fe781, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run.actions.githubusercontent.com., dnsNames: [run.actions.githubusercontent.com.], identifier: 57c0e639ab26d239ad86f7eb0a14befdc72925c1068c587b81015308ed7a5e80, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
+    - {args: [/bin/sh, -c, gzip], path: /bin/sh}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED, '@/home/runner/.gradle/.tmp/⋯', ⋯, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, worker.org.gradle.process.internal.worker.GradleWorkerMain, '''Gradle Worker Daemon 1'''], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, --add-opens=java.base/java.lang=ALL-UNNAMED, --add-opens=java.base/java.lang.invoke=ALL-UNNAMED, --add-opens=java.base/java.util=ALL-UNNAMED, --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED, --add-opens=java.base/java.nio.charset=ALL-UNNAMED, --add-opens=java.base/java.net=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED, --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED, --add-opens=java.base/java.time=ALL-UNNAMED, '-XX:MaxMetaspaceSize=384m', '-XX:+HeapDumpOnOutOfMemoryError', ⋯, ⋯, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, --add-opens=java.base/java.lang=ALL-UNNAMED, --add-opens=java.base/java.lang.invoke=ALL-UNNAMED, --add-opens=java.base/java.util=ALL-UNNAMED, --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED, --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED, --add-opens=java.base/java.nio.charset=ALL-UNNAMED, --add-opens=java.base/java.net=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED, --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED, --add-opens=java.base/java.time=ALL-UNNAMED, '-XX:MaxMetaspaceSize=384m', '-XX:+HeapDumpOnOutOfMemoryError', ⋯, ⋯, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -cp, /home/runner/.gradle/wrapper/dists/gradle-9.5.1-bin/⋯/gradle-9.5.1/lib/gradle-daemon-main-9.5.1.jar, '-javaagent:/home/runner/.gradle/wrapper/dists/gradle-9.5.1-bin/⋯/gradle-9.5.1/lib/agents/gradle-instrumentation-agent-9.5.1.jar', org.gradle.launcher.daemon.bootstrap.GradleDaemon, 9.5.1], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, -Dcheckstyle.enableExternalDtdLoad=false, --add-opens, java.prefs/java.util.prefs=ALL-UNNAMED, '@/home/runner/.gradle/.tmp/⋯', ⋯, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, worker.org.gradle.process.internal.worker.GradleWorkerMain, '''Gradle Worker Daemon 2'''], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, -Dcheckstyle.enableExternalDtdLoad=false, --add-opens, java.prefs/java.util.prefs=ALL-UNNAMED, '@/home/runner/.gradle/.tmp/⋯', ⋯, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, worker.org.gradle.process.internal.worker.GradleWorkerMain, '''Gradle Worker Daemon 3'''], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, -Dcheckstyle.enableExternalDtdLoad=false, --add-opens, java.prefs/java.util.prefs=ALL-UNNAMED, '@/home/runner/.gradle/.tmp/⋯', ⋯, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, worker.org.gradle.process.internal.worker.GradleWorkerMain, '''Gradle Worker Daemon 4'''], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -cp, ⋯, org.springframework.boot.SpringApplicationAotProcessor, org.springframework.samples.petclinic.PetClinicApplication, /home/runner/_work/node-agent/node-agent/src/build/generated/aotSources, /home/runner/_work/node-agent/node-agent/src/build/generated/aotResources, /home/runner/_work/node-agent/node-agent/src/build/generated/aotClasses, org.springframework.samples, spring-petclinic], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -cp, ⋯, org.springframework.boot.test.context.SpringBootTestAotProcessor, /home/runner/_work/node-agent/node-agent/src/build/classes/java/test, /home/runner/_work/node-agent/node-agent/src/build/generated/aotTestSources, /home/runner/_work/node-agent/node-agent/src/build/generated/aotTestResources, /home/runner/_work/node-agent/node-agent/src/build/generated/aotTestClasses, org.springframework.samples, spring-petclinic], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, -Djunit.platform.listeners.uid.tracking.enabled=true, -Djunit.platform.listeners.uid.tracking.output.dir=/home/runner/_work/node-agent/node-agent/src/build/test-results/test/testlist, -Dorg.gradle.internal.worker.tmpdir=/home/runner/_work/node-agent/node-agent/src/build/tmp/test/work, '-javaagent:/home/runner/_work/node-agent/node-agent/src/build/tmp/.cache/expanded/⋯/jacocoagent.jar=destfile=build/jacoco/test.exec,append=true,inclnolocationclasses=false,dumponexit=true,output=file,jmx=false', '@/home/runner/.gradle/.tmp/⋯', ⋯, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -ea, worker.org.gradle.process.internal.worker.GradleWorkerMain, '''Gradle Test Executor 2'''], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, -Dnet.bytebuddy.agent.attacher.dump=, -cp, /home/runner/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.18.10/⋯/byte-buddy-agent-1.18.10.jar, net.bytebuddy.agent.Attacher, com.sun.tools.attach.VirtualMachine, ⋯, /home/runner/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.18.10/⋯/byte-buddy-agent-1.18.10.jar, "false"], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, ⋯, ⋯, -Dorg.gradle.appname=gradlew, -jar, /home/runner/_work/node-agent/node-agent/src/gradle/wrapper/gradle-wrapper.jar, --no-daemon, --init-script, /home/runner/_work/_temp/jacoco.gradle, test, jacocoTestReport], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, ⋯, ⋯, -Dorg.gradle.appname=gradlew, -jar, /home/runner/_work/node-agent/node-agent/src/gradle/wrapper/gradle-wrapper.jar, --no-daemon, assemble], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, ⋯, ⋯, -Dorg.gradle.appname=gradlew, -jar, /home/runner/_work/node-agent/node-agent/src/gradle/wrapper/gradle-wrapper.jar, --no-daemon, check, -x, test], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, ⋯, ⋯, -Dorg.gradle.appname=gradlew, -jar, /home/runner/_work/node-agent/node-agent/src/gradle/wrapper/gradle-wrapper.jar, --no-daemon, dependencies], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, ⋯, ⋯, -cp, ., JavaProbe], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/lib/jspawnhelper, ⋯, "16:17:19"], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/lib/jspawnhelper}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/lib/jspawnhelper, ⋯, ⋯], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/lib/jspawnhelper}
+    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-java/⋯/dist/cleanup/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-java/⋯/dist/setup/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/dorny/test-reporter/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/apt.sig.puctua, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.O78SvJ, /tmp/apt.data.iWHu56], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.aNbpYO, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.kGFFol, /tmp/apt.data.L1253a], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.3tqtQX], path: /usr/bin/apt-key}
+    - {args: [./gradlew, --no-daemon, --init-script, /home/runner/_work/_temp/jacoco.gradle, test, jacocoTestReport], path: /usr/bin/dash}
+    - {args: [./gradlew, --no-daemon, assemble], path: /usr/bin/dash}
+    - {args: [./gradlew, --no-daemon, check, -x, test], path: /usr/bin/dash}
+    - {args: [./gradlew, --no-daemon, dependencies], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/apt.sig.puctua, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.O78SvJ, /tmp/apt.data.iWHu56], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.aNbpYO, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.kGFFol, /tmp/apt.data.L1253a], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.3tqtQX], path: /usr/bin/dash}
+    - {args: [/usr/bin/docker, compose, version, --format, json], path: /usr/bin/docker}
+    - {args: [/usr/bin/docker, version, --format, '{{.Client.Version}}'], path: /usr/bin/docker}
+    - {args: [/usr/bin/echo, ⋯⋯], path: /usr/bin/echo}
+    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --global, --add, safe.directory, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --unset-all, 'http.https://github.com/.extraheader'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, init, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/spring-projects/spring-petclinic'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, get-url, origin], path: /usr/bin/git}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, ⋯], path: /usr/bin/gpg-connect-agent}
+    - {args: [gzip, ⋯⋯], path: /usr/bin/gzip}
+    - {args: [/usr/bin/head, ⋯⋯], path: /usr/bin/head}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
+    - {args: [/usr/bin/python3, '-', ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.VisitControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.CrashControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.PetClinicIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests$ProcessUpdateFormHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.CrashControllerIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.vet.VetTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.MySqlIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetTypeFormatterTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.I18nPropertiesSyncTest.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetValidatorTests$ValidateHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.OwnerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.vet.VetControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.OwnerControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.service.ClinicServiceTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.PostgresIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests$ProcessCreationFormHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetValidatorTests.xml], path: /usr/bin/python3}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3, '-', ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.VisitControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.CrashControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.PetClinicIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests$ProcessUpdateFormHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.CrashControllerIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.vet.VetTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.MySqlIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetTypeFormatterTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.I18nPropertiesSyncTest.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetValidatorTests$ValidateHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.OwnerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.vet.VetControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.OwnerControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.service.ClinicServiceTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.PostgresIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests$ProcessCreationFormHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetValidatorTests.xml], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/sudo, DEBIAN_FRONTEND=noninteractive, apt-get, install, -y, --no-install-recommends, build-essential, git, curl, ca-certificates, jq, unzip, xz-utils, python3, python3-venv], path: /usr/bin/sudo}
+    - {args: [/usr/bin/sudo, apt-get, update], path: /usr/bin/sudo}
+    - {args: [/usr/bin/tr, ⋯⋯], path: /usr/bin/tr}
+    - {args: [/usr/bin/xargs, ⋯⋯], path: /usr/bin/xargs}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, ⋯, '--pack_header=2,183'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/spring-projects/spring-petclinic'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/spring-projects/spring-petclinic'], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/spring-projects/spring-petclinic'], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_RDONLY], path: /dev/random}
+    - {flags: [O_RDONLY], path: /etc/mailname}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.asdf/installs/java}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /home/runner/.gradle/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.jdks}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.m2/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.sdkman/candidates/java}
+    - {flags: [O_RDONLY], path: /home/runner/.testcontainers.properties}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libtinfo.so.5}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/java}
+    - {flags: [O_RDONLY], path: /proc/cgroups}
+    - {flags: [O_CLOEXEC, O_RDWR], path: /proc/⋯/coredump_filter}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /proc/⋯/map_files}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mounts}
+    - {flags: [O_RDONLY], path: /proc/⋯/net/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/java}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib64/jvm}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/java}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.EuTwIk}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

@@ -1,0 +1,285 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/host-fragment: overlay
+    kubescape.io/host-fragment-base: arc-runner
+    kubescape.io/sbom-type: node
+  name: arc-runner-overlay-arc-runner-js-npm
+  namespace: default
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress:
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: ba3d948d0b29a6e8d6fd6952dd9a5e4192cd57066395066cea5796b3f7c9180c, ipAddress: 140.82.113.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 2d2f29a113fe78e7a8ad9298146e8459640a5d11bca5434c13e1997c5d2a72db, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 1fa95d3a727088c796695eb47023adf080c1942ed9bf5530a5a70a86b79b3a03, ipAddress: 20.209.178.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry.npmjs.org., dnsNames: [registry.npmjs.org.], identifier: 80ebf896742262dcc54ecdc034e2422c8a2aed078de8f401c40b6d5c264d7176, ipAddress: 104.16.6.34, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry.npmjs.org., dnsNames: [registry.npmjs.org.], identifier: a9d74a50200ee4a229a508164265f128c60595708f0913fa581533b7e5719577, ipAddress: 104.16.8.34, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c4c7c3ffbdf29d685a6a8017c1cd4177740b8ffa457ec08485c0d7cde374fefd, ipAddress: 185.199.108.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run.actions.githubusercontent.com., dnsNames: [run.actions.githubusercontent.com.], identifier: 57c0e639ab26d239ad86f7eb0a14befdc72925c1068c587b81015308ed7a5e80, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
+    - {args: [/bin/sh, -c, gzip], path: /bin/sh}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, --harmony, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect-sub.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, --harmony, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect.js, sub], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, --inspect, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect.js, sub], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, '--inspect-port=127.0.0.1:9271', /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect-sub.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, --inspect-port=9270, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect.js, sub], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, --inspect=0, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect-sub.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, --inspect=0, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect.js, sub], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, '--inspect=127.0.0.1:9230', /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect-sub.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, '--inspect=127.0.0.1:9241', /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect-sub.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, '--inspect=127.0.0.1:9250', /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect.js, sub], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, '--inspect=127.0.0.1:9251', /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect-sub.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, --inspect=9240, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect.js, sub], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, '--inspect=localhost:9260', /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect.js, sub], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, '--inspect=localhost:9261', /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect-sub.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, --version], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/_tool/node/⋯/x64/bin/npm, --version], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/_tool/node/⋯/x64/bin/npm, install], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/_tool/node/⋯/x64/bin/npm, install, --no-save, jest-junit], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/_tool/node/⋯/x64/bin/npm, pack, --pack-destination, /home/runner/_work/node-agent/node-agent/src/dist], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/_tool/node/⋯/x64/bin/npx, eslint, .], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/_tool/node/⋯/x64/bin/npx, jest, --ci, --reporters=default, --reporters=jest-junit, --coverage, --coverageReporters=cobertura, --coverageDirectory=/home/runner/_work/node-agent/node-agent/src/reports/cov], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/_tool/node/⋯/x64/bin/npx, tsc, --noEmit, -p, .], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/node_modules/.bin/eslint, .], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/node_modules/.bin/jest, --ci, --reporters=default, --reporters=jest-junit, --coverage, --coverageReporters=cobertura, --coverageDirectory=/home/runner/_work/node-agent/node-agent/src/reports/cov], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/node_modules/.bin/tsc, --noEmit, -p, .], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/node_modules/jest-worker/build/workers/processChild.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures-extensions/pm-try-cjs.cjs], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures-extensions/pm-try-mjs.mjs], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures-extensions/pm-try-ts.ts], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures-extensions/pm.js, try-cjs], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures-extensions/pm.js, try-mjs], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures-extensions/pm.js, try-ts], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/another-dir/pm, install], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect-sub.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/inspect.js, sub], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, --an-option], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, an-argument], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, cache, clear], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, echo, ⋯, ⋯, --dry-run, ⋯, ⋯, ⋯, ⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, exit-override, fail], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, exit-override, terminate], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, i], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, install], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, list], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, listen], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, lst], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, p], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, publish], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, specifyInstall], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, specifyPublish], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, terminate], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-cache-clear.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-cache.js, clear], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-default], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-default, --an-option], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-default, an-argument], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-echo.js, ⋯, ⋯, --dry-run, ⋯, ⋯, ⋯, ⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-fail.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-install], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-listen], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-publish.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-silent], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-terminate.js], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pmlink, install], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/node, /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pmlink-install], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [node, /home/runner/_work/_tool/node/⋯/x64/bin/npx, tsc, --noEmit, -p, .], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [node, /home/runner/_work/node-agent/node-agent/src/node_modules/.bin/eslint, .], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [npm exec eslint ., ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [npm install jest-junit, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [npm install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/node}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/node_modules/.bin/eslint, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/node_modules/.bin/eslint}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/node_modules/.bin/jest, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/node_modules/.bin/jest}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/node_modules/.bin/tsc, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/node_modules/.bin/tsc}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-default, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-default}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-install, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-install}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-listen, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-listen}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-silent, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-silent}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pmlink-install, ⋯⋯], path: /home/runner/_work/node-agent/node-agent/src/tests/fixtures/pmlink-install}
+    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-node/⋯/dist/setup/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/dorny/test-reporter/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.1IrbbB.asc, verify, --status-fd, ⋯, /tmp/apt.sig.kfDNB1, /tmp/apt.data.5vFlIM], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.CLCOHK, /tmp/apt.data.GZneNu], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.NhxAbe, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.mJhKZh, /tmp/apt.data.mOdrNj], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.1IrbbB.asc, verify, --status-fd, ⋯, /tmp/apt.sig.kfDNB1, /tmp/apt.data.5vFlIM], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.CLCOHK, /tmp/apt.data.GZneNu], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.NhxAbe, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.mJhKZh, /tmp/apt.data.mOdrNj], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/sh, -c, eslint .], path: /usr/bin/dash}
+    - {args: [/usr/bin/sh, -c, jest --ci --reporters=default --reporters=jest-junit --coverage --coverageReporters=cobertura --coverageDirectory=/home/runner/_work/node-agent/node-agent/src/reports/cov], path: /usr/bin/dash}
+    - {args: [/usr/bin/sh, -c, tsc --noEmit -p .], path: /usr/bin/dash}
+    - {args: [sh, -c, eslint .], path: /usr/bin/dash}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npx, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/node_modules/.bin/eslint, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/node_modules/.bin/jest, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/node_modules/.bin/tsc, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-default, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-install, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-listen, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pm-silent, ⋯⋯], path: /usr/bin/env}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/tests/fixtures/pmlink-install, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/v12.1.0*:refs/remotes/origin/⋯', '+refs/tags/v12.1.0*:refs/tags/⋯'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, origin/v12.1.0], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/v12.1.0], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --global, --add, safe.directory, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, init, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/tj/commander.js'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, v12.1.0], path: /usr/bin/git}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, ⋯], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/sh, -c, eslint .], path: /usr/bin/sh}
+    - {args: [/usr/bin/sh, -c, jest --ci --reporters=default --reporters=jest-junit --coverage --coverageReporters=cobertura --coverageDirectory=/home/runner/_work/node-agent/node-agent/src/reports/cov], path: /usr/bin/sh}
+    - {args: [/usr/bin/sh, -c, tsc --noEmit -p .], path: /usr/bin/sh}
+    - {args: [/usr/bin/sudo, DEBIAN_FRONTEND=noninteractive, apt-get, install, -y, --no-install-recommends, build-essential, git, curl, ca-certificates, jq, unzip, xz-utils, python3, python3-venv], path: /usr/bin/sudo}
+    - {args: [/usr/bin/sudo, apt-get, update], path: /usr/bin/sudo}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, --keep=fetch-pack 217 on k3s-2-runner-hplkm, '--pack_header=2,221'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/tj/commander.js'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/tj/commander.js'], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/tj/commander.js'], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_RDONLY], path: /etc/mailname}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.npm}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.npm/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.npmrc}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Core.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Storage.Blobs.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Storage.Common.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Microsoft.Win32.Primitives.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Newtonsoft.Json.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Common.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Listener.deps.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Listener.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Listener.runtimeconfig.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Sdk.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.deps.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.runtimeconfig.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Sdk.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ClientModel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.Concurrent.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.Immutable.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.NonGeneric.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.Specialized.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ComponentModel.Primitives.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ComponentModel.TypeConverter.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ComponentModel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Console.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Data.Common.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.DiagnosticSource.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.Process.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.StackTrace.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.TextWriterTraceListener.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.TraceSource.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.Tracing.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Formats.Asn1.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.FileSystem.DriveInfo.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.FileSystem.Watcher.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.Hashing.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.Pipes.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Linq.Expressions.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Linq.Parallel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Linq.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Memory.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Http.Formatting.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Http.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.NameResolution.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.NetworkInformation.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Primitives.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Quic.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Requests.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Security.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.ServicePoint.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Sockets.dll}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.mQHzyf}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/adduser.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/apt.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/base-files.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/base-passwd.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bash.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-common.triggers}
+    - {flags: [O_RDONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.list'}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.list-new'}
+    - {flags: [O_RDONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.triggers'}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/binutils.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bsdutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/build-essential.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/build-essential.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/build-essential.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bzip2.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/bzip2.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bzip2.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/ca-certificates.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/coreutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-13.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.postinst}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/curl.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dash.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-bin.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-daemon.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-session-bus-common.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-system-bus-common.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/debconf.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/debianutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/diffutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/distro-info-data.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dpkg-dev.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/dpkg-dev.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dpkg-dev.triggers}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/updates/tmp.i}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
