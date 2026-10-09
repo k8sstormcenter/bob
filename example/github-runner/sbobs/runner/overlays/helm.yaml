@@ -4,15 +4,17 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
-    kubescape.io/host-fragment: overlay
-    kubescape.io/host-fragment-base: arc-runner
-    kubescape.io/sbom-type: node
-  name: arc-runner-overlay-arc-runner-helm
-  namespace: default
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: arc-runner
+  name: arc-runner-overlay-helm
+  namespace: arc-systems
 spec:
   architectures:
     - amd64
-  capabilities: null
+  capabilities:
+    - CAP_DAC_OVERRIDE
+    - CAP_KILL
+    - CAP_SYS_RESOURCE
   egress:
     - {dns: "", dnsNames: null, identifier: 748222cffe8126c3cae84d544e65b38c7c4175f626171c419adbd6b9f07601f9, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}

@@ -4,24 +4,23 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
-    kubescape.io/host-fragment: base
-    kubescape.io/sbom-type: node
+    kubescape.io/profile-fragment: base
   name: arc-runner
-  namespace: default
+  namespace: arc-systems
 spec:
   architectures:
     - amd64
   capabilities: null
   egress:
-    - {dns: github.com., dnsNames: [github.com.], identifier: 3a4fc8256643b0cdb5cfcd1a94cbceb3997042854a5639059bb821fadb412668, ipAddress: 20.250.119.67, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: token.actions.githubusercontent.com., dnsNames: [token.actions.githubusercontent.com.], identifier: cd300b9074e7ae9b81d3eb11f9ec384033837c75fe89968ae1118a864b98b080, ipAddress: 140.82.113.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: ['*.actions.githubusercontent.com.', '*.archive.ubuntu.com.', '*.cloudfront.docker.com.', '*.docker.com.', '*.docker.io.', '*.gcr.io.', '*.github.com.', '*.githubusercontent.com.', '*.pkg.dev.', '*.quay.io.', '*.sigstore.dev.', api.nuget.org., archive.ubuntu.com., check.trivy.dev., crates.io., deb.debian.org., dl-cdn.alpinelinux.org., files.pythonhosted.org., gcr.io., get.trivy.dev., ghcr.io., github.com., index.crates.io., mcr.microsoft.com., nodejs.org., plugins.gradle.org., ports.ubuntu.com., ppa.launchpadcontent.net., productionresultssa0.blob.core.windows.net., productionresultssa1.blob.core.windows.net., productionresultssa10.blob.core.windows.net., productionresultssa11.blob.core.windows.net., productionresultssa12.blob.core.windows.net., productionresultssa13.blob.core.windows.net., productionresultssa14.blob.core.windows.net., productionresultssa15.blob.core.windows.net., productionresultssa16.blob.core.windows.net., productionresultssa17.blob.core.windows.net., productionresultssa18.blob.core.windows.net., productionresultssa19.blob.core.windows.net., productionresultssa2.blob.core.windows.net., productionresultssa3.blob.core.windows.net., productionresultssa4.blob.core.windows.net., productionresultssa5.blob.core.windows.net., productionresultssa6.blob.core.windows.net., productionresultssa7.blob.core.windows.net., productionresultssa8.blob.core.windows.net., productionresultssa9.blob.core.windows.net., proxy.golang.org., public.ecr.aws., pypi.org., quay.io., registry.k8s.io., registry.npmjs.org., registry.yarnpkg.com., repo.maven.apache.org., repo1.maven.org., rubygems.org., security.debian.org., security.ubuntu.com., services.gradle.org., sh.rustup.rs., static.crates.io., static.rust-lang.org., sum.golang.org.], identifier: egress-dns, ipAddress: "", namespaceSelector: null, podSelector: null, ports: null, type: external}
+    - {dns: broker.actions.githubusercontent.com., dnsNames: [broker.actions.githubusercontent.com.], identifier: 221d79a366f89502d4a245876e971a8ebad43114ced8606357d116d66fb3ea33, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: pipelinesghubeus25.actions.githubusercontent.com., dnsNames: [pipelinesghubeus25.actions.githubusercontent.com.], identifier: 972a4063bb21f8e136ed1c42fd2d7f947c129b0c8931f323e33968c0b3d3cc32, ipAddress: 20.72.125.48, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: ppa.launchpadcontent.net., dnsNames: [ppa.launchpadcontent.net.], identifier: 88ec815bb1fa781f8ae6db4fbfe18149d610b8245b4b48dbc566c8d70d842d96, ipAddress: 185.125.189.187, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: codeload.github.com., dnsNames: [codeload.github.com.], identifier: 6e9082fe6ae389ff3c6d1ac008b0f108648436d3aa5bb0de8535c2578ed7b69a, ipAddress: 20.250.119.71, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: github.com., dnsNames: [github.com.], identifier: 3a4fc8256643b0cdb5cfcd1a94cbceb3997042854a5639059bb821fadb412668, ipAddress: 20.250.119.67, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: archive.ubuntu.com., dnsNames: [archive.ubuntu.com.], identifier: a96da477828e01352c10fb94785f0c75606bd487b41fd870d7243f5beb8897c0, ipAddress: 185.125.190.82, namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
     - {dns: results-receiver.actions.githubusercontent.com., dnsNames: [results-receiver.actions.githubusercontent.com.], identifier: 70a3b41188df8878917d946f59222aa8514d4cedfa41d4c9272cb36d2ddc4e89, ipAddress: 140.82.112.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: codeload.github.com., dnsNames: [codeload.github.com.], identifier: 6e9082fe6ae389ff3c6d1ac008b0f108648436d3aa5bb0de8535c2578ed7b69a, ipAddress: 20.250.119.71, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: broker.actions.githubusercontent.com., dnsNames: [broker.actions.githubusercontent.com.], identifier: 221d79a366f89502d4a245876e971a8ebad43114ced8606357d116d66fb3ea33, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: "", dnsNames: ['*.actions.githubusercontent.com.', '*.archive.ubuntu.com.', '*.cloudfront.docker.com.', '*.docker.com.', '*.docker.io.', '*.gcr.io.', '*.github.com.', '*.githubusercontent.com.', '*.pkg.dev.', '*.quay.io.', '*.sigstore.dev.', api.nuget.org., archive.ubuntu.com., check.trivy.dev., crates.io., deb.debian.org., dl-cdn.alpinelinux.org., files.pythonhosted.org., gcr.io., get.trivy.dev., ghcr.io., github.com., index.crates.io., mcr.microsoft.com., nodejs.org., plugins.gradle.org., ports.ubuntu.com., ppa.launchpadcontent.net., productionresultssa0.blob.core.windows.net., productionresultssa1.blob.core.windows.net., productionresultssa10.blob.core.windows.net., productionresultssa11.blob.core.windows.net., productionresultssa12.blob.core.windows.net., productionresultssa13.blob.core.windows.net., productionresultssa14.blob.core.windows.net., productionresultssa15.blob.core.windows.net., productionresultssa16.blob.core.windows.net., productionresultssa17.blob.core.windows.net., productionresultssa18.blob.core.windows.net., productionresultssa19.blob.core.windows.net., productionresultssa2.blob.core.windows.net., productionresultssa3.blob.core.windows.net., productionresultssa4.blob.core.windows.net., productionresultssa5.blob.core.windows.net., productionresultssa6.blob.core.windows.net., productionresultssa7.blob.core.windows.net., productionresultssa8.blob.core.windows.net., productionresultssa9.blob.core.windows.net., proxy.golang.org., public.ecr.aws., pypi.org., quay.io., registry.k8s.io., registry.npmjs.org., registry.yarnpkg.com., repo.maven.apache.org., repo1.maven.org., rubygems.org., security.debian.org., security.ubuntu.com., services.gradle.org., sh.rustup.rs., static.crates.io., static.rust-lang.org., sum.golang.org.], identifier: egress-dns, ipAddress: "", namespaceSelector: null, podSelector: null, ports: null, type: external}
-    - {dns: token.actions.githubusercontent.com., dnsNames: [token.actions.githubusercontent.com.], identifier: cd300b9074e7ae9b81d3eb11f9ec384033837c75fe89968ae1118a864b98b080, ipAddress: 140.82.113.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ppa.launchpadcontent.net., dnsNames: [ppa.launchpadcontent.net.], identifier: 88ec815bb1fa781f8ae6db4fbfe18149d610b8245b4b48dbc566c8d70d842d96, ipAddress: 185.125.189.187, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
   endpoints: null
   execs:
@@ -372,7 +371,32 @@ spec:
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/apt/history.log}
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/apt/term.log}
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/dpkg.log}
-  rulePolicies: null
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - dpkg
+        - runc:[1:CHILD]
+        - runc:[1:INIT]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+        - update-alternat
+    R0004:
+      processAllowed:
+        - runc:[1:CHILD]
+        - runc:[1:INIT]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0005:
+      processAllowed:
+        - Runner.Worker
+    R0011:
+      processAllowed:
+        - Runner.Worker
+        - http
+        - https
+    R1030:
+      processAllowed:
+        - Runner.Worker
   seccompProfile:
     spec:
       defaultAction: ""

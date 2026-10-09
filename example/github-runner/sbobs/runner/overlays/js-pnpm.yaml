@@ -4,15 +4,26 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
-    kubescape.io/host-fragment: overlay
-    kubescape.io/host-fragment-base: arc-runner
-    kubescape.io/sbom-type: node
-  name: arc-runner-overlay-arc-runner-js-pnpm
-  namespace: default
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: arc-runner
+  name: arc-runner-overlay-js-pnpm
+  namespace: arc-systems
 spec:
   architectures:
     - amd64
-  capabilities: null
+  capabilities:
+    - CAP_AUDIT_WRITE
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_IPC_LOCK
+    - CAP_KILL
+    - CAP_NET_ADMIN
+    - CAP_SETGID
+    - CAP_SETUID
+    - CAP_SYS_RESOURCE
   egress:
     - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: check.trivy.dev., dnsNames: [check.trivy.dev.], identifier: da54e1043ac6175d18fbca5c6c07ba2ea92782a557e758632b980d36abcbadb5, ipAddress: 104.26.2.26, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}

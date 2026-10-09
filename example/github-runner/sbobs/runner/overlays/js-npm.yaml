@@ -4,15 +4,19 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
-    kubescape.io/host-fragment: overlay
-    kubescape.io/host-fragment-base: arc-runner
-    kubescape.io/sbom-type: node
-  name: arc-runner-overlay-arc-runner-js-npm
-  namespace: default
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: arc-runner
+  name: arc-runner-overlay-js-npm
+  namespace: arc-systems
 spec:
   architectures:
     - amd64
-  capabilities: null
+  capabilities:
+    - CAP_AUDIT_WRITE
+    - CAP_FSETID
+    - CAP_NET_ADMIN
+    - CAP_SETGID
+    - CAP_SYS_RESOURCE
   egress:
     - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: ba3d948d0b29a6e8d6fd6952dd9a5e4192cd57066395066cea5796b3f7c9180c, ipAddress: 140.82.113.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}

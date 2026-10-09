@@ -4,15 +4,19 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
-    kubescape.io/host-fragment: overlay
-    kubescape.io/host-fragment-base: arc-runner
-    kubescape.io/sbom-type: node
-  name: arc-runner-overlay-arc-runner-python
-  namespace: default
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: arc-runner
+  name: arc-runner-overlay-python
+  namespace: arc-systems
 spec:
   architectures:
     - amd64
-  capabilities: null
+  capabilities:
+    - CAP_CHOWN
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_KILL
+    - CAP_NET_ADMIN
   egress:
     - {dns: "", dnsNames: null, identifier: 919500d0629e2adddf2f735d6ec431cf47e9bbdbdb8640f355bf519b0cb03584, ipAddress: 140.82.114.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 80a4e69c79a05b9f0192b24ed1468b8260c04c4b7e308eda42ee607aa1bbdd26, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}

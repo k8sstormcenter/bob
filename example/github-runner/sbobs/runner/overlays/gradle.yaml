@@ -4,15 +4,17 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
-    kubescape.io/host-fragment: overlay
-    kubescape.io/host-fragment-base: arc-runner
-    kubescape.io/sbom-type: node
-  name: arc-runner-overlay-arc-runner-gradle
-  namespace: default
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: arc-runner
+  name: arc-runner-overlay-gradle
+  namespace: arc-systems
 spec:
   architectures:
     - amd64
-  capabilities: null
+  capabilities:
+    - CAP_SYS_ADMIN
+    - CAP_SYS_CHROOT
+    - CAP_SYS_RESOURCE
   egress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-33557, port: 33557, protocol: TCP}, {name: TCP-36181, port: 36181, protocol: TCP}, {name: TCP-44239, port: 44239, protocol: TCP}, {name: TCP-46753, port: 46753, protocol: TCP}, {name: TCP-41671, port: 41671, protocol: TCP}, {name: TCP-32770, port: 32770, protocol: TCP}, {name: TCP-35657, port: 35657, protocol: TCP}, {name: TCP-33113, port: 33113, protocol: TCP}, {name: TCP-32769, port: 32769, protocol: TCP}, {name: TCP-43929, port: 43929, protocol: TCP}, {name: TCP-32768, port: 32768, protocol: TCP}, {name: TCP-37019, port: 37019, protocol: TCP}, {name: TCP-33647, port: 33647, protocol: TCP}, {name: TCP-34403, port: 34403, protocol: TCP}, {name: TCP-34721, port: 34721, protocol: TCP}, {name: TCP-34665, port: 34665, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: b17b537d3a28b77a263e485e0c79a78bc3c64049e346ea19a402060928a9a525, ipAddress: 140.82.112.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
