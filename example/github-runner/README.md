@@ -58,6 +58,8 @@ k3s-2, node-agent rogue84, runner image `ghcr.io/actions/actions-runner:latest`,
 
 The floor is 0 except on dotnet (12 to 16, R0011 to rotating CDN addresses; a DNS-aware R0011 is entlein/node-agent#10).
 
+**Docker builds (dind V7):** dind V6 was learned from the engine only and never saw a Dockerfile build, so an organic `docker build`/`buildx`/`compose` raised 45–53 distinguishing alerts (buildkit and runc reading `/run/runc/<id>`, `/proc/pressure`, `/sys/fs/cgroup/docker`). dind V7 adds those four organic runs to the dind corpus and drops the residue to 7–9 in-sample, with no loss of dind-side attack detection. The remainder is three families, still open: runc re-exec through `/proc/<pid>/exe` (R0001), dind capability use (R0004), and buildkit's localhost gRPC (R0012). Held-out confirmation needs one fresh docker build.
+
 **Attack: 29 of 58 steps raise a distinguishing alert** when every step runs as the runner user (k3s-2 fresh pod, 2026-10-10, `bobctl simulate --container runner`). The earlier 55/58 ran the 12 docker steps inside the privileged `dind` container and is void.
 
 | cause of silence | steps | lever |
