@@ -54,13 +54,15 @@ k3s-2, node-agent rogue84, runner image `ghcr.io/actions/actions-runner:latest`,
 
 The floor is 0 except on dotnet (12 to 16, R0011 to rotating CDN addresses; a DNS-aware R0011 is entlein/node-agent#10).
 
-**Attack: 55 of 58 steps alert** (capture `contrast-37941172037`). The three silent steps are agent gaps (entlein/node-agent#126):
+**Attack: 29 of 58 steps raise a distinguishing alert** when every step runs as the runner user (k3s-2 fresh pod, 2026-10-10, `bobctl simulate --container runner`). The earlier 55/58 ran the 12 docker steps inside the privileged `dind` container and is void.
 
-- `exfil-over-dns`: no event for names that do not resolve.
-- `escape-read-node-kubeconfig`: reads inside containers started through dind are not traced.
-- `cache-poison-node-modules-shim`: writes look like reads without open flags.
-
-That capture ran the 12 steps that call `docker` inside the `dind` container rather than as the runner user, so it understates the runner-side path. The next contrast uses `bobctl simulate` with `target.container: runner`.
+| cause of silence | steps | lever |
+|---|---|---|
+| dedup: R0040 and R1004 key on comm (and exec), so once one `curl`/`sh` alert fires on a pod, later steps using the same binary are suppressed; the suite runs all 58 steps on one pod | not yet separated | per-process uniqueId in the rules (being measured) |
+| payload runs in a container started through dind's socket, which the agent does not profile; the runner side only shows the `docker` CLI (R0040) | read-node-kubeconfig, symlink, and the escape chain beyond R0040 | agent (entlein/node-agent#37) |
+| agent coverage: fileless execution, kernel modules, DNS for names that do not resolve | 4 | agent (#126); R1032 for DNS exfiltration |
+| `kubectl` is absent from `actions-runner:latest`, so the 5 kubectl steps exec nothing; they measure only on an image that ships kubectl | 5 | image prerequisite |
+| the profile admits it: `/home/runner/.credentials` is written by the runner itself; `cp`/`chmod` take any arguments | to be quantified | profile |
 
 Builds recorded before these rules (`build-j/k/l/n`, `r2-*`) have R1030 lines without the opcode field. Their R1030 counts cannot be replayed through the filter.
 
