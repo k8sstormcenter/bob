@@ -1,0 +1,335 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: arc-runner
+  name: arc-runner-overlay-go
+  namespace: arc-systems
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_AUDIT_WRITE
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_IPC_LOCK
+    - CAP_KILL
+    - CAP_NET_ADMIN
+    - CAP_SETGID
+    - CAP_SETUID
+    - CAP_SYS_RESOURCE
+  egress:
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-40857, port: 40857, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: b17b537d3a28b77a263e485e0c79a78bc3c64049e346ea19a402060928a9a525, ipAddress: 140.82.112.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 8349bd9c7e72e59ad86d34a114a560c92143dadf335c41681e848c7b64219685, ipAddress: 140.82.112.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 919500d0629e2adddf2f735d6ec431cf47e9bbdbdb8640f355bf519b0cb03584, ipAddress: 140.82.114.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: afb54c635e080fffd83e1f46e08f7864e0887f31a4d05010d8216742a117986c, ipAddress: 20.150.88.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 0cc4f3cabcb6a8c2dee0480141a8e536f8f009ca242b1ad25f0b88ff8ff935a7, ipAddress: 20.209.227.33, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 748222cffe8126c3cae84d544e65b38c7c4175f626171c419adbd6b9f07601f9, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: check.trivy.dev., dnsNames: [check.trivy.dev.], identifier: 11ba2bacc300d973e934cbfc7ad584bec5b666c37134d5952a75731d28741506, ipAddress: 104.26.3.26, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: get.trivy.dev., dnsNames: [get.trivy.dev.], identifier: 09c57e55e5aa22c5b2cd5075a95e4ff2a92cef7d9212a58eec14179e71e8818f, ipAddress: 172.67.72.165, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: b9f246f59b19b598103fb74ea3366e13782c379bfa66e3d76c11ccb5390a13b7, ipAddress: 140.82.114.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: ab78af177e4d7a6a62c6afd71ad2133745172947b707f51a71eb10e6e45bbd54, ipAddress: 140.82.114.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: mirror.gcr.io., dnsNames: [mirror.gcr.io.], identifier: 4d36cf6d10559dec4001e11564c5d5137128a0adf251630ca24f88168a2ff932, ipAddress: 142.251.127.82, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: eb78f92477b5e7af8e9e81bbe8ff3fbbe03d70c1aeb5445c3acfd2aeddeea8c4, ipAddress: 20.150.88.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 50ff9b1c9c46bb8fc49dca62c7a3b93f9248551d4e83fc9ec272bf973584a195, ipAddress: 20.209.113.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 1fa95d3a727088c796695eb47023adf080c1942ed9bf5530a5a70a86b79b3a03, ipAddress: 20.209.178.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa3.blob.core.windows.net., dnsNames: [productionresultssa3.blob.core.windows.net.], identifier: 7f4be4f204b7526d0ef2c0fb41f25baf0e80d7bf2d7e2727778a9f5833db0b59, ipAddress: 57.150.27.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa6.blob.core.windows.net., dnsNames: [productionresultssa6.blob.core.windows.net.], identifier: 0322932619c2743e10bd4d70f3599ceccae568c413d7862842e07cedb15fa9b6, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: proxy.golang.org., dnsNames: [proxy.golang.org.], identifier: 8a3e422d0b39dc1f0da1b6b3ccf3a5539f336d2e0be730ff984b903187d77caf, ipAddress: 142.251.13.141, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c4c7c3ffbdf29d685a6a8017c1cd4177740b8ffa457ec08485c0d7cde374fefd, ipAddress: 185.199.108.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: b1e785fbe88a2e78859fc503412eaabb3cfe9432c374c1539147fb66524e749e, ipAddress: 185.199.110.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: 9f9ab9d95deb2a8d637d7b3926cc57fc4f5a19a2221900af54f3cb0528bc76bb, ipAddress: 185.199.111.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-2-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-2-azure-eastus.actions.githubusercontent.com.], identifier: 216e10194f0f070b426e7deb146427dae666d677beb3e4464668c20d236fe781, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: sum.golang.org., dnsNames: [sum.golang.org.], identifier: d8e5397d0252ea841c0e2ea5d9bb90881f1ce2d5d7058cf2f2dc538e351fb98d, ipAddress: 192.178.183.141, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
+    - {args: [/bin/sh, -c, /home/runner/_work/_tool/go/⋯/x64/bin/go env], path: /bin/sh}
+    - {args: [/bin/sh, -c, /home/runner/_work/_tool/go/⋯/x64/bin/go version], path: /bin/sh}
+    - {args: [/bin/sh, -c, go env GOPATH], path: /bin/sh}
+    - {args: [/bin/sh, -c, gzip], path: /bin/sh}
+    - {args: [/home/runner/.local/bin/trivy-bin/trivy, fs, src], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {args: [/home/runner/_work/_temp/bin/golangci-lint, run, --timeout, 5m, --issues-exit-code, ⋯, ./...], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/asm, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/asm}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/cgo, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/cgo}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/compile, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/compile}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/cover, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/cover}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/link, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/link}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/vet, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/pkg/tool/linux_amd64/vet}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/restore/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/save/../dist/save-only/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-go/⋯/dist/cache-save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-go/⋯/dist/setup/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/dorny/test-reporter/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-post-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/bin/hashFiles], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/go/bin/go-junit-report, -parser, gojson], path: /home/runner/go/bin/go-junit-report}
+    - {args: [/home/runner/go/bin/gocover-cobertura], path: /home/runner/go/bin/gocover-cobertura}
+    - {args: [/tmp/⋯/b001/mux.test, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b001/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b001/_cover_.out], path: /tmp/⋯/b001/mux.test}
+    - {args: [/tmp/⋯/b090/cobra.test, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b090/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b090/_cover_.out], path: /tmp/⋯/b090/cobra.test}
+    - {args: [/tmp/⋯/b132/doc.test, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b132/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b132/_cover_.out], path: /tmp/⋯/b132/doc.test}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.zys71y.asc, verify, --status-fd, ⋯, /tmp/apt.sig.VgrynB, /tmp/apt.data.2jGmQK], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/apt.sig.MeCbdV, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.2Gjbnv, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.5PJaFM, /tmp/apt.data.1XO00E], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.ITwaqh, /tmp/apt.data.iWoFHn], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.JopnfL, /tmp/apt.data.9mXJVV], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.OlCsOA, /tmp/apt.data.jqJWMp], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.tfJXeU], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.wOZhol], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/as}
+    - {args: [/usr/bin/bash, ./trivy/contrib/install.sh, -b, /home/runner/.local/bin/trivy-bin, -c, setup-trivy, v0.70.0], path: /usr/bin/bash}
+    - {args: [/usr/bin/bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
+    - {args: [/usr/bin/cat, ⋯⋯], path: /usr/bin/cat}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/cc}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/cc}
+    - {args: [/usr/bin/curl, --version], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -sSfL, 'https://raw.githubusercontent.com/golangci/golangci-lint/v1.61.0/install.sh'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -w, '%{http_code}', -sL, -H, 'Accept:application/json', -o, /tmp/⋯, 'https://github.com/aquasecurity/trivy/releases/v0.70.0'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -w, '%{http_code}', -sL, -H, 'Accept:application/json', -o, ⋯, 'https://github.com/golangci/golangci-lint/releases/v1.61.0'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -w, '%{http_code}', -sL, -o, /tmp/tmp.DAiUIfaWl9/trivy_0.70.0_Linux-64bit.tar.gz, 'https://get.trivy.dev/trivy?os=Linux&arch=64bit&version=0.70.0&type=tar.gz&client=setup-trivy'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -w, '%{http_code}', -sL, -o, /tmp/tmp.DAiUIfaWl9/trivy_0.70.0_checksums.txt, 'https://github.com/aquasecurity/trivy/releases/download/v0.70.0/trivy_0.70.0_checksums.txt'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -w, '%{http_code}', -sL, -o, /tmp/⋯/golangci-lint-1.61.0-checksums.txt, 'https://github.com/golangci/golangci-lint/releases/download/v1.61.0/golangci-lint-1.61.0-checksums.txt'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -w, '%{http_code}', -sL, -o, /tmp/⋯/golangci-lint-1.61.0-linux-amd64.tar.gz, 'https://github.com/golangci/golangci-lint/releases/download/v1.61.0/golangci-lint-1.61.0-linux-amd64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/cut, ⋯⋯], path: /usr/bin/cut}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /home/runner/_work/_tool/go/⋯/x64/bin/go env], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /home/runner/_work/_tool/go/⋯/x64/bin/go version], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, go env GOPATH], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.zys71y.asc, verify, --status-fd, ⋯, /tmp/apt.sig.VgrynB, /tmp/apt.data.2jGmQK], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/apt.sig.MeCbdV, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.2Gjbnv, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.5PJaFM, /tmp/apt.data.1XO00E], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.ITwaqh, /tmp/apt.data.iWoFHn], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.JopnfL, /tmp/apt.data.9mXJVV], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.OlCsOA, /tmp/apt.data.jqJWMp], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.tfJXeU], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.wOZhol], path: /usr/bin/dash}
+    - {args: [/usr/bin/sh, -s, --, -b, /home/runner/_work/_temp/bin, v1.61.0], path: /usr/bin/dash}
+    - {args: [/usr/bin/which, shellcheck], path: /usr/bin/dash}
+    - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
+    - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/gcc}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/gcc}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/v1.8.1*:refs/remotes/origin/v1.8.1*', '+refs/tags/v1.8.1*:refs/tags/v1.8.1*'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, '--filter=blob:none', --depth=1, origin, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, origin/v1.8.1], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/v1.8.1], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --file, /home/runner/_work/_temp/⋯, 'http.https://github.com/.extraheader', 'AUTHORIZATION: basic ***'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --global, --add, safe.directory, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --unset-all, 'http.https://github.com/.extraheader'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, ⋯, /github/runner_temp/⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, ⋯, /home/runner/_work/_temp/⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, init, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, sparse-checkout, set, contrib], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, v1.8.1], path: /usr/bin/git}
+    - {args: [gzip, ⋯⋯], path: /usr/bin/gzip}
+    - {args: [/usr/bin/head, ⋯⋯], path: /usr/bin/head}
+    - {args: [/usr/bin/install, -d, /home/runner/.local/bin/trivy-bin], path: /usr/bin/install}
+    - {args: [/usr/bin/install, -d, /home/runner/_work/_temp/bin], path: /usr/bin/install}
+    - {args: [/usr/bin/install, /tmp/tmp.DAiUIfaWl9/trivy, /home/runner/.local/bin/trivy-bin/], path: /usr/bin/install}
+    - {args: [/usr/bin/install, /tmp/⋯/golangci-lint-1.61.0-linux-amd64/golangci-lint, /home/runner/_work/_temp/bin/], path: /usr/bin/install}
+    - {args: [/usr/bin/ld, ⋯⋯], path: /usr/bin/ld}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/sh, -s, --, -b, /home/runner/_work/_temp/bin, v1.61.0], path: /usr/bin/sh}
+    - {args: [/usr/bin/sha256sum, ⋯⋯], path: /usr/bin/sha256sum}
+    - {args: [/usr/bin/sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [/usr/bin/touch, ⋯⋯], path: /usr/bin/touch}
+    - {args: [/usr/bin/tr, ⋯⋯], path: /usr/bin/tr}
+    - {args: [/usr/bin/which, shellcheck], path: /usr/bin/which}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [/usr/bin/ld, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ld.bfd}
+    - {args: [/usr/lib/git-core/git, --exec-path], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, rev-list, --objects, --stdin, --quiet, --alternate-refs], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, unpack-objects, -q, ⋯], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/trivy/.git/shallow.lock, index-pack, --stdin, --fix-thin, ⋯, --promisor, '--pack_header=2,1545'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, -c, fetch.negotiationAlgorithm=noop, fetch, origin, --no-tags, --no-write-fetch-head, --recurse-submodules=no, '--filter=blob:none', --stdin], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, index-pack, --stdin, --fix-thin, --promisor, '--pack_header=2,28'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, ⋯], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-dir], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-path, objects], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --is-inside-work-tree], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-prefix], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-toplevel], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, --variables, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, ⋯], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, ⋯], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_RDONLY], path: /etc/ldap/ldap.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/package.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /home/runner/.cache/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/go/env}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/go/telemetry/local}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY], path: /home/runner/.config/go/telemetry/local/upload.token}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.config/go/telemetry/local/weekends}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR], path: /home/runner/.config/go/telemetry/local/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/go/telemetry/mode}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/go/telemetry/upload}
+    - {flags: [O_RDONLY], path: /home/runner/.ldaprc}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.local}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin/trivy-bin}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin/trivy-bin/contrib}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/Trivy.gitlab-ci.yml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/asff.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab-codequality.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/html.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/install.sh}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/junit.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.netrc}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.trivy/plugins}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Core.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Storage.Blobs.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Storage.Common.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Microsoft.Win32.Primitives.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Newtonsoft.Json.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Common.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Listener.deps.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Listener.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Listener.runtimeconfig.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Sdk.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.deps.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Runner.Worker.runtimeconfig.json}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Sdk.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ClientModel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.Concurrent.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.Immutable.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.NonGeneric.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.Specialized.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Collections.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ComponentModel.Primitives.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ComponentModel.TypeConverter.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ComponentModel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Console.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Data.Common.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.DiagnosticSource.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.Process.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.StackTrace.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.TextWriterTraceListener.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.TraceSource.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Diagnostics.Tracing.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Formats.Asn1.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.FileSystem.DriveInfo.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.FileSystem.Watcher.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.Hashing.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.Pipes.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.IO.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Linq.Expressions.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Linq.Parallel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Linq.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Memory.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Http.Formatting.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Http.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.NameResolution.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Primitives.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Quic.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Requests.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Security.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.ServicePoint.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.Sockets.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Net.WebHeaderCollection.dll}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/⋯/index.js}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/⋯/package.json}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /home/runner/go/*}
+    - {flags: [O_RDONLY], path: /home/runner/ldaprc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/package.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_NOCTTY, O_RDONLY], path: /usr/local/include/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/⋯}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/adduser.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/apt.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/base-files.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/base-passwd.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bash.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-common.triggers}
+    - {flags: [O_RDONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.list'}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.list-new'}
+    - {flags: [O_RDONLY], path: '/var/lib/dpkg/info/binutils-common:amd64.triggers'}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/binutils.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/binutils.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bsdutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/build-essential.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/build-essential.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/build-essential.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bzip2.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/bzip2.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/bzip2.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/ca-certificates.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/coreutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-13.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-13.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp-x86-64-linux-gnu.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/cpp.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.postinst}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/cpp.triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/curl.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dash.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-bin.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-daemon.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-session-bus-common.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus-system-bus-common.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dbus.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/debconf.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/debianutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/diffutils.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/distro-info-data.list}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dpkg-dev.list}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/dpkg-dev.list-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/info/dpkg-dev.triggers}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/updates/tmp.i}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

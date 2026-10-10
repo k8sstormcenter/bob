@@ -1,0 +1,53 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/sbom-type: node
+  name: node-k3s-2-worker-1-host
+  namespace: honey
+spec:
+  architectures:
+    - amd64
+  capabilities: []
+  egress:
+    - {dns: "", dnsNames: null, identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
+  endpoints:
+    - {direction: outbound, endpoint: ':10250/exec/b4goYxwg', headers: {Connection: [Upgrade], Host: ['10.0.3.119:10250']}, internal: false, methods: [POST]}
+  execs:
+    - {args: [/var/lib/rancher/k3s/data/⋯/bin/runc, --root, /run/containerd/runc/k8s.io, --log, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/log.json, --log-format, json, --systemd-cgroup, exec, --process, /tmp/⋯, --detach, --pid-file, /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/⋯/⋯, ⋯], path: /var/lib/rancher/k3s/data/⋯/bin/runc}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv6/conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /proc/sys/net/ipv6/conf/tailscale0}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /proc/sys/net/ipv6/conf/tailscale0/disable_ipv6}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_WRONLY], path: /run/k3s/containerd/io.containerd.grpc.v1.cri/containers/⋯/io/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DSYNC, O_EXCL, O_RDONLY, O_RDWR], path: /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_RDWR], path: /run/systemd/journal/streams/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_RDWR], path: /run/systemd/transient/kubepods-besteffort.slice.d/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_RDWR], path: /run/systemd/transient/kubepods-burstable.slice.d/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:systemd-resolved.service'}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR], path: /tmp/⋯}
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - k3s-agent
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
