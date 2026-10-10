@@ -11,29 +11,57 @@ metadata:
 spec:
   architectures:
     - amd64
-  capabilities: null
+  capabilities:
+    - CAP_AUDIT_WRITE
+    - CAP_CHOWN
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_IPC_LOCK
+    - CAP_KILL
+    - CAP_NET_ADMIN
+    - CAP_SETUID
+    - CAP_SYS_RESOURCE
   egress:
+    - {dns: "", dnsNames: null, identifier: 8349bd9c7e72e59ad86d34a114a560c92143dadf335c41681e848c7b64219685, ipAddress: 140.82.112.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 39b98d152c9e8e04a0261848ab2c52b900542f0dae6a909772b0beea80b7ab94, ipAddress: 140.82.113.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 545cae1a5f956e0adcde3f046d9be5e0d462969329261a948ffda7ed9dd81ca7, ipAddress: 140.82.113.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 3c2c850e46dd3e727e857e2f274663511ceb5c92a647d25cd9b22c3921d4b0a2, ipAddress: 20.209.226.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 0cc4f3cabcb6a8c2dee0480141a8e536f8f009ca242b1ad25f0b88ff8ff935a7, ipAddress: 20.209.227.33, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 748222cffe8126c3cae84d544e65b38c7c4175f626171c419adbd6b9f07601f9, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 75e1d503cdf0efa88e0d58462c1af61f716a3d19e121c7a457a0c79d0574b6d9, ipAddress: 57.150.4.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 1cc627b052d58c8b19d75adf304d670969a7c7dc319f097ec0987c8e4b333608, ipAddress: 57.150.75.161, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: checkpoint-api.hashicorp.com., dnsNames: [checkpoint-api.hashicorp.com.], identifier: 7508e079c37ffc72fbcbe4435c7a58f048d9c9440177bd1c73cfaaefeb054af1, ipAddress: 3.161.119.115, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: checkpoint-api.hashicorp.com., dnsNames: [checkpoint-api.hashicorp.com.], identifier: dfffdcb87a0ad5184b0af8aeae048b673273c4c43608ab8db06f6befab0ab16b, ipAddress: 3.161.119.62, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: copilot-proxy.githubusercontent.com., dnsNames: [copilot-proxy.githubusercontent.com.], identifier: f10ce64d0d656844355d1235078c1ed45d19a39e563d93643da526162e6bf7a3, ipAddress: 20.250.119.64, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: 02af45f7f50ace1ea55889e4c289c5372c1f597bc323827aca1a3bc27ec3ca62, ipAddress: 140.82.112.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: ba3d948d0b29a6e8d6fd6952dd9a5e4192cd57066395066cea5796b3f7c9180c, ipAddress: 140.82.113.21, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: 9af1f1e8d02d2b78462d8c84582fd7afbb553a64792938d39362c0cd8ee02899, ipAddress: 140.82.113.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg.github.com., dnsNames: [pkg.github.com.], identifier: 9cb3b033a164b81af9cc621b6592fbb8c245ebd48c79422cd7a645b6d6d1f543, ipAddress: 20.250.119.73, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa1.blob.core.windows.net., dnsNames: [productionresultssa1.blob.core.windows.net.], identifier: 148288dd018586b0daf19c794e9dd9100ac8225462e9cf7e7c7e02bd78860a99, ipAddress: 20.209.226.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa12.blob.core.windows.net., dnsNames: [productionresultssa12.blob.core.windows.net.], identifier: bed66595a72ff03d131d5ed9b991e39e575994a8b6b151613620a8b9f5774a45, ipAddress: 20.209.226.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa12.blob.core.windows.net., dnsNames: [productionresultssa12.blob.core.windows.net.], identifier: 902d7c95e6a64c42fb8ac38388fccf9d4303dc0aad6c0f0917da3919222927cc, ipAddress: 20.209.226.129, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa12.blob.core.windows.net., dnsNames: [productionresultssa12.blob.core.windows.net.], identifier: c1851c35682226a7cd5aadb6c0dafb7125ca9fceeaacae280485c17ce064d459, ipAddress: 20.209.227.33, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: a03f1d3059bf75bc3ae047bb95a30aa869d83a2578818a7b22f9f588b8ea19c9, ipAddress: 20.150.82.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: eb78f92477b5e7af8e9e81bbe8ff3fbbe03d70c1aeb5445c3acfd2aeddeea8c4, ipAddress: 20.150.88.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: 65d28e4f492b66622ea02624573c4fbfe7d8032d03618a8f25732c299cca132f, ipAddress: 52.239.172.36, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 2d2f29a113fe78e7a8ad9298146e8459640a5d11bca5434c13e1997c5d2a72db, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 50ff9b1c9c46bb8fc49dca62c7a3b93f9248551d4e83fc9ec272bf973584a195, ipAddress: 20.209.113.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: productionresultssa19.blob.core.windows.net., dnsNames: [productionresultssa19.blob.core.windows.net.], identifier: 1fa95d3a727088c796695eb47023adf080c1942ed9bf5530a5a70a86b79b3a03, ipAddress: 20.209.178.193, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa8.blob.core.windows.net., dnsNames: [productionresultssa8.blob.core.windows.net.], identifier: 654d664bc0b85a4711556c7ddb7d3aebeebf31c11a614200adf093b30a2bf754, ipAddress: 57.150.75.161, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa8.blob.core.windows.net., dnsNames: [productionresultssa8.blob.core.windows.net.], identifier: 999256cdf5809e96c4e016e1371817d82b3605dfab3a90cec6ec3c6a2b3cf7d4, ipAddress: 57.150.84.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: registry.terraform.io., dnsNames: [registry.terraform.io.], identifier: 7c5d43580bfbf95ac874275b5ef841b35f3df36228a03ec5e87fd663a2287774, ipAddress: 99.84.91.123, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: registry.terraform.io., dnsNames: [registry.terraform.io.], identifier: f0d5f76c6190006f2cb089760536fbfbd60601fddeff59dd42d6a69a192e0ae1, ipAddress: 99.84.91.129, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry.terraform.io., dnsNames: [registry.terraform.io.], identifier: f5d98a6ba84acda28f515280905bb4852b116434849b300703e07f69667b8ebc, ipAddress: 99.84.91.39, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry.terraform.io., dnsNames: [registry.terraform.io.], identifier: 4e3c64675815598e04c97e6fcec4740af00f5705a55223f39e1d8cb60cc3a64d, ipAddress: 99.84.91.5, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c4c7c3ffbdf29d685a6a8017c1cd4177740b8ffa457ec08485c0d7cde374fefd, ipAddress: 185.199.108.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: b1e785fbe88a2e78859fc503412eaabb3cfe9432c374c1539147fb66524e749e, ipAddress: 185.199.110.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: releases.hashicorp.com., dnsNames: [releases.hashicorp.com.], identifier: 43209be0f33c9f952d70f27d07b54a7af034fb390b059034858bfc50d44ab933, ipAddress: 99.84.91.37, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: releases.hashicorp.com., dnsNames: [releases.hashicorp.com.], identifier: 9b3002a959b325f1bf912921d6839717edf1d5eb108c0d173147a5ef5f38128a, ipAddress: 99.84.91.59, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: releases.hashicorp.com., dnsNames: [releases.hashicorp.com.], identifier: b88616b718a0c99c2796fe8c8420d9b52036358621a1ad1b936fb6392ec30dc3, ipAddress: 99.84.91.68, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: releases.hashicorp.com., dnsNames: [releases.hashicorp.com.], identifier: 7546773ec0f26a2117dd7f04833ce570775b21e773a92f404237ba8175f74dc1, ipAddress: 99.84.91.97, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-1-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-1-azure-eastus.actions.githubusercontent.com.], identifier: 4c5c9c2b18a619972b94bdfa68335fe36974de50d9b0bdccf4bdc9a2f1e50394, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-2-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-2-azure-eastus.actions.githubusercontent.com.], identifier: 216e10194f0f070b426e7deb146427dae666d677beb3e4464668c20d236fe781, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: run-actions-3-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-3-azure-eastus.actions.githubusercontent.com.], identifier: 5face5a7ca6a6d89f6f127c61a39945146856be2025f928952fed0fac449bf30, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: run.actions.githubusercontent.com., dnsNames: [run.actions.githubusercontent.com.], identifier: 57c0e639ab26d239ad86f7eb0a14befdc72925c1068c587b81015308ed7a5e80, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
   endpoints: null
   execs:
     - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
@@ -47,7 +75,7 @@ spec:
     - {args: [/home/runner/_work/_temp/⋯/tflint, --format, junit], path: /home/runner/_work/_temp/⋯/tflint}
     - {args: [/home/runner/_work/_temp/⋯/tflint, --init], path: /home/runner/_work/_temp/⋯/tflint}
     - {args: [/home/runner/_work/_temp/⋯/tflint, --recursive], path: /home/runner/_work/_temp/⋯/tflint}
-    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/restore/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
@@ -56,56 +84,80 @@ spec:
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-post-entry.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/hashicorp/setup-terraform/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/terraform-linters/setup-tflint/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/bin/hashFiles], path: /home/runner/externals/node24/bin/node}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.1SAnJK.asc, verify, --status-fd, ⋯, /tmp/apt.sig.uZnZMG, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.DXkOwL.asc, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.eVPoC0], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.eGRpqy.asc, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.fnQvN1], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.IYSFJp, /tmp/apt.data.sgdGHL], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.ZyphRe, /tmp/apt.data.LuDkof], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.aMfBRK, /tmp/apt.data.muAbqX], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.adkNVp, /tmp/apt.data.fJorA4], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.sz9rxa, /tmp/apt.data.gDZYH1], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.KbmAHv], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.lmKa24], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.oHOlnB], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.yfDgGC], path: /usr/bin/apt-key}
     - {args: [/usr/bin/bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
     - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.1SAnJK.asc, verify, --status-fd, ⋯, /tmp/apt.sig.uZnZMG, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.DXkOwL.asc, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.eVPoC0], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.eGRpqy.asc, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.fnQvN1], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.IYSFJp, /tmp/apt.data.sgdGHL], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.ZyphRe, /tmp/apt.data.LuDkof], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.aMfBRK, /tmp/apt.data.muAbqX], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.adkNVp, /tmp/apt.data.fJorA4], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.sz9rxa, /tmp/apt.data.gDZYH1], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.KbmAHv], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.lmKa24], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.oHOlnB], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.yfDgGC], path: /usr/bin/dash}
     - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
     - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/v4.1.2*:refs/remotes/origin/⋯', '+refs/tags/v4.1.2*:refs/tags/⋯'], path: /usr/bin/git}
     - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/v5.13.0*:refs/remotes/origin/⋯', '+refs/tags/v5.13.0*:refs/tags/⋯'], path: /usr/bin/git}
-    - {args: [/usr/bin/git, branch, --list, --remote, origin/⋯], path: /usr/bin/git}
-    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, ⋯], path: /usr/bin/git}
     - {args: [/usr/bin/git, config, --global, --add, safe.directory, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
     - {args: [/usr/bin/git, config, --local, --unset-all, 'http.https://github.com/.extraheader'], path: /usr/bin/git}
     - {args: [/usr/bin/git, init, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
     - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
-    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/terraform-aws-modules/terraform-aws-vpc'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, ⋯], path: /usr/bin/git}
     - {args: [/usr/bin/git, rev-parse, HEAD], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, v4.1.2], path: /usr/bin/git}
     - {args: [/usr/bin/git, tag, --list, ⋯], path: /usr/bin/git}
-    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
-    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
-    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
-    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, ⋯], path: /usr/bin/gpg-connect-agent}
     - {args: [gzip, ⋯⋯], path: /usr/bin/gzip}
     - {args: [/usr/bin/mv, ⋯⋯], path: /usr/bin/mv}
     - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
     - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
     - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
-    - {args: [/usr/bin/sudo, DEBIAN_FRONTEND=noninteractive, apt-get, install, -y, --no-install-recommends, build-essential, git, curl, ca-certificates, jq, unzip, xz-utils, python3, python3-venv], path: /usr/bin/sudo}
-    - {args: [/usr/bin/sudo, apt-get, update], path: /usr/bin/sudo}
+    - {args: [/usr/bin/sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [sudo, ⋯⋯], path: /usr/bin/sudo}
     - {args: [/usr/bin/touch, ⋯⋯], path: /usr/bin/touch}
     - {args: [/usr/bin/unzip, ⋯⋯], path: /usr/bin/unzip}
-    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, unpack-objects, -q, '--pack_header=2,74'], path: /usr/lib/git-core/git}
-    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/terraform-aws-modules/terraform-aws-vpc'], path: /usr/lib/git-core/git}
-    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/terraform-aws-modules/terraform-aws-vpc'], path: /usr/lib/git-core/git-remote-http}
-    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/terraform-aws-modules/terraform-aws-vpc'], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/lib/git-core/git, --exec-path], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, rev-list, --objects, --stdin, --quiet, --alternate-refs], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, unpack-objects, -q, ⋯], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, ⋯], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-dir], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-path, objects], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --is-inside-work-tree], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-prefix], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-toplevel], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, --variables, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, ⋯], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, ⋯], path: /usr/lib/git-core/git-remote-https}
     - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
   identifiedCallStacks: null
   imageID: ""
   imageTag: ""
   ingress: null
   opens:
-    - {flags: [O_RDONLY], path: /etc/mailname}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/package.json}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin/trivy-bin}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/Trivy.gitlab-ci.yml}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/asff.tpl}
@@ -119,24 +171,30 @@ spec:
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /home/runner/.terraform.d/checkpoint_cache}
     - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.terraform.d/checkpoint_signature}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/credentials.tfrc.json}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64}
-    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64/LICENSE.txt}
-    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64/terraform-provider-aws_v6.68.0_x5}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64/LICENSE.txt}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /home/runner/.terraform.d/plugin-cache/registry.terraform.io/hashicorp/aws/6.68.0/linux_amd64/terraform-provider-aws_v6.68.0_x5}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugins}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraform.d/plugins/linux_amd64}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.terraformrc}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.tflint.hcl}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.tflint.json}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.trivy/plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/⋯/index.js}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/⋯/package.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/package.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.3ntzmy}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.uFtVDI}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/⋯}
   rulePolicies: null
   seccompProfile:
     spec:

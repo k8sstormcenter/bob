@@ -12,60 +12,118 @@ spec:
   architectures:
     - amd64
   capabilities:
+    - CAP_AUDIT_WRITE
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_IPC_LOCK
     - CAP_KILL
+    - CAP_NET_ADMIN
+    - CAP_SETGID
+    - CAP_SETUID
     - CAP_SYSLOG
     - CAP_SYS_PTRACE
+    - CAP_SYS_RESOURCE
   egress:
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-1, port: 1, protocol: TCP}, {name: TCP-5984, port: 5984, protocol: TCP}, {name: TCP-9200, port: 9200, protocol: TCP}, {name: TCP-27017, port: 27017, protocol: TCP}, {name: UDP-514, port: 514, protocol: UDP}], type: external}
     - {dns: "", dnsNames: null, identifier: ef269c5bb83dfb03a345c8437aea828750d1952035177da047283e2058230430, ipAddress: 140.82.114.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 0cc4f3cabcb6a8c2dee0480141a8e536f8f009ca242b1ad25f0b88ff8ff935a7, ipAddress: 20.209.227.33, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 80a4e69c79a05b9f0192b24ed1468b8260c04c4b7e308eda42ee607aa1bbdd26, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 748222cffe8126c3cae84d544e65b38c7c4175f626171c419adbd6b9f07601f9, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 9d5c10e2c2c9ca114c7f33b714f5429f67bf404d346232d1aa183709659b5968, ipAddress: 57.150.84.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: check.trivy.dev., dnsNames: [check.trivy.dev.], identifier: da54e1043ac6175d18fbca5c6c07ba2ea92782a557e758632b980d36abcbadb5, ipAddress: 104.26.2.26, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: check.trivy.dev., dnsNames: [check.trivy.dev.], identifier: d6830229c8a8d74cc38b9ffbea9f1fad86b5f28eda952638a70f165e04889e65, ipAddress: 172.67.72.165, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: 00809bb29fcecdc110368a2c3556e56202f4a89ed87576675ec4e0771e9b8e3b, ipAddress: 140.82.112.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: 9af1f1e8d02d2b78462d8c84582fd7afbb553a64792938d39362c0cd8ee02899, ipAddress: 140.82.113.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: ab78af177e4d7a6a62c6afd71ad2133745172947b707f51a71eb10e6e45bbd54, ipAddress: 140.82.114.22, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: mirror.gcr.io., dnsNames: [mirror.gcr.io.], identifier: 4d36cf6d10559dec4001e11564c5d5137128a0adf251630ca24f88168a2ff932, ipAddress: 142.251.127.82, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: packagist.org., dnsNames: [packagist.org.], identifier: 0452c36f40bc391c0662eb3f501d7daf7054b3003505aa0f8afce0e528ce3f70, ipAddress: 138.199.36.10, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: packagist.org., dnsNames: [packagist.org.], identifier: 749a594b32e3e980c14e41db1a4f3255c8821fd11d437221b0e993f580086fad, ipAddress: 138.199.37.232, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: packagist.org., dnsNames: [packagist.org.], identifier: 5543de32875f71150896062a2a320c7445befa9a595f2fb6a06d50cc14d9016f, ipAddress: 169.150.247.35, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: pear.php.net., dnsNames: [pear.php.net.], identifier: 37cbf40a72fbef1d64936094c6618eff3759efd901bab82c3a1287475a11d8a4, ipAddress: 109.203.101.62, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: pecl.php.net., dnsNames: [pecl.php.net.], identifier: 67e471fb6a923d1eda38f3f1f008a4c5c3fa1bad61f8e95c71bcf6c623e7e708, ipAddress: 185.180.12.68, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pecl.php.net., dnsNames: [pecl.php.net.], identifier: d4fff72c9e0cb7f6acf56af8b90ca65135ba1ef66e4dd4e02f00d879a6826b40, ipAddress: 185.24.11.19, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa11.blob.core.windows.net., dnsNames: [productionresultssa11.blob.core.windows.net.], identifier: 10938f7f390276bf8ef541727f85ecde261eefcb4b3986cd54d28cf3e247142c, ipAddress: 20.209.226.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa11.blob.core.windows.net., dnsNames: [productionresultssa11.blob.core.windows.net.], identifier: be144a20c75d67529ebec4b498dfd3f585d6817af58d78fb040ffecb8d31f70c, ipAddress: 20.209.226.129, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa11.blob.core.windows.net., dnsNames: [productionresultssa11.blob.core.windows.net.], identifier: ecaba59640ab2656353cc03eca9b914800afece91a9068022b710bbbbd6b6605, ipAddress: 20.209.227.33, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa13.blob.core.windows.net., dnsNames: [productionresultssa13.blob.core.windows.net.], identifier: 5ac06f52cebb1a839501367b7dc8506b1e9b9b4dc45dc83adb50a2e93ea517af, ipAddress: 20.209.226.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa13.blob.core.windows.net., dnsNames: [productionresultssa13.blob.core.windows.net.], identifier: a2834630a875d3add1a55390160440622b1d67ca476851134d16bd289d7a292b, ipAddress: 20.209.226.129, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa13.blob.core.windows.net., dnsNames: [productionresultssa13.blob.core.windows.net.], identifier: 6bc7b4060e0e84e2865847e300f5e44075263d94a99f17ce1740c327c53c280b, ipAddress: 20.209.227.33, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa15.blob.core.windows.net., dnsNames: [productionresultssa15.blob.core.windows.net.], identifier: c1b35bdf273d20c91b1a0aaed61da048f70d0aa3f54b5aaaf3e8de453cd08136, ipAddress: 20.209.112.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: a03f1d3059bf75bc3ae047bb95a30aa869d83a2578818a7b22f9f588b8ea19c9, ipAddress: 20.150.82.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: eb78f92477b5e7af8e9e81bbe8ff3fbbe03d70c1aeb5445c3acfd2aeddeea8c4, ipAddress: 20.150.88.228, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: 65d28e4f492b66622ea02624573c4fbfe7d8032d03618a8f25732c299cca132f, ipAddress: 52.239.172.36, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: productionresultssa8.blob.core.windows.net., dnsNames: [productionresultssa8.blob.core.windows.net.], identifier: 654d664bc0b85a4711556c7ddb7d3aebeebf31c11a614200adf093b30a2bf754, ipAddress: 57.150.75.161, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c4c7c3ffbdf29d685a6a8017c1cd4177740b8ffa457ec08485c0d7cde374fefd, ipAddress: 185.199.108.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c0f55cf46b0842a93d323381a0916e63fcc8c3ca0cd4faacf25e152a9cddd6a9, ipAddress: 185.199.109.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: b1e785fbe88a2e78859fc503412eaabb3cfe9432c374c1539147fb66524e749e, ipAddress: 185.199.110.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: 9f9ab9d95deb2a8d637d7b3926cc57fc4f5a19a2221900af54f3cb0528bc76bb, ipAddress: 185.199.111.133, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: repo.packagist.org., dnsNames: [repo.packagist.org.], identifier: 97b9d7084745a8412e6633fa15b720d04d0866d040a97a97a3e2bfa362432617, ipAddress: 138.199.37.227, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: repo.packagist.org., dnsNames: [repo.packagist.org.], identifier: 42714f0999e5e9cfcfe31b9d6c4eca9e45d1d840d5520a7e7a6233c65e7778b8, ipAddress: 169.150.247.34, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: repo.packagist.org., dnsNames: [repo.packagist.org.], identifier: 4c7ccb9712ee689abc329efc75697a2c4d1fba9b0833eae88e020a385f378b5f, ipAddress: 169.150.247.40, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: run-actions-1-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-1-azure-eastus.actions.githubusercontent.com.], identifier: 4c5c9c2b18a619972b94bdfa68335fe36974de50d9b0bdccf4bdc9a2f1e50394, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: run.actions.githubusercontent.com., dnsNames: [run.actions.githubusercontent.com.], identifier: 57c0e639ab26d239ad86f7eb0a14befdc72925c1068c587b81015308ed7a5e80, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
   endpoints: null
   execs:
     - {args: [/bin/cat, ⋯⋯], path: /bin/cat}
     - {args: [/bin/rm, ⋯⋯], path: /bin/rm}
     - {args: [/bin/sed, ⋯⋯], path: /bin/sed}
+    - {args: [/bin/sh, -c, --, /usr/bin/cpp /tmp/glibctestdKwIFC], path: /bin/sh}
+    - {args: [/bin/sh, -c, --, /usr/bin/cpp /tmp/glibctesttfWzCA], path: /bin/sh}
     - {args: [/bin/sh, -c, --, /usr/bin/cpp /tmp/⋯], path: /bin/sh}
     - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
     - {args: [/bin/sh, -c, --, command -v -- '7za'], path: /bin/sh}
     - {args: [/bin/sh, -c, --, command -v -- 'hhvm'], path: /bin/sh}
+    - {args: [/bin/sh, -c, --, git branch -v --no-abbrev], path: /bin/sh}
+    - {args: [/bin/sh, -c, --, which hg 2>/dev/null >/dev/null], path: /bin/sh}
     - {args: [/bin/sh, -c, --, ⋯], path: /bin/sh}
+    - {args: [/bin/sh, -c, '>&2 echo "some fake error message"'], path: /bin/sh}
     - {args: [/bin/sh, -c, command -v aspell >/dev/null], path: /bin/sh}
+    - {args: [/bin/sh, -c, command -v ispell >/dev/null], path: /bin/sh}
+    - {args: [/bin/sh, -c, echo], path: /bin/sh}
     - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/0e90ede3'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/0f5fb525'], path: /bin/sh}
     - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/21322de3'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/36e66687'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/3d27323f'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/44c8ec43'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/4d199d7d'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/7ccdc2bb'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/8898f5f7'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/a7bbb7c4'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/e1fffdf9'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/e53722ee'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/f89c1cc9'], path: /bin/sh}
     - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯], path: /bin/sh}
     - {args: [/bin/sh, -c, exec 'git' '--version'], path: /bin/sh}
     - {args: [/bin/sh, -c, exec 'git' 'branch' '-a' '--no-color' '--no-abbrev' '-v'], path: /bin/sh}
     - {args: [/bin/sh, -c, exec 'git' 'describe' '--exact-match' '--tags'], path: /bin/sh}
     - {args: [/bin/sh, -c, exec 'lsmod'], path: /bin/sh}
     - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/0e90ede3'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/0f5fb525'], path: /bin/sh}
     - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/21322de3'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/36e66687'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/3d27323f'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/44c8ec43'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/4d199d7d'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/7ccdc2bb'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/8898f5f7'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/a7bbb7c4'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/e1fffdf9'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/e53722ee'], path: /bin/sh}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/f89c1cc9'], path: /bin/sh}
     - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯], path: /bin/sh}
     - {args: [/bin/sh, -c, stty -a | grep columns], path: /bin/sh}
     - {args: [/bin/sh, -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  update-default-ispell], path: /bin/sh}
     - {args: [/bin/sh, -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  update-default-wordlist], path: /bin/sh}
     - {args: [/bin/sh, -c, zstdmt], path: /bin/sh}
     - {args: [/bin/sh, /var/lib/dpkg/info/emacsen-common.postinst, configure], path: /bin/sh}
+    - {args: [/bin/sh, /var/lib/dpkg/info/fontconfig.postinst, configure], path: /bin/sh}
     - {args: [/etc/init.d/php8.3-fpm, restart], path: /etc/init.d/php8.3-fpm}
     - {args: [/home/runner/.local/bin/trivy-bin/trivy, fs, src], path: /home/runner/.local/bin/trivy-bin/trivy}
     - {args: [/home/runner/_work/_tool/setup-php/tools/composer, ⋯⋯], path: /home/runner/_work/_tool/setup-php/tools/composer}
-    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/restore/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/save/../dist/save-only/index.js], path: /home/runner/externals/node24/bin/node}
@@ -74,6 +132,8 @@ spec:
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-entry.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-post-entry.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/shivammathur/setup-php/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/bin/hashFiles], path: /home/runner/externals/node24/bin/node}
+    - {args: [/pause], path: /pause}
     - {args: [/sbin/ldconfig.real], path: /sbin/ldconfig.real}
     - {args: [/sbin/runlevel, ⋯⋯], path: /sbin/runlevel}
     - {args: [/sbin/start-stop-daemon, --start, --quiet, --pidfile, /run/php/php8.3-fpm.pid, --exec, /usr/sbin/⋯, --, --daemonize, --fpm-config, /etc/php/8.3/fpm/php-fpm.conf], path: /sbin/start-stop-daemon}
@@ -83,15 +143,32 @@ spec:
     - {args: [/usr/bin/apt-cache, show, 'libenchant-?[0-9]+?-dev'], path: /usr/bin/apt-cache}
     - {args: [/usr/bin/apt-fast, ⋯⋯], path: /usr/bin/apt-fast}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.FFuGet.asc, verify, --status-fd, ⋯, /tmp/apt.sig.6tfMHw, /tmp/apt.data.vlWeIc], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.HQpeBk.asc, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.ONnRt0.asc, verify, --status-fd, ⋯, /tmp/apt.sig.e59Uvc, /tmp/apt.data.UzaeDj], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.RTSZLE.asc, verify, --status-fd, ⋯, /tmp/apt.sig.4KhKKK, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.xlJYe8.asc, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.4XIEMI], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/apt.sig.cWuZHa, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.20Ovth, /tmp/apt.data.3MYRn1], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.27dLIj, /tmp/apt.data.ff32r6], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.6wBfmf, /tmp/apt.data.6rjPqV], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.AtuDBi, /tmp/⋯], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.BHxgap, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.EDoGC2, /tmp/apt.data.WqpAve], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.EGRZtt, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.UnSHi6, /tmp/apt.data.9gMWnp], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.aqGZei, /tmp/apt.data.MUozA7], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.iFtKIY, /tmp/apt.data.FHXyhF], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.kNZwjR, /tmp/apt.data.fqmnpd], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.sQYO40, /tmp/apt.data.2ycRZZ], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.DLTnb8], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.EEcqDC], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.FbPDVn], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.FsB92i], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.MbNH14], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.RdDGZP], path: /usr/bin/apt-key}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.dNpnx0], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.mn85LA], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.yxtBkN], path: /usr/bin/apt-key}
     - {args: [/usr/bin/arch], path: /usr/bin/arch}
     - {args: [/usr/bin/bash, ./trivy/contrib/install.sh, -b, /home/runner/.local/bin/trivy-bin, -c, setup-trivy, v0.70.0], path: /usr/bin/bash}
     - {args: [/usr/bin/bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
@@ -114,38 +191,87 @@ spec:
     - {args: ["", -c, command -v ispell >/dev/null], path: /usr/bin/dash}
     - {args: ["", -c, mktemp -d "/tmp/ispell-auto.XXXXXXXXXX"], path: /usr/bin/dash}
     - {args: ["", -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  aspell-autobuildhash], path: /usr/bin/dash}
+    - {args: ["", -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  update-default-ispell], path: /usr/bin/dash}
+    - {args: ["", -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  update-default-wordlist], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/cpp /tmp/glibctestdKwIFC], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/cpp /tmp/glibctesttfWzCA], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, --, /usr/bin/cpp /tmp/⋯], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, --, command -v -- '7za'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, --, command -v -- 'hhvm'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, git branch -v --no-abbrev], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, which hg 2>/dev/null >/dev/null], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, --, ⋯], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, '>&2 echo "some fake error message"'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, command -v aspell >/dev/null], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, command -v ispell >/dev/null], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, echo], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/0e90ede3'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/0f5fb525'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/21322de3'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/36e66687'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/3d27323f'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/44c8ec43'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/4d199d7d'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/7ccdc2bb'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/8898f5f7'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/a7bbb7c4'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/e1fffdf9'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/e53722ee'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/f89c1cc9'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec '/usr/bin/unzip' '-qq' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec 'git' '--version'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec 'git' 'branch' '-a' '--no-color' '--no-abbrev' '-v'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec 'git' 'describe' '--exact-match' '--tags'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec 'lsmod'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/0e90ede3'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/0f5fb525'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/21322de3'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/36e66687'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/3d27323f'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/44c8ec43'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/4d199d7d'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/7ccdc2bb'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/8898f5f7'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/a7bbb7c4'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/e1fffdf9'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/e53722ee'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/f89c1cc9'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, exec 'rm' '-rf' '/home/runner/_work/node-agent/node-agent/src/vendor/composer/⋯], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, stty -a | grep columns], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  update-default-ispell], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  update-default-wordlist], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, zstdmt], path: /usr/bin/dash}
     - {args: [/bin/sh, /var/lib/dpkg/info/emacsen-common.postinst, configure], path: /usr/bin/dash}
+    - {args: [/bin/sh, /var/lib/dpkg/info/fontconfig.postinst, configure], path: /usr/bin/dash}
     - {args: [/etc/init.d/php8.3-fpm, restart], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.FFuGet.asc, verify, --status-fd, ⋯, /tmp/apt.sig.6tfMHw, /tmp/apt.data.vlWeIc], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.HQpeBk.asc, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.ONnRt0.asc, verify, --status-fd, ⋯, /tmp/apt.sig.e59Uvc, /tmp/apt.data.UzaeDj], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.RTSZLE.asc, verify, --status-fd, ⋯, /tmp/apt.sig.4KhKKK, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/apt-key.xlJYe8.asc, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.4XIEMI], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/apt.sig.cWuZHa, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.20Ovth, /tmp/apt.data.3MYRn1], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.27dLIj, /tmp/apt.data.ff32r6], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.6wBfmf, /tmp/apt.data.6rjPqV], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.AtuDBi, /tmp/⋯], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.BHxgap, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.EDoGC2, /tmp/apt.data.WqpAve], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.EGRZtt, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.UnSHi6, /tmp/apt.data.9gMWnp], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.aqGZei, /tmp/apt.data.MUozA7], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.iFtKIY, /tmp/apt.data.FHXyhF], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.kNZwjR, /tmp/apt.data.fqmnpd], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/apt.sig.sQYO40, /tmp/apt.data.2ycRZZ], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.DLTnb8], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.EEcqDC], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.FbPDVn], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.FsB92i], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.MbNH14], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.RdDGZP], path: /usr/bin/dash}
     - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.dNpnx0], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.mn85LA], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/apt.data.yxtBkN], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/default/dirmngr, --, configure], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/default/dirmngr, --, install], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/dirmngr/dirmngr.conf, --, configure], path: /usr/bin/dash}
@@ -262,6 +388,7 @@ spec:
     - {args: [/usr/bin/pear, config-set, php_ini, /etc/php/8.3/mods-available/pecl.ini, system], path: /usr/bin/dash}
     - {args: [/usr/bin/pear, config-set, php_ini, /etc/php/8.3/mods-available/pecl.ini, user], path: /usr/bin/dash}
     - {args: [/usr/bin/pecl, channel-update, pecl.php.net], path: /usr/bin/dash}
+    - {args: [/usr/bin/which, hg], path: /usr/bin/dash}
     - {args: [/usr/bin/which, update-mime-database], path: /usr/bin/dash}
     - {args: [/usr/sbin/invoke-rc.d, --skip-systemd-native, x11-common, start], path: /usr/bin/dash}
     - {args: [/usr/sbin/ldconfig], path: /usr/bin/dash}
@@ -430,14 +557,19 @@ spec:
     - {args: [/usr/bin/env, ⋯⋯], path: /usr/bin/env}
     - {args: [vendor/bin/phpunit, ⋯⋯], path: /usr/bin/env}
     - {args: [/usr/bin/expr, ⋯⋯], path: /usr/bin/expr}
-    - {args: [/usr/bin/fc-cache, -s, -f, -v], path: /usr/bin/fc-cache}
+    - {args: [/usr/bin/fc-cache, ⋯⋯], path: /usr/bin/fc-cache}
+    - {args: [fc-cache, ⋯⋯], path: /usr/bin/fc-cache}
     - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
     - {args: [/usr/bin/fuser, /usr/local/bin/composer], path: /usr/bin/fuser}
     - {args: [/usr/bin/git, --version], path: /usr/bin/git}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/3.7.0*:refs/remotes/origin/3.7.0*', '+refs/tags/3.7.0*:refs/tags/3.7.0*'], path: /usr/bin/git}
     - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/7.0.1*:refs/remotes/origin/7.0.1*', '+refs/tags/7.0.1*:refs/tags/7.0.1*'], path: /usr/bin/git}
     - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, '--filter=blob:none', --depth=1, origin, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, origin/3.7.0], path: /usr/bin/git}
     - {args: [/usr/bin/git, branch, --list, --remote, origin/7.0.1], path: /usr/bin/git}
     - {args: [/usr/bin/git, branch, -a, --no-color, --no-abbrev, -v], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, -v, --no-abbrev], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/3.7.0], path: /usr/bin/git}
     - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/7.0.1], path: /usr/bin/git}
     - {args: [/usr/bin/git, checkout, --progress, --force, ⋯], path: /usr/bin/git}
     - {args: [/usr/bin/git, config, --file, /home/runner/_work/_temp/⋯, 'http.https://github.com/.extraheader', 'AUTHORIZATION: basic ***'], path: /usr/bin/git}
@@ -448,15 +580,13 @@ spec:
     - {args: [/usr/bin/git, describe, --exact-match, --tags], path: /usr/bin/git}
     - {args: [/usr/bin/git, init, ⋯], path: /usr/bin/git}
     - {args: [/usr/bin/git, ls-files, -z], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/Seldaek/monolog'], path: /usr/bin/git}
     - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/aquasecurity/trivy'], path: /usr/bin/git}
     - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/sebastianbergmann/php-timer'], path: /usr/bin/git}
     - {args: [/usr/bin/git, rev-parse, HEAD], path: /usr/bin/git}
     - {args: [/usr/bin/git, sparse-checkout, set, contrib], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, 3.7.0], path: /usr/bin/git}
     - {args: [/usr/bin/git, tag, --list, 7.0.1], path: /usr/bin/git}
-    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
-    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
-    - {args: [/usr/bin/gpg-connect-agent, --homedir, ⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
-    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, ⋯], path: /usr/bin/gpg-connect-agent}
     - {args: [/usr/bin/head, ⋯⋯], path: /usr/bin/head}
     - {args: [/usr/bin/install, -d, /home/runner/.local/bin/trivy-bin], path: /usr/bin/install}
     - {args: [/usr/bin/install, /tmp/⋯/trivy, /home/runner/.local/bin/trivy-bin/], path: /usr/bin/install}
@@ -484,6 +614,125 @@ spec:
     - {args: [/usr/bin/php, -C, -q, -d, include_path=/usr/share/php, -d, date.timezone=UTC, -d, output_buffering=1, -d, variables_order=EGPCS, -d, safe_mode=0, -d, register_argc_argv=On, /usr/share/php/peclcmd.php, channel-update, pecl.php.net], path: /usr/bin/php}
     - {args: [/usr/bin/php, -derror_reporting=0, /home/runner/_work/_actions/shivammathur/setup-php/⋯/src/scripts/../scripts/extensions/extension_map.php, /tmp/map8.3.orig], path: /usr/bin/php}
     - {args: [/usr/bin/php, -l, src/Duration.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Attribute/AsMonologProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Attribute/WithMonologChannel.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/DateTimeImmutable.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/ErrorHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/ChromePHPFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/ElasticaFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/ElasticsearchFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/FlowdockFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/FluentdFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/FormatterInterface.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/GelfMessageFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/GoogleCloudLoggingFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/HtmlFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/JsonFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/LineFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/LogglyFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/LogmaticFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/LogstashFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/MongoDBFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/NormalizerFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/ScalarFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/SyslogFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/WildfireFormatter.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/AbstractHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/AbstractProcessingHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/AbstractSyslogHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/AmqpHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/BrowserConsoleHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/BufferHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ChromePHPHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/CouchDBHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/CubeHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/Curl/Util.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/DeduplicationHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/DoctrineCouchDBHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/DynamoDbHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ElasticaHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ElasticsearchHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ErrorLogHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FallbackGroupHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FilterHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FingersCrossed/ActivationStrategyInterface.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FingersCrossed/ChannelLevelActivationStrategy.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FingersCrossed/ErrorLevelActivationStrategy.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FingersCrossedHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FirePHPHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FleepHookHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FlowdockHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FormattableHandlerInterface.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FormattableHandlerTrait.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/GelfHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/GroupHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/Handler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/HandlerInterface.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/HandlerWrapper.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/IFTTTHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/InsightOpsHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/LogEntriesHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/LogglyHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/LogmaticHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/MailHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/MandrillHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/MissingExtensionException.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/MongoDBHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/NativeMailerHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/NewRelicHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/NoopHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/NullHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/OverflowHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/PHPConsoleHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ProcessHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ProcessableHandlerInterface.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ProcessableHandlerTrait.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/PsrHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/PushoverHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/RedisHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/RedisPubSubHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/RollbarHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/RotatingFileHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SamplingHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SendGridHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/Slack/SlackRecord.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SlackHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SlackWebhookHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SocketHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SqsHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/StreamHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SymfonyMailerHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SyslogHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SyslogUdp/UdpSocket.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SyslogUdpHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/TelegramBotHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/TestHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/WebRequestRecognizerTrait.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/WhatFailureGroupHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ZendMonitorHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Level.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/LogRecord.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Logger.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/ClosureContextProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/GitProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/HostnameProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/IntrospectionProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/LoadAverageProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/MemoryPeakUsageProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/MemoryProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/MemoryUsageProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/MercurialProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/ProcessIdProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/ProcessorInterface.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/PsrLogMessageProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/TagProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/UidProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/WebProcessor.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Registry.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/ResettableInterface.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/SignalHandler.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Test/TestCase.php], path: /usr/bin/php}
+    - {args: [/usr/bin/php, -l, src/Monolog/Utils.php], path: /usr/bin/php}
     - {args: [/usr/bin/php, -l, src/ResourceUsageFormatter.php], path: /usr/bin/php}
     - {args: [/usr/bin/php, -l, src/Timer.php], path: /usr/bin/php}
     - {args: [/usr/bin/php, -l, src/exceptions/Exception.php], path: /usr/bin/php}
@@ -494,6 +743,7 @@ spec:
     - {args: [/usr/bin/php, -r, 'try {$p=new Phar(''/usr/local/bin/composer.phar'', 0);exit(0);} catch(Exception $e) {exit(1);}'], path: /usr/bin/php}
     - {args: [/usr/bin/php, /home/runner/_work/_tool/setup-php/tools/composer, archive, --format=zip, --dir=/home/runner/_work/node-agent/node-agent/src/dist], path: /usr/bin/php}
     - {args: [/usr/bin/php, /home/runner/_work/_tool/setup-php/tools/composer, install, --no-interaction, --prefer-dist], path: /usr/bin/php}
+    - {args: [/usr/bin/php, /home/runner/_work/_tool/setup-php/tools/composer, install, --no-interaction, --prefer-dist, --ignore-platform-reqs], path: /usr/bin/php}
     - {args: [/usr/bin/php, /home/runner/_work/_tool/setup-php/tools/composer, validate, --no-check-publish], path: /usr/bin/php}
     - {args: [/usr/bin/php, /tmp/pear.phar], path: /usr/bin/php}
     - {args: [/usr/bin/php, vendor/bin/phpunit, --log-junit, /home/runner/_work/node-agent/node-agent/src/reports/junit.xml, --coverage-cobertura, /home/runner/_work/node-agent/node-agent/src/reports/coverage.xml], path: /usr/bin/php}
@@ -501,6 +751,125 @@ spec:
     - {args: [/usr/bin/php, -C, -q, -d, include_path=/usr/share/php, -d, date.timezone=UTC, -d, output_buffering=1, -d, variables_order=EGPCS, -d, safe_mode=0, -d, register_argc_argv=On, /usr/share/php/peclcmd.php, channel-update, pecl.php.net], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, -derror_reporting=0, /home/runner/_work/_actions/shivammathur/setup-php/⋯/src/scripts/../scripts/extensions/extension_map.php, /tmp/map8.3.orig], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, -l, src/Duration.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Attribute/AsMonologProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Attribute/WithMonologChannel.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/DateTimeImmutable.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/ErrorHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/ChromePHPFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/ElasticaFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/ElasticsearchFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/FlowdockFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/FluentdFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/FormatterInterface.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/GelfMessageFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/GoogleCloudLoggingFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/HtmlFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/JsonFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/LineFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/LogglyFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/LogmaticFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/LogstashFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/MongoDBFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/NormalizerFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/ScalarFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/SyslogFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Formatter/WildfireFormatter.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/AbstractHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/AbstractProcessingHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/AbstractSyslogHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/AmqpHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/BrowserConsoleHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/BufferHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ChromePHPHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/CouchDBHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/CubeHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/Curl/Util.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/DeduplicationHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/DoctrineCouchDBHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/DynamoDbHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ElasticaHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ElasticsearchHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ErrorLogHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FallbackGroupHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FilterHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FingersCrossed/ActivationStrategyInterface.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FingersCrossed/ChannelLevelActivationStrategy.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FingersCrossed/ErrorLevelActivationStrategy.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FingersCrossedHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FirePHPHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FleepHookHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FlowdockHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FormattableHandlerInterface.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/FormattableHandlerTrait.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/GelfHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/GroupHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/Handler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/HandlerInterface.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/HandlerWrapper.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/IFTTTHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/InsightOpsHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/LogEntriesHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/LogglyHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/LogmaticHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/MailHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/MandrillHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/MissingExtensionException.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/MongoDBHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/NativeMailerHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/NewRelicHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/NoopHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/NullHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/OverflowHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/PHPConsoleHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ProcessHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ProcessableHandlerInterface.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ProcessableHandlerTrait.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/PsrHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/PushoverHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/RedisHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/RedisPubSubHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/RollbarHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/RotatingFileHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SamplingHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SendGridHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/Slack/SlackRecord.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SlackHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SlackWebhookHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SocketHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SqsHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/StreamHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SymfonyMailerHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SyslogHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SyslogUdp/UdpSocket.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/SyslogUdpHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/TelegramBotHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/TestHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/WebRequestRecognizerTrait.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/WhatFailureGroupHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Handler/ZendMonitorHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Level.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/LogRecord.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Logger.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/ClosureContextProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/GitProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/HostnameProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/IntrospectionProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/LoadAverageProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/MemoryPeakUsageProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/MemoryProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/MemoryUsageProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/MercurialProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/ProcessIdProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/ProcessorInterface.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/PsrLogMessageProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/TagProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/UidProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Processor/WebProcessor.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Registry.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/ResettableInterface.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/SignalHandler.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Test/TestCase.php], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, -l, src/Monolog/Utils.php], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, -l, src/ResourceUsageFormatter.php], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, -l, src/Timer.php], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, -l, src/exceptions/Exception.php], path: /usr/bin/php8.3}
@@ -511,6 +880,7 @@ spec:
     - {args: [/usr/bin/php, -r, 'try {$p=new Phar(''/usr/local/bin/composer.phar'', 0);exit(0);} catch(Exception $e) {exit(1);}'], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, /home/runner/_work/_tool/setup-php/tools/composer, archive, --format=zip, --dir=/home/runner/_work/node-agent/node-agent/src/dist], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, /home/runner/_work/_tool/setup-php/tools/composer, install, --no-interaction, --prefer-dist], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/php, /home/runner/_work/_tool/setup-php/tools/composer, install, --no-interaction, --prefer-dist, --ignore-platform-reqs], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, /home/runner/_work/_tool/setup-php/tools/composer, validate, --no-check-publish], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, /tmp/pear.phar], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, vendor/bin/phpunit, --log-junit, /home/runner/_work/node-agent/node-agent/src/reports/junit.xml, --coverage-cobertura, /home/runner/_work/node-agent/node-agent/src/reports/coverage.xml], path: /usr/bin/php8.3}
@@ -537,6 +907,7 @@ spec:
     - {args: [/usr/bin/tr, ⋯⋯], path: /usr/bin/tr}
     - {args: [/usr/bin/tsort], path: /usr/bin/tsort}
     - {args: [/usr/bin/unzip, ⋯⋯], path: /usr/bin/unzip}
+    - {args: [/usr/bin/unzstd, ⋯⋯], path: /usr/bin/unzstd}
     - {args: [/usr/bin/update-alternatives, --install, /etc/mysql/my.cnf, my.cnf, /etc/mysql/my.cnf.fallback, ⋯], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/update-alternatives, --install, /usr/bin/automake, automake, /usr/bin/automake-1.16, ⋯, --slave, /usr/bin/aclocal, aclocal, /usr/bin/aclocal-1.16, --slave, /usr/share/man/man1/automake.1.gz, automake.1.gz, /usr/share/man/man1/automake-1.16.1.gz, --slave, /usr/share/man/man1/aclocal.1.gz, aclocal.1.gz, /usr/share/man/man1/aclocal-1.16.1.gz], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/update-alternatives, --install, /usr/bin/phar, phar, /usr/bin/phar8.3, ⋯, --slave, /usr/share/man/man1/phar.1, phar.1, /usr/share/man/man1/phar8.3.1], path: /usr/bin/update-alternatives}
@@ -559,22 +930,40 @@ spec:
     - {args: [/usr/bin/update-alternatives, --set, phpdbg, /usr/bin/⋯], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/update-alternatives, --set, phpize, /usr/bin/phpize8.3], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/update-mime-database, /usr/share/mime], path: /usr/bin/update-mime-database}
+    - {args: [/usr/bin/which, hg], path: /usr/bin/which}
     - {args: [/usr/bin/which, update-mime-database], path: /usr/bin/which}
     - {args: [/usr/bin/cpp, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-cpp-13}
     - {args: [/usr/bin/xargs, ⋯⋯], path: /usr/bin/xargs}
+    - {args: [/usr/bin/unzstd, ⋯⋯], path: /usr/bin/zstd}
     - {args: [/usr/bin/zstd, ⋯⋯], path: /usr/bin/zstd}
     - {args: [/usr/bin/zstdmt, ⋯⋯], path: /usr/bin/zstd}
     - {args: [zstdmt, ⋯⋯], path: /usr/bin/zstd}
     - {args: [/usr/bin/zstdmt, ⋯⋯], path: /usr/bin/zstdmt}
     - {args: [/usr/lib/emacsen-common/emacs-package-install, ⋯⋯], path: /usr/lib/emacsen-common/emacs-package-install}
+    - {args: [/usr/lib/git-core/git, --exec-path], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, ⋯, '--pack_header=2,268'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, rev-list, --objects, --stdin, --quiet, --alternate-refs], path: /usr/lib/git-core/git}
     - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, unpack-objects, -q, '--pack_header=2,40'], path: /usr/lib/git-core/git}
     - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/trivy/.git/shallow.lock, index-pack, --stdin, --fix-thin, ⋯, --promisor, '--pack_header=2,1545'], path: /usr/lib/git-core/git}
     - {args: [/usr/lib/git-core/git, -c, fetch.negotiationAlgorithm=noop, fetch, origin, --no-tags, --no-write-fetch-head, --recurse-submodules=no, '--filter=blob:none', --stdin], path: /usr/lib/git-core/git}
     - {args: [/usr/lib/git-core/git, index-pack, --stdin, --fix-thin, --promisor, '--pack_header=2,28'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/Seldaek/monolog'], path: /usr/lib/git-core/git}
     - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/aquasecurity/trivy'], path: /usr/lib/git-core/git}
     - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/sebastianbergmann/php-timer'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-dir], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-path, objects], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --is-inside-work-tree], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-prefix], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-toplevel], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, --variables, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/Seldaek/monolog'], path: /usr/lib/git-core/git-remote-http}
     - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/aquasecurity/trivy'], path: /usr/lib/git-core/git-remote-http}
     - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/sebastianbergmann/php-timer'], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/Seldaek/monolog'], path: /usr/lib/git-core/git-remote-https}
     - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/aquasecurity/trivy'], path: /usr/lib/git-core/git-remote-https}
     - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/sebastianbergmann/php-timer'], path: /usr/lib/git-core/git-remote-https}
     - {args: [/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-ani.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-bmp.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-gif.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-icns.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-ico.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-pnm.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-qtif.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-svg.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-tga.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-tiff.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-xbm.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-xpm.so], path: /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders}
@@ -643,7 +1032,7 @@ spec:
   ingress: null
   opens:
     - {flags: [O_RDONLY], path: /dev/fd/⋯}
-    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc}
     - {flags: [O_RDONLY], path: /etc/ImageMagick-6/coder.xml}
     - {flags: [O_RDONLY], path: /etc/ImageMagick-6/colors.xml}
     - {flags: [O_RDONLY], path: /etc/ImageMagick-6/delegates.xml}
@@ -689,7 +1078,7 @@ spec:
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/apache2/sites-available/000-default.conf}
     - {flags: [O_RDONLY], path: /etc/cron.d/php}
     - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /etc/dictionaries-common/ispell-default}
-    - {flags: [O_RDONLY], path: /etc/dpkg/dpkg.cfg.d/force-confnew}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /etc/dpkg/dpkg.cfg.d/force-confnew}
     - {flags: [O_RDONLY], path: /etc/dpkg/dpkg.cfg.d/pkgconf-hook-config}
     - {flags: [O_RDONLY], path: /etc/emacs/site-start.d/50autoconf.el}
     - {flags: [O_RDONLY], path: /etc/emacs/site-start.d/50dictionaries-common.el}
@@ -719,10 +1108,9 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_CLOEXEC, O_WRONLY], path: /etc/init.d/php8.3-fpm}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/init.d/x11-common}
     - {flags: [O_RDONLY], path: /etc/krb5.keytab}
-    - {flags: [O_NONBLOCK, O_CLOEXEC, O_WRONLY, O_CREAT, O_EXCL, O_NOCTTY], path: /etc/logrotate.d/php8.3-fpm}
+    - {flags: [O_EXCL, O_NOCTTY, O_NONBLOCK, O_CLOEXEC, O_WRONLY, O_CREAT], path: /etc/logrotate.d/php8.3-fpm}
     - {flags: [O_RDONLY], path: /etc/magic}
     - {flags: [O_RDONLY], path: /etc/magic.mime}
-    - {flags: [O_RDONLY], path: /etc/mailname}
     - {flags: [O_RDONLY], path: /etc/mysql/conf.d/mysql.cnf}
     - {flags: [O_RDONLY], path: /etc/mysql/conf.d/mysqldump.cnf}
     - {flags: [O_RDONLY], path: /etc/mysql/my.cnf.fallback}
@@ -805,7 +1193,9 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/apache2/conf.d/25-redis.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/apache2/conf.d/30-ds.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/apache2/conf.d/99-pecl.ini}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/apache2/php.ini}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/apache2/php.ini}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/apache2/sed0r3abp}
+    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/apache2/sedWsSq3Q}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/apache2/sednyso7r}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/cgi}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/cgi/conf.d}
@@ -878,7 +1268,9 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cgi/conf.d/25-redis.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cgi/conf.d/30-ds.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cgi/conf.d/99-pecl.ini}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/cgi/php.ini}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/cgi/php.ini}
+    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/cgi/sed2lAKHh}
+    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/cgi/sedCMyS1I}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cgi/sedtovOzL}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/cli}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/cli/conf.d}
@@ -950,12 +1342,17 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cli/conf.d/25-memcached.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cli/conf.d/25-redis.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cli/conf.d/30-ds.ini}
-    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cli/conf.d/99-pecl.ini}
+    - {flags: [O_APPEND, O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/php/8.3/cli/conf.d/99-pecl.ini}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedBNTA64}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedE97DUb}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedLmugVU}
+    - {flags: [O_EXCL, O_RDWR, O_CREAT], path: /etc/php/8.3/cli/conf.d/sedkCuA6o}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedoeXocj}
     - {flags: [O_RDONLY], path: /etc/php/8.3/cli/php-cli.ini}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/cli/php.ini}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/cli/php.ini}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/sedMYefFJ}
     - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/cli/sedd1OtEy}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/sedmEtink}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/embed}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/embed/conf.d}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/embed/conf.d/10-mysqlnd.ini}
@@ -1026,8 +1423,10 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/embed/conf.d/25-memcached.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/embed/conf.d/25-redis.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/embed/conf.d/30-ds.ini}
-    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/embed/conf.d/99-pecl.ini}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/embed/php.ini}
+    - {flags: [O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/php/8.3/embed/conf.d/99-pecl.ini}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/embed/php.ini}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/embed/sedgx3wih}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/embed/sedpPBOsq}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/embed/sedqjgnDZ}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/fpm}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/fpm/conf.d}
@@ -1101,15 +1500,17 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/fpm/conf.d/30-ds.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/fpm/conf.d/99-pecl.ini}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/fpm/php-fpm.conf}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/fpm/php.ini}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/fpm/php.ini}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/fpm/pool.d}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/fpm/pool.d/www.conf}
     - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/fpm/sed5SEFMC}
+    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/fpm/sedJ2U6cu}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/fpm/sedXanDBS}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/fpm/systemd}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/fpm/systemd/system}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/fpm/systemd/system/php-fpm.service}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/mods-available}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/mods-available/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/mods-available/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/phpdbg}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/phpdbg/conf.d}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/phpdbg/conf.d/10-mysqlnd.ini}
@@ -1181,9 +1582,10 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/phpdbg/conf.d/25-redis.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/phpdbg/conf.d/30-ds.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/phpdbg/conf.d/99-pecl.ini}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/phpdbg/php.ini}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/phpdbg/php.ini}
     - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/phpdbg/sed5oaigZ}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/phpdbg/sedQbmtBr}
+    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/phpdbg/sedh3C917}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/rc0.d}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/rc1.d}
@@ -1240,10 +1642,12 @@ spec:
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user/keyboxd.socket}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user/keyboxd.socket.d}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user/sockets.target.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/package.json}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.cache/*}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.composer}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.composer/.htaccess}
-    - {flags: [O_RDONLY], path: /home/runner/.composer/auth.json}
-    - {flags: [O_RDONLY], path: /home/runner/.composer/composer.json}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.composer/auth.json}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.composer/composer.json}
     - {flags: [O_RDONLY], path: /home/runner/.config/ImageMagick/log.xml}
     - {flags: [O_RDONLY], path: /home/runner/.config/ImageMagick/policy.xml}
     - {flags: [O_RDONLY], path: /home/runner/.dpkg.cfg}
@@ -1264,9 +1668,14 @@ spec:
     - {flags: [O_RDONLY], path: /home/runner/.odbcinst.ini}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.snmp/mibs}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.trivy/plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/⋯/index.js}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/⋯/package.json}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/go/pkg/mod}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/package.json}
     - {flags: [O_DIRECTORY, O_RDONLY], path: /opt/hostedtoolcache}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/hostedtoolcache/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat}
     - {flags: [O_RDONLY], path: /proc/version}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/environ}
     - {flags: [O_RDONLY], path: /proc/⋯/net/*}
@@ -1290,10 +1699,9 @@ spec:
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/transient/phpsessionclean.timer}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/user/dirmngr.socket}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/user/keyboxd.socket}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/local}
-    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/bin/composer}
+    - {flags: [O_CREAT, O_NOCTTY, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/bin/composer}
     - {flags: [O_NOCTTY, O_RDONLY], path: /usr/local/include/*}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/local/lib/systemd}
@@ -1309,7 +1717,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/aspell-autobuildhash}
     - {flags: [O_RDONLY], path: /usr/sbin/invoke-rc.d}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/ispell-autobuildhash}
-    - {flags: [O_NOCTTY, O_NONBLOCK, O_CLOEXEC, O_WRONLY, O_CREAT, O_EXCL], path: /usr/sbin/php-fpm8.3}
+    - {flags: [O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_CLOEXEC, O_WRONLY], path: /usr/sbin/php-fpm8.3}
     - {flags: [O_RDONLY], path: /usr/sbin/phpenmod}
     - {flags: [O_RDONLY], path: /usr/sbin/phpquery}
     - {flags: [O_RDONLY], path: /usr/sbin/policy-rc.d}
@@ -1323,8 +1731,15 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/update-dictcommon-hunspell}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/update-rc.d}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/share}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.0ypJyu}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.12EA95}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.54RzBt}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.JXdzEY}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.JeQtyD}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.NeYRDP}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.UqkNUv}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.VFmaJP}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.YTJYua}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/extended_states.nTeUOH}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/aspell}
@@ -1364,6 +1779,7 @@ spec:
     - {flags: [O_CREAT, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/emacsen-common/state/package/installed/dictionaries-common}
     - {flags: [O_CREAT, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/emacsen-common/state/package/installed/emacsen-common}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/ispell}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/php/modules/8.3}
     - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/php/modules/8.3/apache2}
     - {flags: [O_CREAT, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/php/modules/8.3/apache2/enabled_by_admin/pcov}
     - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/php/modules/8.3/cgi}
@@ -1372,22 +1788,29 @@ spec:
     - {flags: [O_CREAT, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/php/modules/8.3/cli/enabled_by_admin/pcov}
     - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/php/modules/8.3/fpm}
     - {flags: [O_CREAT, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/php/modules/8.3/fpm/enabled_by_admin/pcov}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/php/modules/8.3/phpdbg}
+    - {flags: [O_CREAT, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/php/modules/8.3/phpdbg/enabled_by_admin/pcov}
     - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/sgml-base/supercatalog.new}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/snmp/cert_indexes}
     - {flags: [O_RDONLY], path: /var/lib/snmp/snmp.conf}
     - {flags: [O_RDONLY], path: /var/lib/snmp/snmp.local.conf}
     - {flags: [O_RDONLY], path: /var/lib/snmp/snmpapp.conf}
     - {flags: [O_RDONLY], path: /var/lib/snmp/snmpapp.local.conf}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-helper-enabled/.statem_ndm.tmp}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/systemd/deb-systemd-helper-enabled/phpsessionclean.timer.dsh-also}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/systemd/deb-systemd-helper-enabled/timers.target.wants/phpsessionclean.timer}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-helper-enabled/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/systemd/deb-systemd-helper-masked}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-user-helper-enabled/.stateIL36K.tmp}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-user-helper-enabled/.stateOLWpl.tmp}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-user-helper-enabled/.stateYHRye.tmp}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-user-helper-enabled/.state_ISVd.tmp}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-user-helper-enabled/.stateh9sci.tmp}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/systemd/deb-systemd-user-helper-enabled/dirmngr.socket.dsh-also}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/systemd/deb-systemd-user-helper-enabled/keyboxd.socket.dsh-also}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/systemd/deb-systemd-user-helper-enabled/sockets.target.wants/dirmngr.socket}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/systemd/deb-systemd-user-helper-enabled/sockets.target.wants/keyboxd.socket}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-user-helper-enabled/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/systemd/deb-systemd-user-helper-masked}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/log/fontconfig.log}
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/php8.3-fpm.log}

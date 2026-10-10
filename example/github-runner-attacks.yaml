@@ -30,22 +30,20 @@ metadata:
     TA0006, TA0007, TA0008, TA0010, TA0011, TA0040 and CICD-SEC-1/3/4/5/6/7.
 
     Detection intent: every entry declares what a correctly-bound
-    ContainerProfile should alert on. Entries with expectedDetections: [] are
-    benign-shaped baseline steps a runner legitimately performs - they exist
-    so a contrast run can show which of these are indistinguishable from CI
-    work, which is the whole point of contrast testing a runner.
+    ContainerProfile alerts on, and every entry is expected to alert: a clean
+    build raises zero attack-distinguishing alerts, so even CI-shaped recon
+    (id, df, env) is a process no learned build ran.
 
 target:
-  service: cncf-c-ubuntu-2-8-x86
-  namespace: arc-runners
-  port: 8080
-  protocol: http
+  namespace: arc-systems
+  pod: k3s-2-runner-
+  container: runner
 
 attacks:
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 1: RECONNAISSANCE (TA0043) — what the runner can see about itself
-  # Baseline-shaped: a real build does most of this. Expected to be quiet.
+  # CI-shaped, but no learned build runs these processes: R0001.
   # ═══════════════════════════════════════════════════════════════════════════
 
   # T1082 — System Information Discovery
@@ -53,21 +51,33 @@ attacks:
     type: custom
     exec:
       command: ["sh", "-c", "id; hostname; cat /etc/os-release | head -3"]
-    expectedDetections: []
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
 
   # T1082 — runner work layout: all of these share one 50Gi emptyDir
   - name: recon-shared-work-volume
     type: custom
     exec:
       command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; df -h $R/_work $R/.cache $R/.gradle $R/go $R/.m2 /tmp 2>/dev/null; mount | grep -E '_work|cache'"]
-    expectedDetections: []
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
 
   # T1613 — Container and Resource Discovery: is the docker socket reachable?
   - name: recon-docker-socket-present
     type: custom
     exec:
       command: ["sh", "-c", "ls -l /var/run/docker.sock; id -G"]
-    expectedDetections: []
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
 
   # T1613 — the socket is group-readable via supplementalGroups [999]
   - name: recon-docker-daemon-reachable
@@ -97,7 +107,11 @@ attacks:
     type: custom
     exec:
       command: ["sh", "-c", "getent hosts kubernetes.default.svc.cluster.local; env | grep -i KUBERNETES_"]
-    expectedDetections: []
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 2: CREDENTIAL ACCESS IN-POD (TA0006)
@@ -217,7 +231,11 @@ attacks:
     type: custom
     exec:
       command: ["sh", "-c", "env | grep -iE 'TOKEN|SECRET|KEY|PASSWORD|ACTIONS_|GITHUB_' | head -20"]
-    expectedDetections: []
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
 
   # T1552.001 — other processes' environments via procfs
   - name: cred-procfs-environ-sweep
@@ -886,7 +904,11 @@ attacks:
     type: custom
     exec:
       command: ["sh", "-c", "echo 'rm -rf $HOME would run here'; ls -d ~/ >/dev/null && echo 'target resolvable'"]
-    expectedDetections: []
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
 
   # T1564 — io_uring file access, invisible to the path-based open rules.
   # PLACEHOLDER: this command performs no io_uring I/O, so it cannot test R1030
@@ -896,7 +918,15 @@ attacks:
     type: fileless
     exec:
       command: ["sh", "-c", "cat /proc/sys/kernel/io_uring_disabled 2>/dev/null; ls /proc/self/fd | head -3"]
-    expectedDetections: []
+    expectedDetections:
+      - attackType: fileless
+        ruleID: R0001
+        ruleName: Unexpected process launched
+        containerName: runner
+      - attackType: fileless
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
 
   # T1222 — remove the staged artefacts, leaving the shared volume clean
   - name: evade-cleanup-staged-artefacts
