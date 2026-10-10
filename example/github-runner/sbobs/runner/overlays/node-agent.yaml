@@ -452,14 +452,14 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/.buildNodeID}
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY], path: /home/runner/.docker/buildx/.lock}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.docker/buildx/activity}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR, O_RDONLY], path: /home/runner/.docker/buildx/activity/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR], path: /home/runner/.docker/buildx/activity/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/certs}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/current}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.docker/buildx/defaults}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.docker/buildx/instances}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR, O_RDONLY], path: /home/runner/.docker/buildx/instances/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR], path: /home/runner/.docker/buildx/instances/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.docker/buildx/refs}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/refs/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR], path: /home/runner/.docker/buildx/refs/*}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/⋯}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/cli-plugins}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/contexts/meta}

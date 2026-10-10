@@ -1105,10 +1105,10 @@ spec:
     - {flags: [O_RDONLY], path: /etc/freetds/locales.conf}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /etc/hosts.allow}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /etc/hosts.deny}
-    - {flags: [O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_CLOEXEC, O_WRONLY], path: /etc/init.d/php8.3-fpm}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/init.d/php8.3-fpm}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/init.d/x11-common}
     - {flags: [O_RDONLY], path: /etc/krb5.keytab}
-    - {flags: [O_EXCL, O_NOCTTY, O_NONBLOCK, O_CLOEXEC, O_WRONLY, O_CREAT], path: /etc/logrotate.d/php8.3-fpm}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/logrotate.d/php8.3-fpm}
     - {flags: [O_RDONLY], path: /etc/magic}
     - {flags: [O_RDONLY], path: /etc/magic.mime}
     - {flags: [O_RDONLY], path: /etc/mysql/conf.d/mysql.cnf}
@@ -1195,7 +1195,7 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/apache2/conf.d/99-pecl.ini}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/apache2/php.ini}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/apache2/sed0r3abp}
-    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/apache2/sedWsSq3Q}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/apache2/sedWsSq3Q}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/apache2/sednyso7r}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/cgi}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/cgi/conf.d}
@@ -1269,8 +1269,8 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cgi/conf.d/30-ds.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/cgi/conf.d/99-pecl.ini}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/cgi/php.ini}
-    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/cgi/sed2lAKHh}
-    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/cgi/sedCMyS1I}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cgi/sed2lAKHh}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cgi/sedCMyS1I}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cgi/sedtovOzL}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/cli}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/cli/conf.d}
@@ -1346,12 +1346,12 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedBNTA64}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedE97DUb}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedLmugVU}
-    - {flags: [O_EXCL, O_RDWR, O_CREAT], path: /etc/php/8.3/cli/conf.d/sedkCuA6o}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedkCuA6o}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/conf.d/sedoeXocj}
     - {flags: [O_RDONLY], path: /etc/php/8.3/cli/php-cli.ini}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/cli/php.ini}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/sedMYefFJ}
-    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/cli/sedd1OtEy}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/sedd1OtEy}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/cli/sedmEtink}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/embed}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/embed/conf.d}
@@ -1503,8 +1503,8 @@ spec:
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/fpm/php.ini}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/fpm/pool.d}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/fpm/pool.d/www.conf}
-    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/fpm/sed5SEFMC}
-    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/fpm/sedJ2U6cu}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/fpm/sed5SEFMC}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/fpm/sedJ2U6cu}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/fpm/sedXanDBS}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/fpm/systemd}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/php/8.3/fpm/systemd/system}
@@ -1583,9 +1583,9 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/phpdbg/conf.d/30-ds.ini}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/php/8.3/phpdbg/conf.d/99-pecl.ini}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/phpdbg/php.ini}
-    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/phpdbg/sed5oaigZ}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/phpdbg/sed5oaigZ}
     - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/phpdbg/sedQbmtBr}
-    - {flags: [O_RDWR, O_CREAT, O_EXCL], path: /etc/php/8.3/phpdbg/sedh3C917}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/php/8.3/phpdbg/sedh3C917}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/rc0.d}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/rc1.d}
@@ -1717,7 +1717,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/aspell-autobuildhash}
     - {flags: [O_RDONLY], path: /usr/sbin/invoke-rc.d}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/ispell-autobuildhash}
-    - {flags: [O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_CLOEXEC, O_WRONLY], path: /usr/sbin/php-fpm8.3}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /usr/sbin/php-fpm8.3}
     - {flags: [O_RDONLY], path: /usr/sbin/phpenmod}
     - {flags: [O_RDONLY], path: /usr/sbin/phpquery}
     - {flags: [O_RDONLY], path: /usr/sbin/policy-rc.d}
