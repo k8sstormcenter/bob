@@ -114,7 +114,7 @@ spec:
       message: '''Unexpected domain communication: '' + event.name + '' from: '' + event.containerName'
       ruleExpression:
       - eventType: dns
-        expression: '!event.name.endsWith(''.svc.cluster.local.'') && !cp.is_domain_in_egress(event.containerId, event.name)'
+        expression: event.rcode == 0 && !event.name.endsWith('.svc.cluster.local.') && !cp.is_domain_in_egress(event.containerId, event.name)
       uniqueId: event.comm + '_' + event.name
     id: R0005
     isTriggerAlert: true
@@ -649,3 +649,23 @@ spec:
     - context:kubernetes
     - admission
     - exec
+  - id: R1032
+    name: DNS exfiltration attempt
+    description: Detecting non-resolving DNS names that carry a long label, the shape of data smuggled in DNS queries.
+    enabled: true
+    isTriggerAlert: true
+    supportPolicy: false
+    profileDependency: 0
+    severity: 8
+    mitreTactic: TA0010
+    mitreTechnique: T1048.003
+    tags:
+    - dns
+    - exfiltration
+    - networkprofile
+    expressions:
+      message: '''Non-resolving DNS name with a long label: '' + event.name + '' from '' + event.comm'
+      uniqueId: event.comm + '_' + event.name
+      ruleExpression:
+      - eventType: dns
+        expression: event.rcode == 3 && !event.name.endsWith('.cluster.local.') && !event.name.endsWith('.in-addr.arpa.') && event.name.split('.').exists(l, size(l) >= 30) && !cp.is_domain_in_egress(event.containerId, event.name)

@@ -16,11 +16,15 @@ Label the runner pod template `kubescape.io/user-defined-profile: arc-runner`. T
 
 ## Rules
 
-`rules/default-rules.yaml` is the live `honey/default-rules` spec on k3s-2. Its hash, `3bd51a7699a9`, is `sha256(json.dumps(spec, sort_keys=True))[:12]`, also printed by `harness/collect.py rules-hash`. It differs from the shipped ruleset in three ways:
+`rules/default-rules.yaml` is the 32-rule spec the runners are tuned for (candidate-4). Its hash, `58ef86be9a2e`, is `sha256(json.dumps(spec, sort_keys=True))[:12]`, also printed by `harness/collect.py rules-hash`. It differs from the shipped ruleset in these ways:
 
 - `supportPolicy: true` on 12 rules (R0002 R0004 R0005 R0006 R0009 R0011 R0012 R0040 R1010 R1011 R1012 R1030). Per-process exclusions in a profile (`rulePolicies.processAllowed`) only take effect on rules with `supportPolicy: true`. The exclusion matches the kernel comm, at most 15 characters.
 - R1030 ignores io_uring opcodes `0 6 7 11 12 14 15 29`. The 818 libuv `EPOLL_CTL` (29) alerts per Node build go away, and io_uring `OPENAT` (18) and `READ` (22) still alert.
 - R0006 deduplicates per process instead of per comm, and R0010 also covers gshadow, the kubeconfigs (admin, super-admin, kubelet, k3s) and the SSH host keys.
+- R0005 alerts only on a resolving lookup (`event.rcode == 0`), so a failed lookup is not a DNS anomaly.
+- R1032 "DNS exfiltration attempt" (bound): a non-resolving name with a label of 30+ characters that is not in the egress profile. Needs the sensor's `dnsReportFailures` on to fire.
+
+R0002 stays path-only here; the chart's write-flags disjunct is deliberately not adopted, because it raised 7–14 alerts per clean build (paths learned read-only then written) with no detection gain. Revisit when learning captures writes.
 
 ## Measuring
 
