@@ -120,6 +120,14 @@
    "rule": "R0001",
    "class": "discovery",
    "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls -l /var/run/docker.sock%'",
+      "minimal": 1
+     }
+    ],
     "C": [
      {
       "source": "dc_snoop",
@@ -128,19 +136,11 @@
       "minimal": 1
      }
     ],
-    "E": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ls','id')",
-      "minimal": 1
-     }
-    ],
     "O": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ls','id') AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls -l /var/run/docker.sock%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -794,19 +794,19 @@
    "rule": "R0010",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%/.npmrc%' OR file LIKE '%/.ssh/%' OR file LIKE '%/.docker/config.json%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cat','ls','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%cat ~/.ssh/id%' OR arrayStringConcat(execs, ' ') LIKE '%.npmrc ~/.docker/config.json%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%/.ssh/id\\_%'",
       "minimal": 1
      }
     ]
