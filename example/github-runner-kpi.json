@@ -10,6 +10,14 @@
    "rule": "R0001",
    "class": "discovery",
    "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%hostname; cat /etc/os-release%'",
+      "minimal": 1
+     }
+    ],
     "C": [
      {
       "source": "dc_snoop",
@@ -18,19 +26,11 @@
       "minimal": 1
      }
     ],
-    "E": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','id','hostname','cat','head')",
-      "minimal": 1
-     }
-    ],
     "O": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','id','hostname','cat','head') AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%hostname; cat /etc/os-release%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -54,32 +54,33 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "recon-shared-work-volume",
    "rule": "R0001",
    "class": "discovery",
    "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "comm IN ('mount','df')",
+      "minimal": 1
+     }
+    ],
     "C": [
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
+      "predicate": "file LIKE '%\\_work%' AND file LIKE '%.gradle%'",
       "minimal": 1
      },
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp%'",
-      "minimal": 1
-     }
-    ],
-    "E": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','df','mount','grep')",
+      "predicate": "file LIKE '%\\_work%' AND file LIKE '%.m2%'",
       "minimal": 1
      }
     ],
@@ -87,7 +88,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','df','mount','grep') AND exit_ns > 0",
+      "predicate": "comm IN ('mount','df') AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -111,7 +112,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "recon-docker-socket-present",
@@ -162,26 +164,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "recon-docker-daemon-reachable",
    "rule": "R0001",
    "class": "discovery",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'head'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%docker%version%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%run/docker.sock%'",
       "minimal": 1
      }
     ],
@@ -189,7 +192,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%docker%version%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -213,32 +216,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "recon-hostpath-mounts",
    "rule": "R0002",
    "class": "discovery",
    "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls /lib/modules; ls /sys/fs/cgroup%'",
+      "minimal": 1
+     }
+    ],
     "C": [
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
       "predicate": "file LIKE '%lib/modules%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%sys/fs/cgroup%'",
-      "minimal": 1
-     }
-    ],
-    "E": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ls','head')",
       "minimal": 1
      }
     ],
@@ -246,7 +244,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ls','head') AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls /lib/modules; ls /sys/fs/cgroup%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -270,7 +268,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "recon-cluster-endpoints",
@@ -327,38 +326,33 @@
      "predicate": "req_body ILIKE '%kubernetes.default.svc.cluster.local%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-runner-credentials-file",
    "rule": "R0010",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%home/runner/.credentials%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%home/runner/.runner%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cat')",
+      "predicate": "comm = 'cat' AND (arrayStringConcat(execs, ' ') LIKE '%.credentials%' OR arrayStringConcat(execs, ' ') LIKE '%.runner%')",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%home/runner/.credentials%' AND comm = 'cat'",
+      "minimal": 1
+     },
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%home/runner/.runner%' AND comm = 'cat'",
       "minimal": 1
      }
     ]
@@ -382,7 +376,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-service-account-token",
@@ -425,7 +420,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-service-account-directory-sweep",
@@ -468,35 +464,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-locate-runner-worker-process",
    "rule": "R0001",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'grep'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ps','grep')",
+      "predicate": "comm = 'ps'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'grep' AND exit_ns > 0",
-      "minimal": 0
+      "predicate": "comm = 'grep' AND arrayStringConcat(execs, ' ') LIKE '%Runner.Worker|Runner.Listener%'",
+      "minimal": 1
      }
     ]
    },
@@ -519,26 +508,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-runner-worker-memory-dump",
    "rule": "R0008",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%proc/%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','head','cat','dd','strings')",
+      "predicate": "comm IN ('dd','strings')",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE 'proc/%/mem'",
       "minimal": 1
      }
     ]
@@ -562,26 +552,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-oidc-token-memory-scrape",
    "rule": "R0008",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%proc/%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','head','grep')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%isSecret%true%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE 'proc/%/mem'",
       "minimal": 1
      }
     ]
@@ -605,35 +596,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-ptrace-attach-runner-worker",
    "rule": "R1015",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'timeout'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','head','timeout')",
+      "predicate": "comm IN ('gdb','strace')",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'timeout' AND exit_ns > 0",
-      "minimal": 0
+      "predicate": "comm = 'pgrep' AND arrayStringConcat(execs, ' ') LIKE '%-f%Runner.Worker%'",
+      "minimal": 1
      }
     ]
    },
@@ -656,35 +640,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-environment-secrets",
    "rule": "R0001",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'head'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','env','grep','SECRET','KEY','PASSWORD','ACTIONS_','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%TOKEN|SECRET%'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
-      "minimal": 0
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ACTIONS_|GITHUB_%'",
+      "minimal": 1
      }
     ]
    },
@@ -707,26 +684,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-procfs-environ-sweep",
    "rule": "R0008",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%proc/%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','for','do','grep','done','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%TOKEN|SECRET%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE 'proc/%/environ'",
       "minimal": 1
      }
     ]
@@ -750,7 +728,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-cloud-imds-harvest",
@@ -807,7 +786,8 @@
      "predicate": "remote_addr = '169.254.169.254'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-npmrc-and-ssh-keys",
@@ -856,35 +836,28 @@
      "predicate": "req_body ILIKE '%config.json%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cred-vault-token",
    "rule": "R0002",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'grep'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cat','env','grep')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%VAULT\\_%'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'grep' AND exit_ns > 0",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%.vault-token%'",
+      "minimal": 1
      }
     ]
    },
@@ -907,40 +880,35 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "inject-set-env-workflow-command",
    "rule": "R0040",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%evil.so%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/evil.js%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%set-env name=LD_PRELOAD%' OR arrayStringConcat(execs, ' ') LIKE '%NODE_OPTIONS::--require%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%/tmp/evil.so%' OR arrayStringConcat(execs, ' ') LIKE '%/tmp/evil.js%'",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%evil.so%' AND resp_body != ''",
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%set-env name=LD_PRELOAD%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -970,7 +938,8 @@
      "predicate": "req_body ILIKE '%evil.so%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "inject-add-path-hijack",
@@ -1027,26 +996,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "inject-docker-command-escape",
    "rule": "R0040",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'head'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%-v /:/host --entrypoint%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%--privileged%/:/host%'",
       "minimal": 1
      }
     ],
@@ -1054,7 +1024,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%--entrypoint sh%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -1078,32 +1048,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "inject-github-env-file-write",
    "rule": "R0002",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/evil.so%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%LD_PRELOAD=/tmp/evil.so%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%set\\_env\\_probe%' OR file LIKE '%\\_runner\\_file\\_commands%'",
       "minimal": 1
      }
     ],
@@ -1111,7 +1076,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh') AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%LD_PRELOAD=/tmp/evil.so%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -1135,34 +1100,35 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cache-unauthenticated-server-probe",
    "rule": "R0001",
    "class": "discovery",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'done'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','for','do','curl','wget','done')",
+      "predicate": "comm IN ('curl','wget')",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "wire",
+      "table": "conn_stats",
+      "predicate": "remote_addr IN ('127.0.0.1','::1') AND remote_port IN (8080,34567,42000)",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'done' AND exit_ns > 0",
+      "source": "wire",
+      "table": "conn_stats",
+      "predicate": "remote_addr IN ('127.0.0.1','::1') AND remote_port IN (8080,34567,42000) AND bytes_sent > 0",
       "minimal": 0
      }
     ]
@@ -1186,52 +1152,35 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cache-poison-shared-work-volume",
    "rule": "R0002",
    "class": "persistence",
    "parts": {
-    "C": [
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%console.log%'",
-      "minimal": 1
-     },
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%postinstall.js%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','cp')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%child_process%execSync%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%poison/postinstall.js%' OR file LIKE '%.m2/repository/.poison%'",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%console.log%' AND resp_body != ''",
-      "minimal": 0
-     },
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%postinstall.js%' AND resp_body != ''",
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "comm IN ('cp','sh') AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -1261,32 +1210,27 @@
      "predicate": "req_body ILIKE '%postinstall.js%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cache-poison-node-modules-shim",
    "rule": "R0002",
    "class": "persistence",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%var/run/secrets/kubernetes.io/serviceaccount/token%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','head','chmod')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%\\_tool/node/bin/node%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%\\_tool/node/bin/node%'",
       "minimal": 1
      }
     ],
@@ -1294,7 +1238,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','head','chmod') AND exit_ns > 0",
+      "predicate": "comm IN ('cp','sh') AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -1318,7 +1262,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "cache-persist-across-jobs",
@@ -1375,35 +1320,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-privileged-container-via-socket",
    "rule": "R1006",
    "class": "privilege",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'head'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','capsh','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%docker%run%--privileged%'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
-      "minimal": 0
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%capsh%--print%'",
+      "minimal": 1
      }
     ]
    },
@@ -1426,35 +1364,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-enumerate-host-block-devices",
    "rule": "R1006",
    "class": "privilege",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%dev%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','grep','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%docker%--privileged%'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','grep','head') AND exit_ns > 0",
-      "minimal": 0
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%fdisk -l%'",
+      "minimal": 1
      }
     ]
    },
@@ -1477,53 +1408,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-mount-host-root-filesystem",
    "rule": "R1006",
    "class": "privilege",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%dev%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%dev/dm-0%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%dev/sda1%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%mnt/host%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','mount','ls','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%mount /dev/dm-0%' OR arrayStringConcat(execs, ' ') LIKE '%mount /dev/sda1%'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','mount','ls','head') AND exit_ns > 0",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%dev/dm-0%' OR file LIKE '%dev/sda1%' OR file LIKE '%mnt/host%'",
+      "minimal": 1
      }
     ]
    },
@@ -1546,59 +1452,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-read-node-kubeconfig",
    "rule": "R1006",
    "class": "privilege",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%dev%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%dev/dm-0%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%mnt/host%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%mnt/host/etc/kubernetes/admin.conf%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%mnt/host/etc/rancher/k3s/k3s.yaml%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','mount','cat','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%mnt/host/etc%'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','mount','cat','head') AND exit_ns > 0",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%mnt/host/etc/kubernetes/admin.conf%' OR file LIKE '%mnt/host/etc/rancher/k3s/k3s.yaml%'",
+      "minimal": 1
      }
     ]
    },
@@ -1621,41 +1496,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-host-root-bind-mount",
    "rule": "R1006",
    "class": "privilege",
    "parts": {
-    "C": [
+    "E": [
      {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%host%'",
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%-v /:/host%' OR comm = 'chroot'",
       "minimal": 1
-     },
+     }
+    ],
+    "C": [
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
       "predicate": "file LIKE '%host/etc/shadow%'",
       "minimal": 1
-     }
-    ],
-    "E": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','cat','head')",
-      "minimal": 1
-     }
-    ],
-    "O": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','cat','head') AND exit_ns > 0",
-      "minimal": 0
      }
     ]
    },
@@ -1678,35 +1540,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-nsenter-host-namespaces",
    "rule": "R1006",
    "class": "privilege",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'nsenter'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','docker','head','nsenter')",
+      "predicate": "comm = 'nsenter'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'nsenter' AND exit_ns > 0",
-      "minimal": 0
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%nsenter --target 1%'",
+      "minimal": 1
      }
     ]
    },
@@ -1729,7 +1584,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-harvest-node-pod-secrets",
@@ -1778,53 +1634,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-cgroup-release-agent",
    "rule": "R1006",
    "class": "privilege",
    "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%cgroup/rdma/esc%' OR arrayStringConcat(execs, ' ') LIKE '%notify_on_release%'",
+      "minimal": 1
+     }
+    ],
     "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%sys/fs/cgroup%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%sys/fs/cgroup/%'",
-      "minimal": 1
-     },
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
       "predicate": "file LIKE '%sys/fs/cgroup/rdma/esc%'",
       "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%sys/fs/cgroup/rdma/esc/notify_on_release%'",
-      "minimal": 1
-     }
-    ],
-    "E": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','ls','head')",
-      "minimal": 1
-     }
-    ],
-    "O": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','ls','head') AND exit_ns > 0",
-      "minimal": 0
      }
     ]
    },
@@ -1847,7 +1678,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-kernel-module-load",
@@ -1910,7 +1742,8 @@
      "predicate": "req_body ILIKE '%dummy.ko%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-ebpf-program-load",
@@ -1959,47 +1792,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-symlink-sensitive-path",
    "rule": "R1010",
    "class": "privilege",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%etc/shadow%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%var/run/docker.sock%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ln','ls')",
+      "predicate": "comm = 'ln' AND arrayStringConcat(execs, ' ') LIKE '%-sf%'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ln','ls') AND exit_ns > 0",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%.shadow-link%' OR file LIKE '%.sock-link%'",
+      "minimal": 1
      }
     ]
    },
@@ -2022,47 +1836,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "escape-hardlink-sensitive-path",
    "rule": "R1012",
    "class": "privilege",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%etc/passwd%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/.passwd-hard%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cp','ln','ls','head')",
+      "predicate": "comm = 'ln'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cp','ln','ls','head') AND exit_ns > 0",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%.passwd-hard%'",
+      "minimal": 1
      }
     ]
    },
@@ -2085,26 +1880,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "lateral-cluster-api-discovery",
    "rule": "R0007",
    "class": "discovery",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'head'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','kubectl','head')",
+      "predicate": "comm = 'kubectl'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%--insecure-skip-tls-verify%' OR arrayStringConcat(execs, ' ') LIKE '%auth can-i --list%'",
       "minimal": 1
      }
     ],
@@ -2112,7 +1908,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
+      "predicate": "comm = 'kubectl' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2136,35 +1932,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "lateral-read-arc-systems-secrets",
    "rule": "R0007",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'head'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','kubectl','head')",
+      "predicate": "comm = 'kubectl'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
-      "minimal": 0
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%github-arc-secret%' OR arrayStringConcat(execs, ' ') LIKE '%oci-api-key%'",
+      "minimal": 1
      }
     ]
    },
@@ -2187,35 +1976,28 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "lateral-sweep-all-namespace-secrets",
    "rule": "R0007",
    "class": "credential",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'head'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','kubectl','head')",
+      "predicate": "comm = 'kubectl'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
-      "minimal": 0
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%get secrets -A%'",
+      "minimal": 1
      }
     ]
    },
@@ -2238,7 +2020,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "lateral-exec-into-neighbour-pod",
@@ -2295,7 +2078,8 @@
      "predicate": "req_body ILIKE '%app.kubernetes.io%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "lateral-kubelet-exec-request",
@@ -2352,34 +2136,35 @@
      "predicate": "req_body ILIKE '%kubernetes.default%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "persist-register-rogue-runner",
    "rule": "R0011",
    "class": "persistence",
    "parts": {
-    "C": [
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%api.github.com%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%actions/runners/registration-token%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%enterprises/cncf%'",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%api.github.com%' AND resp_body != ''",
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%registration-token%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2409,26 +2194,27 @@
      "predicate": "req_body ILIKE '%api.github.com%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "persist-stage-runner-binary",
    "rule": "R1004",
    "class": "persistence",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','do','chmod','run.sh')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%.rogue/run.sh%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%.rogue/run.sh%'",
       "minimal": 1
      }
     ],
@@ -2436,7 +2222,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','do','chmod','run.sh') AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%.rogue/run.sh%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2460,7 +2246,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "persist-fileless-payload-execution",
@@ -2471,7 +2258,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','curl','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%127.0.0.1:1/payload.sh%'",
       "minimal": 1
      }
     ],
@@ -2479,7 +2266,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%payload.sh%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2503,34 +2290,35 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "c2-beacon-over-https",
    "rule": "R0011",
    "class": "egress",
    "parts": {
-    "C": [
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%api.github.com%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','(command','curl','wget','head')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%api.github.com/zen%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%api.github.com/zen%'",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%api.github.com%' AND resp_body != ''",
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%api.github.com/zen%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2560,7 +2348,8 @@
      "predicate": "req_body ILIKE '%api.github.com%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "impact-cryptominer-launch",
@@ -2623,7 +2412,8 @@
      "predicate": "req_body ILIKE '%pool.minexmr.com%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "impact-mining-pool-dns",
@@ -2692,7 +2482,8 @@
      "predicate": "req_body ILIKE '%xmr.pool.minergate.com%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "publish-oidc-token-exchange",
@@ -2749,7 +2540,8 @@
      "predicate": "req_body ILIKE '%registry.npmjs.org%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "publish-sigstore-fulcio-certificate",
@@ -2806,52 +2598,35 @@
      "predicate": "req_body ILIKE '%fulcio.sigstore.dev%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "publish-force-push-action-tags",
    "rule": "R0011",
    "class": "egress",
    "parts": {
-    "C": [
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%github.com%'",
-      "minimal": 1
-     },
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%user.email%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','git','head')",
+      "predicate": "comm = 'git'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls-remote --tags%cncf/automation%'",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%github.com%' AND resp_body != ''",
-      "minimal": 0
-     },
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%user.email%' AND resp_body != ''",
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%cncf/automation%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2881,7 +2656,8 @@
      "predicate": "req_body ILIKE '%user.email%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "exfil-over-dns",
@@ -2944,26 +2720,27 @@
      "predicate": "req_body ILIKE '%exfil.invalid%'",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "evade-tamper-bound-profile",
    "rule": "R1016",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'head'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','kubectl','head')",
+      "predicate": "comm = 'kubectl'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%annotate containerprofile%' OR arrayStringConcat(execs, ' ') LIKE '%probe/tamper%'",
       "minimal": 1
      }
     ],
@@ -2971,7 +2748,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'head' AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%annotate containerprofile%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2995,26 +2772,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "evade-clear-runner-logs",
    "rule": "R0002",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ls','head','truncate')",
+      "predicate": "comm = 'truncate'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%\\_work/\\_diag/%'",
       "minimal": 1
      }
     ],
@@ -3022,7 +2800,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ls','head','truncate') AND exit_ns > 0",
+      "predicate": "comm = 'truncate' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -3046,26 +2824,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "evade-dead-mans-switch-dry-run",
    "rule": "R0001",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'ls'",
-      "minimal": 0
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ls')",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%rm -rf $HOME would run here%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%target resolvable%'",
       "minimal": 1
      }
     ],
@@ -3073,7 +2852,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'ls' AND exit_ns > 0",
+      "predicate": "arrayStringConcat(execs, ' ') LIKE '%rm -rf $HOME would run here%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -3097,7 +2876,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "evade-io-uring-sensitive-read",
@@ -3154,50 +2934,27 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   },
   {
    "name": "evade-cleanup-staged-artefacts",
    "rule": "R0002",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%_work%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/.beacon%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/.cron-stage%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/hijack%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/xmrig%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','rm')",
+      "predicate": "comm = 'rm' AND arrayStringConcat(execs, ' ') LIKE '%-rf%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%tmp/.beacon%' OR file LIKE '%tmp/.cron-stage%' OR file LIKE '%tmp/hijack%' OR file LIKE '%tmp/xmrig%'",
       "minimal": 1
      }
     ],
@@ -3205,7 +2962,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','rm') AND exit_ns > 0",
+      "predicate": "comm = 'rm' AND arrayStringConcat(execs, ' ') LIKE '%-rf%' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -3229,7 +2986,8 @@
      "predicate": "",
      "minimal": 0
     }
-   }
+   },
+   "pod": "arc-systems/k3s-2-runner-%"
   }
  ]
 }
