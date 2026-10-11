@@ -43,7 +43,13 @@ Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.
 ### Format/Spec
 [Specification](https://billofbehavior.com/bob/docs/spec/) for the [Kubescape reference implementation](https://kubescape.io/docs/operator/bill-of-behavior/).
 
+### ContainerProfile migration
 
+A single `ContainerProfile` replaces the retired `ApplicationProfile` and `NetworkNeighborhood`
+pair. [MIGRATION-AUDIT.md](MIGRATION-AUDIT.md) records what still referenced the legacy types
+across storage, node-agent, bob and dx, which of those references are real dependencies rather
+than prose, what must be kept rather than cleaned up, and how to tune profiles after the move —
+including the two traps that silently produce zero alerts.
 
 
 ## Try it out in a lab with a k3s and a k8s
