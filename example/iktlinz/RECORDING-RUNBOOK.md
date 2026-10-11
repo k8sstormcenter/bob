@@ -209,6 +209,24 @@ right recorder a few seconds earlier and stop it a few seconds later.
   `--keep-ch` preserves the `dx_kpi_proof` scores and the profile mirror; a full
   truncate would wipe build-agent's scores and never re-emit `profile_compare`.
   Expect a final line `CLEAN, iktlinz-ns=0 rogueartifacts=0`.
+- **From chart `1.41.0-duckling42` that count must exclude healed artifacts.**
+  node-agent no longer deletes a RogueArtifact once it heals — it keeps it and
+  labels it `kubescape.io/verdict` (departure still deletes). So a genuinely clean
+  reset now leaves healed artifacts behind and a flat count reads non-zero, which
+  looks like a failed reset and sends you debugging the wrong thing. Count only
+  what is still rogue:
+
+  ```bash
+  kubectl get rogueartifacts -A -l 'kubescape.io/rogue-state!=healed' \
+    --no-headers 2>/dev/null | wc -l          # this is the number that must be 0
+  kubectl get rogueartifacts -A -L kubescape.io/verdict --no-headers 2>/dev/null
+  ```
+
+  Printing the healed ones with their verdict is more useful than a zero: it says
+  what the previous run caught and resolved. `iktlinz-reset.sh` lives on the
+  recording rig rather than in this repo, so it needs the same filter applied
+  there — until it has it, read its `rogueartifacts=` figure as "rogue plus
+  healed" and check the first command above before concluding the reset failed.
 - Known residue after `--keep-ch`: stale OPEN rogue shadows from prior runs remain
   in the shadow_trace list. Harmless, because capture navigates by `shadow_id`
   rather than by the list. Separate them by `t0` / `updated_at >= ` this run's start.
