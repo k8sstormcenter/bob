@@ -14,7 +14,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%hostname; cat /etc/os-release%'",
+      "predicate": "comm IN ('hostname','id')",
       "minimal": 1
      }
     ],
@@ -22,7 +22,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%etc/os-release%'",
+      "predicate": "file LIKE '%etc/os-release%' AND comm = 'cat'",
       "minimal": 1
      }
     ],
@@ -30,7 +30,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%hostname; cat /etc/os-release%' AND exit_ns > 0",
+      "predicate": "comm IN ('hostname','id') AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -124,7 +124,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls -l /var/run/docker.sock%'",
+      "predicate": "comm = 'ls'",
       "minimal": 1
      }
     ],
@@ -132,7 +132,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%var/run/docker.sock%'",
+      "predicate": "file LIKE '%run/docker.sock%' AND comm = 'ls'",
       "minimal": 1
      }
     ],
@@ -140,7 +140,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls -l /var/run/docker.sock%' AND exit_ns > 0",
+      "predicate": "comm = 'ls' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -176,7 +176,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%docker%version%'",
+      "predicate": "comm = 'docker'",
       "minimal": 1
      }
     ],
@@ -184,7 +184,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%run/docker.sock%'",
+      "predicate": "file LIKE '%run/docker.sock%' AND comm = 'docker'",
       "minimal": 1
      }
     ],
@@ -192,7 +192,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%docker%version%' AND exit_ns > 0",
+      "predicate": "comm = 'docker' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -228,7 +228,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls /lib/modules; ls /sys/fs/cgroup%'",
+      "predicate": "comm = 'ls'",
       "minimal": 1
      }
     ],
@@ -236,7 +236,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%lib/modules%'",
+      "predicate": "(file LIKE '%lib/modules%' OR file LIKE '%sys/fs/cgroup%') AND comm = 'ls'",
       "minimal": 1
      }
     ],
@@ -244,7 +244,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%ls /lib/modules; ls /sys/fs/cgroup%' AND exit_ns > 0",
+      "predicate": "comm = 'ls' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -482,9 +482,9 @@
     ],
     "C": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'grep' AND arrayStringConcat(execs, ' ') LIKE '%Runner.Worker|Runner.Listener%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE 'proc/%/cmdline' AND comm = 'ps'",
       "minimal": 1
      }
     ]
@@ -848,7 +848,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%VAULT\\_%'",
+      "predicate": "comm = 'cat'",
       "minimal": 1
      }
     ],
@@ -856,7 +856,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%.vault-token%'",
+      "predicate": "file LIKE '%.vault-token%' AND comm = 'cat'",
       "minimal": 1
      }
     ]
@@ -1060,7 +1060,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%LD_PRELOAD=/tmp/evil.so%'",
+      "predicate": "comm IN ('sh','bash')",
       "minimal": 1
      }
     ],
@@ -1068,7 +1068,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%set\\_env\\_probe%' OR file LIKE '%\\_runner\\_file\\_commands%'",
+      "predicate": "file LIKE '%set\\_env\\_probe%'",
       "minimal": 1
      }
     ],
@@ -1076,7 +1076,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%LD_PRELOAD=/tmp/evil.so%' AND exit_ns > 0",
+      "predicate": "comm IN ('sh','bash') AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -1164,7 +1164,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%child_process%execSync%'",
+      "predicate": "comm IN ('sh','cp')",
       "minimal": 1
      }
     ],
@@ -1172,7 +1172,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%poison/postinstall.js%' OR file LIKE '%.m2/repository/.poison%'",
+      "predicate": "(file LIKE '%poison/postinstall.js%' OR file LIKE '%.m2/repository/.poison%') AND comm IN ('sh','cp')",
       "minimal": 1
      }
     ],
@@ -1180,7 +1180,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('cp','sh') AND exit_ns > 0",
+      "predicate": "comm IN ('sh','cp') AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -1222,7 +1222,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "arrayStringConcat(execs, ' ') LIKE '%\\_tool/node/bin/node%'",
+      "predicate": "comm IN ('sh','cp','chmod')",
       "minimal": 1
      }
     ],
@@ -1230,7 +1230,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%\\_tool/node/bin/node%'",
+      "predicate": "file LIKE '%\\_tool/node/bin/node%' AND comm IN ('sh','cp','chmod')",
       "minimal": 1
      }
     ],
@@ -1238,7 +1238,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('cp','sh') AND exit_ns > 0",
+      "predicate": "comm IN ('sh','cp','chmod') AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2884,25 +2884,19 @@
    "rule": "R0001",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%proc/self/fd%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%proc/sys/kernel/io_uring_disabled%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cat','ls','head')",
+      "predicate": "comm = 'cat'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE '%proc/sys/kernel/io_uring_disabled%' AND comm = 'cat'",
       "minimal": 1
      }
     ],
@@ -2910,7 +2904,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cat','ls','head') AND exit_ns > 0",
+      "predicate": "comm = 'cat' AND exit_ns > 0",
       "minimal": 0
      }
     ]
@@ -2946,7 +2940,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'rm' AND arrayStringConcat(execs, ' ') LIKE '%-rf%'",
+      "predicate": "comm = 'rm'",
       "minimal": 1
      }
     ],
@@ -2954,7 +2948,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/.beacon%' OR file LIKE '%tmp/.cron-stage%' OR file LIKE '%tmp/hijack%' OR file LIKE '%tmp/xmrig%'",
+      "predicate": "(file LIKE '%tmp/.beacon%' OR file LIKE '%tmp/.cron-stage%' OR file LIKE '%tmp/hijack%' OR file LIKE '%tmp/xmrig%') AND comm = 'rm'",
       "minimal": 1
      }
     ],
@@ -2962,7 +2956,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'rm' AND arrayStringConcat(execs, ' ') LIKE '%-rf%' AND exit_ns > 0",
+      "predicate": "comm = 'rm' AND exit_ns > 0",
       "minimal": 0
      }
     ]
