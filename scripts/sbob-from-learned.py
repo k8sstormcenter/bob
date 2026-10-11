@@ -53,10 +53,20 @@ WILDCARD_SEGMENTS = {"*", "**", "⋯", "⋯⋯"}
 # the rest of the path literal, so a read of some other secret is still anomalous.
 ATOMIC_SWAP_DIR = re.compile(r"^\.\.\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}\.\d+$")
 
+# nginx (incl. ingress-nginx) writes each reloaded config to a temp file whose
+# basename carries a fresh random suffix -- /tmp/nginx/nginx-cfg<random> -- and
+# opens a new one on every reload. A literal learned at training time never
+# matches a later reload, so the controller's own config open starts firing
+# R0006/R0010-class unexpected-file-open FPs. Collapse exactly that segment,
+# keeping /tmp/nginx literal so a write elsewhere under it is still anomalous.
+NGINX_CFG_TMP = re.compile(r"^nginx-cfg\d+$")
+
+VOLATILE_SEGMENT = (ATOMIC_SWAP_DIR, NGINX_CFG_TMP)
+
 
 def normalise_rotating(path: str) -> str:
     segs = path.split("/")
-    return "/".join("⋯" if ATOMIC_SWAP_DIR.match(s) else s for s in segs)
+    return "/".join("⋯" if any(rx.match(s) for rx in VOLATILE_SEGMENT) else s for s in segs)
 
 
 # The container-runtime init phase touches files and capabilities that no
