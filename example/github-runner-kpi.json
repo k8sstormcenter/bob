@@ -377,6 +377,7 @@
    "name": "cred-service-account-token",
    "rule": "R0006",
    "class": "credential",
+   "trigger": "evidence",
    "parts": {
     "C": [
      {
@@ -421,6 +422,7 @@
    "name": "cred-service-account-directory-sweep",
    "rule": "R0006",
    "class": "credential",
+   "trigger": "evidence",
    "parts": {
     "C": [
      {
@@ -509,6 +511,7 @@
    "name": "cred-runner-worker-memory-dump",
    "rule": "R0008",
    "class": "credential",
+   "trigger": "evidence",
    "parts": {
     "E": [
      {
@@ -553,6 +556,7 @@
    "name": "cred-oidc-token-memory-scrape",
    "rule": "R0008",
    "class": "credential",
+   "trigger": "evidence",
    "parts": {
     "E": [
      {
@@ -685,6 +689,7 @@
    "name": "cred-procfs-environ-sweep",
    "rule": "R0008",
    "class": "credential",
+   "trigger": "evidence",
    "parts": {
     "E": [
      {
@@ -698,7 +703,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE 'proc/%/environ'",
+      "predicate": "file LIKE 'proc/%/environ' AND comm = 'sh'",
       "minimal": 1
      }
     ]
@@ -787,6 +792,7 @@
    "name": "cred-npmrc-and-ssh-keys",
    "rule": "R0010",
    "class": "credential",
+   "trigger": "evidence",
    "parts": {
     "E": [
      {
@@ -1211,6 +1217,7 @@
    "name": "cache-poison-node-modules-shim",
    "rule": "R0002",
    "class": "persistence",
+   "trigger": "evidence",
    "parts": {
     "E": [
      {
@@ -1409,6 +1416,7 @@
    "name": "escape-mount-host-root-filesystem",
    "rule": "R1006",
    "class": "privilege",
+   "trigger": "evidence",
    "parts": {
     "E": [
      {
@@ -2491,6 +2499,7 @@
    "name": "publish-oidc-token-exchange",
    "rule": "R0011",
    "class": "egress",
+   "trigger": "evidence",
    "parts": {
     "C": [
      {
@@ -2665,18 +2674,13 @@
    "name": "exfil-over-dns",
    "rule": "R0005",
    "class": "egress",
+   "trigger": "evidence",
    "parts": {
     "C": [
      {
       "source": "wire",
       "table": "dns_events",
       "predicate": "req_body ILIKE '%exfil.invalid%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%var/run/secrets/kubernetes.io/serviceaccount/token%'",
       "minimal": 1
      }
     ],
