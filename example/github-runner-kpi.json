@@ -371,7 +371,8 @@
      "minimal": 0
     }
    },
-   "pod": "${RUNNER_PREFIX}%"
+   "pod": "${RUNNER_PREFIX}%",
+   "trigger": "evidence"
   },
   {
    "name": "cred-service-account-token",
@@ -1430,7 +1431,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "(file LIKE '%dev/dm-0%' OR file LIKE '%dev/sda1%') AND comm = 'mount'",
+      "predicate": "(file LIKE '%dev/sd%' OR file LIKE '%dev/nvme%' OR file LIKE '%dev/vd%' OR file LIKE '%dev/xvd%' OR file LIKE '%dev/dm-%' OR file LIKE '%dev/md%' OR file LIKE '%dev/mapper/%') AND comm = 'mount'",
       "minimal": 1
      }
     ]
@@ -1439,7 +1440,7 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','docker','mount','ls','head') OR file LIKE '%dev%' OR file LIKE '%dev/dm-0%' OR file LIKE '%dev/sda1%' OR file LIKE '%mnt/host%'",
+     "predicate": "comm IN ('sh','docker','mount','ls','head') OR file LIKE '%dev%' OR (file LIKE '%dev/sd%' OR file LIKE '%dev/nvme%' OR file LIKE '%dev/vd%' OR file LIKE '%dev/xvd%' OR file LIKE '%dev/dm-%' OR file LIKE '%dev/md%' OR file LIKE '%dev/mapper/%') OR file LIKE '%mnt/host%'",
      "minimal": 0
     },
     "forest": {
@@ -1756,7 +1757,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%lib/modules/%'",
+      "predicate": "comm IN ('insmod','modprobe') AND file LIKE '%.ko%'",
       "minimal": 1
      }
     ],
@@ -1764,7 +1765,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','ls','head','modprobe','insmod')",
+      "predicate": "comm IN ('insmod','modprobe')",
       "minimal": 1
      }
     ],
@@ -1803,7 +1804,8 @@
      "minimal": 0
     }
    },
-   "pod": "${RUNNER_PREFIX}%"
+   "pod": "${RUNNER_PREFIX}%",
+   "trigger": "evidence"
   },
   {
    "name": "escape-ebpf-program-load",
@@ -1897,7 +1899,8 @@
      "minimal": 0
     }
    },
-   "pod": "${RUNNER_PREFIX}%"
+   "pod": "${RUNNER_PREFIX}%",
+   "trigger": "evidence"
   },
   {
    "name": "escape-hardlink-sensitive-path",
@@ -1941,7 +1944,8 @@
      "minimal": 0
     }
    },
-   "pod": "${RUNNER_PREFIX}%"
+   "pod": "${RUNNER_PREFIX}%",
+   "trigger": "evidence"
   },
   {
    "name": "lateral-cluster-api-discovery",

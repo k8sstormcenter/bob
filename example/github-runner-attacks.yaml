@@ -460,7 +460,7 @@ attacks:
   - name: escape-mount-host-root-filesystem
     type: custom
     exec:
-      command: ["sh", "-c", "docker run --rm --privileged -v /dev:/dev alpine sh -c 'mkdir -p /mnt/host && mount /dev/dm-0 /mnt/host 2>/dev/null || mount /dev/sda1 /mnt/host 2>/dev/null; ls /mnt/host' 2>&1 | head -8"]
+      command: ["sh", "-c", "docker run --rm --privileged --pid=host -v /dev:/dev alpine sh -c 'mkdir -p /mnt/host; R=$(while read d m r; do [ $m = / ] && [ ${d#/dev/} != $d ] && echo $d; done < /proc/1/mounts | head -1); mount ${R:-/dev/sda1} /mnt/host 2>/dev/null; ls /mnt/host' 2>&1 | head -8"]
     expectedDetections:
       - attackType: custom
         ruleID: R1006
