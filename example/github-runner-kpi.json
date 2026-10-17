@@ -1431,7 +1431,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "(file LIKE '%dev/sd%' OR file LIKE '%dev/nvme%' OR file LIKE '%dev/vd%' OR file LIKE '%dev/xvd%' OR file LIKE '%dev/dm-%' OR file LIKE '%dev/md%' OR file LIKE '%dev/mapper/%') AND comm = 'mount'",
+      "predicate": "((file LIKE '%dev/sd%' OR file LIKE '%dev/nvme%' OR file LIKE '%dev/vd%' OR file LIKE '%dev/xvd%' OR file LIKE '%dev/dm-%' OR file LIKE '%dev/md%' OR file LIKE '%dev/mapper/%') AND comm = 'mount') OR file LIKE '%mnt/host/etc/%'",
       "minimal": 1
      }
     ]
