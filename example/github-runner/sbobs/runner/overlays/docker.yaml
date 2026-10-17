@@ -1,0 +1,93 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: arc-runner
+  name: arc-runner-overlay-docker
+  namespace: arc-systems
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_NET_ADMIN
+    - CAP_SYS_RESOURCE
+  egress:
+    - {dns: auth.docker.io., dnsNames: [auth.docker.io.], identifier: ea37ac93a866e91298ff3689079ba22d515c764dc713d1282bf22c500169c1cc, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: auth.docker.io., dnsNames: [auth.docker.io.], identifier: e5fe5ccbc1b2a1a4bba270968122e1fb821db5c153f23fcc712a65526f04e9ef, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa0.blob.core.windows.net., dnsNames: [productionresultssa0.blob.core.windows.net.], identifier: 46a95eebda429b54c2d0c04fd1ad9ffa0694eb6aab9ab62401bf97eb2c6cebd6, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa17.blob.core.windows.net., dnsNames: [productionresultssa17.blob.core.windows.net.], identifier: d7a7173d0f67a95b4d285bc61b03c60d1182434dc59f31cf7cab400580393846, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa4.blob.core.windows.net., dnsNames: [productionresultssa4.blob.core.windows.net.], identifier: f3ef9cd47b8fef0dc438405376969bf842895c89f8b6f3413aef351b1e3973a7, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa9.blob.core.windows.net., dnsNames: [productionresultssa9.blob.core.windows.net.], identifier: 94685dee37999bbc9b52b0f1cf8b9915f3dec4946f8b929f984b40cdf5bc9123, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c4c7c3ffbdf29d685a6a8017c1cd4177740b8ffa457ec08485c0d7cde374fefd, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: token.actions.githubusercontent.com., dnsNames: [token.actions.githubusercontent.com.], identifier: 8aa228044db01b6e1f1f7cb849833c143dbab9c6d1aabe1734cb742759d4a0d5, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: token.actions.githubusercontent.com., dnsNames: [token.actions.githubusercontent.com.], identifier: 9d2a54aa72e1fdbf6101722d3d026787bad5e5ebf55115bf7a61dbbab634f2aa, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: token.actions.githubusercontent.com., dnsNames: [token.actions.githubusercontent.com.], identifier: 7e1d3f750e6d479a0ebb281452009ffcd8c14f422ee4bfc1114c59c0cb3edc50, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/home/runner/.docker/cli-plugins/docker-compose, compose, up, -d, --build, --wait, redis, app], path: /home/runner/.docker/cli-plugins/docker-compose}
+    - {args: [/home/runner/.docker/cli-plugins/docker-compose, docker-cli-plugin-metadata], path: /home/runner/.docker/cli-plugins/docker-compose}
+    - {args: [/usr/bin/cat, ⋯⋯], path: /usr/bin/cat}
+    - {args: [/usr/bin/curl, -fs, ⋯], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -fsSL, 'https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64', -o, /home/runner/.docker/cli-plugins/docker-compose], path: /usr/bin/curl}
+    - {args: [/usr/bin/docker, ⋯⋯], path: /usr/bin/docker}
+    - {args: [docker, ⋯⋯], path: /usr/bin/docker}
+    - {args: [/usr/bin/git, -c, log.showSignature=false, rev-parse, --is-inside-work-tree], path: /usr/bin/git}
+    - {args: [/usr/bin/git, -c, protocol.file.allow=user, -c, log.showSignature=false, rev-parse, --is-inside-work-tree], path: /usr/bin/git}
+    - {args: [/usr/bin/head, ⋯⋯], path: /usr/bin/head}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --build-arg, APP_VERSION=ci, -t, 'dsapp:ci', .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --platform, linux/amd64, --load, -t, 'dsapp:buildx', --cache-to, type=inline, .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --platform, linux/amd64, --load, -t, 'dsapp:buildx2', .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --target, test, -t, 'dsapp:test', .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, create, --name, ds, --driver, docker-container, --use], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, inspect, --bootstrap], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, rm, ds], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, version], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, docker-cli-plugin-metadata], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.docker}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.docker/.token_seed}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY], path: /home/runner/.docker/.token_seed.lock}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.docker/buildx/.buildNodeID}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY], path: /home/runner/.docker/buildx/.lock}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/activity/default}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/activity/ds}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/activity/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/current}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/defaults/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/instances/default}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.docker/buildx/instances/ds}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/instances/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/refs/default/default/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/buildx/refs/ds}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /home/runner/.docker/buildx/refs/ds/ds0}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR], path: /home/runner/.docker/buildx/refs/ds/ds0/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDWR], path: /home/runner/.docker/buildx/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/cli-plugins}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.docker/cli-plugins/docker-compose}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.docker/contexts/meta}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Core.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Storage.Blobs.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/Azure.Storage.Common.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.ClientModel.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Numerics.Vectors.dll}
+    - {flags: [O_RDONLY], path: /home/runner/bin/System.Web.HttpUtility.dll}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/local/lib/docker/cli-plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /usr/local/libexec/docker/cli-plugins}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
