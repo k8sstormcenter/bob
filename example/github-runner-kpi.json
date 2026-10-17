@@ -1,7 +1,7 @@
 {
  "suite": "github-runner-killchain-attacks",
  "scope": {
-  "pod": "arc-systems/k3s-2-runner-%",
+  "pod": "${RUNNER_PREFIX}%",
   "namespace": "arc-systems"
  },
  "suspicions": [
@@ -55,7 +55,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "recon-shared-work-volume",
@@ -113,7 +113,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "recon-docker-socket-present",
@@ -165,7 +165,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "recon-docker-daemon-reachable",
@@ -217,7 +217,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "recon-hostpath-mounts",
@@ -269,7 +269,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "recon-cluster-endpoints",
@@ -327,7 +327,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-runner-credentials-file",
@@ -371,7 +371,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-service-account-token",
@@ -416,7 +416,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-service-account-directory-sweep",
@@ -461,7 +461,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-locate-runner-worker-process",
@@ -505,7 +505,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-runner-worker-memory-dump",
@@ -550,7 +550,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-oidc-token-memory-scrape",
@@ -595,7 +595,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-ptrace-attach-runner-worker",
@@ -639,7 +639,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-environment-secrets",
@@ -683,7 +683,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-procfs-environ-sweep",
@@ -728,7 +728,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-cloud-imds-harvest",
@@ -786,7 +786,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-npmrc-and-ssh-keys",
@@ -837,7 +837,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cred-vault-token",
@@ -881,7 +881,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "inject-set-env-workflow-command",
@@ -939,7 +939,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "inject-add-path-hijack",
@@ -997,7 +997,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "inject-docker-command-escape",
@@ -1049,7 +1049,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "inject-github-env-file-write",
@@ -1101,7 +1101,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cache-unauthenticated-server-probe",
@@ -1153,7 +1153,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cache-poison-shared-work-volume",
@@ -1211,7 +1211,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cache-poison-node-modules-shim",
@@ -1264,7 +1264,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "cache-persist-across-jobs",
@@ -1322,7 +1322,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-privileged-container-via-socket",
@@ -1366,7 +1366,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-enumerate-host-block-devices",
@@ -1410,7 +1410,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-mount-host-root-filesystem",
@@ -1455,7 +1455,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-read-node-kubeconfig",
@@ -1499,7 +1499,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-host-root-bind-mount",
@@ -1543,7 +1543,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-nsenter-host-namespaces",
@@ -1587,7 +1587,57 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
+  },
+  {
+   "name": "escape-nested-host-namespace-join",
+   "class": "privilege",
+   "trigger": "evidence",
+   "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "comm = 'docker'",
+      "minimal": 1
+     },
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE 'proc/1/ns/%'",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE 'proc/1/ns/%'",
+      "minimal": 1
+     }
+    ]
+   },
+   "stored": {
+    "dc_snoop": {
+     "source": "",
+     "table": "dc_snoop",
+     "predicate": "file LIKE 'proc/%/ns/%' OR file IN ('etc/passwd','etc/group') OR comm IN ('sh','docker','nsenter','id','busybox')",
+     "minimal": 0
+    },
+    "forest": {
+     "source": "",
+     "table": "dx_process_forest",
+     "predicate": "comm IN ('sh','docker','nsenter','id','busybox')",
+     "minimal": 0
+    },
+    "stack_trace": {
+     "source": "",
+     "table": "stack_trace",
+     "predicate": "",
+     "minimal": 0
+    }
+   },
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-harvest-node-pod-secrets",
@@ -1637,7 +1687,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-cgroup-release-agent",
@@ -1689,7 +1739,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-kernel-module-load",
@@ -1753,7 +1803,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-ebpf-program-load",
@@ -1803,7 +1853,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-symlink-sensitive-path",
@@ -1847,7 +1897,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "escape-hardlink-sensitive-path",
@@ -1891,7 +1941,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "lateral-cluster-api-discovery",
@@ -1943,7 +1993,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "lateral-read-arc-systems-secrets",
@@ -1987,7 +2037,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "lateral-sweep-all-namespace-secrets",
@@ -2031,7 +2081,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "lateral-exec-into-neighbour-pod",
@@ -2089,7 +2139,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "lateral-kubelet-exec-request",
@@ -2147,7 +2197,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "persist-register-rogue-runner",
@@ -2205,7 +2255,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "persist-stage-runner-binary",
@@ -2257,7 +2307,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "persist-fileless-payload-execution",
@@ -2301,7 +2351,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "c2-beacon-over-https",
@@ -2359,7 +2409,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "impact-cryptominer-launch",
@@ -2423,7 +2473,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "impact-mining-pool-dns",
@@ -2493,7 +2543,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "publish-oidc-token-exchange",
@@ -2552,7 +2602,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "publish-sigstore-fulcio-certificate",
@@ -2610,7 +2660,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "publish-force-push-action-tags",
@@ -2668,7 +2718,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "exfil-over-dns",
@@ -2727,7 +2777,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "evade-tamper-bound-profile",
@@ -2779,7 +2829,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "evade-clear-runner-logs",
@@ -2831,7 +2881,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "evade-dead-mans-switch-dry-run",
@@ -2883,7 +2933,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "evade-io-uring-sensitive-read",
@@ -2935,7 +2985,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   },
   {
    "name": "evade-cleanup-staged-artefacts",
@@ -2987,7 +3037,7 @@
      "minimal": 0
     }
    },
-   "pod": "arc-systems/k3s-2-runner-%"
+   "pod": "${RUNNER_PREFIX}%"
   }
  ]
 }
