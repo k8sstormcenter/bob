@@ -423,6 +423,8 @@ spec:
     - {args: [/bin/sh, /usr/local/bin/dockerd-entrypoint.sh, dockerd, '--host=unix:///var/run/docker.sock', --group=123, --data-root=/docker/, --mtu=1400, --default-network-opt=bridge=com.docker.network.driver.mtu=1400], path: /bin/busybox}
     - {args: [/usr/bin/xargs, -rn1], path: /bin/busybox}
     - {args: [/usr/local/bin/docker-proxy, ⋯⋯], path: /usr/local/bin/docker-proxy}
+    - {args: [/check], path: /docker/tmp/qemu-check⋯/check}
+    - {args: [/check], path: /var/lib/docker/tmp/qemu-check⋯/check}
     - {args: [/bin/cat, ⋯⋯], path: /bin/cat}
     - {args: [/bin/echo, ⋯⋯], path: /bin/echo}
     - {args: [/bin/mkdir, ⋯⋯], path: /bin/mkdir}
