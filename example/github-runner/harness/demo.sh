@@ -8,9 +8,14 @@
 # Needs: gh (workflow dispatch on REPO), kubectl on the runner cluster (KUBECONFIG), bobctl,
 # python3. The workflow takes LANG, PROJECT, STEPS, RUNNER and TAG and holds the job for 600 s
 # when STEPS contains "hold", which is the window the suite runs in.
+#
+# Split mode, when the session that dispatches has no cluster access: dispatch the two runs
+# elsewhere (TAG demo-clean-<stamp> / demo-attack-<stamp>), then run this with POD_CLEAN and
+# POD_ATTACK set to the two runner pods. It skips dispatch and gh entirely and waits for both
+# pods to leave the cluster instead of watching the runs.
 set -euo pipefail
 G=$(cd "$(dirname "$0")/.." && pwd)
-REPO=${REPO:?set REPO to the repo holding the workflow}
+REPO=${REPO:-}
 WF=${WF:-sbob-portability.yaml}
 RUNNER=${RUNNER:?set RUNNER to the runner set label}
 DLANG=${DLANG:-go}
@@ -24,6 +29,7 @@ STAMP=$(date -u +%Y%m%d-%H%M%S)
 DS=${1:-$PWD/demo-$RUNNER-$STAMP}
 mkdir -p "$DS/builds/clean" "$DS/builds/attack"
 : "${CH_USER:?}" "${CH_PASSWORD:?}"
+if [ -z "${POD_ATTACK:-}" ]; then : "${REPO:?}"; fi
 
 dispatch() {
   gh workflow run "$WF" -R "$REPO" -f LANG="$DLANG" -f PROJECT="$PROJECT" -f STEPS="$STEPS" \
@@ -53,18 +59,25 @@ pod_of() {
 
 wait_done() { gh run watch "$1" -R "$REPO" --exit-status >/dev/null 2>&1 || true; }
 
+# split mode: wait for a pod to leave the cluster (the job ended and ARC removed the runner)
+wait_gone() { while kubectl -n "$NS" get pod "$1" >/dev/null 2>&1; do sleep 15; done; }
+
 echo "dataset $DS"
-dispatch "demo-clean-$STAMP"
-dispatch "demo-attack-$STAMP"
-rc=$(run_id "demo-clean-$STAMP"); ra=$(run_id "demo-attack-$STAMP")
-pc=$(pod_of "$rc"); pa=$(pod_of "$ra")
+if [ -n "${POD_ATTACK:-}" ]; then
+  pc=${POD_CLEAN:?set POD_CLEAN with POD_ATTACK}; pa=$POD_ATTACK; rc=${RUN_CLEAN:-0}; ra=${RUN_ATTACK:-0}
+else
+  dispatch "demo-clean-$STAMP"
+  dispatch "demo-attack-$STAMP"
+  rc=$(run_id "demo-clean-$STAMP"); ra=$(run_id "demo-attack-$STAMP")
+  pc=$(pod_of "$rc"); pa=$(pod_of "$ra")
+fi
 echo "clean  run $rc pod $pc"
 echo "attack run $ra pod $pa"
 
 echo "replaying the suite against $pa"
 "$B" simulate --suite "$SUITE" --pod "$pa" -n "$NS" --exec-timeout 25s --record "$DS/builds/attack/fire.json" --format table
 
-wait_done "$rc"; wait_done "$ra"
+if [ -n "${POD_ATTACK:-}" ]; then wait_gone "$pc"; wait_gone "$pa"; else wait_done "$rc"; wait_done "$ra"; fi
 echo "both runs done; waiting ${SETTLE}s for evidence-only scoring at pod departure"
 sleep "$SETTLE"
 
