@@ -1,0 +1,550 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: nnf-runner-noble-dind
+  namespace: arc-systems
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_BPF
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_KILL
+    - CAP_MKNOD
+    - CAP_NET_ADMIN
+    - CAP_NET_RAW
+    - CAP_PERFMON
+    - CAP_SETFCAP
+    - CAP_SYS_ADMIN
+    - CAP_SYS_CHROOT
+    - CAP_SYS_PTRACE
+    - CAP_SYS_RESOURCE
+  egress:
+    - {dns: auth.docker.io., dnsNames: [auth.docker.io.], identifier: ea37ac93a866e91298ff3689079ba22d515c764dc713d1282bf22c500169c1cc, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: auth.docker.io., dnsNames: [auth.docker.io.], identifier: e5fe5ccbc1b2a1a4bba270968122e1fb821db5c153f23fcc712a65526f04e9ef, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ghcr.io., dnsNames: [ghcr.io.], identifier: d7211206906d3a79f8ff3dd6a6340fbec43d32a47e0ad84f964f22184c417251, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: 4aa13ba51009bedc1b376423e063ea820bcd24da14b6cfe4ff3891fb4266191f, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: 4e32e51ad294f4a8795e408f8fcc801165e7769d40f45a1c6f5bb0a64e5f1317, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: dc93fbad0ac0bf8cba186db8b4ebd16185e5588cb8aa01f6b62cb12848fbf444, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: c2ae281371342dca380d55b18abe181ade61fe63630e29b7b2c197551d8e0cba, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: production.cloudfront.docker.com., dnsNames: [production.cloudfront.docker.com.], identifier: c5d9e2c9707b9ab2431f60f4be8d5e4c9a8b3a9f7468ec77346bb3f74673495b, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: production.cloudfront.docker.com., dnsNames: [production.cloudfront.docker.com.], identifier: 1d3e6fffc5c1f1f215b989d3d9b19ae8e201aa9bf6f7c7205547509873fec585, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: production.cloudfront.docker.com., dnsNames: [production.cloudfront.docker.com.], identifier: 2cb1cda7c63aeaf4863a23ef1e345e8cb98234b125484fdcffcdc0a63acf9be5, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: production.cloudfront.docker.com., dnsNames: [production.cloudfront.docker.com.], identifier: 5da271b73bcc8a096c5ccf88924b91abc6aed651d7c0b532d43f577072691bfd, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: fd30ec60f622ddf79c734dda612ce802a94814ee7b3d55621c47cfec25103bc4, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 49036b7049b3d81386de7e35d29100e724f244965c6d053b9f3b760117b8fbbb, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 2d88850e97c428c32f2797ce278ea6182c20d0ba30102d29fe6b902668659c02, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: c7dc6ec62c786b7d75734f6625ab9b371bf473c438a1e7eea9f8aefc2e5e3278, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: eae2d41457352bdcab6f94c3d560bc4409c199477dc4e3f6bfa81b608872a2c5, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: dfbda2af7360b7ba05e441c03ee4cdecfda6b610b8baecee81dbff62b6dc5804, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 02b6456f10c150b26b0c646f09adeb25f2e27948ae86b3f15a67e43cb7e1efb0, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: bf6132ab88899567988e87c4cac756e66f47ca73a5065eba3a2795b6ac679c03, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: f07fd4c9a22389522700e61b71e89c93cf25d759e07391e511bbcf3a24280090, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 5af58a462f9a5c76d1977f74d8460c132edf2c83a45d10aa16dc05948e9d98da, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: c781d486022e69c67a1807b5feec082d4139ea71f03a24be7b9922aaac262376, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 89a1daa5b1073da6a0a5ae8135d19b4f6ad94822689b97eb16781de25813078b, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: e149a7c4ed5a9f9551411d065efc6df3754909442f2f2a6c5224252bed52ffaa, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 8460748ba35165876f4b84111a85fdb9918efbc3fc1d2f62ee907fefca949535, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 3bc02820915f3c8c3a1bee78efe6d3472d3f53413911a7d3c8f12143bc46f729, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: b17d7c8466fca0e97f7e755dbb68cdd7e8c268cccde229a2fd8a4d41e056d8a4, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: b334a4bf55dbcd499e505a7f85785b7ef784e3c8b22f7075e37899c5091b8d4b, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 3cf2581c866ae3adcd385e2d25735cb3220e908797dbbe01f4c3602dae06ae9f, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: 962a40d40365aa79017b5ab3439446cafae17f635679daf2a8a082926a8f0537, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: bbb02500e08119285a7b131ec484723ae4cdad379556280264ac18409fa46958, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry-1.docker.io., dnsNames: [registry-1.docker.io.], identifier: fcfd48bf519c32e34bf92aaabcedbc96708d858a9999dbe35ea95ab83cb990df, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: tuf-repo-cdn.sigstore.dev., dnsNames: [tuf-repo-cdn.sigstore.dev.], identifier: dd44ee0aa8a5de7914e484e99ffbfcbf0d963aa6e36419a0c783f29e237232c3, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
+    - {dns: "", dnsNames: ['*.actions.githubusercontent.com.', '*.archive.ubuntu.com.', '*.cloudfront.docker.com.', '*.docker.com.', '*.docker.io.', '*.gcr.io.', '*.github.com.', '*.githubusercontent.com.', '*.pkg.dev.', '*.quay.io.', '*.sigstore.dev.', api.nuget.org., archive.ubuntu.com., check.trivy.dev., crates.io., deb.debian.org., dl-cdn.alpinelinux.org., files.pythonhosted.org., gcr.io., get.trivy.dev., ghcr.io., github.com., index.crates.io., mcr.microsoft.com., nodejs.org., plugins.gradle.org., ports.ubuntu.com., ppa.launchpadcontent.net., productionresultssa0.blob.core.windows.net., productionresultssa1.blob.core.windows.net., productionresultssa10.blob.core.windows.net., productionresultssa11.blob.core.windows.net., productionresultssa12.blob.core.windows.net., productionresultssa13.blob.core.windows.net., productionresultssa14.blob.core.windows.net., productionresultssa15.blob.core.windows.net., productionresultssa16.blob.core.windows.net., productionresultssa17.blob.core.windows.net., productionresultssa18.blob.core.windows.net., productionresultssa19.blob.core.windows.net., productionresultssa2.blob.core.windows.net., productionresultssa3.blob.core.windows.net., productionresultssa4.blob.core.windows.net., productionresultssa5.blob.core.windows.net., productionresultssa6.blob.core.windows.net., productionresultssa7.blob.core.windows.net., productionresultssa8.blob.core.windows.net., productionresultssa9.blob.core.windows.net., proxy.golang.org., public.ecr.aws., pypi.org., quay.io., registry.k8s.io., registry.npmjs.org., registry.yarnpkg.com., repo.maven.apache.org., repo1.maven.org., rubygems.org., security.debian.org., security.ubuntu.com., services.gradle.org., sh.rustup.rs., static.crates.io., static.rust-lang.org., sum.golang.org.], identifier: egress-dns, ipAddress: "", namespaceSelector: null, podSelector: null, ports: null, type: external}
+  endpoints:
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/48af57f323b78b034737648643b63c5473f2d22417d1f845ad495599b00f1cf2', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/48af57f323b78b034737648643b63c5473f2d22417d1f845ad495599b00f1cf2/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/48af57f323b78b034737648643b63c5473f2d22417d1f845ad495599b00f1cf2/kill', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/48af57f323b78b034737648643b63c5473f2d22417d1f845ad495599b00f1cf2/start', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/5f628aa7660ca2181b6d67def0974181285136e4be2730cf450cafb1399b48a3/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/5f628aa7660ca2181b6d67def0974181285136e4be2730cf450cafb1399b48a3/logs', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/5f628aa7660ca2181b6d67def0974181285136e4be2730cf450cafb1399b48a3/start', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/6b277d03de573fbfa6a845ce0ddafca542e95a06ca93f130879be80953455d03/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/6b277d03de573fbfa6a845ce0ddafca542e95a06ca93f130879be80953455d03/logs', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/6b277d03de573fbfa6a845ce0ddafca542e95a06ca93f130879be80953455d03/start', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/8818b0e8066f0e19b1c850894e4bb7f4e2bddcf95d3c2f5c0f5a3697f8a40b1a/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/8818b0e8066f0e19b1c850894e4bb7f4e2bddcf95d3c2f5c0f5a3697f8a40b1a/logs', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/8818b0e8066f0e19b1c850894e4bb7f4e2bddcf95d3c2f5c0f5a3697f8a40b1a/start', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/91f453653ad553f4e19b567c234c64a3e4a33a999755410dc3bb01337fbb9669', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/91f453653ad553f4e19b567c234c64a3e4a33a999755410dc3bb01337fbb9669/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/91f453653ad553f4e19b567c234c64a3e4a33a999755410dc3bb01337fbb9669/start', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/create', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/e3addb24846dd4ba26f3a8c2211009fe1dbdf97a656acf04aa7b89a7c880a04f', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/e3addb24846dd4ba26f3a8c2211009fe1dbdf97a656acf04aa7b89a7c880a04f/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/e3addb24846dd4ba26f3a8c2211009fe1dbdf97a656acf04aa7b89a7c880a04f/kill', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/e3addb24846dd4ba26f3a8c2211009fe1dbdf97a656acf04aa7b89a7c880a04f/start', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/e931d6d8fa059ed2a35f2ac9f8ba7bfc1479627cb513e37c3e8c17f7955ee01d', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/e931d6d8fa059ed2a35f2ac9f8ba7bfc1479627cb513e37c3e8c17f7955ee01d/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/e931d6d8fa059ed2a35f2ac9f8ba7bfc1479627cb513e37c3e8c17f7955ee01d/kill', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/containers/e931d6d8fa059ed2a35f2ac9f8ba7bfc1479627cb513e37c3e8c17f7955ee01d/start', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/images/create', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':2375/v1.44/images/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/images/mysql:9.7/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/images/sha256:7c1a8a9a47c780ed0f983770a662f80deb115d95cce3e2daa3d12115b8cd28f0/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/images/sha256:c7cb87a9822f499375287930cbff71d6d3b201e346b45108b1115b435ee2df13/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/images/sha256:e2bde46db6563855d7177adb5f0b57b9dc663f5a20927a90f4259d3312068497/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/images/testcontainers/ryuk:0.14.0/json', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/info', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':2375/v1.44/version', headers: {Accept-Encoding: ['gzip, x-gzip, deflate'], Connection: [keep-alive], Host: ['localhost:2375']}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/_ping', headers: {Host: [api.moby.localhost]}, internal: false, methods: [HEAD]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/0f4df58a7d95810636a6a4b12fd1f3aaef76929eac5c185fdcdbf1aceb22206a/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/0f4df58a7d95810636a6a4b12fd1f3aaef76929eac5c185fdcdbf1aceb22206a/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/0f4df58a7d95810636a6a4b12fd1f3aaef76929eac5c185fdcdbf1aceb22206a/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/10b7f1f027a97ba9c0cdd601e82cb07df4a125f552754e3cadc922ed1640f980', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/10b7f1f027a97ba9c0cdd601e82cb07df4a125f552754e3cadc922ed1640f980/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/10b7f1f027a97ba9c0cdd601e82cb07df4a125f552754e3cadc922ed1640f980/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/10b7f1f027a97ba9c0cdd601e82cb07df4a125f552754e3cadc922ed1640f980/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1757fc7537aa2620028ca338ff0bb3c29f12e3b3d10fb8fff145383c9aa9d969/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/18716ffffa700772b1428a5d1ba3184af0b54e21ebec85f800f1d07732a0271f', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/18716ffffa700772b1428a5d1ba3184af0b54e21ebec85f800f1d07732a0271f/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/18716ffffa700772b1428a5d1ba3184af0b54e21ebec85f800f1d07732a0271f/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/18716ffffa700772b1428a5d1ba3184af0b54e21ebec85f800f1d07732a0271f/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1922f65284c4a27a957c032b49d34123bafce9fadb784810e987d300163dd711/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1922f65284c4a27a957c032b49d34123bafce9fadb784810e987d300163dd711/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1bafabbc1ab37fdb83652fa77d3390438af208a7fc1b5588cb33d56a495c3488', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1bafabbc1ab37fdb83652fa77d3390438af208a7fc1b5588cb33d56a495c3488/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1bafabbc1ab37fdb83652fa77d3390438af208a7fc1b5588cb33d56a495c3488/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1bafabbc1ab37fdb83652fa77d3390438af208a7fc1b5588cb33d56a495c3488/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1bfae3655d9eb52b1f4ecd90f3b2c0df9fd6b52b6587f3216521a01fa527d8e5', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1bfae3655d9eb52b1f4ecd90f3b2c0df9fd6b52b6587f3216521a01fa527d8e5/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1bfae3655d9eb52b1f4ecd90f3b2c0df9fd6b52b6587f3216521a01fa527d8e5/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/1bfae3655d9eb52b1f4ecd90f3b2c0df9fd6b52b6587f3216521a01fa527d8e5/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/245c0ed4d9c6f6e927e0b443d08f51ffbcee2b03cc3dd24106e279348ffb4929', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/245c0ed4d9c6f6e927e0b443d08f51ffbcee2b03cc3dd24106e279348ffb4929/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/245c0ed4d9c6f6e927e0b443d08f51ffbcee2b03cc3dd24106e279348ffb4929/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/24dcbd61c048b991e99a2abba888474521648fb491f18913c7192a88c030dca9', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/24dcbd61c048b991e99a2abba888474521648fb491f18913c7192a88c030dca9/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/24dcbd61c048b991e99a2abba888474521648fb491f18913c7192a88c030dca9/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/26e35470fb3234181c710e3545ed8e214e2cd9ae12f2e9441fa229e0c18baa43', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/26e35470fb3234181c710e3545ed8e214e2cd9ae12f2e9441fa229e0c18baa43/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/26e35470fb3234181c710e3545ed8e214e2cd9ae12f2e9441fa229e0c18baa43/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/2cc0e1bf1f2b2a4ac56e8cf0a43b5695e1e7ecebd58ed0bc1c8abf0b3321f8fe', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/2cc0e1bf1f2b2a4ac56e8cf0a43b5695e1e7ecebd58ed0bc1c8abf0b3321f8fe/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/2cc0e1bf1f2b2a4ac56e8cf0a43b5695e1e7ecebd58ed0bc1c8abf0b3321f8fe/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/2cc0e1bf1f2b2a4ac56e8cf0a43b5695e1e7ecebd58ed0bc1c8abf0b3321f8fe/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/3bd5e92e7bfd741f181c77aabb25fa97df36abf4cd3cdb5de17226622f098585/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/3bd5e92e7bfd741f181c77aabb25fa97df36abf4cd3cdb5de17226622f098585/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/3bd5e92e7bfd741f181c77aabb25fa97df36abf4cd3cdb5de17226622f098585/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/44a2c0a8331e15e99ed541c25b5db6475d52fc384fc9a73e9dcdb6e29f2daedd/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/44a2c0a8331e15e99ed541c25b5db6475d52fc384fc9a73e9dcdb6e29f2daedd/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/44a2c0a8331e15e99ed541c25b5db6475d52fc384fc9a73e9dcdb6e29f2daedd/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/475c1b5c93a49a5f58bd6459b2ce06760e6fd0bca41d895ed6f37db7dcee91af', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/475c1b5c93a49a5f58bd6459b2ce06760e6fd0bca41d895ed6f37db7dcee91af/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/475c1b5c93a49a5f58bd6459b2ce06760e6fd0bca41d895ed6f37db7dcee91af/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/475c1b5c93a49a5f58bd6459b2ce06760e6fd0bca41d895ed6f37db7dcee91af/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/4db216ba83bf050611cd2bdedbf9412ee003d92839eb87acbfc55beab1c756b3', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/4db216ba83bf050611cd2bdedbf9412ee003d92839eb87acbfc55beab1c756b3/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/4db216ba83bf050611cd2bdedbf9412ee003d92839eb87acbfc55beab1c756b3/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/4db216ba83bf050611cd2bdedbf9412ee003d92839eb87acbfc55beab1c756b3/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/4e203e332e84c5123608e14cb77419e4826359c0a959c0518f966e5d557c8c1b', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/4e203e332e84c5123608e14cb77419e4826359c0a959c0518f966e5d557c8c1b/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/4e203e332e84c5123608e14cb77419e4826359c0a959c0518f966e5d557c8c1b/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/4e203e332e84c5123608e14cb77419e4826359c0a959c0518f966e5d557c8c1b/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/510bec07f3fa5f671a9f7167dfa83b772fba4b01853cbf43e45c56675d31623f', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/510bec07f3fa5f671a9f7167dfa83b772fba4b01853cbf43e45c56675d31623f/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/510bec07f3fa5f671a9f7167dfa83b772fba4b01853cbf43e45c56675d31623f/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/510bec07f3fa5f671a9f7167dfa83b772fba4b01853cbf43e45c56675d31623f/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/53d85bd6ded95d1cd1eea78760188ca227f8710e451478485f6225bdd0450ff3', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/53d85bd6ded95d1cd1eea78760188ca227f8710e451478485f6225bdd0450ff3/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/53d85bd6ded95d1cd1eea78760188ca227f8710e451478485f6225bdd0450ff3/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/53d85bd6ded95d1cd1eea78760188ca227f8710e451478485f6225bdd0450ff3/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/5ee19f0a68b7bf1402fadec08bae2821b6b1626b6461df0a40fa20cf8ffc3e85', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/5ee19f0a68b7bf1402fadec08bae2821b6b1626b6461df0a40fa20cf8ffc3e85/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/5ee19f0a68b7bf1402fadec08bae2821b6b1626b6461df0a40fa20cf8ffc3e85/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/5ee19f0a68b7bf1402fadec08bae2821b6b1626b6461df0a40fa20cf8ffc3e85/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/61b1a75f136aa9a6c0c527a11f44d0829a78850184aa5b0edfcc122da3c82b15', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/61b1a75f136aa9a6c0c527a11f44d0829a78850184aa5b0edfcc122da3c82b15/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/61b1a75f136aa9a6c0c527a11f44d0829a78850184aa5b0edfcc122da3c82b15/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6263c1d8d221163ed5cc44c9e17966c4fc498db06a1361b3b0e2cba058e8e5a0', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6263c1d8d221163ed5cc44c9e17966c4fc498db06a1361b3b0e2cba058e8e5a0/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6263c1d8d221163ed5cc44c9e17966c4fc498db06a1361b3b0e2cba058e8e5a0/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6263c1d8d221163ed5cc44c9e17966c4fc498db06a1361b3b0e2cba058e8e5a0/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/64612b5d898a28e5f6cb15f9e1e531bca3fa3f356ec8cf3ff41d52da07fba4a7', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/64612b5d898a28e5f6cb15f9e1e531bca3fa3f356ec8cf3ff41d52da07fba4a7/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/64612b5d898a28e5f6cb15f9e1e531bca3fa3f356ec8cf3ff41d52da07fba4a7/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/64612b5d898a28e5f6cb15f9e1e531bca3fa3f356ec8cf3ff41d52da07fba4a7/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/69adfd0f16017768a550aa80b814858806873b8794f47e95f4fbbc045d4b2581', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/69adfd0f16017768a550aa80b814858806873b8794f47e95f4fbbc045d4b2581/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/69adfd0f16017768a550aa80b814858806873b8794f47e95f4fbbc045d4b2581/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6b0c56508d3f42d7ce4dc53a5738cf95c4718c7b089bb9d88ca43b0ce4fcfd1d', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6b0c56508d3f42d7ce4dc53a5738cf95c4718c7b089bb9d88ca43b0ce4fcfd1d/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6b0c56508d3f42d7ce4dc53a5738cf95c4718c7b089bb9d88ca43b0ce4fcfd1d/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/6b0c56508d3f42d7ce4dc53a5738cf95c4718c7b089bb9d88ca43b0ce4fcfd1d/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/786e51e95055042ac9bda10125b1486fb7e3ae698603d0c62a0b9337b2e7b476', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/786e51e95055042ac9bda10125b1486fb7e3ae698603d0c62a0b9337b2e7b476/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/786e51e95055042ac9bda10125b1486fb7e3ae698603d0c62a0b9337b2e7b476/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/786e51e95055042ac9bda10125b1486fb7e3ae698603d0c62a0b9337b2e7b476/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/944eb38903efca01278eb50f73ab95e8055ece11bd4a5490009562c887bacd5d/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/944eb38903efca01278eb50f73ab95e8055ece11bd4a5490009562c887bacd5d/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/944eb38903efca01278eb50f73ab95e8055ece11bd4a5490009562c887bacd5d/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/9c357d11c1494538b295c505eead2c3d751da9fbb9d93423da2ec58b75c9fac8', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/9c357d11c1494538b295c505eead2c3d751da9fbb9d93423da2ec58b75c9fac8/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/9c357d11c1494538b295c505eead2c3d751da9fbb9d93423da2ec58b75c9fac8/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/9c357d11c1494538b295c505eead2c3d751da9fbb9d93423da2ec58b75c9fac8/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ae03b55e431cddb2f8597dec1d13d0ab80171e99e97da98152e7e968058835ab', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ae03b55e431cddb2f8597dec1d13d0ab80171e99e97da98152e7e968058835ab/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ae03b55e431cddb2f8597dec1d13d0ab80171e99e97da98152e7e968058835ab/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ae11d8ef37324316f08eeaf1c12e45ef0243f37508da617aab190d33f67a6227', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ae11d8ef37324316f08eeaf1c12e45ef0243f37508da617aab190d33f67a6227/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ae11d8ef37324316f08eeaf1c12e45ef0243f37508da617aab190d33f67a6227/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ae11d8ef37324316f08eeaf1c12e45ef0243f37508da617aab190d33f67a6227/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/aefe3a0bea61d57ca3d0f3fb0dd7a991afa4988afb15d6e411cad5bf0b31522e', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/aefe3a0bea61d57ca3d0f3fb0dd7a991afa4988afb15d6e411cad5bf0b31522e/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/aefe3a0bea61d57ca3d0f3fb0dd7a991afa4988afb15d6e411cad5bf0b31522e/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/aefe3a0bea61d57ca3d0f3fb0dd7a991afa4988afb15d6e411cad5bf0b31522e/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/afef8f2928cfabd3e414e5673e39883b83798cfd75928720cc80a4bd0d389ffb', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/afef8f2928cfabd3e414e5673e39883b83798cfd75928720cc80a4bd0d389ffb/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/afef8f2928cfabd3e414e5673e39883b83798cfd75928720cc80a4bd0d389ffb/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/afef8f2928cfabd3e414e5673e39883b83798cfd75928720cc80a4bd0d389ffb/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b160b7d52092282f549d366885f338733c53669f00e878008f3572cff2cff118', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b160b7d52092282f549d366885f338733c53669f00e878008f3572cff2cff118/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b160b7d52092282f549d366885f338733c53669f00e878008f3572cff2cff118/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b160b7d52092282f549d366885f338733c53669f00e878008f3572cff2cff118/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b2bdabd8b99effaac7db2ee26f433f81a48defffaac1c96b451b8557d32dc29e', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b2bdabd8b99effaac7db2ee26f433f81a48defffaac1c96b451b8557d32dc29e/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b2bdabd8b99effaac7db2ee26f433f81a48defffaac1c96b451b8557d32dc29e/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b2bdabd8b99effaac7db2ee26f433f81a48defffaac1c96b451b8557d32dc29e/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b3e74c42435982e4dddffd25e9b2cbb6469ea02bb0b6273ca32bce6a50252af5', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b3e74c42435982e4dddffd25e9b2cbb6469ea02bb0b6273ca32bce6a50252af5/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b3e74c42435982e4dddffd25e9b2cbb6469ea02bb0b6273ca32bce6a50252af5/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b3e74c42435982e4dddffd25e9b2cbb6469ea02bb0b6273ca32bce6a50252af5/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b934a8db0d2c7eaaf28d88f26e246f2a241aa8445fc2e89e93e0a6f753e3f252', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b934a8db0d2c7eaaf28d88f26e246f2a241aa8445fc2e89e93e0a6f753e3f252/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b934a8db0d2c7eaaf28d88f26e246f2a241aa8445fc2e89e93e0a6f753e3f252/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/b934a8db0d2c7eaaf28d88f26e246f2a241aa8445fc2e89e93e0a6f753e3f252/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ba8337dae52b3df3b8d5f9b9bdaf20f0c6ef7e76d6ab7438914625346d468141', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ba8337dae52b3df3b8d5f9b9bdaf20f0c6ef7e76d6ab7438914625346d468141/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ba8337dae52b3df3b8d5f9b9bdaf20f0c6ef7e76d6ab7438914625346d468141/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/bc0fdd3d2cd254f860a1367b358d3ee8e3e6aa9eb4059e4a473b64bd1e117ff6', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/bc0fdd3d2cd254f860a1367b358d3ee8e3e6aa9eb4059e4a473b64bd1e117ff6/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/bc0fdd3d2cd254f860a1367b358d3ee8e3e6aa9eb4059e4a473b64bd1e117ff6/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/bc0fdd3d2cd254f860a1367b358d3ee8e3e6aa9eb4059e4a473b64bd1e117ff6/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/bd5a89d109ca4a23e8b21dfa7ad2a6830646224bdfa209d81da3f3c9ad96e81e', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/bd5a89d109ca4a23e8b21dfa7ad2a6830646224bdfa209d81da3f3c9ad96e81e/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/bd5a89d109ca4a23e8b21dfa7ad2a6830646224bdfa209d81da3f3c9ad96e81e/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/bd5a89d109ca4a23e8b21dfa7ad2a6830646224bdfa209d81da3f3c9ad96e81e/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c247cd54365499b0daed27fa8c9ecdb67ecebc05bcfa631b948e3053f60c5df3', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c247cd54365499b0daed27fa8c9ecdb67ecebc05bcfa631b948e3053f60c5df3/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c247cd54365499b0daed27fa8c9ecdb67ecebc05bcfa631b948e3053f60c5df3/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c247cd54365499b0daed27fa8c9ecdb67ecebc05bcfa631b948e3053f60c5df3/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c37304b2e87642cc6c70568319784e35297f9f657578d8177321a9d84c16ecbb/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c37304b2e87642cc6c70568319784e35297f9f657578d8177321a9d84c16ecbb/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/c37304b2e87642cc6c70568319784e35297f9f657578d8177321a9d84c16ecbb/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/caa5c61262e97e39a41ab308883bd9d816f8255a86747485f84afb35b852f0cb', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/caa5c61262e97e39a41ab308883bd9d816f8255a86747485f84afb35b852f0cb/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/caa5c61262e97e39a41ab308883bd9d816f8255a86747485f84afb35b852f0cb/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/caa5c61262e97e39a41ab308883bd9d816f8255a86747485f84afb35b852f0cb/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/create', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d0066781edf7b328625b2805cddbd875e043ad21b963baf9f68ad64ccddda6a5', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d0066781edf7b328625b2805cddbd875e043ad21b963baf9f68ad64ccddda6a5/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d0066781edf7b328625b2805cddbd875e043ad21b963baf9f68ad64ccddda6a5/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d0066781edf7b328625b2805cddbd875e043ad21b963baf9f68ad64ccddda6a5/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d139e9bd1e9efe35d7391561162bc8432bf12fb1f06b93c2ce5710f00e85fc5f', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d139e9bd1e9efe35d7391561162bc8432bf12fb1f06b93c2ce5710f00e85fc5f/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d139e9bd1e9efe35d7391561162bc8432bf12fb1f06b93c2ce5710f00e85fc5f/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d57cb2aea44b3078f9b57723e097b5a4e12a6e3542ee1b9fa8207475d212e032', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d57cb2aea44b3078f9b57723e097b5a4e12a6e3542ee1b9fa8207475d212e032/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d57cb2aea44b3078f9b57723e097b5a4e12a6e3542ee1b9fa8207475d212e032/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d722d9734aa246a54a7251f6b4f5fce83d45fa494a320b98e3cb206fb70145a0', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d722d9734aa246a54a7251f6b4f5fce83d45fa494a320b98e3cb206fb70145a0/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d722d9734aa246a54a7251f6b4f5fce83d45fa494a320b98e3cb206fb70145a0/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d722d9734aa246a54a7251f6b4f5fce83d45fa494a320b98e3cb206fb70145a0/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d7ffe33b137f886cec1568a2abbc41d66b431b493516b4e0b83f2d9d6935b09e/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d7ffe33b137f886cec1568a2abbc41d66b431b493516b4e0b83f2d9d6935b09e/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d7ffe33b137f886cec1568a2abbc41d66b431b493516b4e0b83f2d9d6935b09e/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d9a23e4fd9c8ac9df0f37742b70d8464b6d00a6003da645434b248615396fe08', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d9a23e4fd9c8ac9df0f37742b70d8464b6d00a6003da645434b248615396fe08/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d9a23e4fd9c8ac9df0f37742b70d8464b6d00a6003da645434b248615396fe08/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/d9a23e4fd9c8ac9df0f37742b70d8464b6d00a6003da645434b248615396fe08/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e2b5cdd890a62d5bfefbc0937a33f500a9510b5e882f93fba4a355c188d0e392', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e2b5cdd890a62d5bfefbc0937a33f500a9510b5e882f93fba4a355c188d0e392/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e2b5cdd890a62d5bfefbc0937a33f500a9510b5e882f93fba4a355c188d0e392/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e2b5cdd890a62d5bfefbc0937a33f500a9510b5e882f93fba4a355c188d0e392/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e3ecaba52e847b3cd73a78401afb15422bad13af5b652cfd4c30afd0b8728a4f', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e3ecaba52e847b3cd73a78401afb15422bad13af5b652cfd4c30afd0b8728a4f/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e3ecaba52e847b3cd73a78401afb15422bad13af5b652cfd4c30afd0b8728a4f/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e3ecaba52e847b3cd73a78401afb15422bad13af5b652cfd4c30afd0b8728a4f/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e849ef041cdbd044e9ad4ca68dde5f500432cc8aefb33d6f36e6b3484e37aa33', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e849ef041cdbd044e9ad4ca68dde5f500432cc8aefb33d6f36e6b3484e37aa33/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e849ef041cdbd044e9ad4ca68dde5f500432cc8aefb33d6f36e6b3484e37aa33/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/e849ef041cdbd044e9ad4ca68dde5f500432cc8aefb33d6f36e6b3484e37aa33/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ea6b538bc3b7de06cdf11027bdf6c73d5222001c9b3034ec7e0a243b6457cc7e', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ea6b538bc3b7de06cdf11027bdf6c73d5222001c9b3034ec7e0a243b6457cc7e/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ea6b538bc3b7de06cdf11027bdf6c73d5222001c9b3034ec7e0a243b6457cc7e/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ea6b538bc3b7de06cdf11027bdf6c73d5222001c9b3034ec7e0a243b6457cc7e/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ebce177ad2d410f3be1a48045ceadea67f9b0009d5398ea5fe96ade6e4610c7d/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ebce177ad2d410f3be1a48045ceadea67f9b0009d5398ea5fe96ade6e4610c7d/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ebce177ad2d410f3be1a48045ceadea67f9b0009d5398ea5fe96ade6e4610c7d/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ed88cc7c92a82abe976a6c3d00f180f1688f24e6e77d12c1621c732d903e50fa', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ed88cc7c92a82abe976a6c3d00f180f1688f24e6e77d12c1621c732d903e50fa/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ed88cc7c92a82abe976a6c3d00f180f1688f24e6e77d12c1621c732d903e50fa/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f30c180e707c3742c9efc09c1bd9896abfd0ccc17225b70590e61698ad7c1f2a', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f30c180e707c3742c9efc09c1bd9896abfd0ccc17225b70590e61698ad7c1f2a/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f30c180e707c3742c9efc09c1bd9896abfd0ccc17225b70590e61698ad7c1f2a/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f919b1155ecff8dd050627effb0fc9a654bb88fcee463c84ff05f1c220e43117', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f919b1155ecff8dd050627effb0fc9a654bb88fcee463c84ff05f1c220e43117/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f919b1155ecff8dd050627effb0fc9a654bb88fcee463c84ff05f1c220e43117/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f919b1155ecff8dd050627effb0fc9a654bb88fcee463c84ff05f1c220e43117/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f9eca1278461dde98c9a5f6f3c809725072cb1fcda45b6ac2df1f5b48254bda1', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f9eca1278461dde98c9a5f6f3c809725072cb1fcda45b6ac2df1f5b48254bda1/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f9eca1278461dde98c9a5f6f3c809725072cb1fcda45b6ac2df1f5b48254bda1/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/f9eca1278461dde98c9a5f6f3c809725072cb1fcda45b6ac2df1f5b48254bda1/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fb4c39330a0c1608c65099441a39fb3a9c810b96284b9b3599c5d82b5bcaa380', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fb4c39330a0c1608c65099441a39fb3a9c810b96284b9b3599c5d82b5bcaa380/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fb4c39330a0c1608c65099441a39fb3a9c810b96284b9b3599c5d82b5bcaa380/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fb4c39330a0c1608c65099441a39fb3a9c810b96284b9b3599c5d82b5bcaa380/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fde89f02dd79f259ffabdc074bb5d51fd631e73cdbb3e3ad99243657b93d112a', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fde89f02dd79f259ffabdc074bb5d51fd631e73cdbb3e3ad99243657b93d112a/logs', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fde89f02dd79f259ffabdc074bb5d51fd631e73cdbb3e3ad99243657b93d112a/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fde89f02dd79f259ffabdc074bb5d51fd631e73cdbb3e3ad99243657b93d112a/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fec00df138df8ba61892f37ebe0051d78b3445913b810dd397899801c8b60a7c', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fec00df138df8ba61892f37ebe0051d78b3445913b810dd397899801c8b60a7c/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/fec00df138df8ba61892f37ebe0051d78b3445913b810dd397899801c8b60a7c/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ff47a7e7c8f06c1186c420a58bcec21ffb8cfa258d91555b6f3523e6477129ef', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ff47a7e7c8f06c1186c420a58bcec21ffb8cfa258d91555b6f3523e6477129ef/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/containers/ff47a7e7c8f06c1186c420a58bcec21ffb8cfa258d91555b6f3523e6477129ef/wait', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/images/create', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.51/images/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/networks', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.51/volumes', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/47933fce15f329b0ae45bc1a061209184e963cedc5537239059fd004d3ee2974/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/47933fce15f329b0ae45bc1a061209184e963cedc5537239059fd004d3ee2974/logs?stderr=1&stdout=1', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/47933fce15f329b0ae45bc1a061209184e963cedc5537239059fd004d3ee2974/wait?condition=next-exit', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/47933fce15f329b0ae45bc1a061209184e963cedc5537239059fd004d3ee2974?force=1', headers: {Host: [api.moby.localhost]}, internal: false, methods: [DELETE]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/52fdf35881d82b34c89131c4e3d0acc57bcb96c37315261fb9d33420632060ca/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/66dfba7f8555cbdcfb0ab357f2b9449b575975b994ed288a6a212f8b42be609f/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-39582107-79f4-4d5a-a9ae-ca1a89c8cf160/archive', headers: {Host: [api.moby.localhost]}, internal: false, methods: [PUT]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-39582107-79f4-4d5a-a9ae-ca1a89c8cf160/exec', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-39582107-79f4-4d5a-a9ae-ca1a89c8cf160/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-39582107-79f4-4d5a-a9ae-ca1a89c8cf160/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-65f2f802-926c-4f0e-8bac-668ca5ef0e320/archive', headers: {Host: [api.moby.localhost]}, internal: false, methods: [PUT]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-65f2f802-926c-4f0e-8bac-668ca5ef0e320/exec', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-65f2f802-926c-4f0e-8bac-668ca5ef0e320/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-65f2f802-926c-4f0e-8bac-668ca5ef0e320/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-91007d4d-74b5-49ff-8331-1204eee183e30/archive', headers: {Host: [api.moby.localhost]}, internal: false, methods: [PUT]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-91007d4d-74b5-49ff-8331-1204eee183e30/exec', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-91007d4d-74b5-49ff-8331-1204eee183e30/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-91007d4d-74b5-49ff-8331-1204eee183e30/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-91007d4d-74b5-49ff-8331-1204eee183e30/stop', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-babf24bc-bbcd-4863-9c1a-46f4c8d9dbc00/archive', headers: {Host: [api.moby.localhost]}, internal: false, methods: [PUT]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-babf24bc-bbcd-4863-9c1a-46f4c8d9dbc00/exec', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-babf24bc-bbcd-4863-9c1a-46f4c8d9dbc00/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/buildx_buildkit_builder-babf24bc-bbcd-4863-9c1a-46f4c8d9dbc00/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/c3923262aa1e03d7cfe70b940207c96a5e7c88fc67e5f5a2a5f97af332600ada/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/create', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/e4c28ae6d971b93cc96df49aaff9e759d3393cf46d8d14ad8b2c4faf0da5b843/start', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/f185a9d9fda13065fd2736aeaa558730074b9cdc38b17b44310364a60a05b545/wait?condition=removed', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/containers/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/exec/0b68f221afad1743805912d373abdd287f58cd54ad369568176eff551106d138/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/exec/1b7a68a27dd7fbff3b43c88b1fecab56c623d17fbd5e8d98cecb6a232255b2c4/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/exec/1f8377b360db2bb82e7438027039239ceaddb5f0d367a82f0670a47c0d9cfe78/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/exec/424723532b3f10d0690b72992bbf1ee19060941c31ab0d981fb96c8e78220bb2/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/exec/63b2a982fcad8c17e2c6e132df2acc73455df0793fbd105f84eed649213a7486/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/exec/6a1654c4dd8b5849a2d130c1aac389becab7190858a0d37c7b7beadfcb2d5ad5/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/exec/a8b54cbea325fff53662300b4efa3f15ec36ec6fae075a31741c051db2ca2d32/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/exec/b6246cc609596e263a8248cfecb7aedc9b146c9855111edecbb8f9f2c836bebd/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/images/create', headers: {Host: [api.moby.localhost]}, internal: false, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/v1.55/images/get?names=ci-dataset%2Fwelcome%3A38350760160', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/images/moby/buildkit:buildx-stable-1/json', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/info', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/v1.55/version', headers: {Host: [api.moby.localhost]}, internal: false, methods: [GET]}
+  execs:
+    - {args: [/bin/cat, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/echo, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/mkdir, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/mount, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/mountpoint, ⋯⋯], path: /bin/busybox}
+    - {args: [/bin/sed, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/bin/find, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/bin/id, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/local/bin/dind, ⋯⋯], path: /bin/busybox}
+    - {args: [/usr/local/bin/dockerd-entrypoint.sh, ⋯⋯], path: /bin/busybox}
+    - {args: [/check], path: /docker/tmp/⋯/check}
+    - {args: [/pause], path: /pause}
+    - {args: [/proc/self/fd/6, init], path: /runc}
+    - {args: [/usr/bin/getent, group, ⋯], path: /usr/bin/getent}
+    - {args: [/usr/bin/git, version], path: /usr/bin/git}
+    - {args: [/usr/bin/unpigz, ⋯⋯], path: /usr/bin/pigz}
+    - {args: [/usr/local/bin/containerd, --config, /var/run/docker/containerd/containerd.toml], path: /usr/local/bin/containerd}
+    - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -address, /var/run/docker/containerd/containerd.sock, -publish-binary, ⋯, -id, ⋯, start], path: /usr/local/bin/containerd-shim-runc-v2}
+    - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -address, /var/run/docker/containerd/containerd.sock, -publish-binary, ⋯, -id, ⋯, -bundle, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯, delete], path: /usr/local/bin/containerd-shim-runc-v2}
+    - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -id, ⋯, -address, /var/run/docker/containerd/containerd.sock], path: /usr/local/bin/containerd-shim-runc-v2}
+    - {args: [/usr/local/bin/docker-init, ⋯⋯], path: /usr/local/bin/docker-init}
+    - {args: [docker-init, ⋯⋯], path: /usr/local/bin/docker-init}
+    - {args: [/usr/local/bin/docker-proxy, -proto, tcp, -host-ip, 0.0.0.0, -host-port, ⋯, -container-ip, ⋯, -container-port, ⋯, -use-listen-fd], path: /usr/local/bin/docker-proxy}
+    - {args: [/usr/local/bin/docker-proxy, -proto, tcp, -host-ip, '::', -host-port, ⋯, -container-ip, ⋯, -container-port, ⋯, -use-listen-fd], path: /usr/local/bin/docker-proxy}
+    - {args: [/proc/⋯/exe, ⋯⋯], path: /usr/local/bin/dockerd}
+    - {args: [/usr/local/bin/dockerd, ⋯⋯], path: /usr/local/bin/dockerd}
+    - {args: [dockerd, ⋯⋯], path: /usr/local/bin/dockerd}
+    - {args: [/usr/local/bin/runc, ⋯⋯], path: /usr/local/bin/runc}
+    - {args: [runc, ⋯⋯], path: /usr/local/bin/runc}
+    - {args: [/usr/sbin/iptables, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/sbin/ip6tables, ⋯⋯], path: /usr/sbin/xtables-nft-multi}
+    - {args: [/usr/bin/xargs, -rn1], path: /bin/busybox}
+    - {args: [/usr/local/bin/docker-proxy, ⋯⋯], path: /usr/local/bin/docker-proxy}
+    - {args: [/bin/cat, ⋯⋯], path: /bin/cat}
+    - {args: [/bin/echo, ⋯⋯], path: /bin/echo}
+    - {args: [/bin/mkdir, ⋯⋯], path: /bin/mkdir}
+    - {args: [/bin/mount, ⋯⋯], path: /bin/mount}
+    - {args: [/bin/mountpoint, ⋯⋯], path: /bin/mountpoint}
+    - {args: [/bin/sed, ⋯⋯], path: /bin/sed}
+    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
+    - {args: [/usr/bin/id, ⋯⋯], path: /usr/bin/id}
+    - {args: [/usr/local/bin/dind, ⋯⋯], path: /usr/local/bin/dind}
+    - {args: [/usr/local/bin/dockerd-entrypoint.sh, ⋯⋯], path: /usr/local/bin/dockerd-entrypoint.sh}
+    - {args: [/check], path: /check}
+    - {args: [/proc/self/fd/6, init], path: /proc/self/fd/6}
+    - {args: [/usr/bin/unpigz, ⋯⋯], path: /usr/bin/unpigz}
+    - {args: [/usr/sbin/iptables, ⋯⋯], path: /usr/sbin/iptables}
+    - {args: [/usr/sbin/ip6tables, ⋯⋯], path: /usr/sbin/ip6tables}
+    - {args: [/usr/bin/xargs, ⋯⋯], path: /usr/bin/xargs}
+  identifiedCallStacks: null
+  imageID: docker.io/library/docker@sha256:7dcdfc4a20246236f558175182ccace1eb15a41bd3eb119dd2284f393498b7c1
+  imageTag: docker.io/library/docker:dind
+  ingress: []
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bsg}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus/usb}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/bus/usb/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/cpu}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/cpu/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/dma_heap}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/dri}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/input}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/mapper}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/net}
+    - {flags: [O_CLOEXEC, O_CREAT, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /dev/null}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/snd}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /dev/vfio}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /docker/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/cdi}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/docker/daemon.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/docker/plugins}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/group}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/ld-musl-x86_64.path}
+    - {flags: [O_RDONLY], path: /etc/localtime}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/passwd}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/ssl/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs/ca-certificates.crt}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libmnl.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libnftnl.so.11}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libpcre2-8.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libxtables.so.12}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libz.so.1}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /net/proxy}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /opt/containerd/lib/libz.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/meminfo}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/net/arp_tables_names}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/net/ip6_tables_names}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/pressure/cpu}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/pressure/io}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/pressure/memory}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/keys/root_maxkeys}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/threads-max}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/ip_forward}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/ip_local_port_range}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/ip_local_reserved_ports}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /proc/sys/net/ipv6/conf/docker0/accept_ra}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /proc/sys/net/ipv6/conf/eth0/disable_ipv6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/fd}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/maps}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/⋯/net/*}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_RDWR, O_WRONLY], path: /proc/⋯/oom_score_adj}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/status}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/uid_map}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /run/docker.pid}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /run/docker/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/runc}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR], path: /run/runc/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /runc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/kernel/security/apparmor/profiles}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /usr/lib/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/containerd}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/containerd-shim-runc-v2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/bin/dind}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/dockerd}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/bin/dockerd-entrypoint.sh}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/runc}
+    - {flags: [O_RDONLY], path: /usr/local/go/lib/time/zoneinfo.zip}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libmnl.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libnftnl.so.11}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libpcre2-8.so.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libxtables.so.12}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/libz.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/*}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/docker/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/run/cdi}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker.pid}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker/containerd/containerd.pid}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker/runtime-runc/moby/⋯/state.json}
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - dpkg
+        - update-alternat
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0005:
+      processAllowed:
+        - dockerd
+    R0009:
+      processAllowed:
+        - runc
+    R0011:
+      processAllowed:
+        - http
+        - https
+        - dockerd
+        - docker-proxy
+    R0012:
+      containerAllowed: true
+    R1006:
+      processAllowed:
+        - runc
+        - dockerd
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
