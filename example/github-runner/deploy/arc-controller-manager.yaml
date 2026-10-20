@@ -39,6 +39,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token}
   rulePolicies:
     R0002:
       processAllowed:
