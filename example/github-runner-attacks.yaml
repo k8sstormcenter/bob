@@ -903,7 +903,7 @@ attacks:
   - name: evade-dead-mans-switch-dry-run
     type: custom
     exec:
-      command: ["sh", "-c", "echo 'rm -rf $HOME would run here'; ls -d ~/ >/dev/null && echo 'target resolvable'"]
+      command: ["sh", "-c", "echo 'rm -rf $HOME would run here' > $HOME/.dead-mans-switch; ls -d ~/ >/dev/null && echo 'target resolvable'"]
     expectedDetections:
       - attackType: custom
         ruleID: R0001
