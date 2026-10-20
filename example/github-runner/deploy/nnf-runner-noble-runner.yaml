@@ -599,17 +599,7 @@ spec:
     - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/rubocop, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
     - {args: [/pause], path: /pause}
     - {args: [/px/px_jattach, ⋯, ⋯, /px/libpx-java-agent.so], path: /px/px_jattach}
-    - {args: [/tmp/⋯/⋯/⋯, -test.testlogfile=/tmp/⋯/⋯/testlog.txt, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/⋯/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/⋯/_cover_.out], path: /tmp/⋯/⋯/⋯}
-    - {args: [/tmp/⋯/b3334/ruleadapters.test, -test.testlogfile=/tmp/⋯/b3334/testlog.txt, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b3334/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b3334/_cover_.out], path: /tmp/*/ruleadapters.test}
-    - {args: [/tmp/⋯/b3338/rulecooldown.test, -test.testlogfile=/tmp/⋯/b3338/testlog.txt, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b3338/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b3338/_cover_.out], path: /tmp/*/rulecooldown.test}
-    - {args: [/tmp/⋯/b3341/rulecreator.test, -test.testlogfile=/tmp/⋯/b3341/testlog.txt, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b3341/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b3341/_cover_.out], path: /tmp/*/rulecreator.test}
-    - {args: [/tmp/⋯/b3344/ruleswatcher.test, -test.testlogfile=/tmp/⋯/b3344/testlog.txt, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b3344/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b3344/_cover_.out], path: /tmp/*/ruleswatcher.test}
-    - {args: [/tmp/⋯/b3348/v1.test, ⋯⋯], path: /tmp/*/v1.test}
-    - {args: [/tmp/⋯/b3352/v1.test, ⋯⋯], path: /tmp/*/v1.test}
-    - {args: [/tmp/⋯/b3358/v1.test, ⋯⋯], path: /tmp/*/v1.test}
-    - {args: [/tmp/⋯/b3363/v1.test, ⋯⋯], path: /tmp/*/v1.test}
-    - {args: [/tmp/⋯/b3355/syftutil.test, -test.testlogfile=/tmp/⋯/b3355/testlog.txt, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b3355/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b3355/_cover_.out], path: /tmp/*/syftutil.test}
-    - {args: [/tmp/⋯/b3366/servicejwt.test, -test.testlogfile=/tmp/⋯/b3366/testlog.txt, -test.paniconexit0, -test.gocoverdir=/tmp/⋯/b3366/gocoverdir, -test.v=test2json, -test.timeout=10m0s, -test.coverprofile=/tmp/⋯/b3366/_cover_.out], path: /tmp/*/servicejwt.test}
+    - {args: [/tmp/⋯/⋯/⋯, ⋯⋯], path: /tmp/⋯/⋯/⋯}
     - {args: [/tmp/⋯/amazon-corretto-17.0.20.10.1-glibc.in-progress/amazon-corretto-17.0.20.10.1-linux-x64/bin/java, ⋯⋯], path: /tmp/*/bin/java}
     - {args: [/tmp/⋯/amazon-corretto-21.0.12.9.1-glibc.in-progress/amazon-corretto-21.0.12.9.1-linux-x64/bin/java, ⋯⋯], path: /tmp/*/bin/java}
     - {args: [/tmp/⋯/amazon-corretto-25.0.4.8.1-glibc.in-progress/amazon-corretto-25.0.4.8.1-linux-x64/bin/java, ⋯⋯], path: /tmp/*/bin/java}
@@ -4210,7 +4200,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cmdline}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/comm}
     - {flags: [O_CLOEXEC, O_RDWR], path: /proc/⋯/coredump_filter}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/environ}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/self/environ}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/thread-self/environ}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /proc/⋯/fd}
     - {flags: [O_RDONLY], path: /proc/⋯/limits}
     - {flags: [O_RDONLY], path: /proc/⋯/loginuid}
