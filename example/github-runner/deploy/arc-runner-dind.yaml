@@ -202,7 +202,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/maps}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
     - {flags: [O_CLOEXEC, O_CREAT, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /proc/⋯/net/*}
-    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/⋯/net/*}
     - {flags: [O_CLOEXEC, O_RDONLY, O_RDWR, O_WRONLY], path: /proc/⋯/oom_score_adj}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat}
@@ -214,7 +213,6 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run}
     - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /run/docker.pid}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /run/docker/*}
-    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /run/docker/*}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/runc}
     - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR], path: /run/runc/*}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets}
