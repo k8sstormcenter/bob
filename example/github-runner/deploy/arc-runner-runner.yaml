@@ -3186,8 +3186,10 @@ spec:
     - {args: [/var/lib/dpkg/info/x11-common.postinst, configure], path: /var/lib/dpkg/info/x11-common.postinst}
     - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure], path: /var/lib/dpkg/info/xz-utils.postinst}
     - {args: [/var/lib/dpkg/tmp.ci/preinst, install], path: /var/lib/dpkg/tmp.ci/preinst}
+  identifiedCallStacks: null
   imageID: ""
   imageTag: ""
+  ingress: null
   opens:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NONBLOCK, O_RDONLY], path: /}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /$HOME/.snmp/mibs}
@@ -4911,4 +4913,5 @@ spec:
   seccompProfile:
     spec:
       defaultAction: ""
+  syscalls: null
 status: {}
