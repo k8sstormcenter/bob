@@ -6,7 +6,8 @@ non-floor alert tagged to it (collect.py alerts --fire), or when dx scored its s
 witnessed verdict (collect.py kpi). Negatives are clean builds. A clean build is a false positive
 when it raised any non-floor alert, or any witnessed KPI verdict.
 
-Floor rules (default R0005,R0011) are reported apart and never count. Known residuals passed with
+Floor rules (default R0005,R0011), and any alert the sensor marks arguments.unresolvedPath, are
+reported apart and never count. Known residuals passed with
 --known RULE:substring (matched against the alert's exe or path) are listed apart as well, so a
 known engine defect stays visible without being scored as a profile false positive.
 """
@@ -62,7 +63,12 @@ def build(d, floor, known):
          "ran": [s["name"] for s in fire if s.get("t0")] if fire else None}
     for rule, recs in alerts.items():
         for rec in recs:
-            bucket = "floor" if rule in floor else ("known" if known_match(known, rule, rec) else "alerts")
+            if rule in floor or (rec.get("arguments") or {}).get("unresolvedPath"):
+                bucket = "floor"  # an open whose path the sensor could not resolve names nothing to allow
+            elif known_match(known, rule, rec):
+                bucket = "known"
+            else:
+                bucket = "alerts"
             b[bucket][rule] = b[bucket].get(rule, 0) + 1
             if bucket == "alerts" and rec.get("step") and rec["step"] != "_build":
                 b["by_step"].setdefault(rec["step"], set()).add(rule)
