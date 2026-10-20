@@ -25,8 +25,8 @@ NS=${NS:-arc-systems}
 SETTLE=${SETTLE:-360}
 B=${BOBCTL:-bobctl}
 SUITE=${SUITE:-$G/../github-runner-attacks.yaml}
-STAMP=$(date -u +%Y%m%d-%H%M%S)
-DS=${1:-$PWD/demo-$RUNNER-$STAMP}
+STAMP=$(date -u +%Y%m%d-%H%M%S)-$RUNNER
+DS=${1:-$PWD/demo-$STAMP}
 mkdir -p "$DS/builds/clean" "$DS/builds/attack"
 : "${CH_USER:?}" "${CH_PASSWORD:?}"
 if [ -z "${POD_ATTACK:-}" ]; then : "${REPO:?}"; fi
