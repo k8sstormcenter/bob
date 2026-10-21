@@ -140,15 +140,16 @@ attack() {
 
   log "frontend -> $dbip:5432 (the tier skip)"
   for _ in $(seq 1 6); do
-    kubectl -n "$ns" exec "$fe" -- bash -c "exec 3<>/dev/tcp/$dbip/5432 && echo connected" || true
+    kubectl -n "$ns" exec "$fe" -- bash -c "exec 3<>/dev/tcp/$dbip/5432 && echo connected && sleep 45" &
     sleep 3
   done
 
-  log "database -> 1.1.1.1:443 (the exfil shape)"
+  log "database -> 1.1.1.1:80 (the exfil shape)"
   for _ in $(seq 1 3); do
-    kubectl -n "$ns" exec "$db" -- bash -c 'exec 3<>/dev/tcp/1.1.1.1/443 && echo connected' || true
+    kubectl -n "$ns" exec "$db" -- perl -MIO::Socket::INET -e '$s=IO::Socket::INET->new(PeerAddr=>"1.1.1.1:80",Timeout=>10) or exit 0; print $s "GET / HTTP/1.1\r\nHost: 1.1.1.1\r\n\r\n"; sysread($s,$b,512); print "connected ", (split /\r\n/, $b)[0], "\n"; sleep 45' &
     sleep 3
   done
+  wait
 
   log "give node-agent ~90s, then: ./demo.sh alerts $ns"
 }
