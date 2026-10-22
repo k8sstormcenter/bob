@@ -3053,6 +3053,9 @@ spec:
     - {args: [/var/lib/dpkg/tmp.ci/preinst, install], path: /var/lib/dpkg/tmp.ci/preinst}
     - {args: [/usr/bin/wc, -l], path: /usr/bin/wc}
     - {args: [/usr/bin/openssl, rehash, .], path: /usr/bin/openssl}
+    - {args: [/usr/bin/dpkg-statoverride, --list, /usr/local/share/ca-certificates], path: /usr/bin/dpkg-statoverride}
+    - {args: [/usr/bin/dpkg-trigger, --no-await, update-ca-certificates], path: /usr/bin/dpkg-trigger}
+    - {args: [/usr/bin/run-parts, --test, --, /etc/ca-certificates/update.d], path: /usr/bin/run-parts}
   identifiedCallStacks: null
   imageID: ""
   imageTag: ""
@@ -4719,6 +4722,7 @@ spec:
     - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-fresh}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-fresh-new}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-new}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NONBLOCK, O_RDONLY], path: /usr/local/share/ca-certificates}
   rulePolicies:
     R0002:
       processAllowed:
