@@ -168,59 +168,6 @@
    "pod": "${RUNNER_PREFIX}%"
   },
   {
-   "name": "recon-docker-daemon-reachable",
-   "rule": "R0001",
-   "class": "discovery",
-   "window": {"before_s": 15, "after_s": 15},
-   "parts": {
-    "E": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'docker'",
-      "minimal": 1
-     }
-    ],
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%run/docker.sock%' AND comm = 'docker'",
-      "minimal": 1
-     }
-    ],
-    "O": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'docker' AND exit_ns > 0",
-      "minimal": 0
-     }
-    ]
-   },
-   "stored": {
-    "dc_snoop": {
-     "source": "",
-     "table": "dc_snoop",
-     "predicate": "comm IN ('sh','docker','head')",
-     "minimal": 0
-    },
-    "forest": {
-     "source": "",
-     "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','docker','head')",
-     "minimal": 0
-    },
-    "stack_trace": {
-     "source": "",
-     "table": "stack_trace",
-     "predicate": "",
-     "minimal": 0
-    }
-   },
-   "pod": "${RUNNER_PREFIX}%"
-  },
-  {
    "name": "recon-hostpath-mounts",
    "rule": "R0002",
    "class": "discovery",
