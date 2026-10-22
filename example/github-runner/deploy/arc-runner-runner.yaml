@@ -4707,6 +4707,16 @@ spec:
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/log/fontconfig.log}
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/php8.3-fpm.log}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/utmp}
+    - {flags: [O_RDONLY], path: /etc/ca-certificates.conf}
+    - {flags: [O_APPEND, O_CREAT, O_NOCTTY, O_RDONLY, O_TRUNC, O_WRONLY], path: /etc/ca-certificates.conf.dpkg-new}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/ca-certificates/update.d}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /etc/ssl/certs/ca-certificates.crt.new}
+    - {flags: [O_RDONLY], path: /usr/sbin/update-ca-certificates}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/sbin/update-ca-certificates.dpkg-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/update-ca-certificates}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-fresh}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-fresh-new}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-new}
   rulePolicies:
     R0002:
       processAllowed:
