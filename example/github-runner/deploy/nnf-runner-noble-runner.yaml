@@ -626,10 +626,7 @@ spec:
     - {args: [/usr/bin/dpkg-split, -Qao, /var/lib/dpkg/reassemble.deb, ⋯], path: /usr/bin/dpkg-split}
     - {args: [/usr/bin/dpkg-statoverride, --list, /var/lib/php/sessions], path: /usr/bin/dpkg-statoverride}
     - {args: [/usr/bin/dpkg-statoverride, --update, --quiet, --add, root, root, ⋯, /var/lib/php/sessions], path: /usr/bin/dpkg-statoverride}
-    - {args: [/usr/bin/dpkg-trigger, --no-await, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders], path: /usr/bin/dpkg-trigger}
-    - {args: [/usr/bin/dpkg-trigger, --no-await, aspell-autobuildhash], path: /usr/bin/dpkg-trigger}
-    - {args: [/usr/bin/dpkg-trigger, --no-await, update-default-ispell], path: /usr/bin/dpkg-trigger}
-    - {args: [/usr/bin/dpkg-trigger, --no-await, update-default-wordlist], path: /usr/bin/dpkg-trigger}
+    - {args: [/usr/bin/dpkg-trigger, --no-await, ⋯], path: /usr/bin/dpkg-trigger}
     - {args: [/usr/bin/echo, ⋯⋯], path: /usr/bin/echo}
     - {args: [/home/runner/_work/_actions/actions/setup-dotnet/⋯/externals/install-dotnet.sh, ⋯⋯], path: /usr/bin/env}
     - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
@@ -2555,6 +2552,13 @@ spec:
     - {args: [/usr/bin/python3, '-', ./target/surefire-reports/TEST-org.jsoup.parser.HtmlParserTest.xml, ./target/surefire-reports/TEST-org.jsoup.nodes.AttributeTest.xml, ./target/surefire-reports/TEST-org.jsoup.parser.XmlTreeBuilderTest.xml, ./target/surefire-reports/TEST-org.jsoup.parser.HtmlTreeBuilderStateTest.xml, ./target/surefire-reports/TEST-org.jsoup.helper.CookieUtilTest.xml, ./target/surefire-reports/TEST-org.jsoup.integration.SafelistExtensionTest.xml, ./target/surefire-reports/TEST-org.jsoup.parser.CharacterReaderTest.xml, ./target/surefire-reports/TEST-org.jsoup.SerializationExceptionTest.xml, ./target/surefire-reports/TEST-org.jsoup.nodes.NodeIteratorTest.xml, ./target/surefire-reports/TEST-org.jsoup.parser.TokeniserStateTest.xml, ./target/surefire-reports/TEST-org.jsoup.nodes.TextNodeTest.xml, ./target/surefire-reports/TEST-org.jsoup.select.XpathTest.xml, ./target/surefire-reports/TEST-org.jsoup.nodes.FormElementTest.xml, ./target/surefire-reports/TEST-org.jsoup.nodes.PrinterTest.xml, ./target/surefire-reports/TEST-org.jsoup.select.TraversorTest.xml, ./target/surefire-reports/TEST-org.jsoup.internal.ControllableInputStreamTest.xml, ./target/surefire-reports/TEST-org.jsoup.helper.ValidateTest.xml, ./target/surefire-reports/TEST-org.jsoup.integration.FuzzFixesTest.xml], path: /usr/bin/python3}
     - {args: [/usr/bin/python3, '-', /home/runner/_work/⋯/⋯/src/reports/junit/MediatR.Tests.xml], path: /usr/bin/python3}
     - {args: [/usr/bin/python3, -m, venv, /home/runner/_work/_temp/⋯], path: /usr/bin/python3}
+    - {args: [/usr/bin/test, -e, /etc/ssl/certs/⋯], path: /usr/bin/test}
+    - {args: [/usr/bin/run-parts, --test, --, /etc/ca-certificates/update.d], path: /usr/bin/run-parts}
+    - {args: [/usr/bin/wc, -l], path: /usr/bin/wc}
+    - {args: [/usr/bin/openssl, rehash, .], path: /usr/bin/openssl}
+    - {args: [/usr/bin/java, -version], path: /usr/lib/jvm/java-21-openjdk-amd64/bin/java}
+    - {args: [/usr/bin/update-alternatives, --install, /usr/bin/lzma, lzma, /usr/bin/xz, "20", --slave, /usr/share/man/man1/lzma.1.gz, lzma.1.gz, /usr/share/man/man1/xz.1.gz, --slave, /usr/bin/unlzma, unlzma, /usr/bin/unxz, --slave, /usr/share/man/man1/unlzma.1.gz, unlzma.1.gz, /usr/share/man/man1/unxz.1.gz, --slave, /usr/bin/lzcat], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/dpkg-statoverride, --list, /usr/local/share/ca-certificates], path: /usr/bin/dpkg-statoverride}
   identifiedCallStacks: null
   imageID: ghcr.io/cncf/external-gha-runner@sha256:0ac1e65d7ac759638c90ab572408782294215b4bf571ab6a4f48adef296d6109
   imageTag: ghcr.io/cncf/external-gha-runner@sha256:0ac1e65d7ac759638c90ab572408782294215b4bf571ab6a4f48adef296d6109
@@ -4737,6 +4741,21 @@ spec:
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/run}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/spool}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /var/tmp}
+    - {flags: [O_RDONLY], path: /etc/ca-certificates.conf}
+    - {flags: [O_APPEND, O_CREAT, O_NOCTTY, O_RDONLY, O_TRUNC, O_WRONLY], path: /etc/ca-certificates.conf.dpkg-new}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/ca-certificates/update.d}
+    - {flags: [O_RDONLY], path: /etc/ca-certificates/update.d/jks-keystore}
+    - {flags: [O_RDONLY], path: /etc/default/cacerts}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /etc/ssl/certs/ca-certificates.crt.new}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NONBLOCK, O_RDONLY], path: /usr/local/share/ca-certificates}
+    - {flags: [O_RDONLY], path: /usr/sbin/update-ca-certificates}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/sbin/update-ca-certificates.dpkg-new}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/lib/ca-certificates-java/pending}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/update-ca-certificates}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-fresh}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-fresh-new}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-java}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/triggers/update-ca-certificates-new}
   rulePolicies:
     R0002:
       processAllowed:
