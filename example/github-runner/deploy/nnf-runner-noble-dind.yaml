@@ -214,6 +214,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker.pid}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker/containerd/containerd.pid}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/docker/runtime-runc/moby/⋯/state.json}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯}
   rulePolicies:
     R0002:
       processAllowed:
