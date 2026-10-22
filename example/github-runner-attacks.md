@@ -33,6 +33,7 @@ The properties that decide which attacks land:
 | **Shai-Hulud** | 2025-11-24 | Worm installing **rogue self-hosted runners** as C2 via intentionally vulnerable workflows | `persist-register-rogue-runner`, `persist-stage-runner-binary`, `c2-beacon-over-https` |
 | **Shai-Hulud Part 2** | 2026 | Forged its own Sigstore signing certificate | `publish-sigstore-fulcio-certificate` |
 | **GHSA-69fq-xp46-6x23** | 2026-03-19 | Trivy — 76 of 77 tags in `trivy-action` force-pushed to credential-stealing malware, all 7 in `setup-trivy` replaced | `publish-force-push-action-tags` |
+| **TeamPCP** (CanisterWorm) | 2026 | Compromised Trivy action: C2 beacon to a typosquat, an ICP canister and a Cloudflare-tunnel domain; `~/.config/systemd/user/sysmon.py` systemd-user persistence; `tpcp.tar.gz` collection archive; backdoor exec carrying C2 IP `45.148.10.212` in argv. The faithful IoC emulation; same advisory the dac-demo talk repo detects with four literal CEL rules | `c2-beacon-over-dns`, `persist-systemd-user-backdoor`, `persist-backdoor-process-exec`, `exfil-stage-archive` |
 | **CVE-2026-34042** | 2026 | `act` < 0.2.86 — built-in `actions/cache` server binds **0.0.0.0** with no access control → cache manipulation → RCE in the workflow container | `cache-unauthenticated-server-probe` |
 | **CVE-2026-34041** | 2026-04-02 | `act` < 0.2.86 — unconditionally reprocesses deprecated `::set-env::` / `::add-path::`, disabled upstream for exactly this reason → env/PATH injection for all later steps | `inject-set-env-workflow-command`, `inject-add-path-hijack`, `inject-github-env-file-write` |
 | **CVE-2025-32955** | 2025 | Harden-Runner `disable-sudo` bypass: with dockerd/containerd socket access, start a privileged container, mount host fs, get root. CVSS 6.0 | `escape-privileged-container-via-socket`, `recon-docker-daemon-reachable` |
@@ -47,12 +48,14 @@ Cache scope is **per-branch**, and `pull_request_target` writes into the **defau
 
 ## Coverage
 
-58 attacks, 90 expected detections, 25 of the 31 rules in `github-runner/rules/default-rules.yaml` expected somewhere. Not expected by any entry:
+62 attacks, 102 expected detections, 25 of the 31 rules in `github-runner/rules/default-rules.yaml` expected somewhere. Not expected by any entry:
 
 - **R0003** Syscalls Anomalies, **R1003** Disallowed ssh, **R1011** ld_preload: `enabled: false` in the ruleset. `inject-set-env-workflow-command` sets `LD_PRELOAD`, so enabling R1011 should make that entry fire too.
 - **R0012** Unexpected Ingress: no entry opens a listener. Clean builds recorded before the current rules did raise R0012 (3 to 4 per build), so it is not inapplicable to runners.
 - **R1000** Process executed from malicious source: needs a known-bad artefact shipped in-repo. Deliberately not added.
 - **R1030** io_uring: `evade-io-uring-sensitive-read` only probes `io_uring_disabled`; it issues no io_uring read, so it raises R0001 and R0002, not R1030.
+
+`exfil-stage-archive` is the one entry with **no** expected profile detection: `tar` writes `tpcp.tar.gz` via `openat2`, which the open tracer does not hook, and `tar` is already in the profile, so the profile stays silent and the step scores as a false negative. Catching it needs a literal CEL rule (the dac-demo talk repo's DAC-0003 does exactly that). This suite deliberately does not change the CEL — the point is what the learned profile catches without rule authoring — so this stands as the demonstrated blind spot. The other three TeamPCP steps are ordinary anomalies: the C2 domains raise R0005/R0011, and the `~/.config/systemd/user/sysmon.py` write and backdoor read raise R0002, with no rule change.
 
 Every entry is expected to alert. The CI-shaped recon entries (`id`, `df`, `env`, the socket check) raise R0001 because no learned build runs those processes. Measured results are in `github-runner/README.md`.
 
