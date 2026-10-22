@@ -42,6 +42,22 @@ harness/score.sh <dataset>
 
 R0005 and R0011 (DNS and egress) count as floor and are reported separately. Set `FLOOR=` to change that.
 
+## Demo and confusion matrix
+
+`harness/demo.sh` runs one clean build and one held build on a bound runner set, replays the suite
+against the held runner, collects both pods' alerts and dx KPI rows, and prints the confusion matrix:
+
+```
+REPO=k8sstormcenter/nnf-community-infra RUNNER=nnf-c-ubuntu-24.04-2-8-x86 \
+CH_USER=… CH_PASSWORD=… KNOWN=R0040:qemu-check harness/demo.sh
+```
+
+`harness/matrix.py <dataset>` scores any dataset the same way. A suite step counts as detected when
+node-agent raised a non-floor alert tagged to it, or when dx scored its suspicion with a witnessed
+verdict. A clean build counts as a false positive on any non-floor alert or witnessed KPI verdict.
+`--known RULE:substring` lists a known engine defect apart instead of scoring it, and
+`--subset harness/teampcp-steps.txt` restricts the steps to the TeamPCP tradecraft.
+
 ## Evidence
 
 k3s-2, node-agent rogue84, runner image `ghcr.io/actions/actions-runner:latest`, 48 clean builds of 14 repositories (cpp, dotnet, go, gradle, maven, helm, terraform, js-npm, js-pnpm, js-yarn, php, python, ruby, rust) plus the node-agent repository's own CI. Replayed against `deploy/` with these rules:

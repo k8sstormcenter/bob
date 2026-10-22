@@ -121,6 +121,22 @@ def chunks(a):
     print(f"{a.pod}: {n_out} chunks")
 
 
+def kpi(a):
+    """dx_kpi_proof summary rows for the pod: one line per scored suspicion, kind and verdict."""
+    rows = clickhouse("SELECT kpi, suspicion, verdict, pc, num, den, measured_at AS t "
+                      "FROM forensic_db.dx_kpi_proof WHERE part = '' "
+                      f"AND scope LIKE '%/{a.pod}' FORMAT JSONEachRow")
+    os.makedirs(a.out, exist_ok=True)
+    n = 0
+    with open(f"{a.out}/.kpi.tmp", "w") as f:
+        for line in rows.splitlines():
+            if line.strip():
+                f.write(line + "\n")
+                n += 1
+    os.replace(f"{a.out}/.kpi.tmp", f"{a.out}/kpi.jsonl")
+    print(f"{a.pod}: {n} kpi rows")
+
+
 def rules_hash(a):
     spec = json.loads(kubectl(["-n", a.rules_namespace, "get", "rules", a.rules_name, "-o", "json"]))["spec"]
     print(hashlib.sha256(json.dumps(spec, sort_keys=True).encode()).hexdigest()[:12])
@@ -141,6 +157,10 @@ def main():
     ch.add_argument("--out", required=True)
     ch.add_argument("-n", "--namespace", default="arc-systems")
     ch.set_defaults(fn=chunks)
+    kp = sub.add_parser("kpi", help="dx KPI summary rows for the pod (kpi.jsonl)")
+    kp.add_argument("--pod", required=True)
+    kp.add_argument("--out", required=True)
+    kp.set_defaults(fn=kpi)
     rh = sub.add_parser("rules-hash", help="sha256[:12] of the live Rules spec, sorted-keys JSON")
     rh.add_argument("--rules-namespace", default="honey")
     rh.add_argument("--rules-name", default="default-rules")
