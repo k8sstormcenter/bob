@@ -81,13 +81,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%\\_work%' AND file LIKE '%.gradle%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%\\_work%' AND file LIKE '%.m2%'",
+      "predicate": "file LIKE '%.gradle%' OR file LIKE '%.m2%'",
       "minimal": 1
      }
     ],
@@ -614,7 +608,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE 'proc/%/environ' AND comm = 'env'",
+      "predicate": "file LIKE '%proc/%/environ%' OR file LIKE '%proc/self/environ%'",
       "minimal": 1
      }
     ]
@@ -694,8 +688,8 @@
     "C": [
      {
       "source": "wire",
-      "table": "conn_stats",
-      "predicate": "remote_addr = '169.254.169.254'",
+      "table": "http_events",
+      "predicate": "req_path ILIKE '%computeMetadata%' OR remote_addr = '169.254.169.254'",
       "minimal": 1
      }
     ],
@@ -710,9 +704,9 @@
     "O": [
      {
       "source": "wire",
-      "table": "conn_stats",
-      "predicate": "remote_addr = '169.254.169.254' AND bytes_sent > 0",
-      "minimal": 0
+      "table": "http_events",
+      "predicate": "remote_addr = '169.254.169.254'",
+      "minimal": 1
      }
     ]
    },
@@ -2181,16 +2175,16 @@
      {
       "source": "wire",
       "table": "dns_events",
-      "predicate": "req_body ILIKE '%enterprises/cncf/actions/runners/registration-token%'",
+      "predicate": "req_body ILIKE '%api.github.com%'",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('curl','wget') AND exit_ns > 0",
-      "minimal": 0
+      "source": "wire",
+      "table": "conn_stats",
+      "predicate": "remote_port = 443 AND bytes_sent > 0",
+      "minimal": 1
      }
     ]
    },
@@ -2335,16 +2329,16 @@
      {
       "source": "wire",
       "table": "dns_events",
-      "predicate": "req_body ILIKE '%api.github.com/zen%'",
+      "predicate": "req_body ILIKE '%api.github.com%'",
       "minimal": 1
      }
     ],
     "O": [
      {
       "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%api.github.com/zen%'",
-      "minimal": 0
+      "table": "conn_stats",
+      "predicate": "remote_port = 443 AND bytes_sent > 0",
+      "minimal": 1
      }
     ]
    },
@@ -2644,16 +2638,16 @@
      {
       "source": "wire",
       "table": "dns_events",
-      "predicate": "req_body ILIKE '%cncf/automation%'",
+      "predicate": "req_body ILIKE '%codeload.github.com%'",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'git' AND exit_ns > 0",
-      "minimal": 0
+      "source": "wire",
+      "table": "conn_stats",
+      "predicate": "remote_port = 443 AND bytes_sent > 0",
+      "minimal": 1
      }
     ]
    },
