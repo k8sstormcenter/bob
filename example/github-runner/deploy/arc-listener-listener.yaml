@@ -1,0 +1,46 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: arc-listener-listener
+  namespace: arc-systems
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress:
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
+  endpoints: null
+  execs:
+    - {args: [/ghalistener], path: /ghalistener}
+    - {args: [/pause], path: /pause}
+  identifiedCallStacks: null
+  imageID: ghcr.io/actions/gha-runner-scale-set-controller@sha256:162dfb5bfbda9e7e49fbed67d428994c9ced55b41a37a18b75b46dab0aa98d37
+  imageTag: ghcr.io/actions/gha-runner-scale-set-controller:0.15.0
+  ingress: null
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token}
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0006:
+      processAllowed:
+        - ghalistener
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

@@ -1,0 +1,547 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: arc-runner
+  name: arc-runner-overlay-rust
+  namespace: arc-systems
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_AUDIT_WRITE
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_FOWNER
+    - CAP_FSETID
+    - CAP_IPC_LOCK
+    - CAP_KILL
+    - CAP_NET_ADMIN
+    - CAP_SETGID
+    - CAP_SETUID
+    - CAP_SYS_RESOURCE
+  egress:
+    - {dns: _http._tcp.archive.ubuntu.com., dnsNames: [_http._tcp.archive.ubuntu.com.], identifier: 977dfb5c4fbc80d846efc971520759498b93e9366f9daa3cffb241cc06ba605f, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
+    - {dns: _http._tcp.archive.ubuntu.com., dnsNames: [_http._tcp.archive.ubuntu.com.], identifier: 8a49c74e9a67c882bfa43bc54433034b611ec07a7ccbe95855bac981665dd7d6, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: codeload.github.com., dnsNames: [codeload.github.com.], identifier: 6e9082fe6ae389ff3c6d1ac008b0f108648436d3aa5bb0de8535c2578ed7b69a, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: index.crates.io., dnsNames: [index.crates.io.], identifier: 481860024b3b1786abb14cacee02b30799de755bf04dabb94f4d260c5cf27568, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: index.crates.io., dnsNames: [index.crates.io.], identifier: 8207b1f7c568aba9c016532a9a0e16e45d9ad16b0d26ca7ac87d7e2e178bf535, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: index.crates.io., dnsNames: [index.crates.io.], identifier: 1ac13c224ef9d6f6c513df94897f186f306bd5d731b4066722143b03ecec3e99, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: launch.actions.githubusercontent.com., dnsNames: [launch.actions.githubusercontent.com.], identifier: 02af45f7f50ace1ea55889e4c289c5372c1f597bc323827aca1a3bc27ec3ca62, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ppa.launchpadcontent.net., dnsNames: [ppa.launchpadcontent.net.], identifier: 88ec815bb1fa781f8ae6db4fbfe18149d610b8245b4b48dbc566c8d70d842d96, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa13.blob.core.windows.net., dnsNames: [productionresultssa13.blob.core.windows.net.], identifier: 5ac06f52cebb1a839501367b7dc8506b1e9b9b4dc45dc83adb50a2e93ea517af, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa13.blob.core.windows.net., dnsNames: [productionresultssa13.blob.core.windows.net.], identifier: a2834630a875d3add1a55390160440622b1d67ca476851134d16bd289d7a292b, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa13.blob.core.windows.net., dnsNames: [productionresultssa13.blob.core.windows.net.], identifier: 6bc7b4060e0e84e2865847e300f5e44075263d94a99f17ce1740c327c53c280b, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: a03f1d3059bf75bc3ae047bb95a30aa869d83a2578818a7b22f9f588b8ea19c9, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: eb78f92477b5e7af8e9e81bbe8ff3fbbe03d70c1aeb5445c3acfd2aeddeea8c4, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: productionresultssa16.blob.core.windows.net., dnsNames: [productionresultssa16.blob.core.windows.net.], identifier: 65d28e4f492b66622ea02624573c4fbfe7d8032d03618a8f25732c299cca132f, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c4c7c3ffbdf29d685a6a8017c1cd4177740b8ffa457ec08485c0d7cde374fefd, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: release-assets.githubusercontent.com., dnsNames: [release-assets.githubusercontent.com.], identifier: c0f55cf46b0842a93d323381a0916e63fcc8c3ca0cd4faacf25e152a9cddd6a9, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: run-actions-3-azure-eastus.actions.githubusercontent.com., dnsNames: [run-actions-3-azure-eastus.actions.githubusercontent.com.], identifier: 5face5a7ca6a6d89f6f127c61a39945146856be2025f928952fed0fac449bf30, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: security.ubuntu.com., dnsNames: [security.ubuntu.com.], identifier: b417b155b21fde53194733dd8fac4220f26dfe7d257315198bf3e7565207e443, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
+    - {dns: security.ubuntu.com., dnsNames: [security.ubuntu.com.], identifier: ffc0603902b47086afd1f1f9a980f1d59c34cc412a646acc1fde1f88452258fb, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: external}
+    - {dns: sh.rustup.rs., dnsNames: [sh.rustup.rs.], identifier: 8b65edc3c4e0424c37e79e032c45293a0c1e2e997c1f1d03c27844199c77d02e, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: static.rust-lang.org., dnsNames: [static.rust-lang.org.], identifier: afb4a23ce29161fc08d76b68a707d6f27f932afb1b1046c4a8d2b3514292b509, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: static.rust-lang.org., dnsNames: [static.rust-lang.org.], identifier: 1e8a1a680f6f73eec5af41736c0b0607a09217a94d2590a2bb85b55788f87c4b, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: static.rust-lang.org., dnsNames: [static.rust-lang.org.], identifier: 289a78b0fdae7a31f3623874052a0efb267e76788390e3797829257e582b6f9e, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: token.actions.githubusercontent.com., dnsNames: [token.actions.githubusercontent.com.], identifier: 9d2a54aa72e1fdbf6101722d3d026787bad5e5ebf55115bf7a61dbbab634f2aa, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+  endpoints: null
+  execs:
+    - {args: [/bin/echo, ⋯⋯], path: /bin/echo}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
+    - {args: [/bin/sh, -c, --, rm -f /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin || true], path: /bin/sh}
+    - {args: [/bin/sh, -c, /usr/sbin/dpkg-preconfigure --apt || true], path: /bin/sh}
+    - {args: [/bin/sh, -eu, /home/runner/_work/_temp/⋯], path: /bin/sh}
+    - {args: [/home/runner/.cargo/bin/cargo, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo-clippy, ⋯⋯], path: /home/runner/.cargo/bin/cargo-clippy}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, '-', --crate-name, ___, --print=file-names, --crate-type, bin, --crate-type, rlib, --crate-type, dylib, --crate-type, cdylib, --crate-type, staticlib, --crate-type, proc-macro, --print=sysroot, --print=split-debuginfo], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, '-', --crate-name, ___, --print=file-names, --target, x86_64-unknown-linux-gnu, --crate-type, bin, --crate-type, rlib, --crate-type, dylib, --crate-type, cdylib, --crate-type, staticlib, --crate-type, proc-macro], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, itoa, --edition=2018, src/lib.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', --crate-type, lib, '--emit=dep-info,metadata,link', -C, embed-bitcode=no, -C, debuginfo=2, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, itoa, --edition=2018, src/lib.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', '--emit=dep-info,link', -C, embed-bitcode=no, -C, debuginfo=2, --test, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C, ⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, test, --edition=2018, tests/test.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', '--emit=dep-info,link', -C, embed-bitcode=no, -C, debuginfo=2, --test, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C, ⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, -vV], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, llvm-cov, --version], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, llvm-cov, nextest, --profile, ci, --cobertura, --output-path, /home/runner/_work/node-agent/node-agent/src/reports/coverage.xml], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-nextest, ⋯⋯], path: /home/runner/.cargo/bin/cargo-nextest}
+    - {args: [/proc/self/exe, ⋯⋯], path: /home/runner/.cargo/bin/cargo-nextest}
+    - {args: [/home/runner/.cargo/bin/rustc, ⋯⋯], path: /home/runner/.cargo/bin/rustc}
+    - {args: [/home/runner/.cargo/bin/cargo, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/cargo-clippy, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustc, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.local/bin/trivy-bin/trivy, fs, src], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, build, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, check, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, clean, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, clippy, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, fetch, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, llvm-cov, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, locate-project, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, metadata, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, nextest, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, package, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo, ⋯⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo-clippy, clippy, --lib, --tests, --, -W, 'clippy::all'], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo-clippy}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, '-', --crate-name, ___, --print=file-names, --crate-type, bin, --crate-type, rlib, --crate-type, dylib, --crate-type, cdylib, --crate-type, staticlib, --crate-type, proc-macro, --print=sysroot, --print=split-debuginfo], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, itoa, --edition=2018, src/lib.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', --crate-type, lib, '--emit=dep-info,metadata', -C, embed-bitcode=no, -C, debuginfo=2, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, itoa, --edition=2018, src/lib.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', '--emit=dep-info,metadata', -C, embed-bitcode=no, -C, debuginfo=2, --test, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C, ⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, test, --edition=2018, tests/test.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', '--emit=dep-info,metadata', -C, embed-bitcode=no, -C, debuginfo=2, --test, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C, ⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver, /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, -vV], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, '-', --crate-name, ___, --print=file-names, --crate-type, bin, --crate-type, rlib, --crate-type, dylib, --crate-type, cdylib, --crate-type, staticlib, --crate-type, proc-macro, --print=sysroot, --print=split-debuginfo, --print=crate-name], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, '-', --crate-name, ___, --print=file-names, --target, x86_64-unknown-linux-gnu, --crate-type, bin, --crate-type, rlib, --crate-type, dylib, --crate-type, cdylib, --crate-type, staticlib, --crate-type, proc-macro, --print=sysroot], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, itoa, --edition=2018, src/lib.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', --crate-type, lib, '--emit=dep-info,metadata,link', -C, embed-bitcode=no, -C, debuginfo=2, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C, ⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, itoa, --edition=2018, src/lib.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', '--emit=dep-info,link', -C, embed-bitcode=no, -C, debuginfo=2, --test, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C, ⋯, -C], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --crate-name, test, --edition=2018, tests/test.rs, --error-format=json, '--json=diagnostic-rendered-ansi,artifacts,future-incompat', '--emit=dep-info,link', -C, embed-bitcode=no, -C, debuginfo=2, --test, --check-cfg, 'cfg(docsrs,test)', --check-cfg, 'cfg(feature, values("no-panic"))', -C, ⋯, -C], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --print, cfg, --target, x86_64-unknown-linux-gnu], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --print, target-libdir], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --version], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, --version, --verbose], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, -C, help], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc, -vV], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld/ld.lld, -plugin, /usr/libexec/gcc/x86_64-linux-gnu/⋯/liblto_plugin.so, -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/⋯/lto-wrapper, ⋯, --build-id, --eh-frame-hdr, -m, elf_x86_64, --hash-style=gnu, --as-needed, -dynamic-linker, /lib64/ld-linux-x86-64.so.2, -pie, -z, now, -z, relro, -o, /home/runner/_work/node-agent/node-agent/src/target/debug/deps/⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld/ld.lld}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld/ld.lld, -plugin, /usr/libexec/gcc/x86_64-linux-gnu/⋯/liblto_plugin.so, -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/⋯/lto-wrapper, ⋯, --build-id, --eh-frame-hdr, -m, elf_x86_64, --hash-style=gnu, --as-needed, -dynamic-linker, /lib64/ld-linux-x86-64.so.2, -pie, -z, now, -z, relro, -o, /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/⋯], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld/ld.lld}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-cov, export, -format=lcov, -use-color=0, -instr-profile=/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/src.profdata, -object, target/llvm-cov-target/debug/deps/⋯, -object, target/llvm-cov-target/debug/deps/⋯, -ignore-filename-regex, '/rustc/⋯/|^/home/runner/_work/node\-agent/node\-agent/src(/.*)?/(tests|examples|benches)/|^/home/runner/_work/node\-agent/node\-agent/src(/.*)?/(tests\.rs|[0-9a-zA-Z_-]+[_-]tests\.rs)$|^/home/runner/_work/node\-agent/node\'], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-cov}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata, merge, -sparse, -f, /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/src-profraw-list, -o, /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/src.profdata], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata}
+    - {args: [/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld, -flavor, gnu, -plugin, /usr/libexec/gcc/x86_64-linux-gnu/⋯/liblto_plugin.so, -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/⋯/lto-wrapper, ⋯, --build-id, --eh-frame-hdr, -m, elf_x86_64, --hash-style=gnu, --as-needed, -dynamic-linker, /lib64/ld-linux-x86-64.so.2, -pie, -z, now, -z, relro], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/itoa-37ff0035d9aa4b5b, --list, --format, terse], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/itoa-37ff0035d9aa4b5b}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/itoa-37ff0035d9aa4b5b, --list, --format, terse, --ignored], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/itoa-37ff0035d9aa4b5b}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_i128_max, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_i128_min, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_i16_0, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_i16_min, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_i64_min, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_u128_0, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_u128_max, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_u64_0, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_u64_half, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --exact, test_u64_max, --nocapture], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --list, --format, terse], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601, --list, --format, terse, --ignored], path: /home/runner/_work/node-agent/node-agent/src/target/llvm-cov-target/debug/deps/test-f25ab0a2ab930601}
+    - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/restore/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/checkout/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-entry.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/bin/hashFiles], path: /home/runner/externals/node24/bin/node}
+    - {args: [/proc/self/exe, ⋯⋯], path: /proc/self/exe}
+    - {args: [/sbin/ldconfig.real, -r, /], path: /sbin/ldconfig.real}
+    - {args: [/tmp/⋯/rustup-init, --default-toolchain, none, -y], path: /tmp/⋯/rustup-init}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/awk, ⋯⋯], path: /usr/bin/awk}
+    - {args: [/usr/bin/base64, -d], path: /usr/bin/base64}
+    - {args: [/usr/bin/basename, ⋯⋯], path: /usr/bin/basename}
+    - {args: [/usr/bin/bash, --noprofile, --norc, /home/runner/_work/_actions/taiki-e/install-action/⋯/main.sh], path: /usr/bin/bash}
+    - {args: [/usr/bin/bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
+    - {args: [/usr/bin/ldd, --version], path: /usr/bin/bash}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/cc}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/cc}
+    - {args: [/usr/bin/curl, --help], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --help, all], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --proto, =https, ⋯, --retry, ⋯, --retry-connrefused, --location, --silent, --show-error, --fail, 'https://sh.rustup.rs'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --proto, =https, ⋯, -fsSL, --retry, ⋯, -o, tmp, 'https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.148/cargo-nextest-0.9.148-x86_64-unknown-linux-gnu.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --proto, =https, ⋯, -fsSL, --retry, ⋯, -o, tmp, 'https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.9.1/cargo-llvm-cov-x86_64-unknown-linux-musl.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --retry, ⋯, -C, '-', --proto, =https, ⋯, --ciphers, 'TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384', --silent, --show-error, --fail, --location, 'https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init', --output, /tmp/⋯/rustup-init], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -V], path: /usr/bin/curl}
+    - {args: [/usr/bin/cut, ⋯⋯], path: /usr/bin/cut}
+    - {path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, rm -f /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin || true], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, /usr/sbin/dpkg-preconfigure --apt || true], path: /usr/bin/dash}
+    - {args: [/bin/sh, -eu, /home/runner/_work/_temp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, dir_to_symlink, /usr/share/doc/cpp, cpp-x86-64-linux-gnu, ⋯, cpp, --, configure], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, dir_to_symlink, /usr/share/doc/cpp, cpp-x86-64-linux-gnu, ⋯, cpp, --, install], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, symlink_to_dir, /usr/share/doc/libcrypt-dev, libcrypt1, '1:4.4.27-1.1~', --, configure], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, symlink_to_dir, /usr/share/doc/libcrypt-dev, libcrypt1, '1:4.4.27-1.1~', --, install], path: /usr/bin/dash}
+    - {args: [/usr/bin/sh, -s, --, --default-toolchain, none, -y], path: /usr/bin/dash}
+    - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/bin/dash}
+    - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/bin/dash}
+    - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/bin/dash}
+    - {args: [/usr/sbin/ldconfig, -r, /], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/cpp.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/g++.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/gcc.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/libc-bin.postinst, triggered, ldconfig], path: /usr/bin/dash}
+    - {args: ['/var/lib/dpkg/info/libcrypt-dev:amd64.postinst', configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/python3.12-venv.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/tmp.ci/preinst, install], path: /usr/bin/dash}
+    - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
+    - {args: [/usr/bin/docker, ps], path: /usr/bin/docker}
+    - {args: [/usr/bin/dpkg-deb, ⋯⋯], path: /usr/bin/dpkg-deb}
+    - {args: [/usr/bin/dpkg-maintscript-helper, dir_to_symlink, /usr/share/doc/cpp, cpp-x86-64-linux-gnu, ⋯, cpp, --, configure], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, dir_to_symlink, /usr/share/doc/cpp, cpp-x86-64-linux-gnu, ⋯, cpp, --, install], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, symlink_to_dir, /usr/share/doc/libcrypt-dev, libcrypt1, '1:4.4.27-1.1~', --, configure], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, symlink_to_dir, /usr/share/doc/libcrypt-dev, libcrypt1, '1:4.4.27-1.1~', --, install], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-split, -Qao, /var/lib/dpkg/reassemble.deb, ⋯], path: /usr/bin/dpkg-split}
+    - {args: [/bin/echo, ⋯⋯], path: /usr/bin/echo}
+    - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/env, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/gcc}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/gcc}
+    - {args: [/usr/bin/getconf, LONG_BIT], path: /usr/bin/getconf}
+    - {args: [/usr/bin/getopt, ⋯⋯], path: /usr/bin/getopt}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, '+refs/heads/1.0.11*:refs/remotes/origin/1.0.11*', '+refs/tags/1.0.11*:refs/tags/1.0.11*'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, branch, --list, --remote, origin/1.0.11], path: /usr/bin/git}
+    - {args: [/usr/bin/git, checkout, --progress, --force, refs/tags/1.0.11], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --global, --add, safe.directory, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --name-only, --get-regexp, '^includeIf\.gitdir:'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --name-only, --get-regexp, core\.sshCommand], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --name-only, --get-regexp, 'http\.https\:\/\/github\.com\/\.extraheader'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, --unset-all, extensions.worktreeConfig], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, gc.auto, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, --local, 'http.https://github.com/.extraheader', 'AUTHORIZATION: basic ***'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, init, /home/runner/_work/node-agent/node-agent/src], path: /usr/bin/git}
+    - {args: [/usr/bin/git, log, "-1"], path: /usr/bin/git}
+    - {args: [/usr/bin/git, log, "-1", --format=%H], path: /usr/bin/git}
+    - {args: [/usr/bin/git, remote, add, origin, 'https://github.com/dtolnay/itoa'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, rev-parse, HEAD], path: /usr/bin/git}
+    - {args: [/usr/bin/git, sparse-checkout, disable], path: /usr/bin/git}
+    - {args: [/usr/bin/git, submodule, foreach, --recursive, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/bin/git}
+    - {args: [/usr/bin/git, submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/bin/git}
+    - {args: [/usr/bin/git, tag, --list, 1.0.11], path: /usr/bin/git}
+    - {args: [/usr/bin/git, version], path: /usr/bin/git}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, /tmp/⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, /tmp/⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, /tmp/⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, /tmp/⋯], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpgconf, --kill, all], path: /usr/bin/gpgconf}
+    - {args: [/usr/bin/gpgv, ⋯⋯], path: /usr/bin/gpgv}
+    - {args: [/usr/bin/grep, ⋯⋯], path: /usr/bin/grep}
+    - {args: [/usr/bin/gzip, ⋯⋯], path: /usr/bin/gzip}
+    - {args: [/usr/bin/head, ⋯⋯], path: /usr/bin/head}
+    - {args: [/usr/bin/ischroot, -t], path: /usr/bin/ischroot}
+    - {args: [/usr/bin/jq, -c, --arg, p, x86_64_linux_gnu, '.template[$p]', /home/runner/_work/_actions/taiki-e/install-action/⋯/manifests/cargo-nextest.json], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -c, --arg, p, x86_64_linux_musl, '.template[$p]', /home/runner/_work/_actions/taiki-e/install-action/⋯/manifests/cargo-llvm-cov.json], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, --arg, p, ⋯, '.[$p]'], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, --arg, version, 0.9.1, '.[$version]', /home/runner/_work/_actions/taiki-e/install-action/⋯/manifests/cargo-llvm-cov.json], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, --arg, version, 0.9.148, '.[$version]', /home/runner/_work/_actions/taiki-e/install-action/⋯/manifests/cargo-nextest.json], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, --arg, version, latest, '.[$version]', ⋯], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, .bin], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, .hash], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, .rust_crate, ⋯], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, .url], path: /usr/bin/jq}
+    - {args: [/usr/bin/jq, -r, .version], path: /usr/bin/jq}
+    - {args: [/usr/bin/ldd, --version], path: /usr/bin/ldd}
+    - {args: [/usr/bin/ls, ⋯⋯], path: /usr/bin/ls}
+    - {args: [/usr/bin/awk, ⋯⋯], path: /usr/bin/mawk}
+    - {args: [/usr/bin/mktemp, ⋯⋯], path: /usr/bin/mktemp}
+    - {args: [/usr/bin/mv, ⋯⋯], path: /usr/bin/mv}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, -E, -S, /usr/lib/python3.12/py_compile.py, /usr/lib/python3.12/ensurepip/__init__.py, /usr/lib/python3.12/ensurepip/__main__.py, /usr/lib/python3.12/ensurepip/_uninstall.py], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/rm}
+    - {args: [/usr/bin/rmdir, ⋯⋯], path: /usr/bin/rmdir}
+    - {args: [/usr/bin/sed, ⋯⋯], path: /usr/bin/sed}
+    - {args: [/usr/bin/sh, -s, --, --default-toolchain, none, -y], path: /usr/bin/sh}
+    - {args: [/usr/bin/sha256sum, ⋯⋯], path: /usr/bin/sha256sum}
+    - {args: [/usr/bin/sort, ⋯⋯], path: /usr/bin/sort}
+    - {args: [/usr/bin/sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [/usr/bin/tail, ⋯⋯], path: /usr/bin/tail}
+    - {args: [/usr/bin/tar, ⋯⋯], path: /usr/bin/tar}
+    - {args: [/usr/bin/tee, ⋯⋯], path: /usr/bin/tee}
+    - {args: [tee, ⋯⋯], path: /usr/bin/tee}
+    - {args: [/usr/bin/test, ⋯⋯], path: /usr/bin/test}
+    - {args: [/usr/bin/touch, ⋯⋯], path: /usr/bin/touch}
+    - {args: [/usr/bin/tr, ⋯⋯], path: /usr/bin/tr}
+    - {args: [/usr/bin/uname, ⋯⋯], path: /usr/bin/uname}
+    - {args: [/usr/bin/update-alternatives, --install, /usr/bin/c++, c++, /usr/bin/g++, ⋯, --slave, /usr/share/man/man1/⋯, ⋯, /usr/share/man/man1/g++.1.gz], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/update-alternatives, --install, /usr/bin/lzma, lzma, /usr/bin/xz, ⋯, --slave, /usr/share/man/man1/lzma.1.gz, lzma.1.gz, /usr/share/man/man1/xz.1.gz, --slave, /usr/bin/unlzma, unlzma, /usr/bin/unxz, --slave, /usr/share/man/man1/unlzma.1.gz, unlzma.1.gz, /usr/share/man/man1/unxz.1.gz, --slave, /usr/bin/lzcat], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/update-alternatives, --quiet, --install, /lib/cpp, cpp, /usr/bin/cpp, ⋯], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/update-alternatives, --quiet, --install, /usr/bin/c89, c89, /usr/bin/c89-gcc, ⋯, --slave, /usr/share/man/man1/⋯, ⋯, /usr/share/man/man1/⋯], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/update-alternatives, --quiet, --install, /usr/bin/c99, c99, /usr/bin/c99-gcc, ⋯, --slave, /usr/share/man/man1/⋯, ⋯, /usr/share/man/man1/⋯], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/update-alternatives, --quiet, --install, /usr/bin/cc, cc, /usr/bin/gcc, ⋯, --slave, /usr/share/man/man1/cc.1.gz, cc.1.gz, /usr/share/man/man1/gcc.1.gz], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [/usr/lib/apt/methods/gpgv, ⋯⋯], path: /usr/lib/apt/methods/gpgv}
+    - {args: [/usr/lib/apt/methods/http, ⋯⋯], path: /usr/lib/apt/methods/http}
+    - {args: [/usr/lib/apt/methods/https, ⋯⋯], path: /usr/lib/apt/methods/http}
+    - {args: [/usr/lib/apt/methods/https, ⋯⋯], path: /usr/lib/apt/methods/https}
+    - {args: [/usr/lib/apt/methods/store], path: /usr/lib/apt/methods/store}
+    - {args: [/usr/lib/git-core/git, --exec-path], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, rev-list, --objects, --stdin, --quiet, --alternate-refs], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/node-agent/node-agent/src/.git/shallow.lock, unpack-objects, -q, '--pack_header=2,28'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/dtolnay/itoa'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-dir], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-path, objects], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --is-inside-work-tree], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-prefix], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-toplevel], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, --variables, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/dtolnay/itoa'], path: /usr/lib/git-core/git-remote-http}
+    - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/dtolnay/itoa'], path: /usr/lib/git-core/git-remote-https}
+    - {args: [/usr/lib/git-core/git-sh-i18n--envsubst, --variables, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git-sh-i18n--envsubst}
+    - {args: [/usr/lib/git-core/git-sh-i18n--envsubst, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git-sh-i18n--envsubst}
+    - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/lib/git-core/git-submodule}
+    - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/lib/git-core/git-submodule}
+    - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/lib/git-core/git-submodule}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2}
+    - {args: [/usr/sbin/dpkg-preconfigure, --apt], path: /usr/sbin/dpkg-preconfigure}
+    - {args: [/usr/sbin/ldconfig, -r, /], path: /usr/sbin/ldconfig}
+    - {args: [/sbin/ldconfig.real, -r, /], path: /usr/sbin/ldconfig.real}
+    - {args: [/var/lib/dpkg/info/cpp.postinst, configure], path: /var/lib/dpkg/info/cpp.postinst}
+    - {args: [/var/lib/dpkg/info/g++.postinst, configure], path: /var/lib/dpkg/info/g++.postinst}
+    - {args: [/var/lib/dpkg/info/gcc.postinst, configure], path: /var/lib/dpkg/info/gcc.postinst}
+    - {args: [/var/lib/dpkg/info/libc-bin.postinst, triggered, ldconfig], path: /var/lib/dpkg/info/libc-bin.postinst}
+    - {args: ['/var/lib/dpkg/info/libcrypt-dev:amd64.postinst', configure], path: '/var/lib/dpkg/info/libcrypt-dev:amd64.postinst'}
+    - {args: [/var/lib/dpkg/info/python3.12-venv.postinst, configure], path: /var/lib/dpkg/info/python3.12-venv.postinst}
+    - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure], path: /var/lib/dpkg/info/xz-utils.postinst}
+    - {args: [/var/lib/dpkg/tmp.ci/preinst, install], path: /var/lib/dpkg/tmp.ci/preinst}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.cargo/config}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_WRONLY], path: /dev/fd/⋯}
+    - {flags: [O_NOCTTY, O_RDWR], path: /dev/pts/ptmx}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDWR], path: /dev/pts/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apt/apt.conf.d}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/01-vendor-ubuntu}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/01autoremove}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/20packagekit}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/70debconf}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/docker-autoremove-suggests}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/docker-clean}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/docker-disable-periodic-update}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/docker-gzip-indexes}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/docker-no-languages}
+    - {flags: [O_RDONLY], path: /etc/apt/auth.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apt/auth.conf.d}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apt/preferences.d}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/sources.list}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apt/sources.list.d}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/sources.list.d/git-core-ubuntu-ppa-noble.sources}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/sources.list.d/ubuntu.sources}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/debconf.conf}
+    - {flags: [O_RDONLY], path: /etc/dpkg/dpkg.cfg}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/dpkg/dpkg.cfg.d}
+    - {flags: [O_RDONLY], path: /etc/dpkg/dpkg.cfg.d/docker-apt-speedup}
+    - {flags: [O_RDONLY], path: /etc/dpkg/dpkg.cfg.d/excludes}
+    - {flags: [O_RDONLY], path: /etc/dpkg/shlibs.default}
+    - {flags: [O_RDONLY], path: /etc/dpkg/shlibs.override}
+    - {flags: [O_RDONLY], path: /etc/environment}
+    - {flags: [O_RDONLY], path: /etc/gcrypt/hwf.deny}
+    - {flags: [O_RDONLY], path: /etc/gitattributes}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gitconfig}
+    - {flags: [O_RDONLY], path: /etc/gnupg/common.conf}
+    - {flags: [O_RDONLY], path: /etc/gprofng.rc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group}
+    - {flags: [O_CREAT, O_NOFOLLOW, O_TRUNC, O_WRONLY], path: /etc/ld.so.cache~}
+    - {flags: [O_RDONLY], path: /etc/ld.so.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/ld.so.conf.d}
+    - {flags: [O_RDONLY], path: /etc/ld.so.conf.d/libc.conf}
+    - {flags: [O_RDONLY], path: /etc/ld.so.conf.d/x86_64-linux-gnu.conf}
+    - {flags: [O_RDONLY], path: /etc/ldap/ldap.conf}
+    - {flags: [O_RDONLY], path: /etc/locale.conf}
+    - {flags: [O_RDONLY], path: /etc/login.defs}
+    - {flags: [O_RDONLY], path: /etc/mailname}
+    - {flags: [O_RDONLY], path: /etc/netsvc.conf}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-account}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-auth}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-password}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-session}
+    - {flags: [O_RDONLY], path: /etc/pam.d/common-session-noninteractive}
+    - {flags: [O_RDONLY], path: /etc/pam.d/other}
+    - {flags: [O_RDONLY], path: /etc/pam.d/sudo}
+    - {flags: [O_NOCTTY, O_RDONLY], path: /etc/python/debian_config}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/rustup/settings.toml}
+    - {flags: [O_RDONLY], path: /etc/security/limits.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/security/limits.d}
+    - {flags: [O_RDONLY], path: /etc/security/pam_env.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/shadow}
+    - {flags: [O_NONBLOCK, O_RDONLY], path: /etc/sudo.conf}
+    - {flags: [O_NONBLOCK, O_RDONLY], path: /etc/sudoers}
+    - {flags: [O_RDONLY], path: /etc/svc.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/.cargo/config}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/package.json}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.bashrc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo}
+    - {flags: [O_CLOEXEC, O_CREAT, O_NOFOLLOW, O_RDWR], path: /home/runner/.cargo/.global-cache}
+    - {flags: [O_CLOEXEC, O_CREAT, O_NOFOLLOW, O_RDWR], path: /home/runner/.cargo/.global-cache-journal}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /home/runner/.cargo/.package-cache}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /home/runner/.cargo/.package-cache-mutate}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.cargo/bin}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/cargo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/cargo-clippy}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/cargo-fmt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/cargo-miri}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/clippy-driver}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/rls}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/rust-analyzer}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/rust-gdb}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/rust-gdbgui}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/rust-lldb}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/rustc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/rustdoc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/bin/rustfmt}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.cargo/bin/rustup}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.cargo/config}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.cargo/env}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /home/runner/.cargo/registry/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/git/attributes}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/git/config}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/git/ignore}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.config/nextest/config.toml}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.gitconfig}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.install-action}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.install-action/tmp}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.install-action/tmp/cargo-llvm-cov}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.install-action/tmp/cargo-nextest}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.install-action/tmp/tmp}
+    - {flags: [O_RDONLY], path: /home/runner/.ldaprc}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.local/bin/trivy-bin}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/Trivy.gitlab-ci.yml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/asff.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab-codequality.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/gitlab.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/html.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/install.sh}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/contrib/junit.tpl}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.profile}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.rustup/downloads/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR], path: /home/runner/.rustup/settings.toml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_NOCTTY, O_NOFOLLOW, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/tmp/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/glibc-hwcaps/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/libLLVM.so.23.1-rust-1.99.0-stable}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/libc.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/libdl.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/libgcc_s.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/libpthread.so.0}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/librt.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/libz.so.1}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/components}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/manifest-cargo-x86_64-unknown-linux-gnu}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/manifest-clippy-preview-x86_64-unknown-linux-gnu}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/manifest-llvm-tools-preview-x86_64-unknown-linux-gnu}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/manifest-rust-std-x86_64-unknown-linux-gnu}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/manifest-rustc-x86_64-unknown-linux-gnu}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/multirust-channel-manifest.toml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/multirust-config.toml}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/rust-installer-version}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/lib/glibc-hwcaps/⋯/libgcc_s.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/lib/libgcc_s.so.1}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/lib/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/x86_64-unknown-linux-gnu/glibc-hwcaps/⋯/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/x86_64-unknown-linux-gnu/glibc-hwcaps/⋯/librt.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/x86_64-unknown-linux-gnu/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/x86_64-unknown-linux-gnu/librt.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/⋯}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /home/runner/.rustup/update-hashes/stable-x86_64-unknown-linux-gnu}
+    - {flags: [O_CREAT, O_EXCL, O_NONBLOCK, O_WRONLY], path: /home/runner/.sudo_as_admin_successful}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /home/runner/.trivy/plugins}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/⋯/index.js}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/bin/⋯/package.json}
+    - {flags: [O_RDONLY], path: /home/runner/externals/node24/bin/node}
+    - {flags: [O_RDONLY], path: /home/runner/ldaprc}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/package.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/rust-toolchain}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/rust-toolchain.toml}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/rust-toolchain}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/rust-toolchain.toml}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /lib/glibc-hwcaps}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libnss_db.so.2}
+    - {flags: [O_RDONLY], path: /nonexistent/.dpkg.cfg}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo}
+    - {flags: [O_RDONLY], path: /proc/sys/kernel/cap_last_cap}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/ngroups_max}
+    - {flags: [O_RDONLY], path: /proc/sys/kernel/seccomp/actions_avail}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/version_signature}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /proc/⋯/fd}
+    - {flags: [O_RDONLY], path: /proc/⋯/limits}
+    - {flags: [O_RDONLY], path: /proc/⋯/loginuid}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/statm}
+    - {flags: [O_RDONLY], path: /root/.dpkg.cfg}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /rust-toolchain}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /rust-toolchain.toml}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_EXCL, O_RDWR], path: /tmp}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*}
+    - {flags: [O_CREAT, O_EXCL, O_NOCTTY, O_RDONLY, O_WRONLY], path: /usr/include/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib}
+    - {flags: [O_NOCTTY, O_RDONLY], path: /usr/local/include/stdc-predef.h}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/glibc-hwcaps}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/lib/python3.12/dist-packages}
+    - {flags: [O_RDONLY], path: /usr/local/ssl/openssl.cnf}
+    - {flags: [O_RDONLY], path: /usr/pyvenv.cfg}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/dpkg-preconfigure}
+    - {flags: [O_RDONLY], path: /usr/sbin/ldconfig}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/cache/*}
+    - {flags: [O_RDONLY], path: /var/lib/apt/extended_states}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/apt/lists}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR], path: /var/lib/apt/lists/*}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /var/lib/apt/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/dpkg}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/dpkg/alternatives}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/awk}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/c++}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/c89}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/c99}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/cc}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/cpp}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/lzma}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/pager}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/pinentry}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/rmt}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/alternatives/which}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/arch}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/diversions}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/dpkg/info}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/info/⋯}
+    - {flags: [O_CREAT, O_NOFOLLOW, O_RDWR, O_TRUNC], path: /var/lib/dpkg/lock}
+    - {flags: [O_CREAT, O_NOFOLLOW, O_RDWR], path: /var/lib/dpkg/lock-frontend}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/statoverride}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/status}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/status-new}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/dpkg/tmp.ci}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /var/lib/dpkg/tmp.ci/conffiles}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /var/lib/dpkg/tmp.ci/control}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/dpkg/tmp.ci/md5sums}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/dpkg/tmp.ci/postinst}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/dpkg/tmp.ci/postrm}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /var/lib/dpkg/tmp.ci/preinst}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/dpkg/tmp.ci/prerm}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/dpkg/tmp.ci/shlibs}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /var/lib/dpkg/tmp.ci/symbols}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /var/lib/dpkg/tmp.ci/triggers}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/File}
+    - {flags: [O_CREAT, O_RDWR, O_TRUNC], path: /var/lib/dpkg/triggers/Lock}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/Unincorp}
+    - {flags: [O_RDONLY], path: /var/lib/dpkg/triggers/ldconfig}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/dpkg/updates}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/lib/dpkg/updates/⋯}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/alternatives.log}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /var/log/apt/eipp.log.xz}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/apt/history.log}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/apt/term.log}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/log/dpkg.log}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

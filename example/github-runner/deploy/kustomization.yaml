@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - arc-runner-runner.yaml
+  - arc-runner-dind.yaml
+  - arc-runner-init-dind-externals.yaml
+  - arc-controller-manager.yaml
+  - arc-listener-listener.yaml
+  - arc-cleanup-cleanup.yaml
+  - node-nnf-gha-runners-host.yaml
+  - node-k3s-2-worker-1-host.yaml
+  - node-k3s-2-worker-2-host.yaml
+  - nnf-runner-noble-chowner.yaml
+  - nnf-runner-noble-dind.yaml
+  - nnf-runner-noble-init-dind-externals.yaml
+  - nnf-runner-noble-runner.yaml
+  - nnf-runner-resolute-chowner.yaml
+  - nnf-runner-resolute-dind.yaml
+  - nnf-runner-resolute-init-dind-externals.yaml
+  - nnf-runner-resolute-runner.yaml
