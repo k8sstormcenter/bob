@@ -7,7 +7,6 @@ Everything needed to run self-hosted GitHub Actions runners (ARC, `containerMode
 | `deploy/` | `arc-runner-runner`, `arc-runner-dind`: the two ContainerProfiles the agent binds, plus `kustomization.yaml` | Flux (point a Kustomization at it) |
 | `rules/default-rules.yaml` | the Rules spec these profiles are tuned for | the rt-security extension values |
 | `sbobs/runner/base.yaml`, `sbobs/runner/overlays/<repo>.yaml` | the runner profile split into what every job does and what each repository adds | people; `harness/compose.sh` builds `deploy/arc-runner-runner.yaml` from them |
-| `sbobs/node-k3s-2-worker-*-host.yaml` | k3s-2 worker host profiles | not bound |
 | `harness/` | `compose.sh`, `collect.py`, `score.sh`, `check_deploy.py` | the measuring loop and CI |
 
 ## Binding
