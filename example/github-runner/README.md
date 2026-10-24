@@ -12,7 +12,7 @@ Everything needed to run self-hosted GitHub Actions runners (ARC, `containerMode
 
 ## Binding
 
-Label the runner pod template `kubescape.io/user-defined-profile: arc-runner`. The agent binds `<label>-<container>`: `arc-runner-runner` to container `runner`, `arc-runner-dind` to container `dind`. It does not read the `kubescape.io/profile-fragment` labels on `sbobs/`, so only `deploy/` is bindable. CI (`ci-github-runner-deploy.yaml`) rejects a `deploy/` profile that carries `kubescape.io/status`, a fragment label, a flat `arc-runner`, a wildcard exec name, or an exclusion comm longer than 15 characters.
+Label the runner pod template `kubescape.io/user-defined-profile: arc-runner`. The agent binds `<label>-<container>`: `arc-runner-runner` to container `runner`, `arc-runner-dind` to container `dind`. It does not read the `kubescape.io/profile-fragment` labels on `sbobs/`, so only `deploy/` is bindable. CI (`ci-github-runner-deploy.yaml`) rejects a `deploy/` profile that carries `kubescape.io/status`, a fragment label, a flat `arc-runner`, a wildcard exec name outside the collapsed shape `{path: DIR/⋯, args: [DIR/⋯, ⋯⋯]}`, or an exclusion comm longer than 15 characters.
 
 ## Rules
 

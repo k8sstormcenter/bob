@@ -5,7 +5,8 @@
 - each ContainerProfile is authored (managed-by: User) and carries no kubescape.io/status
 - no fragment labels: the agent binds one profile per container and composes nothing
 - a multi-container workload has one profile per container (<label>-<container>), never the flat <label>
-- no exec path whose basename is a wildcard, no exclusion comm the kernel cannot report
+- no exec path whose basename is a wildcard, except the collapsed exec {path: DIR/⋯, args: [DIR/⋯, ⋯⋯]}
+  that the go-test and bin-leaf folds emit; no exclusion comm the kernel cannot report
 """
 import argparse, glob, os, sys
 import yaml
@@ -42,9 +43,10 @@ def main():
             errs += [f"{n}: fragment label {k}" for k in lab if k.startswith("kubescape.io/profile-fragment")]
             spec = d.get("spec") or {}
             for e in spec.get("execs") or []:
-                base = (e.get("path") or "").rsplit("/", 1)[-1]
-                if "⋯" in base or "*" in base:
-                    errs.append(f"{n}: wildcard exec name {e.get('path')}")
+                path = e.get("path") or ""
+                base = path.rsplit("/", 1)[-1]
+                if ("⋯" in base or "*" in base) and (e.get("args") or []) != [path, "⋯⋯"]:
+                    errs.append(f"{n}: wildcard exec name {path}")
             for rule, pol in (spec.get("rulePolicies") or {}).items():
                 for c in pol.get("processAllowed") or []:
                     if not c or len(c) > MAX_COMM:
