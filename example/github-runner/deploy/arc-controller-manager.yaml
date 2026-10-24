@@ -18,7 +18,7 @@ spec:
     - {dns: "", dnsNames: null, identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
   endpoints: null
   execs:
-    - {args: [/manager, --auto-scaling-runner-set-only, --log-level=debug, --log-format=text, --autoscaling-runner-set-max-concurrent-reconciles=2, --autoscaling-listener-max-concurrent-reconciles=2, --ephemeral-runner-set-max-concurrent-reconciles=2, --ephemeral-runner-max-concurrent-reconciles=4, --listener-metrics-addr=0, --listener-metrics-endpoint=, --metrics-addr=0], path: /manager}
+    - {args: [/manager, ⋯⋯], path: /manager}
     - {args: [/pause], path: /pause}
   identifiedCallStacks: null
   imageID: ghcr.io/actions/gha-runner-scale-set-controller@sha256:162dfb5bfbda9e7e49fbed67d428994c9ced55b41a37a18b75b46dab0aa98d37
@@ -40,6 +40,11 @@ spec:
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token}
+    - {flags: [O_RDONLY], path: /proc/⋯/fd}
+    - {flags: [O_RDONLY], path: /proc/stat}
+    - {flags: [O_RDONLY], path: /proc/⋯/stat}
+    - {flags: [O_RDONLY], path: /proc/⋯/limits}
+    - {flags: [O_RDONLY], path: /proc/⋯/net/netstat}
   rulePolicies:
     R0002:
       processAllowed:
