@@ -80,6 +80,7 @@ spec:
     - {args: [/usr/sbin/ip6tables, ⋯⋯], path: /usr/sbin/ip6tables}
     - {args: [/bin/sh, /usr/local/bin/dockerd-entrypoint.sh, dockerd, '--host=unix:///var/run/docker.sock', --group=123, --data-root=/docker/, --mtu=1400, --default-network-opt=bridge=com.docker.network.driver.mtu=1400], path: /bin/sh}
     - {args: [/usr/bin/xargs, ⋯⋯], path: /usr/bin/xargs}
+    - {args: [/proc/⋯/exe, -exec-root=/var/run/docker, ⋯, ⋯], path: /proc/⋯/exe}
   identifiedCallStacks: null
   imageID: docker.io/library/docker@sha256:7dcdfc4a20246236f558175182ccace1eb15a41bd3eb119dd2284f393498b7c1
   imageTag: docker.io/library/docker:dind
