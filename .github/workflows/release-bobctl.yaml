@@ -42,14 +42,20 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.26'
+          go-version-file: pkg/go.mod
           cache-dependency-path: pkg/go.sum
+
+      - name: Report layout
+        run: |
+          echo "::notice::pkg=$(git submodule status pkg 2>&1 | tr -d '\n') files=$(ls pkg 2>/dev/null | wc -l) go=$(go version 2>&1) GOTOOLCHAIN=${GOTOOLCHAIN:-unset}"
 
       - name: go test
         working-directory: pkg
         env:
           BOB_SHIPPED_SBOBS: ${{ github.workspace }}/example/github-runner/deploy
-        run: go test ./... -count=1
+        run: |
+          set -o pipefail
+          go test ./... -count=1 2>&1 | tee test.log || { echo "::error::$(grep -v -E '^(ok|\?) ' test.log | tail -c 1200 | tr '\n' ' ')"; exit 1; }
 
   build:
     name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
@@ -76,7 +82,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.26'
+          go-version-file: pkg/go.mod
           cache-dependency-path: pkg/go.sum
 
       - name: go vet
