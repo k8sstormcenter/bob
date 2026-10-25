@@ -6,7 +6,7 @@ Everything needed to run self-hosted GitHub Actions runners (ARC, `containerMode
 |---|---|---|
 | `deploy/` | `arc-runner-runner`, `arc-runner-dind`: the two ContainerProfiles the agent binds, plus `kustomization.yaml` | Flux (point a Kustomization at it) |
 | `rules/default-rules.yaml` | the Rules spec these profiles are tuned for | the rt-security extension values |
-| `sbobs/runner/base.yaml`, `sbobs/runner/overlays/<repo>.yaml` | the runner profile split into what every job does and what each repository adds | people; `harness/compose.sh` builds `deploy/arc-runner-runner.yaml` from them |
+| `sbobs/runner-family/runner.yaml`, `sbobs/runner-family/runner-overlay-<profile>.yaml` | the three runner profiles (arc, NNF noble, NNF resolute) split by `bobctl base --class runner` into what all of them do and what each adds; the base is the portable CI/CD behaviour, an overlay is one image's remainder | people; `harness/compose.sh` builds the three `deploy/*-runner.yaml` from them byte for byte, and CI fails on drift |
 | `sbobs/node-k3s-2-worker-host.yaml` | generalized k3s-2 worker host baseline (both workers merged + collapsed); materialized into `deploy/node-k3s-2-worker-{1,2}-host.yaml`, name per node so each binds | people; regenerate with `bobctl generalize` from fresh captures |
 | `harness/` | `compose.sh`, `collect.py`, `score.sh`, `check_deploy.py` | the measuring loop and CI |
 
@@ -40,7 +40,7 @@ harness/score.sh <dataset>
 - **Clean build:** counts the attack-distinguishing alerts. The target is 0.
 - **Attack build:** counts the suite steps with at least one distinguishing alert.
 
-R0005 and R0011 (DNS and egress) count as floor and are reported separately. Set `FLOOR=` to change that.
+R0005 and R0011 (DNS and egress) count as floor and are reported separately. Set `FLOOR=` to change that. An R0002 the sensor marks `arguments.unresolvedPath: true` (a failed open with no resolvable path, reported by design since node-agent 2026-10-20) is floor as well: there is nothing to allow for a file that does not exist.
 
 ## Demo and confusion matrix
 
