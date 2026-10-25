@@ -26,6 +26,9 @@ on:
 permissions:
   contents: write
 
+env:
+  GOWORK: off
+
 jobs:
   # A release must not be able to ship a red test: build gates on this and
   # release gates on build. Runs once, not per build-matrix entry.
