@@ -499,19 +499,7 @@ spec:
     - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1}
     - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1plus, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1plus}
     - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --build-arg, ⋯, --build-arg, BUILD_TAGS=⋯, --file, build/Dockerfile, --iidfile, /home/runner/_work/_temp/⋯/⋯, --platform, linux/amd64, --attest, 'type=provenance,mode=min,inline-only=true,builder-id=https://github.com/⋯/⋯/actions/runs/⋯/attempts/⋯', --tag, ⋯/⋯, --metadata-file, /home/runner/_work/_temp/⋯/⋯, .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, --file, build/Dockerfile.ct, --iidfile, /home/runner/_work/_temp/⋯/⋯, --platform, linux/amd64, --attest, 'type=provenance,mode=min,inline-only=true,builder-id=https://github.com/⋯/⋯/actions/runs/⋯/attempts/⋯', --tag, ⋯/⋯, --metadata-file, /home/runner/_work/_temp/⋯/⋯, .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, build, -t, ⋯/⋯, .], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, create, --name, ⋯, --driver, docker-container, --buildkitd-flags, --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host, --use], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, export, --output, /home/runner/_work/_temp/⋯], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, inspect], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, history, ls], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, inspect], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, inspect, --bootstrap, --builder, ⋯], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, inspect, ⋯], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, buildx, version], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
-    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, docker-cli-plugin-metadata], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
+    - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, ⋯⋯], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/sbin/ldconfig.real], path: /usr/sbin/ldconfig.real}
     - {args: [/sbin/ldconfig.real, -r, /], path: /usr/sbin/ldconfig.real}
     - {args: [/sbin/start-stop-daemon, --start, --quiet, --pidfile, /run/php/php8.3-fpm.pid, --exec, /usr/sbin/⋯, --, --daemonize, --fpm-config, /etc/php/8.3/fpm/php-fpm.conf], path: /usr/sbin/start-stop-daemon}
@@ -1420,7 +1408,6 @@ spec:
     - {args: [/tmp/⋯/⋯/⋯/bin/java, ⋯⋯], path: /tmp/⋯/⋯/⋯/bin/java}
     - {args: [/tmp/⋯/⋯/⋯/lib/jspawnhelper, ⋯⋯], path: /tmp/⋯/⋯/⋯/lib/jspawnhelper}
     - {args: [/home/runner/_work/⋯/⋯/src/target/debug/deps/⋯, ⋯⋯], path: /home/runner/_work/⋯/⋯/src/target/debug/deps/⋯}
-    - {args: [/home/runner/_work/⋯/⋯/src/target/llvm-cov-target/debug/deps/⋯, ⋯⋯], path: /home/runner/_work/⋯/⋯/src/target/llvm-cov-target/debug/deps/⋯}
     - {path: /home/runner/_work/⋯/⋯/src/target/⋯/debug/build/⋯/build-script-build}
     - {args: [/proc/self/exe, ⋯⋯], path: /proc/self/exe}
     - {args: [/home/runner/.cargo/bin/cargo, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
@@ -2211,6 +2198,13 @@ spec:
     - {args: [/usr/bin/java, -version], path: /usr/lib/jvm/java-21-openjdk-amd64/bin/java}
     - {args: [/usr/bin/update-alternatives, --install, /usr/bin/lzma, lzma, /usr/bin/xz, "20", --slave, /usr/share/man/man1/lzma.1.gz, lzma.1.gz, /usr/share/man/man1/xz.1.gz, --slave, /usr/bin/unlzma, unlzma, /usr/bin/unxz, --slave, /usr/share/man/man1/unlzma.1.gz, unlzma.1.gz, /usr/share/man/man1/unxz.1.gz, --slave, /usr/bin/lzcat], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/dpkg-statoverride, --list, /usr/local/share/ca-certificates], path: /usr/bin/dpkg-statoverride}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, add, rspec_junit_formatter, simplecov, simplecov-cobertura, --group, test, --skip-install], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, install], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, exec, ruby, -e, 'Dir[''lib/**/*.rb''].first(200).each { |f| RubyVM::InstructionSequence.compile_file(f) }'], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, exec, rspec, -r, /home/runner/_work/_temp/cov.rb, --format, progress, --format, RspecJunitFormatter, --out, /home/runner/_work/⋯/⋯/src/reports/junit.xml], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, install, rubocop, --no-document], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/rubocop, --format, progress, .], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/rubocop}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, build, factory_bot.gemspec], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
   identifiedCallStacks: null
   imageID: ghcr.io/cncf/external-gha-runner@sha256:0ac1e65d7ac759638c90ab572408782294215b4bf571ab6a4f48adef296d6109
   imageTag: ghcr.io/cncf/external-gha-runner@sha256:0ac1e65d7ac759638c90ab572408782294215b4bf571ab6a4f48adef296d6109
