@@ -35,5 +35,12 @@ jobs:
       - name: Profiles
         run: python3 example/github-runner/harness/check_deploy.py example/github-runner/deploy --workload arc-runner=runner,dind
 
+      - name: Runner profiles compose from sbobs/runner-family
+        run: |
+          curl -sSfL -o /usr/local/bin/bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.8-rc2/bobctl-linux-amd64
+          chmod +x /usr/local/bin/bobctl
+          example/github-runner/harness/compose.sh
+          git diff --exit-code -- example/github-runner/deploy
+
       - name: Kustomize build
         run: kubectl kustomize example/github-runner/deploy > /dev/null
