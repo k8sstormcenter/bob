@@ -14,6 +14,7 @@ on:
     branches:
       - main
       - feat/crd
+      - feat/bobctl-storage-pin
     paths:
       - 'pkg/**'
       - '.github/workflows/**'
@@ -38,18 +39,16 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
 
-      - name: Clone storage dependency
-        run: |
-          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
-
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
           cache-dependency-path: pkg/go.sum
 
       - name: go test
         working-directory: pkg
+        env:
+          BOB_SHIPPED_SBOBS: ${{ github.workspace }}/example/github-runner/deploy
         run: go test ./... -count=1
 
   build:
@@ -70,22 +69,14 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
 
-      # The go.mod replace directive: ../../storage relative to pkg/
-      - name: Clone storage dependency
-        run: |
-          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
-
       - name: Verify layout
         run: |
-          echo "=== pkg/ ==="
           ls pkg/go.mod pkg/main.go
-          echo "=== storage/ ==="
-          ls ../storage/go.mod
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
           cache-dependency-path: pkg/go.sum
 
       - name: go vet
