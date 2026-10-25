@@ -53,8 +53,11 @@ CH_USER=… CH_PASSWORD=… KNOWN=R0040:qemu-check harness/demo.sh
 ```
 
 `harness/matrix.py <dataset>` scores any dataset the same way. A suite step counts as detected when
-node-agent raised a non-floor alert tagged to it, or when dx scored its suspicion with a witnessed
-verdict. A clean build counts as a false positive on any non-floor alert or witnessed KPI verdict.
+node-agent raised a non-floor alert tagged to it, or when dx scored its suspicion malicious from a
+witness source (`verdict=malicious` and `source` in forest/wire/dc_snoop). A clean build counts as a
+false positive on any non-floor alert or any witnessed-malicious KPI verdict. dx scores a suspicion
+progressively for some minutes after the attack, so collect the KPI rows once dx has finished (about
+20 minutes) or the join comes back empty.
 `--known RULE:substring` lists a known engine defect apart instead of scoring it, and
 `--subset harness/teampcp-steps.txt` restricts the steps to the TeamPCP tradecraft.
 
