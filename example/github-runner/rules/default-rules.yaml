@@ -668,4 +668,4 @@ spec:
       uniqueId: event.comm + '_' + event.name
       ruleExpression:
       - eventType: dns
-        expression: event.rcode == 3 && !event.name.endsWith('.cluster.local.') && !event.name.endsWith('.in-addr.arpa.') && event.name.split('.').exists(l, size(l) >= 25) && !cp.is_domain_in_egress(event.containerId, event.name)
+        expression: event.rcode == 3 && !event.name.endsWith('.cluster.local.') && !event.name.endsWith('.in-addr.arpa.') && !event.name.endsWith('.novalocal.') && !event.name.endsWith('.ts.net.') && event.name.split('.').exists(l, size(l) >= 25) && !cp.is_domain_in_egress(event.containerId, event.name)
