@@ -4130,7 +4130,14 @@ spec:
         - runc:[1:INIT]
         - runc:[2:INIT]
         - runc:[3:INIT]
+        - px_jattach
+        - systemctl
+        - runlevel
+        - start-stop-daem
     R0005:
+      processAllowed:
+        - Runner.Worker
+    R0008:
       processAllowed:
         - Runner.Worker
     R0011:
