@@ -3,8 +3,9 @@
 
 Positives are suite steps run in an attack build. A step is detected when node-agent raised a
 non-floor alert tagged to it (collect.py alerts --fire), or when dx scored its suspicion with a
-witnessed verdict (collect.py kpi). Negatives are clean builds. A clean build is a false positive
-when it raised any non-floor alert, or any witnessed KPI verdict.
+malicious verdict backed by a witness source — verdict=malicious and source in {forest,wire,dc_snoop}
+(collect.py kpi). Negatives are clean builds. A clean build is a false positive
+when it raised any non-floor alert, or any witnessed malicious KPI verdict.
 
 Floor rules (default R0005,R0011), and any alert the sensor marks arguments.unresolvedPath, are
 reported apart and never count. Known residuals passed with
@@ -13,7 +14,7 @@ known engine defect stays visible without being scored as a profile false positi
 """
 import argparse, glob, json, os, sys
 
-WITNESSED = {"forest", "wire", "dc_snoop"}
+WITNESSED = {"forest", "wire", "dc_snoop"}  # dx evidence sources (the `source` column), not verdicts
 
 
 def load_jsonl(path):
@@ -59,7 +60,7 @@ def build(d, floor, known):
     fire = json.load(open(f"{d}/fire.json")) if os.path.exists(f"{d}/fire.json") else None
     b = {"id": os.path.basename(d.rstrip("/")), "role": role, "floor": {}, "known": {}, "alerts": {},
          "by_step": {}, "kpi_witnessed": sorted({r["suspicion"] for r in kpi
-                                                 if r.get("verdict") in WITNESSED and r.get("suspicion")}),
+                                                 if r.get("verdict") == "malicious" and r.get("source") in WITNESSED and r.get("suspicion")}),
          "ran": [s["name"] for s in fire if s.get("t0")] if fire else None}
     for rule, recs in alerts.items():
         for rec in recs:

@@ -123,7 +123,7 @@ def chunks(a):
 
 def kpi(a):
     """dx_kpi_proof summary rows for the pod: one line per scored suspicion, kind and verdict."""
-    rows = clickhouse("SELECT kpi, suspicion, verdict, pc, num, den, measured_at AS t "
+    rows = clickhouse("SELECT kpi, suspicion, source, verdict, pc, num, den, measured_at AS t "
                       "FROM forensic_db.dx_kpi_proof WHERE part = '' "
                       f"AND scope LIKE '%/{a.pod}' FORMAT JSONEachRow")
     os.makedirs(a.out, exist_ok=True)
