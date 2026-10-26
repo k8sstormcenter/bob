@@ -5,8 +5,8 @@
 set -euo pipefail
 G=$(cd "$(dirname "$0")/.." && pwd)
 DS=${1:?dataset dir}
-RUNNER=${RUNNER:-$G/deploy/arc-runner-runner.yaml}
-DIND=${DIND:-$G/deploy/arc-runner-dind.yaml}
+RUNNER=${RUNNER:-$G/deploy/nnf-runner-noble-runner.yaml}
+DIND=${DIND:-$G/deploy/nnf-runner-noble-dind.yaml}
 RULES=${RULES:-$G/rules/default-rules.yaml}
 FLOOR=${FLOOR:-R0005,R0011}
 SUITE=${SUITE:-$G/../github-runner-attacks.yaml}

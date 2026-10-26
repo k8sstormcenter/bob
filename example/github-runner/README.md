@@ -4,15 +4,15 @@ Everything needed to run self-hosted GitHub Actions runners (ARC, `containerMode
 
 | path | what | who reads it |
 |---|---|---|
-| `deploy/` | `arc-runner-runner`, `arc-runner-dind`: the two ContainerProfiles the agent binds, plus `kustomization.yaml` | Flux (point a Kustomization at it) |
+| `deploy/` | the bound ContainerProfiles the agent binds (`nnf-runner-noble-*` and `nnf-runner-resolute-*` runner/dind/chowner/init, `arc-controller-manager`, `arc-listener-listener`, `arc-cleanup-cleanup`, node hosts), plus `kustomization.yaml` | Flux (point a Kustomization at it) |
 | `rules/default-rules.yaml` | the Rules spec these profiles are tuned for | the rt-security extension values |
-| `sbobs/runner-family/runner.yaml`, `sbobs/runner-family/runner-overlay-<profile>.yaml` | the three runner profiles (arc, NNF noble, NNF resolute) split by `bobctl base --class runner` into what all of them do and what each adds; the base is the portable CI/CD behaviour, an overlay is one image's remainder | people; `harness/compose.sh` builds the three `deploy/*-runner.yaml` from them byte for byte, and CI fails on drift |
+| `sbobs/runner-family/runner.yaml`, `sbobs/runner-family/runner-overlay-<profile>.yaml` | the two runner profiles (NNF noble, NNF resolute) split by `bobctl base --class runner` into what both do and what each adds; the base is the portable CI/CD behaviour, an overlay is one image's remainder | people; `harness/compose.sh` builds the two `deploy/*-runner.yaml` from them byte for byte, and CI fails on drift |
 | `sbobs/node-k3s-2-worker-host.yaml` | generalized k3s-2 worker host baseline (both workers merged + collapsed); materialized into `deploy/node-k3s-2-worker-{1,2}-host.yaml`, name per node so each binds | people; regenerate with `bobctl generalize` from fresh captures |
 | `harness/` | `compose.sh`, `collect.py`, `score.sh`, `check_deploy.py` | the measuring loop and CI |
 
 ## Binding
 
-Label the runner pod template `kubescape.io/user-defined-profile: arc-runner`. The agent binds `<label>-<container>`: `arc-runner-runner` to container `runner`, `arc-runner-dind` to container `dind`. It does not read the `kubescape.io/profile-fragment` labels on `sbobs/`, so only `deploy/` is bindable. CI (`ci-github-runner-deploy.yaml`) rejects a `deploy/` profile that carries `kubescape.io/status`, a fragment label, a flat `arc-runner`, a wildcard exec name outside the collapsed shape `{path: DIR/⋯, args: [DIR/⋯, ⋯⋯]}`, or an exclusion comm longer than 15 characters.
+Label the runner pod template `kubescape.io/user-defined-profile: nnf-runner-noble`. The agent binds `<label>-<container>`: `nnf-runner-noble-runner` to container `runner`, `nnf-runner-noble-dind` to container `dind`. It does not read the `kubescape.io/profile-fragment` labels on `sbobs/`, so only `deploy/` is bindable. CI (`ci-github-runner-deploy.yaml`) rejects a `deploy/` profile that carries `kubescape.io/status`, a fragment label, a flat base label with no container suffix, a wildcard exec name outside the collapsed shape `{path: DIR/⋯, args: [DIR/⋯, ⋯⋯]}`, or an exclusion comm longer than 15 characters.
 
 ## Rules
 
