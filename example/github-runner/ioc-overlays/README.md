@@ -1,28 +1,22 @@
 # IoC overlays
 
-Per-advisory detection tripwires layered on the most-generic CI/CD base, the profile analog of a detection-as-code rule.
+An IoC overlay is an advisory's real footprint, lifted from the runner's **shadow-profile** captured when the actual attack action ran. It is not an invented tripwire: the exec and open entries here are grepped out of the learned shadow-profile for the advisory's indicators and copied verbatim.
 
-## Why
+## How it is built
 
-The generic runner base folds every attack-free toolchain and package zone to a `DIR/*` subtree wildcard (see `../../harness/compose.sh` `--collapse-cicd`). That is what makes it portable, and the collapse is measured safe: no attack step in the suite hides in a folded zone. The cost is latent: if a future advisory says attackers now stage payloads inside a folded zone, the base's `DIR/*` would allow the drop and no R0002 fires.
+1. Run the advisory's action through a runner (here: Ben's compromised-Trivy action, `slashben/kubecon26us-detection-as-a-service-talk`).
+2. Export the runner's shadow/learned ContainerProfile from that run.
+3. Grep it for the advisory's IoCs and lift those exact `execs`/`opens` entries into the overlay.
 
-An IoC overlay re-specifies one zone. It carries the enumerated known-good opens for that zone, so applying it replaces the zone's `DIR/*` fold with those literals and any off-list access there raises R0002 again. It adds detection by re-narrowing, not by a deny rule, because a ContainerProfile is an allow-list and `compose` only unions. One overlay per advisory, reviewable and versioned, the same shape as a per-advisory rule but profile-native.
+## What it is for
 
-## Apply
-
-The base is composed, then collapsed with the overlay's zone exempted:
-
-```
-bobctl harden --file <composed-runner>.yaml --collapse-cicd --exempt-zone /home/runner/.dotnet --in-place
-```
-
-`applied/` holds a generated example (the collapsed noble runner with `/home/runner/.dotnet` kept specific) so the tripwire is visible without the toolchain.
+The supergeneric base admits benign CI behaviour. The overlay is the ground-truth set of entries the advisory produces — what a clean runner must never exhibit. It is the detection-as-code signature for profiles: derived from a real run, versioned, reviewable, and diffable against the base.
 
 ## Files
 
-- `ioc-overlay-dotnet-cache.yaml` — the `.dotnet` SDK-cache tripwire: the known-good `/home/runner/.dotnet` opens. The generic base folds this zone to `/home/runner/.dotnet/*`; a planted file in the SDK cache would be masked. With the overlay the zone is enumerated, so the drop fires R0002.
-- `applied/nnf-runner-noble-dotnet-tripwire.yaml` — the demo: generic collapsed base, `.dotnet` un-folded.
+- `ioc-overlay-teampcp-trivy.yaml` — the TeamPCP compromised-Trivy footprint from the `…runner-lzbzx` shadow-profile: the `sysmon.py --c2 45.148.10.212` backdoor exec (dash shebang), the four `getent` C2-domain beacons, the `tpcp.tar.gz` exfil tar, and the persistence (`~/.config/systemd/user/sysmon.py`) and stage (`~/dac-collected.txt`) opens.
 
-## Scope
+## Two observations from the real capture
 
-An overlay only restores detection for an IoC that hides in a folded zone. The four IoCs in Ben's Detection-as-Code action all land outside folded zones, which is why the collapse is safe for them: three fire by anomaly already, and the exfil tar (DAC-0003) is inherent to `$HOME` being a write-zone. Catching that one needs a `$HOME` narrowing that trades a clean-build false positive, a different and FP-costly case, not an un-fold.
+- The C2 IP and domains appear as **exec arguments** (the `getent` args and the `--c2` arg), not as network/egress entries. The advisory's `sysmon.py` makes no real connection and `getent` only resolves, so there is nothing to learn as egress; the network IoCs live in the exec footprint.
+- On the agent build that ran this (rogue105), the dash-shebang backdoor exec trips no exec rule; it is caught only by the R0002 read of `sysmon.py`. Making an exec rule flag it is node-agent #132 (`was_executed_with_args` must evaluate the `/bin/sh` arg-vector), not a profile change, and must not tighten the empty-argv[0] `/bin/sh` grant, which is exactly what the collapse removed to kill the 227 legit script-invocation false positives.

@@ -1,0 +1,20 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+    ioc.kubescape.io/advisory: TeamPCP compromised Trivy action (slashben/kubecon26us-detection-as-a-service-talk)
+    ioc.kubescape.io/source: runner shadow-profile ephemeralrunner-k3s-2-noble-2sswl-runner-lzbzx-runner, real run 2026-10-27
+  name: ioc-overlay-teampcp-trivy
+  namespace: arc-systems
+spec:
+  execs:
+    - {args: [/home/runner/.config/systemd/user/sysmon.py, --c2, 45.148.10.212, --host, scan.aquasecurtiy.org], path: /usr/bin/dash}
+    - {args: [/usr/bin/getent, hosts, hackmoltrepeat.com], path: /usr/bin/getent}
+    - {args: [/usr/bin/getent, hosts, plug-tab-protective-relay.trycloudflare.com], path: /usr/bin/getent}
+    - {args: [/usr/bin/getent, hosts, scan.aquasecurtiy.org], path: /usr/bin/getent}
+    - {args: [/usr/bin/getent, hosts, tdtqy-oyaaa-aaaae-af2dq-cai.raw.icp0.io], path: /usr/bin/getent}
+    - {args: [/usr/bin/tar, czf, /home/runner/tpcp.tar.gz, -C, /home/runner, dac-collected.txt], path: /usr/bin/tar}
+  opens:
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.config/systemd/user/sysmon.py}
+    - {flags: [O_CLOEXEC, O_CREAT, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_TRUNC], path: /home/runner/dac-collected.txt}
