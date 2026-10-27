@@ -339,6 +339,7 @@ spec:
     - {args: [/bin/sh, ./gradlew, --no-daemon, dependencies], path: /bin/sh}
     - {args: [/bin/sh, /usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/fonts/conf.avail/20-unhint-small-dejavu-sans-mono.conf, 2.37-7~, --, configure], path: /bin/sh}
     - {args: [/bin/sh, /var/lib/dpkg/info/fonts-dejavu-core.postinst, configure], path: /bin/sh}
+    - {args: [/etc/ca-certificates/update.d/jks-keystore], path: /etc/ca-certificates/update.d/jks-keystore}
     - {args: [/etc/init.d/php8.3-fpm, restart], path: /etc/init.d/php8.3-fpm}
     - {args: [/home/runner/.cargo/bin/cargo, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
     - {args: [/home/runner/.cargo/bin/cargo-clippy, ⋯⋯], path: /home/runner/.cargo/bin/cargo-clippy}
@@ -1123,6 +1124,7 @@ spec:
     - {args: [/bin/sh, ./gradlew, --no-daemon, dependencies], path: /usr/bin/dash}
     - {args: [/bin/sh, /usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/fonts/conf.avail/20-unhint-small-dejavu-sans-mono.conf, 2.37-7~, --, configure], path: /usr/bin/dash}
     - {args: [/bin/sh, /var/lib/dpkg/info/fonts-dejavu-core.postinst, configure], path: /usr/bin/dash}
+    - {args: [/etc/ca-certificates/update.d/jks-keystore], path: /usr/bin/dash}
     - {args: [/etc/init.d/php8.3-fpm, restart], path: /usr/bin/dash}
     - {args: [/home/runner/_work/⋯/⋯/src/node_modules/.bin/babel, --env-name, commonjsBrowser, src, --source-root, src, --out-dir, /home/runner/_work/⋯/⋯/src/./scripts/../dist/commonjs-browser, --copy-files, --quiet], path: /usr/bin/dash}
     - {args: [/home/runner/_work/⋯/⋯/src/node_modules/.bin/babel, --env-name, commonjsNode, src, --source-root, src, --out-dir, /home/runner/_work/⋯/⋯/src/./scripts/../dist, --copy-files, --quiet], path: /usr/bin/dash}
@@ -1136,6 +1138,9 @@ spec:
     - {args: [/tmp/⋯/node, /home/runner/_work/⋯/⋯/src/node_modules/.bin/husky, install], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, dir_to_symlink, /usr/share/doc/cpp, cpp-x86-64-linux-gnu, ⋯, cpp, --, configure], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, dir_to_symlink, /usr/share/doc/cpp, cpp-x86-64-linux-gnu, ⋯, cpp, --, install], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, upgrade, ⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, upgrade, ⋯, ⋯], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/default/dirmngr, --, configure], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/default/dirmngr, --, install], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/dirmngr/dirmngr.conf, --, configure], path: /usr/bin/dash}
@@ -1252,6 +1257,7 @@ spec:
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/mysql/my.cnf, 5.6.22-1~, mysql-common, --, install], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, symlink_to_dir, /usr/share/doc/libcrypt-dev, libcrypt1, '1:4.4.27-1.1~', --, configure], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, symlink_to_dir, /usr/share/doc/libcrypt-dev, libcrypt1, '1:4.4.27-1.1~', --, install], path: /usr/bin/dash}
+    - {args: [/usr/bin/egrep, -q, '^([[:space:]]*,)*[[:space:]]*$'], path: /usr/bin/dash}
     - {args: [/usr/bin/lsb_release, -a], path: /usr/bin/dash}
     - {args: [/usr/bin/mvn, -B, -DskipTests, package], path: /usr/bin/dash}
     - {args: [/usr/bin/mvn, -B, -q, 'checkstyle:checkstyle'], path: /usr/bin/dash}
@@ -1283,6 +1289,7 @@ spec:
     - {args: [/usr/bin/sh, -s, --, --default-toolchain, none, -y], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -s, --, -b, /home/runner/_work/_temp/⋯, v1.61.0], path: /usr/bin/dash}
     - {args: [/usr/bin/which, hg], path: /usr/bin/dash}
+    - {args: [/usr/bin/which, java], path: /usr/bin/dash}
     - {args: [/usr/bin/which, shellcheck], path: /usr/bin/dash}
     - {args: [/usr/lib/git-core/git-submodule, foreach, --quiet, git -C $toplevel submodule deinit --force $sm_path], path: /usr/bin/dash}
     - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'git config --local --add ''url.https://github.com/.insteadOf'' ''git@github.com:'''], path: /usr/bin/dash}
@@ -1306,9 +1313,15 @@ spec:
     - {args: [/usr/sbin/phpquery, -q, -v, "8.3", -s, phpdbg, -m, pcov], path: /usr/bin/dash}
     - {args: [/usr/sbin/policy-rc.d, x11-common, (start)], path: /usr/bin/dash}
     - {args: [/usr/sbin/service, ⋯, restart], path: /usr/bin/dash}
+    - {args: [/usr/sbin/update-ca-certificates], path: /usr/bin/dash}
     - {args: [/usr/share/firebird/4.0/configure-port, --fb-ver, "4.0"], path: /usr/bin/dash}
     - {args: [/var/cache/debconf/tmp.ci/tzdata.config.beSNTL, configure, 2026c-0ubuntu0.26.04.1], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/automake.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates-java.postinst, triggered, update-ca-certificates-java], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates.config, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postinst, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postinst, triggered, update-ca-certificates], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postrm, upgrade, ⋯], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/clang.postinst, configure], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/cmake-data.postinst, configure], path: /usr/bin/dash}
     - {args: ['/var/lib/dpkg/info/comerr-dev:amd64.postinst', configure], path: /usr/bin/dash}
@@ -1324,6 +1337,9 @@ spec:
     - {args: [/var/lib/dpkg/info/freetds-common.postinst, configure], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/g++.postinst, configure], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/gcc.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/git.postinst, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/git.postrm, upgrade, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/git.prerm, upgrade, ⋯], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/gpg-agent.postinst, configure], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/gpg.postinst, configure], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/hunspell-en-us.postinst, configure], path: /usr/bin/dash}
@@ -1346,7 +1362,10 @@ spec:
     - {args: [/var/lib/dpkg/info/tzdata.postrm, upgrade, 2026e-0ubuntu0.26.04.1], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/unixodbc-common.postinst, configure], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/x11-common.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/xz-utils.prerm, upgrade, ⋯], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/tmp.ci/preinst, install], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/tmp.ci/preinst, upgrade, ⋯, ⋯], path: /usr/bin/dash}
     - {args: [sh, -c, ./scripts/build.sh], path: /usr/bin/dash}
     - {args: [sh, -c, babel --env-name esmBrowser src --source-root src --out-dir /home/runner/_work/⋯/⋯/src/./scripts/../dist/esm-browser --copy-files --quiet], path: /usr/bin/dash}
     - {args: [sh, -c, jest --ci --reporters=default --reporters=jest-junit --coverage --coverageReporters=cobertura --coverageDirectory=/home/runner/_work/⋯/⋯/src/reports/cov], path: /usr/bin/dash}
@@ -1368,6 +1387,9 @@ spec:
     - {args: [/usr/bin/dpkg-divert, --package, libtirpc3t64, --no-rename, --divert, /lib/x86_64-linux-gnu/libtirpc.so.3.usr-is-merged, /lib/x86_64-linux-gnu/libtirpc.so.3], path: /usr/bin/dpkg-divert}
     - {args: [/usr/bin/dpkg-maintscript-helper, dir_to_symlink, /usr/share/doc/cpp, cpp-x86-64-linux-gnu, ⋯, cpp, --, configure], path: /usr/bin/dpkg-maintscript-helper}
     - {args: [/usr/bin/dpkg-maintscript-helper, dir_to_symlink, /usr/share/doc/cpp, cpp-x86-64-linux-gnu, ⋯, cpp, --, install], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, configure, ⋯], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, upgrade, ⋯], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, upgrade, ⋯, ⋯], path: /usr/bin/dpkg-maintscript-helper}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/default/dirmngr, --, configure], path: /usr/bin/dpkg-maintscript-helper}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/default/dirmngr, --, install], path: /usr/bin/dpkg-maintscript-helper}
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/dirmngr/dirmngr.conf, --, configure], path: /usr/bin/dpkg-maintscript-helper}
@@ -1490,6 +1512,7 @@ spec:
     - {args: [/usr/bin/dpkg-statoverride, --update, --quiet, --add, root, root, ⋯, /var/lib/php/sessions], path: /usr/bin/dpkg-statoverride}
     - {args: [/usr/bin/dpkg-trigger, --no-await, ⋯], path: /usr/bin/dpkg-trigger}
     - {args: [/usr/bin/echo, ⋯⋯], path: /usr/bin/echo}
+    - {args: [/usr/bin/egrep, ⋯⋯], path: /usr/bin/egrep}
     - {args: [/usr/bin/env, ⋯⋯], path: /usr/bin/env}
     - {args: [/usr/bin/expr, ⋯⋯], path: /usr/bin/expr}
     - {args: [/usr/bin/fc-cache, -s, -f, -v], path: /usr/bin/fc-cache}
@@ -2075,6 +2098,7 @@ spec:
     - {args: [/usr/bin/update-alternatives, --set, phpdbg, /usr/bin/⋯], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/update-alternatives, --set, phpize, /usr/bin/phpize8.3], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/which, hg], path: /usr/bin/which}
+    - {args: [/usr/bin/which, java], path: /usr/bin/which}
     - {args: [/usr/bin/which, shellcheck], path: /usr/bin/which}
     - {args: [/usr/bin/ar, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ar}
     - {args: [/usr/bin/x86_64-linux-gnu-as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
@@ -2223,6 +2247,7 @@ spec:
     - {args: [/sbin/start-stop-daemon, --stop, --quiet, --oknodo, --retry=0/⋯/TERM/⋯/KILL/⋯, --exec, /usr/sbin/⋯], path: /usr/sbin/start-stop-daemon}
     - {args: [/sbin/start-stop-daemon, --stop, --quiet, --retry=QUIT/⋯/TERM/⋯/KILL/⋯, --pidfile, /run/php/php8.3-fpm.pid, --name, ⋯], path: /usr/sbin/start-stop-daemon}
     - {args: ["", runner], path: /usr/sbin/unix_chkpwd}
+    - {args: [/usr/sbin/update-ca-certificates], path: /usr/sbin/update-ca-certificates}
     - {args: [/usr/sbin/update-default-ispell, ⋯⋯], path: /usr/sbin/update-default-ispell}
     - {args: [/usr/sbin/update-default-wordlist, ⋯⋯], path: /usr/sbin/update-default-wordlist}
     - {args: [/usr/sbin/update-dictcommon-aspell, ⋯⋯], path: /usr/sbin/update-dictcommon-aspell}
@@ -2243,6 +2268,11 @@ spec:
     - {args: [/var/cache/debconf/tmp.ci/dictionaries-common.config.zKxhXC, ⋯⋯], path: /var/cache/debconf/tmp.ci/dictionaries-common.config.zKxhXC}
     - {args: [/var/cache/debconf/tmp.ci/tzdata.config.beSNTL, configure, 2026c-0ubuntu0.26.04.1], path: /var/cache/debconf/tmp.ci/tzdata.config.beSNTL}
     - {args: [/var/lib/dpkg/info/automake.postinst, configure], path: /var/lib/dpkg/info/automake.postinst}
+    - {args: [/var/lib/dpkg/info/ca-certificates-java.postinst, triggered, update-ca-certificates-java], path: /var/lib/dpkg/info/ca-certificates-java.postinst}
+    - {args: [/var/lib/dpkg/info/ca-certificates.config, configure, ⋯], path: /var/lib/dpkg/info/ca-certificates.config}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postinst, configure, ⋯], path: /var/lib/dpkg/info/ca-certificates.postinst}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postinst, triggered, update-ca-certificates], path: /var/lib/dpkg/info/ca-certificates.postinst}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postrm, upgrade, ⋯], path: /var/lib/dpkg/info/ca-certificates.postrm}
     - {args: [/var/lib/dpkg/info/clang.postinst, configure], path: /var/lib/dpkg/info/clang.postinst}
     - {args: [/var/lib/dpkg/info/cmake-data.postinst, configure], path: /var/lib/dpkg/info/cmake-data.postinst}
     - {args: ['/var/lib/dpkg/info/comerr-dev:amd64.postinst', configure], path: '/var/lib/dpkg/info/comerr-dev:amd64.postinst'}
@@ -2259,6 +2289,9 @@ spec:
     - {args: [/var/lib/dpkg/info/freetds-common.postinst, configure], path: /var/lib/dpkg/info/freetds-common.postinst}
     - {args: [/var/lib/dpkg/info/g++.postinst, configure], path: /var/lib/dpkg/info/g++.postinst}
     - {args: [/var/lib/dpkg/info/gcc.postinst, configure], path: /var/lib/dpkg/info/gcc.postinst}
+    - {args: [/var/lib/dpkg/info/git.postinst, configure, ⋯], path: /var/lib/dpkg/info/git.postinst}
+    - {args: [/var/lib/dpkg/info/git.postrm, upgrade, ⋯], path: /var/lib/dpkg/info/git.postrm}
+    - {args: [/var/lib/dpkg/info/git.prerm, upgrade, ⋯], path: /var/lib/dpkg/info/git.prerm}
     - {args: [/var/lib/dpkg/info/gpg-agent.postinst, configure], path: /var/lib/dpkg/info/gpg-agent.postinst}
     - {args: [/var/lib/dpkg/info/gpg.postinst, configure], path: /var/lib/dpkg/info/gpg.postinst}
     - {args: [/var/lib/dpkg/info/hunspell-en-us.postinst, configure], path: /var/lib/dpkg/info/hunspell-en-us.postinst}
@@ -2281,7 +2314,10 @@ spec:
     - {args: [/var/lib/dpkg/info/tzdata.postrm, upgrade, 2026e-0ubuntu0.26.04.1], path: /var/lib/dpkg/info/tzdata.postrm}
     - {args: [/var/lib/dpkg/info/unixodbc-common.postinst, configure], path: /var/lib/dpkg/info/unixodbc-common.postinst}
     - {args: [/var/lib/dpkg/info/x11-common.postinst, configure], path: /var/lib/dpkg/info/x11-common.postinst}
+    - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure, ⋯], path: /var/lib/dpkg/info/xz-utils.postinst}
+    - {args: [/var/lib/dpkg/info/xz-utils.prerm, upgrade, ⋯], path: /var/lib/dpkg/info/xz-utils.prerm}
     - {args: [/var/lib/dpkg/tmp.ci/preinst, install], path: /var/lib/dpkg/tmp.ci/preinst}
+    - {args: [/var/lib/dpkg/tmp.ci/preinst, upgrade, ⋯, ⋯], path: /var/lib/dpkg/tmp.ci/preinst}
   identifiedCallStacks: null
   imageID: ""
   imageTag: ""
