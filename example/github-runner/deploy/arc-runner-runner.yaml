@@ -66,7 +66,7 @@ spec:
     - {args: [/bin/sh, -c, sed -i~ 's/$/Test/' "/tmp/⋯], path: /bin/sh}
     - {args: [/bin/sh, -eu, /home/runner/_work/_temp/⋯], path: /bin/sh}
     - {args: [/etc/ca-certificates/update.d/jks-keystore], path: /etc/ca-certificates/update.d/jks-keystore}
-    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/1.98-x86_64-unknown-linux-gnu/bin/rustc, ⋯⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/⋯/bin/rustc, ⋯⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
     - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, llvm-cov, ⋯⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
     - {args: [/proc/self/exe, ⋯⋯], path: /home/runner/.cargo/bin/cargo-nextest}
     - {args: [/home/runner/.cargo/bin/rustc, ⋯⋯], path: /home/runner/.cargo/bin/rustc}
@@ -95,32 +95,24 @@ spec:
     - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, ⋯⋯], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
     - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/lib/jspawnhelper, ⋯⋯], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/lib/jspawnhelper}
     - {args: [./python, -c, import pip], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [./python, -m, pip, install, --upgrade, --force-reinstall, pip, --disable-pip-version-check, --no-warn-script-location], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [./python, -m, pip, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [/home/runner/_work/_temp/⋯/bin/pip, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [/home/runner/_work/_temp/⋯/bin/pytest, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [/home/runner/_work/_temp/⋯/bin/python, '-'], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, -W, 'ignore::DeprecationWarning', -c, "\nimport runpy\nimport sys\nsys.path = ['/tmp/tmp2v_sadgh/pip-25.0.1-py3-none-any.whl'] + sys.path\nsys.argv[1:] = ['install', '--no-cache-dir', '--no-index', '--find-links', '/tmp/tmp2v_sadgh', '--upgrade', 'pip']\nrunpy.run_module(\"pip\", run_name=\"__main__\","], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, -W, 'ignore::DeprecationWarning', -c, "\nimport runpy\nimport sys\nsys.path = ['/tmp/tmp_t8u94s3/pip-25.0.1-py3-none-any.whl'] + sys.path\nsys.argv[1:] = ['install', '--no-cache-dir', '--no-index', '--find-links', '/tmp/tmp_t8u94s3', '--upgrade', 'pip']\nrunpy.run_module(\"pip\", run_name=\"__main__\","], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, -W, 'ignore::DeprecationWarning', -c, "\nimport runpy\nimport sys\nsys.path = ['/tmp/tmpzfxlmevi/pip-25.0.1-py3-none-any.whl'] + sys.path\nsys.argv[1:] = ['install', '--no-cache-dir', '--no-index', '--find-links', '/tmp/tmpzfxlmevi', '--upgrade', 'pip']\nrunpy.run_module(\"pip\", run_name=\"__main__\","], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, -m, build, --wheel, --outdir, /home/runner/_work/⋯/⋯/src/dist], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, -m, compileall, -q, src], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, -m, ensurepip, --upgrade, --default-pip], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, -m, pip, --python, /tmp/⋯/bin/python, install, --use-pep517, --no-warn-script-location, --no-compile, -r, /tmp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/bin/pip, install, pytest-cov==6.0.0, ruff==0.8.4, build==1.2.2], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/bin/pytest, --junitxml=/home/runner/_work/⋯/⋯/src/reports/junit.xml, --cov, '--cov-report=xml:/home/runner/_work/⋯/⋯/src/reports/coverage.xml'], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/__pip-runner__.py, install, --ignore-installed, --no-user, --prefix, /tmp/⋯/overlay, --no-warn-script-location, --disable-pip-version-check, --target, --no-binary, ':none:', --only-binary, ':none:', -i, 'https://pypi.org/simple', --, flit_core<4], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/__pip-runner__.py, install, --ignore-installed, --no-user, --prefix, /tmp/⋯/overlay, --no-warn-script-location, --disable-pip-version-check, --target, --no-binary, ':none:', --only-binary, ':none:', -i, 'https://pypi.org/simple', --, setuptools], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/__pip-runner__.py, install, --ignore-installed, --no-user, --prefix, /tmp/⋯/overlay, --no-warn-script-location, --disable-pip-version-check, --target, --no-binary, ':none:', --only-binary, ':none:', -i, 'https://pypi.org/simple', --, setuptools>=40.8.0], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py, _supported_features, /tmp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py, build_editable, /tmp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py, get_requires_for_build_editable, /tmp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py, prepare_metadata_for_build_editable, /tmp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/python, -m, venv, /home/runner/_work/_temp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, -W, 'ignore::DeprecationWarning', -c, ⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, -m, build, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, -m, compileall, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, -m, ensurepip, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, -m, pip, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/bin/pip, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/bin/pytest, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/__pip-runner__.py, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/python, -m, venv, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/python3, '-'], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/tmp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/__pip-runner__.py, --python, /tmp/⋯/bin/python, install, --use-pep517, --no-warn-script-location, --no-compile, -r, /tmp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/tmp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pyproject_hooks/_in_process/_in_process.py, build_wheel, /tmp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [/tmp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pyproject_hooks/_in_process/_in_process.py, get_requires_for_build_wheel, /tmp/⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
-    - {args: [python, -m, build, --wheel, --outdir, /home/runner/_work/⋯/⋯/src/dist], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/tmp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/__pip-runner__.py, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/tmp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pyproject_hooks/_in_process/_in_process.py, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [python, -m, build, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [/home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm, dependency, build, charts/prometheus-node-exporter], path: /home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm}
     - {args: [/home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm, lint, charts/prometheus-node-exporter], path: /home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm}
     - {args: [/home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm, package, charts/prometheus-node-exporter, -d, /home/runner/_work/⋯/⋯/src/dist], path: /home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm}
@@ -132,14 +124,12 @@ spec:
     - {args: [/home/runner/bin/Runner.Listener, run], path: /home/runner/bin/Runner.Listener}
     - {args: [/home/runner/bin/Runner.Worker, spawnclient, ⋯, ⋯], path: /home/runner/bin/Runner.Worker}
     - {args: [/home/runner/externals/node24/bin/node, --version], path: /home/runner/externals/node24/bin/node}
-    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/restore/index.js], path: /home/runner/externals/node24/bin/node}
-    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/save/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/dist/⋯/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/cache/⋯/restore/../dist/restore-only/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/checkout/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
-    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-java/⋯/dist/cleanup/index.js], path: /home/runner/externals/node24/bin/node}
-    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-java/⋯/dist/setup/index.js], path: /home/runner/externals/node24/bin/node}
-    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-python/⋯/dist/setup/index.js], path: /home/runner/externals/node24/bin/node}
-    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/upload/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-java/⋯/dist/⋯/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/setup-python/⋯/dist/⋯/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/actions/upload-artifact/⋯/dist/⋯/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/azure/setup-helm/⋯/lib/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/dorny/test-reporter/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-entry.js], path: /home/runner/externals/node24/bin/node}
@@ -673,10 +663,10 @@ spec:
     - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
     - {args: [/usr/bin/python3, '-', ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.VisitControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.CrashControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.PetClinicIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests$ProcessUpdateFormHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.CrashControllerIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.vet.VetTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.MySqlIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetTypeFormatterTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.I18nPropertiesSyncTest.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetValidatorTests$ValidateHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.OwnerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.vet.VetControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.OwnerControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.service.ClinicServiceTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.PostgresIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests$ProcessCreationFormHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetValidatorTests.xml], path: /usr/bin/python3.12}
     - {args: [/usr/bin/python3, '-', ./target/surefire-reports/TEST-com.testcontainers.demo.CustomerControllerTest.xml], path: /usr/bin/python3.12}
-    - {args: [/usr/bin/python3.12, -E, -S, /usr/lib/python3.12/py_compile.py, /usr/lib/python3.12/ensurepip/__init__.py, /usr/lib/python3.12/ensurepip/__main__.py, /usr/lib/python3.12/ensurepip/_uninstall.py], path: /usr/bin/python3.12}
     - {args: [/usr/bin/python3.12, -c, import importlib.util; print(importlib.util.MAGIC_NUMBER)], path: /usr/bin/python3.12}
     - {args: [/usr/bin/python3.12, -c, import sys; print(sys.implementation.cache_tag)], path: /usr/bin/python3.12}
-    - {args: [/usr/bin/python3.12, -m, py_compile, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, -m, py_compile, ⋯⋯], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, /usr/lib/python3.12/py_compile.py, ⋯⋯], path: /usr/bin/python3.12}
     - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/rm}
     - {args: [/usr/bin/rmdir, ⋯⋯], path: /usr/bin/rmdir}
     - {args: [/usr/bin/sed, ⋯⋯], path: /usr/bin/sed}
