@@ -6,4 +6,5 @@ F="$G/sbobs/runner-family"
 for ov in "$F"/runner-overlay-*.yaml; do
   name=$(basename "$ov" .yaml); name=${name#runner-overlay-}
   ${BOBCTL:-bobctl} compose --name "$name" -o "$G/deploy/$name.yaml" "$F/runner.yaml" "$ov"
+  ${BOBCTL:-bobctl} harden --file "$G/deploy/$name.yaml" --collapse-cicd --in-place
 done
