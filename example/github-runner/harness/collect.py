@@ -88,7 +88,7 @@ def alerts(a):
                "arguments": args}
         if sigs is not None:
             blob = " || ".join(cmdlines(tree, []))
-            hits = [name for name, sig in sigs if sig and sig in blob]
+            hits = [name for name, sig in sorted(sigs, key=lambda s: -len(s[1])) if sig and sig in blob]
             rec["step"] = hits[0] if hits else "_build"
             tagged += bool(hits)
             if len(hits) > 1:
