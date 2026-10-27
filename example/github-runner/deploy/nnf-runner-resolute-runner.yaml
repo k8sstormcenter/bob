@@ -3390,14 +3390,28 @@ spec:
         - update-alternat
     R0004:
       processAllowed:
+        - px_jattach
         - runc:[1:CHILD]
         - runc:[1:INIT]
         - runc:[2:INIT]
         - runc:[3:INIT]
+        - runlevel
+        - start-stop-daem
+        - systemctl
+    R0005:
+      processAllowed:
+        - Runner.Worker
+    R0008:
+      processAllowed:
+        - Runner.Worker
     R0011:
       processAllowed:
+        - Runner.Worker
         - http
         - https
+    R1030:
+      processAllowed:
+        - Runner.Worker
   seccompProfile:
     spec:
       defaultAction: ""
