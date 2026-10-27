@@ -63,16 +63,436 @@ spec:
     - {args: [/bin/sh, -c, rm -fr strscan.so false strscan.o *.bak mkmf.log .*.time], path: /bin/sh}
     - {args: [/bin/sh, -c, sed -i~ 's/$/Test/' "/tmp/⋯], path: /bin/sh}
     - {args: [/bin/sh, -eu, /home/runner/_work/_temp/⋯], path: /bin/sh}
+    - {args: [/home/runner/.cargo/bin/cargo, --list, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, --version, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, -V, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, -vV, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, b, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, bench, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, build, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, c, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, check, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, clean, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, clippy, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, doc, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, fetch, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, fix, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, fmt, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, generate-lockfile, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, help, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, install, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, llvm-cov, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, locate-project, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, metadata, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, nextest, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, package, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, r, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, run, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, rustc, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, rustdoc, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, t, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, test, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, tree, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, uninstall, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, update, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, vendor, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo, version, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, --list, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, --version, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, -V, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, -vV, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, b, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, bench, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, build, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, c, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, check, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, clean, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, clippy, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, doc, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, fetch, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, fix, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, fmt, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, generate-lockfile, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, help, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, install, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, llvm-cov, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, locate-project, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, metadata, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, nextest, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, package, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, r, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, run, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, rustc, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, rustdoc, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, t, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, test, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, tree, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, uninstall, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, update, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, vendor, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [cargo, version, ⋯⋯], path: /home/runner/.cargo/bin/cargo}
+    - {args: [/home/runner/.cargo/bin/cargo-clippy, clippy, ⋯⋯], path: /home/runner/.cargo/bin/cargo-clippy}
+    - {args: [cargo-clippy, clippy, ⋯⋯], path: /home/runner/.cargo/bin/cargo-clippy}
     - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, llvm-cov, ⋯⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [cargo-llvm-cov, llvm-cov, ⋯⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-nextest, nextest, ⋯⋯], path: /home/runner/.cargo/bin/cargo-nextest}
     - {args: [/proc/self/exe, ⋯⋯], path: /home/runner/.cargo/bin/cargo-nextest}
+    - {args: [cargo-nextest, nextest, ⋯⋯], path: /home/runner/.cargo/bin/cargo-nextest}
     - {args: [/home/runner/.cargo/bin/rustc, ⋯⋯], path: /home/runner/.cargo/bin/rustc}
+    - {args: [rustc, ⋯⋯], path: /home/runner/.cargo/bin/rustc}
+    - {args: [/home/runner/.cargo/bin/rustdoc, ⋯⋯], path: /home/runner/.cargo/bin/rustdoc}
+    - {args: [rustdoc, ⋯⋯], path: /home/runner/.cargo/bin/rustdoc}
+    - {args: [/home/runner/.cargo/bin/rustfmt, ⋯⋯], path: /home/runner/.cargo/bin/rustfmt}
+    - {args: [rustfmt, ⋯⋯], path: /home/runner/.cargo/bin/rustfmt}
     - {args: [/home/runner/.cargo/bin/rustc, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, --version, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, -V, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, component, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, default, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, help, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, install, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, override, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, run, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, self, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, set, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, show, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, target, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, toolchain, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, update, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/rustup, which, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, --version, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, -V, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, component, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, default, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, help, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, install, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, override, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, run, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, self, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, set, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, show, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, target, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, toolchain, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, update, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [rustup, which, ⋯⋯], path: /home/runner/.cargo/bin/rustup}
+    - {args: [/home/runner/.cargo/bin/uv, --version, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.cargo/bin/uv, build, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.cargo/bin/uv, lock, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.cargo/bin/uv, pip, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.cargo/bin/uv, python, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.cargo/bin/uv, run, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.cargo/bin/uv, sync, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.cargo/bin/uv, tool, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.cargo/bin/uv, venv, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, --version, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, build, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, lock, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, pip, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, python, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, run, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, sync, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, tool, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [uv, venv, ⋯⋯], path: /home/runner/.cargo/bin/uv}
+    - {args: [/home/runner/.dotnet/dotnet, --info, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, --list-sdks, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, --version, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, add, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, build, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, build-server, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, clean, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, exec, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, format, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, list, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, msbuild, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, new, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, pack, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, publish, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, restore, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, run, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, sln, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, test, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, tool, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, vstest, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.dotnet/dotnet, workload, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, --info, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, --list-sdks, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, --version, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, add, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, build, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, build-server, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, clean, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, exec, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, format, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, list, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, msbuild, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, new, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, pack, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, publish, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, restore, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, run, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, sln, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, test, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, tool, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, vstest, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [dotnet, workload, ⋯⋯], path: /home/runner/.dotnet/dotnet}
+    - {args: [/home/runner/.local/bin/poetry, --version, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/poetry, build, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/poetry, check, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/poetry, env, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/poetry, install, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/poetry, lock, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/poetry, run, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/poetry, show, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/poetry, sync, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, --version, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, build, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, check, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, env, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, install, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, lock, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, run, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, show, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [poetry, sync, ⋯⋯], path: /home/runner/.local/bin/poetry}
+    - {args: [/home/runner/.local/bin/pytest, ⋯⋯], path: /home/runner/.local/bin/pytest}
+    - {args: [pytest, ⋯⋯], path: /home/runner/.local/bin/pytest}
+    - {args: [/home/runner/.local/bin/ruff, --version, ⋯⋯], path: /home/runner/.local/bin/ruff}
+    - {args: [/home/runner/.local/bin/ruff, check, ⋯⋯], path: /home/runner/.local/bin/ruff}
+    - {args: [/home/runner/.local/bin/ruff, format, ⋯⋯], path: /home/runner/.local/bin/ruff}
+    - {args: [ruff, --version, ⋯⋯], path: /home/runner/.local/bin/ruff}
+    - {args: [ruff, check, ⋯⋯], path: /home/runner/.local/bin/ruff}
+    - {args: [ruff, format, ⋯⋯], path: /home/runner/.local/bin/ruff}
+    - {args: [/home/runner/.local/bin/tox, ⋯⋯], path: /home/runner/.local/bin/tox}
+    - {args: [tox, ⋯⋯], path: /home/runner/.local/bin/tox}
     - {args: [/home/runner/.local/bin/trivy-bin/trivy, ⋯⋯], path: /home/runner/.local/bin/trivy-bin/trivy}
     - {args: [trivy, ⋯⋯], path: /home/runner/.local/bin/trivy-bin/trivy}
+    - {args: [/home/runner/.local/bin/uv, --version, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.local/bin/uv, build, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.local/bin/uv, lock, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.local/bin/uv, pip, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.local/bin/uv, python, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.local/bin/uv, run, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.local/bin/uv, sync, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.local/bin/uv, tool, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.local/bin/uv, venv, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, --version, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, build, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, lock, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, pip, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, python, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, run, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, sync, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, tool, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [uv, venv, ⋯⋯], path: /home/runner/.local/bin/uv}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, --list, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, --version, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, -V, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, -vV, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, b, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, bench, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, build, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, c, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, check, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, clean, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, clippy, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, doc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, fetch, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, fix, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, fmt, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, generate-lockfile, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, help, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, install, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, llvm-cov, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, locate-project, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, metadata, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, nextest, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, package, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, r, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, run, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, rustc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, rustdoc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, t, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, test, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, tree, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, uninstall, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, update, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, vendor, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, version, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, --list, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, --version, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, -V, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, -vV, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, b, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, bench, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, build, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, c, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, check, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, clean, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, clippy, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, doc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, fetch, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, fix, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, fmt, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, generate-lockfile, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, help, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, install, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, llvm-cov, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, locate-project, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, metadata, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, nextest, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, package, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, r, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, run, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, rustc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, rustdoc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, t, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, test, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, tree, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, uninstall, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, update, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, vendor, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [cargo, version, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo-clippy, clippy, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo-clippy}
+    - {args: [cargo-clippy, clippy, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo-clippy}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/clippy-driver, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/clippy-driver}
+    - {args: [clippy-driver, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/clippy-driver}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/rustc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/rustc}
+    - {args: [rustc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/rustdoc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/rustdoc}
+    - {args: [rustdoc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/rustdoc}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/rustfmt, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/rustfmt}
+    - {args: [rustfmt, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/rustfmt}
+    - {args: [/home/runner/_work/_temp/bin/golangci-lint, --version, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [/home/runner/_work/_temp/bin/golangci-lint, cache, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [/home/runner/_work/_temp/bin/golangci-lint, linters, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [/home/runner/_work/_temp/bin/golangci-lint, run, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [/home/runner/_work/_temp/bin/golangci-lint, version, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [golangci-lint, --version, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [golangci-lint, cache, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [golangci-lint, linters, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [golangci-lint, run, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [golangci-lint, version, ⋯⋯], path: /home/runner/_work/_temp/bin/golangci-lint}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, --info, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, --list-sdks, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, --version, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, add, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, build, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, build-server, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, clean, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, exec, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, format, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, list, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, msbuild, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, new, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, pack, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, publish, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, restore, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, run, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, sln, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, test, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, tool, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, vstest, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [/home/runner/_work/_temp/dotnet/dotnet, workload, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, --info, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, --list-sdks, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, --version, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, add, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, build, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, build-server, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, clean, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, exec, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, format, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, list, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, msbuild, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, new, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, pack, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, publish, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, restore, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, run, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, sln, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, test, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, tool, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, vstest, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
+    - {args: [dotnet, workload, ⋯⋯], path: /home/runner/_work/_temp/dotnet/dotnet}
     - {args: [/home/runner/_work/_temp/⋯, -strict, -ignore-missing-schemas, -output, junit, -summary], path: /home/runner/_work/_temp/kubeconform}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, --version, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, cache, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, check, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, config, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, download, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, freeze, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, install, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, list, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, show, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, uninstall, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pip, wheel, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, --version, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, cache, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, check, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, config, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, download, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, freeze, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, install, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, list, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, show, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, uninstall, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [pip, wheel, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pip}
+    - {args: [/home/runner/_work/_temp/⋯/bin/pytest, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pytest}
+    - {args: [pytest, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/pytest}
+    - {args: [/home/runner/_work/_temp/⋯/bin/ruff, --version, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/ruff}
     - {args: [/home/runner/_work/_temp/⋯/bin/ruff, check, --exit-zero, .], path: /home/runner/_work/_temp/⋯/bin/ruff}
+    - {args: [/home/runner/_work/_temp/⋯/bin/ruff, check, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/ruff}
+    - {args: [/home/runner/_work/_temp/⋯/bin/ruff, format, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/ruff}
+    - {args: [ruff, --version, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/ruff}
+    - {args: [ruff, check, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/ruff}
+    - {args: [ruff, format, ⋯⋯], path: /home/runner/_work/_temp/⋯/bin/ruff}
+    - {args: [/home/runner/_work/_temp/⋯/rustup-init, ⋯⋯], path: /home/runner/_work/_temp/⋯/rustup-init}
+    - {args: [rustup-init, ⋯⋯], path: /home/runner/_work/_temp/⋯/rustup-init}
     - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, ⋯⋯], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
     - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/lib/jspawnhelper, ⋯⋯], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/lib/jspawnhelper}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, --version, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, cache, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, check, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, config, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, download, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, freeze, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, install, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, list, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, show, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, uninstall, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip, wheel, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, --version, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, cache, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, check, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, config, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, download, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, freeze, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, install, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, list, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, show, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, uninstall, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [pip, wheel, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, --version, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, cache, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, check, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, config, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, download, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, freeze, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, install, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, list, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, show, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, uninstall, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/pip3, wheel, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, --version, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, cache, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, check, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, config, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, download, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, freeze, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, install, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, list, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, show, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, uninstall, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
+    - {args: [pip, wheel, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/pip3}
     - {args: [./python, -c, import pip], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [./python, -m, pip, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [/home/runner/_work/_temp/⋯/bin/pip, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
@@ -89,10 +509,178 @@ spec:
     - {args: [/home/runner/_work/_tool/Python/⋯/x64/bin/python3, '-'], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [/tmp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pip/__pip-runner__.py, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
     - {args: [/tmp/⋯/bin/python, /home/runner/_work/_temp/⋯/lib/python3.12/site-packages/pyproject_hooks/_in_process/_in_process.py, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, build, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, clean, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, doc, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, env, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, fix, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, fmt, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, generate, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, get, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, help, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, install, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, list, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, mod, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, run, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, test, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, tool, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, version, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, vet, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/go, work, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, build, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, clean, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, doc, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, env, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, fix, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, fmt, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, generate, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, get, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, help, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, install, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, list, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, mod, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, run, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, test, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, tool, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, version, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, vet, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [go, work, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/go}
+    - {args: [/home/runner/_work/_tool/go/⋯/x64/bin/gofmt, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/gofmt}
+    - {args: [gofmt, ⋯⋯], path: /home/runner/_work/_tool/go/⋯/x64/bin/gofmt}
+    - {args: [/home/runner/_work/_tool/gradle/⋯/x64/bin/gradle, ⋯⋯], path: /home/runner/_work/_tool/gradle/⋯/x64/bin/gradle}
+    - {args: [gradle, ⋯⋯], path: /home/runner/_work/_tool/gradle/⋯/x64/bin/gradle}
     - {args: [/home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm, dependency, build, charts/prometheus-node-exporter], path: /home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm}
     - {args: [/home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm, lint, charts/prometheus-node-exporter], path: /home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm}
     - {args: [/home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm, package, charts/prometheus-node-exporter, -d, /home/runner/_work/⋯/⋯/src/dist], path: /home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm}
     - {args: [/home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm, template, t, charts/prometheus-node-exporter], path: /home/runner/_work/_tool/helm/⋯/x64/linux-amd64/helm}
+    - {args: [/home/runner/_work/_tool/maven/⋯/x64/bin/mvn, ⋯⋯], path: /home/runner/_work/_tool/maven/⋯/x64/bin/mvn}
+    - {args: [mvn, ⋯⋯], path: /home/runner/_work/_tool/maven/⋯/x64/bin/mvn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/corepack, --version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/corepack, enable, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/corepack, install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/corepack, prepare, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/corepack, use, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [corepack, --version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [corepack, enable, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [corepack, install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [corepack, prepare, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [corepack, use, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/corepack}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, --version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, -v, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, audit, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, build, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, cache, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, ci, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, config, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, dedupe, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, exec, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, explain, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, i, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, init, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, ls, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, outdated, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, pack, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, prune, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, query, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, rebuild, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, run, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, run-script, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, t, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, test, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, update, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npm, x, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, --version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, -v, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, audit, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, build, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, cache, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, ci, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, config, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, dedupe, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, exec, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, explain, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, i, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, init, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, ls, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, outdated, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, pack, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, prune, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, query, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, rebuild, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, run, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, run-script, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, t, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, test, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, update, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [npm, x, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/npx, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npx}
+    - {args: [npx, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/npx}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, --version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, -v, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, add, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, build, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, dlx, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, exec, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, fetch, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, i, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, pack, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, rebuild, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, run, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, store, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/pnpm, test, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, --version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, -v, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, add, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, build, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, dlx, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, exec, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, fetch, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, i, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, pack, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, rebuild, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, run, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, store, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [pnpm, test, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/pnpm}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, --version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, -v, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, add, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, build, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, cache, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, config, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, dlx, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, exec, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, info, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, pack, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, run, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, set, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, test, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, why, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, workspace, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [/home/runner/_work/_tool/node/⋯/x64/bin/yarn, workspaces, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, --version, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, -v, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, add, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, build, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, cache, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, config, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, dlx, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, exec, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, info, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, install, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, pack, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, run, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, set, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, test, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, why, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, workspace, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
+    - {args: [yarn, workspaces, ⋯⋯], path: /home/runner/_work/_tool/node/⋯/x64/bin/yarn}
     - {args: [/home/runner/_work/⋯/⋯/src/target/debug/build/⋯/build-script-build], path: /home/runner/_work/⋯/⋯/src/target/debug/build/⋯/build-script-build}
     - {args: [/home/runner/_work/⋯/⋯/src/target/llvm-cov-target/debug/build/⋯/build-script-build], path: /home/runner/_work/⋯/⋯/src/target/llvm-cov-target/debug/build/⋯/build-script-build}
     - {args: [/home/runner/bin/Runner.Listener, run], path: /home/runner/bin/Runner.Listener}
@@ -110,8 +698,130 @@ spec:
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/github/codeql-action/⋯/upload-sarif/../lib/upload-sarif-post-entry.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/ruby/setup-ruby/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
     - {args: [/home/runner/externals/node24/bin/node, /home/runner/_work/_actions/shivammathur/setup-php/⋯/dist/index.js], path: /home/runner/externals/node24/bin/node}
+    - {args: [/home/runner/go/bin/golangci-lint, --version, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [/home/runner/go/bin/golangci-lint, cache, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [/home/runner/go/bin/golangci-lint, linters, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [/home/runner/go/bin/golangci-lint, run, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [/home/runner/go/bin/golangci-lint, version, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [golangci-lint, --version, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [golangci-lint, cache, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [golangci-lint, linters, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [golangci-lint, run, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [golangci-lint, version, ⋯⋯], path: /home/runner/go/bin/golangci-lint}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, build, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, clean, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, doc, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, env, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, fix, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, fmt, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, generate, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, get, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, help, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, install, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, list, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, mod, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, run, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, test, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, tool, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, version, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, vet, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [/home/runner/go/pkg/mod/golang.org/⋯/bin/go, work, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, build, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, clean, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, doc, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, env, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, fix, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, fmt, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, generate, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, get, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, help, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, install, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, list, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, mod, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, run, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, test, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, tool, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, version, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, vet, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
+    - {args: [go, work, ⋯⋯], path: /home/runner/go/pkg/mod/golang.org/⋯/bin/go}
     - {args: [/home/runner/run-helper.sh], path: /home/runner/run-helper.sh}
     - {args: [/home/runner/run.sh], path: /home/runner/run.sh}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, --version, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, -v, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, add, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, build, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, dlx, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, exec, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, fetch, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, i, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, install, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, pack, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, rebuild, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, run, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, store, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/home/runner/setup-pnpm/node_modules/.bin/pnpm, test, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, --version, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, -v, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, add, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, build, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, dlx, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, exec, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, fetch, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, i, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, install, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, pack, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, rebuild, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, run, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, store, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [pnpm, test, ⋯⋯], path: /home/runner/setup-pnpm/node_modules/.bin/pnpm}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, --version, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, -v, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, add, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, binstubs, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, cache, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, check, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, config, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, exec, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, install, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, list, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, lock, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, show, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, update, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, --version, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, -v, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, add, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, binstubs, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, cache, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, check, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, config, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, exec, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, install, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, list, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, lock, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, show, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [bundle, update, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, --version, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, -v, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, build, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, env, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, install, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, list, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, uninstall, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, update, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [gem, --version, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [gem, -v, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [gem, build, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [gem, env, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [gem, install, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [gem, list, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [gem, uninstall, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [gem, update, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/rake, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/rake}
+    - {args: [rake, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/rake}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/rspec, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/rspec}
+    - {args: [rspec, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/rspec}
+    - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/rubocop, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/rubocop}
+    - {args: [rubocop, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/rubocop}
     - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/bundle, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
     - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
     - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/rubocop, ⋯⋯], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
@@ -121,6 +831,8 @@ spec:
     - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby, /opt/hostedtoolcache/Ruby/⋯/x64/bin/gem, install, rubocop, --no-document], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
     - {args: [/opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby, extconf.rb], path: /opt/hostedtoolcache/Ruby/⋯/x64/bin/ruby}
     - {args: [/proc/self/exe, ⋯⋯], path: /proc/self/exe}
+    - {args: [/tmp/⋯/rustup-init, ⋯⋯], path: /tmp/⋯/rustup-init}
+    - {args: [rustup-init, ⋯⋯], path: /tmp/⋯/rustup-init}
     - {args: [/usr/bin/apt-cache, show, 'libenchant-?[0-9]+?-dev'], path: /usr/bin/apt-cache}
     - {args: [/usr/bin/apt-fast, ⋯⋯], path: /usr/bin/apt-fast}
     - {args: [/usr/bin/apt-fast, ⋯⋯], path: /usr/bin/apt-get}
@@ -128,6 +840,8 @@ spec:
     - {args: [apt-fast, ⋯⋯], path: /usr/bin/apt-get}
     - {args: [apt-get, ⋯⋯], path: /usr/bin/apt-get}
     - {args: [/usr/bin/arch], path: /usr/bin/arch}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/as}
+    - {args: [as, ⋯⋯], path: /usr/bin/as}
     - {args: [/usr/bin/awk, ⋯⋯], path: /usr/bin/awk}
     - {args: [/usr/bin/basename, ⋯⋯], path: /usr/bin/basename}
     - {args: [/bin/bash, /home/runner/run-helper.sh], path: /usr/bin/bash}
@@ -144,14 +858,147 @@ spec:
     - {args: [/usr/bin/ldd, --version], path: /usr/bin/bash}
     - {args: [bash, /home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh], path: /usr/bin/bash}
     - {args: [bash, /tmp/⋯, self-hosted, "8.3", release, nts], path: /usr/bin/bash}
+    - {args: [/usr/bin/bundle, --version, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, -v, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, add, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, binstubs, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, cache, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, check, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, config, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, exec, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, install, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, list, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, lock, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, show, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/bundle, update, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, --version, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, -v, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, add, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, binstubs, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, cache, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, check, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, config, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, exec, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, install, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, list, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, lock, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, show, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [bundle, update, ⋯⋯], path: /usr/bin/bundle}
+    - {args: [/usr/bin/c++, ⋯⋯], path: /usr/bin/c++}
+    - {args: [c++, ⋯⋯], path: /usr/bin/c++}
+    - {args: [/usr/bin/cargo, --list, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, --version, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, -V, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, -vV, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, b, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, bench, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, build, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, c, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, check, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, clean, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, clippy, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, doc, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, fetch, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, fix, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, fmt, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, generate-lockfile, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, help, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, install, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, llvm-cov, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, locate-project, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, metadata, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, nextest, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, package, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, r, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, run, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, rustc, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, rustdoc, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, t, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, test, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, tree, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, uninstall, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, update, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, vendor, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [/usr/bin/cargo, version, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, --list, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, --version, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, -V, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, -vV, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, b, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, bench, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, build, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, c, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, check, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, clean, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, clippy, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, doc, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, fetch, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, fix, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, fmt, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, generate-lockfile, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, help, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, install, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, llvm-cov, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, locate-project, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, metadata, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, nextest, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, package, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, r, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, run, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, rustc, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, rustdoc, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, t, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, test, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, tree, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, uninstall, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, update, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, vendor, ⋯⋯], path: /usr/bin/cargo}
+    - {args: [cargo, version, ⋯⋯], path: /usr/bin/cargo}
     - {args: [/usr/bin/cat, ⋯⋯], path: /usr/bin/cat}
     - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/cc}
     - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/cc}
+    - {args: [cc, ⋯⋯], path: /usr/bin/cc}
     - {args: [/usr/bin/chmod, ⋯⋯], path: /usr/bin/chmod}
     - {args: [/usr/bin/chown, ⋯⋯], path: /usr/bin/chown}
+    - {args: [/usr/bin/clang, ⋯⋯], path: /usr/bin/clang}
+    - {args: [clang, ⋯⋯], path: /usr/bin/clang}
+    - {args: [/usr/bin/cmake, ⋯⋯], path: /usr/bin/cmake}
+    - {args: [cmake, ⋯⋯], path: /usr/bin/cmake}
     - {args: [/usr/bin/cmp, ⋯⋯], path: /usr/bin/cmp}
+    - {args: [/usr/bin/composer, --version, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, -V, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, archive, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, config, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, diagnose, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, dump-autoload, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, exec, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, install, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, require, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, run, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, run-script, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, show, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, update, ⋯⋯], path: /usr/bin/composer}
+    - {args: [/usr/bin/composer, validate, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, --version, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, -V, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, archive, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, config, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, diagnose, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, dump-autoload, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, exec, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, install, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, require, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, run, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, run-script, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, show, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, update, ⋯⋯], path: /usr/bin/composer}
+    - {args: [composer, validate, ⋯⋯], path: /usr/bin/composer}
     - {args: [/usr/bin/cp, ⋯⋯], path: /usr/bin/cp}
+    - {args: [/usr/bin/cpack, ⋯⋯], path: /usr/bin/cpack}
+    - {args: [cpack, ⋯⋯], path: /usr/bin/cpack}
     - {args: [/usr/bin/cpp, ⋯⋯], path: /usr/bin/cpp}
+    - {args: [/usr/bin/ctest, ⋯⋯], path: /usr/bin/ctest}
+    - {args: [ctest, ⋯⋯], path: /usr/bin/ctest}
     - {args: [/usr/bin/cut, ⋯⋯], path: /usr/bin/cut}
     - {args: ["", -c, mktemp -d "/tmp/⋯], path: /usr/bin/dash}
     - {args: ["", -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  aspell-autobuildhash], path: /usr/bin/dash}
@@ -339,6 +1186,48 @@ spec:
     - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
     - {args: [/usr/bin/deb-systemd-helper, ⋯⋯], path: /usr/bin/deb-systemd-helper}
     - {args: [/usr/bin/dirname, ⋯⋯], path: /usr/bin/dirname}
+    - {args: [/usr/bin/dotnet, --info, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, --list-sdks, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, --version, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, add, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, build, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, build-server, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, clean, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, exec, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, format, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, list, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, msbuild, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, new, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, pack, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, publish, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, restore, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, run, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, sln, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, test, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, tool, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, vstest, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [/usr/bin/dotnet, workload, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, --info, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, --list-sdks, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, --version, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, add, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, build, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, build-server, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, clean, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, exec, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, format, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, list, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, msbuild, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, new, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, pack, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, publish, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, restore, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, run, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, sln, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, test, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, tool, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, vstest, ⋯⋯], path: /usr/bin/dotnet}
+    - {args: [dotnet, workload, ⋯⋯], path: /usr/bin/dotnet}
     - {args: [/usr/bin/dpkg, ⋯⋯], path: /usr/bin/dpkg}
     - {args: [/usr/bin/dpkg-deb, ⋯⋯], path: /usr/bin/dpkg-deb}
     - {args: [dpkg-deb, ⋯⋯], path: /usr/bin/dpkg-deb}
@@ -470,11 +1359,70 @@ spec:
     - {args: [/usr/bin/echo, ⋯⋯], path: /usr/bin/echo}
     - {args: [/usr/bin/env, ⋯⋯], path: /usr/bin/env}
     - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
+    - {args: [/usr/bin/g++, ⋯⋯], path: /usr/bin/g++}
+    - {args: [g++, ⋯⋯], path: /usr/bin/g++}
     - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/gcc}
     - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/gcc}
+    - {args: [gcc, ⋯⋯], path: /usr/bin/gcc}
+    - {args: [/usr/bin/gcov, ⋯⋯], path: /usr/bin/gcov}
+    - {args: [gcov, ⋯⋯], path: /usr/bin/gcov}
+    - {args: [/usr/bin/gem, --version, ⋯⋯], path: /usr/bin/gem}
+    - {args: [/usr/bin/gem, -v, ⋯⋯], path: /usr/bin/gem}
+    - {args: [/usr/bin/gem, build, ⋯⋯], path: /usr/bin/gem}
+    - {args: [/usr/bin/gem, env, ⋯⋯], path: /usr/bin/gem}
+    - {args: [/usr/bin/gem, install, ⋯⋯], path: /usr/bin/gem}
+    - {args: [/usr/bin/gem, list, ⋯⋯], path: /usr/bin/gem}
+    - {args: [/usr/bin/gem, uninstall, ⋯⋯], path: /usr/bin/gem}
+    - {args: [/usr/bin/gem, update, ⋯⋯], path: /usr/bin/gem}
+    - {args: [gem, --version, ⋯⋯], path: /usr/bin/gem}
+    - {args: [gem, -v, ⋯⋯], path: /usr/bin/gem}
+    - {args: [gem, build, ⋯⋯], path: /usr/bin/gem}
+    - {args: [gem, env, ⋯⋯], path: /usr/bin/gem}
+    - {args: [gem, install, ⋯⋯], path: /usr/bin/gem}
+    - {args: [gem, list, ⋯⋯], path: /usr/bin/gem}
+    - {args: [gem, uninstall, ⋯⋯], path: /usr/bin/gem}
+    - {args: [gem, update, ⋯⋯], path: /usr/bin/gem}
     - {args: [/usr/bin/getconf, LONG_BIT], path: /usr/bin/getconf}
     - {args: [/usr/bin/getopt, ⋯⋯], path: /usr/bin/getopt}
+    - {args: [/usr/bin/go, build, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, clean, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, doc, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, env, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, fix, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, fmt, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, generate, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, get, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, help, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, install, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, list, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, mod, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, run, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, test, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, tool, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, version, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, vet, ⋯⋯], path: /usr/bin/go}
+    - {args: [/usr/bin/go, work, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, build, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, clean, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, doc, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, env, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, fix, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, fmt, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, generate, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, get, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, help, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, install, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, list, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, mod, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, run, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, test, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, tool, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, version, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, vet, ⋯⋯], path: /usr/bin/go}
+    - {args: [go, work, ⋯⋯], path: /usr/bin/go}
     - {args: [/usr/bin/gpgv, ⋯⋯], path: /usr/bin/gpgv}
+    - {args: [/usr/bin/gradle, ⋯⋯], path: /usr/bin/gradle}
+    - {args: [gradle, ⋯⋯], path: /usr/bin/gradle}
     - {args: [/usr/bin/grep, ⋯⋯], path: /usr/bin/grep}
     - {args: [/usr/bin/gzip, ⋯⋯], path: /usr/bin/gzip}
     - {args: [gzip, ⋯⋯], path: /usr/bin/gzip}
@@ -501,6 +1449,7 @@ spec:
     - {args: [/usr/bin/jq, -r, .url], path: /usr/bin/jq}
     - {args: [/usr/bin/jq, -r, .version], path: /usr/bin/jq}
     - {args: [/usr/bin/ld, ⋯⋯], path: /usr/bin/ld}
+    - {args: [ld, ⋯⋯], path: /usr/bin/ld}
     - {args: [/usr/bin/ldd, --version], path: /usr/bin/ldd}
     - {args: [/usr/bin/ln, ⋯⋯], path: /usr/bin/ln}
     - {args: [/usr/bin/locale, charmap], path: /usr/bin/locale}
@@ -512,6 +1461,64 @@ spec:
     - {args: [/usr/bin/mkdir, ⋯⋯], path: /usr/bin/mkdir}
     - {args: [/usr/bin/mktemp, ⋯⋯], path: /usr/bin/mktemp}
     - {args: [/usr/bin/mv, ⋯⋯], path: /usr/bin/mv}
+    - {args: [/usr/bin/mvn, ⋯⋯], path: /usr/bin/mvn}
+    - {args: [mvn, ⋯⋯], path: /usr/bin/mvn}
+    - {args: [/usr/bin/ninja, ⋯⋯], path: /usr/bin/ninja}
+    - {args: [ninja, ⋯⋯], path: /usr/bin/ninja}
+    - {args: [/usr/bin/npm, --version, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, -v, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, audit, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, build, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, cache, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, ci, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, config, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, dedupe, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, exec, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, explain, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, i, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, init, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, install, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, ls, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, outdated, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, pack, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, prune, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, query, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, rebuild, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, run, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, run-script, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, t, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, test, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, update, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, version, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npm, x, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, --version, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, -v, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, audit, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, build, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, cache, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, ci, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, config, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, dedupe, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, exec, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, explain, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, i, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, init, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, install, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, ls, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, outdated, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, pack, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, prune, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, query, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, rebuild, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, run, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, run-script, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, t, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, test, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, update, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, version, ⋯⋯], path: /usr/bin/npm}
+    - {args: [npm, x, ⋯⋯], path: /usr/bin/npm}
+    - {args: [/usr/bin/npx, ⋯⋯], path: /usr/bin/npx}
+    - {args: [npx, ⋯⋯], path: /usr/bin/npx}
     - {args: [/usr/bin/pear, channel-update, pear.php.net], path: /usr/bin/pear}
     - {args: [/usr/bin/pecl, channel-update, pecl.php.net], path: /usr/bin/pecl}
     - {args: [/usr/bin/deb-systemd-helper, ⋯⋯], path: /usr/bin/perl}
@@ -532,10 +1539,64 @@ spec:
     - {args: [/usr/bin/php, -C, -q, -d, include_path=/usr/share/php, -d, date.timezone=UTC, -d, output_buffering=1, -d, variables_order=EGPCS, -d, open_basedir=, -d, safe_mode=0, -d, register_argc_argv=On, -d, auto_prepend_file=, -d], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, -C, -q, -d, include_path=/usr/share/php, -d, date.timezone=UTC, -d, output_buffering=1, -d, variables_order=EGPCS, -d, safe_mode=0, -d, register_argc_argv=On, /usr/share/php/peclcmd.php, channel-update, pecl.php.net], path: /usr/bin/php8.3}
     - {args: [/usr/bin/php, /tmp/⋯], path: /usr/bin/php8.3}
+    - {args: [/usr/bin/pip3, --version, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, cache, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, check, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, config, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, download, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, freeze, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, install, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, list, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, show, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, uninstall, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [/usr/bin/pip3, wheel, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, --version, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, cache, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, check, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, config, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, download, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, freeze, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, install, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, list, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, show, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, uninstall, ⋯⋯], path: /usr/bin/pip3}
+    - {args: [pip, wheel, ⋯⋯], path: /usr/bin/pip3}
     - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3}
     - {args: [/usr/bin/python3, '-', ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.VisitControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.CrashControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.PetClinicIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests$ProcessUpdateFormHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.CrashControllerIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.vet.VetTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.MySqlIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetTypeFormatterTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.system.I18nPropertiesSyncTest.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetValidatorTests$ValidateHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.OwnerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.vet.VetControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.OwnerControllerTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.service.ClinicServiceTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.PostgresIntegrationTests.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetControllerTests$ProcessCreationFormHasErrors.xml, ./build/test-results/test/TEST-org.springframework.samples.petclinic.owner.PetValidatorTests.xml], path: /usr/bin/python3}
+    - {args: [/usr/bin/rake, ⋯⋯], path: /usr/bin/rake}
+    - {args: [rake, ⋯⋯], path: /usr/bin/rake}
     - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/rm}
     - {args: [/usr/bin/rmdir, ⋯⋯], path: /usr/bin/rmdir}
+    - {args: [/usr/bin/rustup, --version, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, -V, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, component, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, default, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, help, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, install, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, override, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, run, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, self, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, set, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, show, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, target, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, toolchain, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, update, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [/usr/bin/rustup, which, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, --version, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, -V, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, component, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, default, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, help, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, install, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, override, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, run, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, self, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, set, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, show, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, target, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, toolchain, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, update, ⋯⋯], path: /usr/bin/rustup}
+    - {args: [rustup, which, ⋯⋯], path: /usr/bin/rustup}
     - {args: [/usr/bin/sed, ⋯⋯], path: /usr/bin/sed}
     - {args: [/usr/bin/seq, ⋯⋯], path: /usr/bin/seq}
     - {args: [/usr/bin/sh, -s, --, --default-toolchain, none, -y], path: /usr/bin/sh}
@@ -583,8 +1644,48 @@ spec:
     - {args: [/usr/bin/update-alternatives, --set, php-fpm, /usr/sbin/⋯], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/update-alternatives, --set, phpdbg, /usr/bin/⋯], path: /usr/bin/update-alternatives}
     - {args: [/usr/bin/update-alternatives, --set, phpize, /usr/bin/phpize8.3], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/x86_64-linux-gnu-as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
+    - {args: [as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
+    - {args: [/usr/bin/x86_64-linux-gnu-ld, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ld}
+    - {args: [ld, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ld}
     - {args: [/usr/bin/ld, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ld.bfd}
+    - {args: [/usr/bin/x86_64-linux-gnu-ld.bfd, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ld.bfd}
+    - {args: [ld, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-ld.bfd}
     - {args: [/usr/bin/xargs, ⋯⋯], path: /usr/bin/xargs}
+    - {args: [/usr/bin/yarn, --version, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, -v, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, add, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, build, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, cache, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, config, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, dlx, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, exec, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, info, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, install, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, pack, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, run, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, set, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, test, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, why, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, workspace, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [/usr/bin/yarn, workspaces, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, --version, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, -v, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, add, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, build, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, cache, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, config, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, dlx, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, exec, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, info, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, install, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, pack, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, run, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, set, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, test, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, why, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, workspace, ⋯⋯], path: /usr/bin/yarn}
+    - {args: [yarn, workspaces, ⋯⋯], path: /usr/bin/yarn}
     - {args: [/usr/bin/zstd, ⋯⋯], path: /usr/bin/zstd}
     - {args: [/usr/lib/apt/methods/gpgv, ⋯⋯], path: /usr/lib/apt/methods/gpgv}
     - {args: [/usr/lib/apt/methods/http, ⋯⋯], path: /usr/lib/apt/methods/http}
@@ -599,9 +1700,237 @@ spec:
     - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/lib/git-core/git-submodule}
     - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/lib/git-core/git-submodule}
     - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/lib/git-core/git-submodule}
+    - {args: [/usr/lib/llvm-⋯/bin/clang, ⋯⋯], path: /usr/lib/llvm-⋯/bin/clang}
+    - {args: [clang, ⋯⋯], path: /usr/lib/llvm-⋯/bin/clang}
     - {args: [/usr/lib/x86_64-linux-gnu/glib-2.0/glib-compile-schemas, /usr/share/glib-2.0/schemas], path: /usr/lib/x86_64-linux-gnu/glib-2.0/glib-compile-schemas}
     - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1}
+    - {args: [cc1, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1plus, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1plus}
+    - {args: [cc1plus, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/cc1plus}
     - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2}
+    - {args: [collect2, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/collect2}
+    - {args: [/usr/libexec/gcc/x86_64-linux-gnu/⋯/lto-wrapper, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/lto-wrapper}
+    - {args: [lto-wrapper, ⋯⋯], path: /usr/libexec/gcc/x86_64-linux-gnu/⋯/lto-wrapper}
+    - {args: [/usr/local/bin/bundle, --version, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, -v, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, add, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, binstubs, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, cache, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, check, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, config, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, exec, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, install, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, list, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, lock, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, show, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/bundle, update, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, --version, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, -v, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, add, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, binstubs, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, cache, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, check, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, config, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, exec, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, install, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, list, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, lock, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, show, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [bundle, update, ⋯⋯], path: /usr/local/bin/bundle}
+    - {args: [/usr/local/bin/cmake, ⋯⋯], path: /usr/local/bin/cmake}
+    - {args: [cmake, ⋯⋯], path: /usr/local/bin/cmake}
+    - {args: [/usr/local/bin/composer, --version, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, -V, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, archive, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, config, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, diagnose, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, dump-autoload, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, exec, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, install, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, require, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, run, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, run-script, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, show, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, update, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/composer, validate, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, --version, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, -V, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, archive, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, config, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, diagnose, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, dump-autoload, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, exec, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, install, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, require, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, run, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, run-script, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, show, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, update, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [composer, validate, ⋯⋯], path: /usr/local/bin/composer}
+    - {args: [/usr/local/bin/corepack, --version, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [/usr/local/bin/corepack, enable, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [/usr/local/bin/corepack, install, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [/usr/local/bin/corepack, prepare, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [/usr/local/bin/corepack, use, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [corepack, --version, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [corepack, enable, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [corepack, install, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [corepack, prepare, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [corepack, use, ⋯⋯], path: /usr/local/bin/corepack}
+    - {args: [/usr/local/bin/npm, --version, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, -v, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, audit, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, build, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, cache, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, ci, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, config, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, dedupe, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, exec, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, explain, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, i, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, init, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, install, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, ls, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, outdated, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, pack, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, prune, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, query, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, rebuild, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, run, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, run-script, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, t, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, test, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, update, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, version, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npm, x, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, --version, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, -v, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, audit, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, build, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, cache, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, ci, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, config, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, dedupe, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, exec, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, explain, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, i, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, init, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, install, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, ls, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, outdated, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, pack, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, prune, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, query, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, rebuild, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, run, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, run-script, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, t, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, test, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, update, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, version, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [npm, x, ⋯⋯], path: /usr/local/bin/npm}
+    - {args: [/usr/local/bin/npx, ⋯⋯], path: /usr/local/bin/npx}
+    - {args: [npx, ⋯⋯], path: /usr/local/bin/npx}
+    - {args: [/usr/local/bin/pnpm, --version, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, -v, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, add, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, build, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, dlx, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, exec, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, fetch, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, i, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, install, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, pack, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, rebuild, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, run, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, store, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/pnpm, test, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, --version, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, -v, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, add, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, build, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, dlx, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, exec, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, fetch, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, i, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, install, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, pack, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, rebuild, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, run, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, store, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [pnpm, test, ⋯⋯], path: /usr/local/bin/pnpm}
+    - {args: [/usr/local/bin/yarn, --version, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, -v, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, add, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, build, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, cache, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, config, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, dlx, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, exec, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, info, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, install, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, pack, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, run, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, set, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, test, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, why, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, workspace, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/bin/yarn, workspaces, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, --version, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, -v, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, add, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, build, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, cache, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, config, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, dlx, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, exec, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, info, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, install, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, pack, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, run, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, set, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, test, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, why, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, workspace, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [yarn, workspaces, ⋯⋯], path: /usr/local/bin/yarn}
+    - {args: [/usr/local/go/bin/go, build, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, clean, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, doc, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, env, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, fix, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, fmt, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, generate, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, get, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, help, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, install, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, list, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, mod, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, run, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, test, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, tool, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, version, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, vet, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/go, work, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, build, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, clean, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, doc, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, env, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, fix, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, fmt, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, generate, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, get, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, help, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, install, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, list, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, mod, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, run, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, test, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, tool, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, version, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, vet, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [go, work, ⋯⋯], path: /usr/local/go/bin/go}
+    - {args: [/usr/local/go/bin/gofmt, ⋯⋯], path: /usr/local/go/bin/gofmt}
+    - {args: [gofmt, ⋯⋯], path: /usr/local/go/bin/gofmt}
     - {args: [/usr/local/lib/docker/cli-plugins/docker-buildx, docker-cli-plugin-metadata], path: /usr/local/lib/docker/cli-plugins/docker-buildx}
     - {args: [/usr/sbin/aspell-autobuildhash, ⋯⋯], path: /usr/sbin/aspell-autobuildhash}
     - {args: [/usr/sbin/dpkg-preconfigure, ⋯⋯], path: /usr/sbin/dpkg-preconfigure}
@@ -616,6 +1945,50 @@ spec:
     - {args: [/usr/sbin/update-dictcommon-hunspell, ⋯⋯], path: /usr/sbin/update-dictcommon-hunspell}
     - {args: [/usr/sbin/update-rc.d, ⋯⋯], path: /usr/sbin/update-rc.d}
     - {args: [/usr/share/debconf/frontend, ⋯⋯], path: /usr/share/debconf/frontend}
+    - {args: [/usr/share/dotnet/dotnet, --info, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, --list-sdks, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, --version, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, add, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, build, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, build-server, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, clean, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, exec, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, format, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, list, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, msbuild, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, new, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, pack, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, publish, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, restore, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, run, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, sln, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, test, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, tool, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, vstest, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/dotnet/dotnet, workload, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, --info, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, --list-sdks, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, --version, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, add, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, build, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, build-server, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, clean, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, exec, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, format, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, list, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, msbuild, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, new, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, pack, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, publish, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, restore, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, run, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, sln, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, test, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, tool, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, vstest, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [dotnet, workload, ⋯⋯], path: /usr/share/dotnet/dotnet}
+    - {args: [/usr/share/maven/bin/mvn, ⋯⋯], path: /usr/share/maven/bin/mvn}
+    - {args: [mvn, ⋯⋯], path: /usr/share/maven/bin/mvn}
     - {args: [/var/lib/dpkg/info/automake.postinst, configure], path: /var/lib/dpkg/info/automake.postinst}
     - {args: ['/var/lib/dpkg/info/comerr-dev:amd64.postinst', configure], path: '/var/lib/dpkg/info/comerr-dev:amd64.postinst'}
     - {args: [/var/lib/dpkg/info/cpp.postinst, configure], path: /var/lib/dpkg/info/cpp.postinst}
