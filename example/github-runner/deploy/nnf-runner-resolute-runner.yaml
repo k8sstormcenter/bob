@@ -2468,6 +2468,8 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /etc/bash_completion.d/git-prompt.dpkg-new}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ca-certificates.conf}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_NOCTTY, O_RDONLY, O_TRUNC, O_WRONLY], path: /etc/ca-certificates.conf.dpkg-new}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/ca-certificates/update.d}
+    - {flags: [O_RDONLY], path: /etc/ca-certificates/update.d/jks-keystore}
     - {flags: [O_RDONLY], path: /etc/cron.d/php}
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/cron.d/php.dpkg-new}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/debconf.conf}
@@ -3201,6 +3203,7 @@ spec:
     - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR], path: /var/lib/apt/*}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/aspell}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /var/lib/aspell/README.dpkg-new}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/lib/ca-certificates-java/pending}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/crypto-config/profiles/current/gnutls.conf}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/dictionaries-common/aspell}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/dictionaries-common/hunspell}

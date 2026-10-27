@@ -1,229 +1,71 @@
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
-  name: runner-overlay-pkg-maintenance
-  namespace: arc-systems
   annotations:
     kubescape.io/managed-by: User
   labels:
     kubescape.io/profile-fragment: overlay
     kubescape.io/profile-fragment-base: runner
+  name: runner-overlay-pkg-maintenance
+  namespace: arc-systems
 spec:
   architectures:
-  - amd64
+    - amd64
+  capabilities: null
+  egress: null
+  endpoints: null
   execs:
-  - path: /etc/ca-certificates/update.d/jks-keystore
-    args:
-    - /etc/ca-certificates/update.d/jks-keystore
-  - path: /usr/bin/dash
-    args:
-    - /etc/ca-certificates/update.d/jks-keystore
-  - path: /usr/bin/dash
-    args:
-    - /usr/bin/dpkg-maintscript-helper
-    - rm_conffile
-    - /etc/bash_completion.d/git
-    - ⋯
-    - --
-    - configure
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /usr/bin/dpkg-maintscript-helper
-    - rm_conffile
-    - /etc/bash_completion.d/git
-    - ⋯
-    - --
-    - upgrade
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /usr/bin/dpkg-maintscript-helper
-    - rm_conffile
-    - /etc/bash_completion.d/git
-    - ⋯
-    - --
-    - upgrade
-    - ⋯
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /usr/bin/egrep
-    - -q
-    - ^([[:space:]]*,)*[[:space:]]*$
-  - path: /usr/bin/dash
-    args:
-    - /usr/bin/which
-    - java
-  - path: /usr/bin/dash
-    args:
-    - /usr/sbin/update-ca-certificates
-  - path: /usr/bin/dash
-    args:
-    - /usr/sbin/update-ca-certificates
-    - --hooksdir
-  - path: /usr/bin/dash
-    args:
-    - /usr/sbin/update-ca-certificates
-    - --hooksdir
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/ca-certificates-java.postinst
-    - triggered
-    - update-ca-certificates-java
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/ca-certificates.config
-    - configure
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/ca-certificates.postinst
-    - configure
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/ca-certificates.postinst
-    - triggered
-    - update-ca-certificates
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/ca-certificates.postrm
-    - upgrade
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/git.postinst
-    - configure
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/git.postrm
-    - upgrade
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/git.prerm
-    - upgrade
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/xz-utils.postinst
-    - configure
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/info/xz-utils.prerm
-    - upgrade
-    - ⋯
-  - path: /usr/bin/dash
-    args:
-    - /var/lib/dpkg/tmp.ci/preinst
-    - upgrade
-    - ⋯
-    - ⋯
-  - path: /usr/bin/dpkg-maintscript-helper
-    args:
-    - /usr/bin/dpkg-maintscript-helper
-    - rm_conffile
-    - /etc/bash_completion.d/git
-    - ⋯
-    - --
-    - configure
-    - ⋯
-  - path: /usr/bin/dpkg-maintscript-helper
-    args:
-    - /usr/bin/dpkg-maintscript-helper
-    - rm_conffile
-    - /etc/bash_completion.d/git
-    - ⋯
-    - --
-    - upgrade
-    - ⋯
-  - path: /usr/bin/dpkg-maintscript-helper
-    args:
-    - /usr/bin/dpkg-maintscript-helper
-    - rm_conffile
-    - /etc/bash_completion.d/git
-    - ⋯
-    - --
-    - upgrade
-    - ⋯
-    - ⋯
-  - path: /usr/bin/egrep
-    args:
-    - /usr/bin/egrep
-    - ⋯⋯
-  - path: /usr/bin/which
-    args:
-    - /usr/bin/which
-    - java
-  - path: /usr/sbin/update-ca-certificates
-    args:
-    - /usr/sbin/update-ca-certificates
-  - path: /usr/sbin/update-ca-certificates
-    args:
-    - /usr/sbin/update-ca-certificates
-    - --hooksdir
-  - path: /usr/sbin/update-ca-certificates
-    args:
-    - /usr/sbin/update-ca-certificates
-    - --hooksdir
-    - ⋯
-  - path: /var/lib/dpkg/info/ca-certificates-java.postinst
-    args:
-    - /var/lib/dpkg/info/ca-certificates-java.postinst
-    - triggered
-    - update-ca-certificates-java
-  - path: /var/lib/dpkg/info/ca-certificates.config
-    args:
-    - /var/lib/dpkg/info/ca-certificates.config
-    - configure
-    - ⋯
-  - path: /var/lib/dpkg/info/ca-certificates.postinst
-    args:
-    - /var/lib/dpkg/info/ca-certificates.postinst
-    - configure
-    - ⋯
-  - path: /var/lib/dpkg/info/ca-certificates.postinst
-    args:
-    - /var/lib/dpkg/info/ca-certificates.postinst
-    - triggered
-    - update-ca-certificates
-  - path: /var/lib/dpkg/info/ca-certificates.postrm
-    args:
-    - /var/lib/dpkg/info/ca-certificates.postrm
-    - upgrade
-    - ⋯
-  - path: /var/lib/dpkg/info/git.postinst
-    args:
-    - /var/lib/dpkg/info/git.postinst
-    - configure
-    - ⋯
-  - path: /var/lib/dpkg/info/git.postrm
-    args:
-    - /var/lib/dpkg/info/git.postrm
-    - upgrade
-    - ⋯
-  - path: /var/lib/dpkg/info/git.prerm
-    args:
-    - /var/lib/dpkg/info/git.prerm
-    - upgrade
-    - ⋯
-  - path: /var/lib/dpkg/info/xz-utils.postinst
-    args:
-    - /var/lib/dpkg/info/xz-utils.postinst
-    - configure
-    - ⋯
-  - path: /var/lib/dpkg/info/xz-utils.prerm
-    args:
-    - /var/lib/dpkg/info/xz-utils.prerm
-    - upgrade
-    - ⋯
-  - path: /var/lib/dpkg/tmp.ci/preinst
-    args:
-    - /var/lib/dpkg/tmp.ci/preinst
-    - upgrade
-    - ⋯
-    - ⋯
+    - {args: [/etc/ca-certificates/update.d/jks-keystore], path: /etc/ca-certificates/update.d/jks-keystore}
+    - {args: [/etc/ca-certificates/update.d/jks-keystore], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, upgrade, ⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, upgrade, ⋯, ⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/egrep, -q, '^([[:space:]]*,)*[[:space:]]*$'], path: /usr/bin/dash}
+    - {args: [/usr/bin/which, java], path: /usr/bin/dash}
+    - {args: [/usr/sbin/update-ca-certificates], path: /usr/bin/dash}
+    - {args: [/usr/sbin/update-ca-certificates, --hooksdir], path: /usr/bin/dash}
+    - {args: [/usr/sbin/update-ca-certificates, --hooksdir, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates-java.postinst, triggered, update-ca-certificates-java], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates.config, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postinst, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postinst, triggered, update-ca-certificates], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postrm, upgrade, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/git.postinst, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/git.postrm, upgrade, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/git.prerm, upgrade, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/xz-utils.prerm, upgrade, ⋯], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/tmp.ci/preinst, upgrade, ⋯, ⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, configure, ⋯], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, upgrade, ⋯], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/bash_completion.d/git, ⋯, --, upgrade, ⋯, ⋯], path: /usr/bin/dpkg-maintscript-helper}
+    - {args: [/usr/bin/egrep, ⋯⋯], path: /usr/bin/egrep}
+    - {args: [/usr/bin/which, java], path: /usr/bin/which}
+    - {args: [/usr/sbin/update-ca-certificates], path: /usr/sbin/update-ca-certificates}
+    - {args: [/usr/sbin/update-ca-certificates, --hooksdir], path: /usr/sbin/update-ca-certificates}
+    - {args: [/usr/sbin/update-ca-certificates, --hooksdir, ⋯], path: /usr/sbin/update-ca-certificates}
+    - {args: [/var/lib/dpkg/info/ca-certificates-java.postinst, triggered, update-ca-certificates-java], path: /var/lib/dpkg/info/ca-certificates-java.postinst}
+    - {args: [/var/lib/dpkg/info/ca-certificates.config, configure, ⋯], path: /var/lib/dpkg/info/ca-certificates.config}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postinst, configure, ⋯], path: /var/lib/dpkg/info/ca-certificates.postinst}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postinst, triggered, update-ca-certificates], path: /var/lib/dpkg/info/ca-certificates.postinst}
+    - {args: [/var/lib/dpkg/info/ca-certificates.postrm, upgrade, ⋯], path: /var/lib/dpkg/info/ca-certificates.postrm}
+    - {args: [/var/lib/dpkg/info/git.postinst, configure, ⋯], path: /var/lib/dpkg/info/git.postinst}
+    - {args: [/var/lib/dpkg/info/git.postrm, upgrade, ⋯], path: /var/lib/dpkg/info/git.postrm}
+    - {args: [/var/lib/dpkg/info/git.prerm, upgrade, ⋯], path: /var/lib/dpkg/info/git.prerm}
+    - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure, ⋯], path: /var/lib/dpkg/info/xz-utils.postinst}
+    - {args: [/var/lib/dpkg/info/xz-utils.prerm, upgrade, ⋯], path: /var/lib/dpkg/info/xz-utils.prerm}
+    - {args: [/var/lib/dpkg/tmp.ci/preinst, upgrade, ⋯, ⋯], path: /var/lib/dpkg/tmp.ci/preinst}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/ca-certificates/update.d}
+    - {flags: [O_RDONLY], path: /etc/ca-certificates/update.d/jks-keystore}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/lib/ca-certificates-java/pending}
+  rulePolicies: null
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
