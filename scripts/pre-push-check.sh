@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # pre-push-check.sh — fast local mirror of what CI lint+test will run.
 #
 # Use it manually before `git push`, or install as a git pre-push hook:

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Tier-1 orchestration tests for chain-apply-sbobs.sh.
 # Hermetic: mocked kubectl + stubbed manifest accessors. No yq/cluster.
 source "$(dirname "${BASH_SOURCE[0]}")/test_helper.bash"

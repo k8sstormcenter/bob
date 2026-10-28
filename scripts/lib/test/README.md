@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # chain-pipeline helper test harness
 
 Hermetic tests for `scripts/lib/chain-*.sh` and `scripts/sbob-pipeline.sh`.

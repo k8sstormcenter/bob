@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Schema-validate every AttackSuite and FunctionalTestSuite under example/.
 #
 # Why this exists: a suite is only exercised if its app is in the CI tune matrix

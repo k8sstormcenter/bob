@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # run.sh — discover and run every *_test.sh in this directory, tally
 # results, exit nonzero if any file failed. This is the entry point for
 # CI (`bash scripts/lib/test/run.sh`) and local dev.

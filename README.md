@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 🚨 New preview lab: auto-discovery for profile fragments 
 or "how to compose an SBOB and have different people sign different pieces"
 

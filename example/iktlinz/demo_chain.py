@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """demo_chain — run the IKT-Linz demo EXACTLY as units 2..7 specify.
 
 This is not a recommendation loop: the demo is a scripted path (most other

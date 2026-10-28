@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Render an A4 four-panel poster comparing redis-protocol distros.
 
 Each panel is a full rule-coverage card produced by the SAME renderer as the

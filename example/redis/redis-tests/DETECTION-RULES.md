@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # Redis Attack → Detection Rule Mapping
 
 All attacks exploit CVE-2022-0543 (Lua sandbox escape via `package.loadlib` /

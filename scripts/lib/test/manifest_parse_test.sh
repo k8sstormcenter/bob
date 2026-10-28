@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Tier-2 tests for chain-manifest-parse.sh — exercise the REAL yq-backed
 # accessors against fixture manifests. Skipped when yq is absent.
 source "$(dirname "${BASH_SOURCE[0]}")/test_helper.bash"

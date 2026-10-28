@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Toggle node-agent ContainerProfile signature verification.
 #
 # bobctl emits UNSIGNED user-defined ContainerProfiles (SBoBs). With signature

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # run-iktlinz2-e2e.sh — one-shot IKT-Linz chain-2 attack path, start to finish.
 #
 # Chain 2 is chain 1 over different protocols: dig reverse lookups instead of

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # chain-scenario-switch.sh — execute scenarios[].apply + .restart for a
 # named scenario in a ChainManifest. Used by the Java chain demo to
 # swap the backend image between scenarios A/B/C without re-deploying

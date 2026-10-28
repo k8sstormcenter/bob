@@ -1,3 +1,8 @@
+// Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0; see LICENSE.
+// All trademarks are expressly reserved.
+
 // Loaded by backend's JNDI-vulnerable logging library call.
 //
 // the logging library 2.14.1's JndiManager.lookup() casts the loaded class to

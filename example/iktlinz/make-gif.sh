@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # make-gif.sh — turn a RanUI screencast into a GIF of ONLY the fully-rendered states.
 #
 # The screencast contains reload flashes (blank/partial paints) and long runs of

@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Render metrics.json into an animated GIF showing the tuning process.
 
 Layout: Hybrid Radar + Kill-Chain Heatmap with per-attack detection detail.

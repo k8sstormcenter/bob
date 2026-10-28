@@ -1,3 +1,8 @@
+// Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0; see LICENSE.
+// All trademarks are expressly reserved.
+
 // record.cjs — screencast RanUI while demo_chain.py drives the scripted demo.
 //
 // Two things make a naive screencast record one frozen frame:
