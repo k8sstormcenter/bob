@@ -14,7 +14,17 @@ An IoC fragment is an advisory's footprint, lifted from the runner's **shadow-pr
 2. Grep it for the advisory's IoCs and copy those exact `execs`/`opens`/`egress` entries into a subtract fragment.
 3. `harness/compose.sh` passes every `ioc-overlays/*.yaml` to `bobctl compose`.
 
-Allow and subtract can cancel each other: a subtract entry equal to an allow entry makes that behaviour alert. Requires storage with the `spec.subtract` section (k8sstormcenter/storage #73/#74) and a node-agent that evaluates it.
+Allow and subtract can cancel each other: a subtract entry equal to an allow entry makes that behaviour alert. 
+
+## Other options to make your profile detect such an attack
+You can include adversary test cases during the calibration of the profiles:
+
+
+1. Use previous, historically known attacks of the type of your setup (here type=`runners`) and leave those unallowed
+2. You can choose between the `fragment: subtract` and not generalizing the allow entries
+
+The better option must be decided case-by-case. In this case, for runners, we need to allowlist half of the universe (roughly :P) so the subtract verb is the better choice.
+
 
 ## Files
 
