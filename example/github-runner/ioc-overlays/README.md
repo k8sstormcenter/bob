@@ -1,6 +1,6 @@
 # IoC subtract fragments
 
-An IoC fragment is an advisory's footprint, lifted from the runner's **shadow-profile** of a run that was actually hit. A ContainerProfile only allows; it has no deny entries. Composing the footprint as an overlay would therefore *allow* the IoC. These fragments are labelled `kubescape.io/profile-fragment: subtract`. `bobctl compose` removes from the union of base and overlays every exec, open and egress entry that admits one of their entries: the equal literal, or any wildcard that covers it (`⋯`/`*` paths and argv, or a path-only exec). The deployed profile is everything the family allows except the IoC, so the agent alerts on it.
+An IoC fragment is an advisory's footprint, lifted from the runner's **shadow-profile** of a run that was actually hit. Its entries sit under `spec.subtract`, not under the allow sections; an allow-section copy would *allow* the IoC. `bobctl compose` unions every fragment's `spec.subtract` into the composed profile and removes nothing. The agent evaluates every profile helper as `match(allow) && !match(subtract)`, with the same matcher for both. Allow `/home/runner/*` with subtract `/home/runner/.config/systemd/user/sysmon.py` alerts on `sysmon.py` only; everything else under `/home/runner` stays admitted.
 
 ## How it is built
 
@@ -8,7 +8,7 @@ An IoC fragment is an advisory's footprint, lifted from the runner's **shadow-pr
 2. Grep it for the advisory's IoCs and copy those exact `execs`/`opens`/`egress` entries into a subtract fragment.
 3. `harness/compose.sh` passes every `ioc-overlays/*.yaml` to `bobctl compose`.
 
-There is no "everything except X" form inside one entry. A wildcard that covered an IoC is removed whole, not narrowed. Clean behaviour it also covered fires again until the family re-learns it literally.
+Allow and subtract can cancel each other: a subtract entry equal to an allow entry makes that behaviour alert. Requires storage with the `spec.subtract` section (k8sstormcenter/storage #73/#74) and a node-agent that evaluates it.
 
 ## Files
 

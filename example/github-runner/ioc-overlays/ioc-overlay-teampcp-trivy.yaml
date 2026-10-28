@@ -9,15 +9,16 @@ metadata:
   name: ioc-overlay-teampcp-trivy
   namespace: arc-systems
 spec:
-  execs:
-    - {args: [/home/runner/.config/systemd/user/sysmon.py, --c2, 45.148.10.212, --host, scan.aquasecurtiy.org], path: /usr/bin/dash}
-    - {args: [/home/runner/.config/systemd/user/sysmon.py, --c2, 45.148.10.212, --host, scan.aquasecurtiy.org], path: /usr/bin/env}
-    - {args: [/home/runner/.config/systemd/user/sysmon.py, --c2, 45.148.10.212, --host, scan.aquasecurtiy.org], path: /usr/lib/cargo/bin/coreutils/env}
-    - {args: [/usr/bin/getent, hosts, hackmoltrepeat.com], path: /usr/bin/getent}
-    - {args: [/usr/bin/getent, hosts, plug-tab-protective-relay.trycloudflare.com], path: /usr/bin/getent}
-    - {args: [/usr/bin/getent, hosts, scan.aquasecurtiy.org], path: /usr/bin/getent}
-    - {args: [/usr/bin/getent, hosts, tdtqy-oyaaa-aaaae-af2dq-cai.raw.icp0.io], path: /usr/bin/getent}
-    - {args: [/usr/bin/tar, czf, /home/runner/tpcp.tar.gz, -C, /home/runner, dac-collected.txt], path: /usr/bin/tar}
-  opens:
-    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.config/systemd/user/sysmon.py}
-    - {flags: [O_CLOEXEC, O_CREAT, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_TRUNC], path: /home/runner/dac-collected.txt}
+  subtract:
+    execs:
+      - {args: [/home/runner/.config/systemd/user/sysmon.py, --c2, 45.148.10.212, --host, scan.aquasecurtiy.org], path: /usr/bin/dash}
+      - {args: [/home/runner/.config/systemd/user/sysmon.py, --c2, 45.148.10.212, --host, scan.aquasecurtiy.org], path: /usr/bin/env}
+      - {args: [/home/runner/.config/systemd/user/sysmon.py, --c2, 45.148.10.212, --host, scan.aquasecurtiy.org], path: /usr/lib/cargo/bin/coreutils/env}
+      - {args: [/usr/bin/getent, hosts, hackmoltrepeat.com], path: /usr/bin/getent}
+      - {args: [/usr/bin/getent, hosts, plug-tab-protective-relay.trycloudflare.com], path: /usr/bin/getent}
+      - {args: [/usr/bin/getent, hosts, scan.aquasecurtiy.org], path: /usr/bin/getent}
+      - {args: [/usr/bin/getent, hosts, tdtqy-oyaaa-aaaae-af2dq-cai.raw.icp0.io], path: /usr/bin/getent}
+      - {args: [/usr/bin/tar, czf, /home/runner/tpcp.tar.gz, -C, /home/runner, dac-collected.txt], path: /usr/bin/tar}
+    opens:
+      - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.config/systemd/user/sysmon.py}
+      - {flags: [O_CLOEXEC, O_CREAT, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_TRUNC], path: /home/runner/dac-collected.txt}
