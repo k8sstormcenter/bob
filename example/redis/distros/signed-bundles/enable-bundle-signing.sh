@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Enable signed-bundle overlays on an installed kubescape (ns honey):
 #  1. apply the root-signed trust-policy ConfigMap
 #  2. add bundleTrustPolicyPath to node-agent's config.json

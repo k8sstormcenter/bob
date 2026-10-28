@@ -1,3 +1,8 @@
+// Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0; see LICENSE.
+// All trademarks are expressly reserved.
+
 // record-pixie.cjs — screencast the Pixie/dx detection view as the RIGHT panel.
 //
 // Pairs with record.cjs (left = RanUI, the disease path). compose-split.sh

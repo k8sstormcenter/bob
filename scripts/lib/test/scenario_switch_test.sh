@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Tests for chain-scenario-switch.sh.
 # The no-scenarios path is yq-free (runs everywhere). The apply/restart
 # paths parse JSON via yq, so they're guarded with have_yq and skip

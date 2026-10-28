@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # PUBLISHED DEMO KEYS — COMPROMISED BY DESIGN. DO NOT TRUST.
 
 Every private key in this directory is committed to a public git repository.

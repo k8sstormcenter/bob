@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Drive a full Argo CD workload for the duration of the node-agent learn window.
 #
 # WHY THIS EXISTS: bob#170. The argocd SBoBs were learned from an Argo CD with

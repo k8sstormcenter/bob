@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # ran-chain-2: the IKT-Linz chain over different protocols
 
 Chain 2 runs the same 20-step lesion as `example/iktlinz`, varying the

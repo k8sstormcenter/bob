@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Turn a learned ContainerProfile into a shippable SBoB.
 
 Two things have to happen between "node-agent learned it" and "we ship it".

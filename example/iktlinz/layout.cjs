@@ -1,3 +1,8 @@
+// Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0; see LICENSE.
+// All trademarks are expressly reserved.
+
 // layout.cjs — shared RanUI layout tuning for recording.
 // Re-applied after every load/reload (a reload resets all of it).
 //   - collapse the armory (left panel) so the graph gets the full width

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # sbob-pipeline.sh — manifest-driven driver for the SBOB chain pipeline.
 #
 # Composes scripts/lib/chain-{deploy,apply-sbobs,extract-sbobs,

@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Generate one deployment manifest per redis-protocol distro, from ONE template.
 
 The question these support is "does contrast testing distinguish valkey from

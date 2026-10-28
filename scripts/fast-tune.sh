@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # fast-tune.sh — fastest possible iteration loop for verifying YAML/code
 # changes locally before pushing to CI.
 #

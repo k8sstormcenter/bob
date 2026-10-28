@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """demo_chain3 — the IKT-Linz chain over HTTPS / the ingress control plane.
 
 Chain 3 is chain 1/2 with the protocol varied to HTTP(S) and the target varied

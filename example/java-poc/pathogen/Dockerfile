@@ -1,3 +1,8 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Pathogen-side container — runs marshalsec LDAP referral server +
 # serves the compiled Payload.class over HTTP on port 8888.
 # The JNDI URL embedded in the pathogen's payload is:

@@ -1,0 +1,25 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - arc-controller-manager.yaml
+  - arc-listener-listener.yaml
+  - arc-cleanup-cleanup.yaml
+  - arc-runner-runner.yaml
+  - arc-runner-dind.yaml
+  - arc-runner-init-dind-externals.yaml
+  - node-nnf-gha-runners-host.yaml
+  - node-k3s-2-worker-1-host.yaml
+  - node-k3s-2-worker-2-host.yaml
+  - nnf-runner-noble-chowner.yaml
+  - nnf-runner-noble-dind.yaml
+  - nnf-runner-noble-init-dind-externals.yaml
+  - nnf-runner-noble-runner.yaml
+  - nnf-runner-resolute-chowner.yaml
+  - nnf-runner-resolute-dind.yaml
+  - nnf-runner-resolute-init-dind-externals.yaml
+  - nnf-runner-resolute-runner.yaml

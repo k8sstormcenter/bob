@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # chain-extract-sbobs.sh — read the learned ContainerProfile from the
 # cluster for each pod in a ChainManifest and write it to
 # `<sbob_dir>/cp-<pod>.yaml`, normalized to the User-managed shape so

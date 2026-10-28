@@ -1,0 +1,340 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/profile-fragment: overlay
+    kubescape.io/profile-fragment-base: runner
+  name: runner-overlay-arc-runner-runner
+  namespace: arc-systems
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress: null
+  endpoints: null
+  execs:
+    - {args: [/bin/echo, ⋯⋯], path: /bin/echo}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /bin/sh}
+    - {args: [/bin/sh, -c, 'cd ''/home/runner/_work/⋯/⋯/src'' && ''/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java'' ''-javaagent:/home/runner/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/home/runner/_work/⋯/⋯/src/target/jacoco.exec'' ''-jar'' ''/home/runner/_work/⋯/⋯/src/target/surefire/⋯/home/runner/_work/⋯/⋯/src/target/⋯'], path: /bin/sh}
+    - {args: [/bin/sh, -c, 'cd ''/home/runner/_work/⋯/⋯/src'' && ''/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java'' ''-javaagent:/home/runner/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/⋯'], path: /bin/sh}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, /home/runner/.rustup/toolchains/⋯/bin/rustc, ⋯⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.cargo/bin/cargo-llvm-cov, llvm-cov, ⋯⋯], path: /home/runner/.cargo/bin/cargo-llvm-cov}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, build, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, check, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, clean, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, clippy, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, fetch, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, llvm-cov, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, locate-project, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, metadata, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, nextest, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo, package, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/cargo-clippy, clippy, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/cargo-clippy}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/clippy-driver, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/clippy-driver}
+    - {args: [/home/runner/.rustup/toolchains/⋯/bin/rustc, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/bin/rustc}
+    - {args: [/home/runner/.rustup/toolchains/⋯/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld/ld.lld, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld/ld.lld}
+    - {args: [/home/runner/.rustup/toolchains/⋯/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-cov, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-cov}
+    - {args: [/home/runner/.rustup/toolchains/⋯/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata}
+    - {args: [/home/runner/.rustup/toolchains/⋯/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld, ⋯⋯], path: /home/runner/.rustup/toolchains/⋯/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld}
+    - {args: [/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java, ⋯⋯], path: /home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, -W, 'ignore::DeprecationWarning', -c, ⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/_temp/⋯/bin/python, /home/runner/_work/_temp/⋯/bin/pip, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [python, -m, build, ⋯⋯], path: /home/runner/_work/_tool/Python/⋯/x64/bin/python3.12}
+    - {args: [/home/runner/_work/⋯/⋯/src/target/llvm-cov-target/debug/deps/⋯, --list, --format, terse, --ignored], path: /home/runner/_work/⋯/⋯/src/target/llvm-cov-target/debug/deps/byteorder-c384575d722c302b}
+    - {args: [/home/runner/_work/⋯/⋯/src/target/llvm-cov-target/debug/deps/⋯, ⋯, ⋯, ⋯], path: /home/runner/_work/⋯/⋯/src/target/llvm-cov-target/debug/deps/byteorder-c384575d722c302b}
+    - {args: [/home/runner/externals/node24/bin/node, /home/runner/bin/hashFiles], path: /home/runner/externals/node24/bin/node}
+    - {args: [/sbin/ldconfig, -p], path: /sbin/ldconfig}
+    - {args: [/sbin/ldconfig.real], path: /sbin/ldconfig.real}
+    - {args: [/sbin/ldconfig.real, -p], path: /sbin/ldconfig.real}
+    - {args: [/sbin/ldconfig.real, -r, /], path: /sbin/ldconfig.real}
+    - {args: [/sbin/runlevel, ⋯⋯], path: /sbin/runlevel}
+    - {args: [/tmp/⋯/rustup-init, --default-toolchain, none, -y], path: /tmp/⋯/rustup-init}
+    - {args: [/tmp/⋯/⋯/⋯/bin/java, ⋯⋯], path: /tmp/⋯/⋯/⋯/bin/java}
+    - {args: [/tmp/⋯/⋯/⋯/lib/jspawnhelper, ⋯⋯], path: /tmp/⋯/⋯/⋯/lib/jspawnhelper}
+    - {args: [/usr/bin/apt-config, ⋯⋯], path: /usr/bin/apt-config}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/apt-key}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/as}
+    - {args: [/usr/bin/base64, -d], path: /usr/bin/base64}
+    - {args: [/usr/bin/curl, --help], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --help, all], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --proto, =https, ⋯, --retry, ⋯, --retry-connrefused, --location, --silent, --show-error, --fail, 'https://sh.rustup.rs'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --proto, =https, ⋯, -fsSL, --retry, ⋯, -o, tmp, 'https://github.com/⋯/⋯/releases/download/cargo-nextest-0.9.148/⋯'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --proto, =https, ⋯, -fsSL, --retry, ⋯, -o, tmp, 'https://github.com/⋯/⋯/releases/download/v0.9.1/cargo-llvm-cov-x86_64-unknown-linux-musl.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, --retry, ⋯, -C, '-', --proto, =https, ⋯, --ciphers, 'TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384', --silent, --show-error, --fail, --location, 'https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init', --output, /tmp/⋯/rustup-init], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -V], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -o, /tmp/⋯, -sL, 'https://raw.githubusercontent.com/pear/pearweb_phars/master/install-pear-nozlib.phar'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -sSfL, 'https://github.com/⋯/⋯/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -w, '%{http_code}', -o, /tmp/⋯, -sL, ⋯], path: /usr/bin/curl}
+    - {args: [./mvnw, -B, -DskipTests, -Dspotless.check.skip=true, package], path: /usr/bin/dash}
+    - {args: [./mvnw, -B, -Dspotless.check.skip=true, -Dtestcontainers.version=1.21.4, 'org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent', test, 'org.jacoco:jacoco-maven-plugin:0.8.12:report'], path: /usr/bin/dash}
+    - {args: [./mvnw, -B, -Dspotless.check.skip=true, 'org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent', test, 'org.jacoco:jacoco-maven-plugin:0.8.12:report'], path: /usr/bin/dash}
+    - {args: [./mvnw, -B, -q, 'checkstyle:checkstyle'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/test -e /usr/share/dbus-1/system-services/org.freedesktop.PackageKit.service && /usr/bin/test -S /var/run/dbus/system_bus_socket && /usr/bin/gdbus call --system --dest org.freedesktop.PackageKit --object-path /org/freedesktop/PackageKit --timeout], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, 'cd ''/home/runner/_work/⋯/⋯/src'' && ''/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java'' ''-javaagent:/home/runner/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/home/runner/_work/⋯/⋯/src/target/jacoco.exec'' ''-jar'' ''/home/runner/_work/⋯/⋯/src/target/surefire/⋯/home/runner/_work/⋯/⋯/src/target/⋯'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, 'cd ''/home/runner/_work/⋯/⋯/src'' && ''/home/runner/_work/_tool/Java_Temurin-Hotspot_jdk/⋯/x64/bin/java'' ''-javaagent:/home/runner/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/⋯'], path: /usr/bin/dash}
+    - {args: [/sbin/ldconfig, -p], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /tmp/⋯, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/apt-key, --quiet, --readonly, --keyring, /usr/share/keyrings/ubuntu-archive-keyring.gpg, verify, --status-fd, ⋯, /tmp/⋯, /tmp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/which, update-mime-database], path: /usr/bin/dash}
+    - {args: [/usr/sbin/ldconfig], path: /usr/bin/dash}
+    - {args: [/usr/sbin/ldconfig, -r, /], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/keyboxd.postinst, configure], path: /usr/bin/dash}
+    - {args: ['/var/lib/dpkg/info/libgdk-pixbuf-2.0-0:amd64.postinst', configure], path: /usr/bin/dash}
+    - {args: ['/var/lib/dpkg/info/libgdk-pixbuf-2.0-0:amd64.postinst', triggered, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders], path: /usr/bin/dash}
+    - {args: ['/var/lib/dpkg/info/libglib2.0-0t64:amd64.postinst', triggered, /usr/share/glib-2.0/schemas], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/libglib2.0-dev-bin.postinst, configure], path: /usr/bin/dash}
+    - {args: ['/var/lib/dpkg/info/librsvg2-common:amd64.postinst', configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/python3-packaging.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/python3.12-venv.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/sgml-base.postinst, triggered, /usr/share/xml /usr/share/sgml], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/shared-mime-info.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure], path: /usr/bin/dash}
+    - {args: [sh, -e, /home/runner/_work/_temp/⋯], path: /usr/bin/dash}
+    - {args: [/usr/bin/docker, compose, version, --format, json], path: /usr/bin/docker}
+    - {args: [/usr/bin/docker, info, --format, 'docker {{.ServerVersion}}'], path: /usr/bin/docker}
+    - {args: [/usr/bin/docker, ps], path: /usr/bin/docker}
+    - {args: [/usr/bin/docker, version, --format, '{{.Client.Version}}'], path: /usr/bin/docker}
+    - {args: [/usr/bin/dpkg-trigger, --no-await, ⋯], path: /usr/bin/dpkg-trigger}
+    - {args: [/bin/echo, ⋯⋯], path: /usr/bin/echo}
+    - {args: [/home/runner/_work/_actions/aquasecurity/trivy-action/⋯/entrypoint.sh, ⋯⋯], path: /usr/bin/env}
+    - {args: [/usr/bin/fc-cache, -s, -f, -v], path: /usr/bin/fc-cache}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, -c, protocol.version=2, fetch, --no-tags, --prune, --no-recurse-submodules, --depth=1, origin, ⋯, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, config, ⋯, ⋯, ⋯, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ⋯, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ⋯, ⋯, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/git, ⋯, ⋯, ⋯, ⋯], path: /usr/bin/git}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, /tmp/⋯, --no-autostart, --dirmngr, KILLDIRMNGR], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, /tmp/⋯, --no-autostart, KILLAGENT], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --homedir, /tmp/⋯, -s, --no-autostart, GETINFO scd_running, '/if ${! $?}', scd killscd, /end], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpg-connect-agent, --no-autostart, --keyboxd, KILLKEYBOXD, --homedir, /tmp/⋯], path: /usr/bin/gpg-connect-agent}
+    - {args: [/usr/bin/gpgconf, --kill, all], path: /usr/bin/gpgconf}
+    - {args: [/usr/bin/perl, /usr/sbin/dpkg-preconfigure, --apt], path: /usr/bin/perl}
+    - {args: [/usr/sbin/update-catalog, ⋯⋯], path: /usr/bin/perl}
+    - {args: [/usr/bin/py3compile, -p, 'libglib2.0-dev-bin:amd64', /usr/share/glib-2.0/codegen], path: /usr/bin/py3compile}
+    - {args: [/usr/bin/py3compile, -p, python3-packaging], path: /usr/bin/py3compile}
+    - {args: [/usr/bin/python3, '-', ./target/surefire-reports/⋯, ⋯⋯], path: /usr/bin/python3}
+    - {args: [/usr/bin/py3compile, -p, 'libglib2.0-dev-bin:amd64', /usr/share/glib-2.0/codegen], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/py3compile, -p, python3-packaging], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3, '-'], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3, '-', ./build/test-results/test/⋯, ⋯⋯], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3, '-', ./target/surefire-reports/⋯, ⋯⋯], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, -c, import importlib.util; print(importlib.util.MAGIC_NUMBER)], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, -c, import sys; print(sys.implementation.cache_tag)], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, -m, py_compile, ⋯⋯], path: /usr/bin/python3.12}
+    - {args: [/usr/bin/python3.12, /usr/lib/python3.12/py_compile.py, ⋯⋯], path: /usr/bin/python3.12}
+    - {args: [sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [/sbin/runlevel, ⋯⋯], path: /usr/bin/systemctl}
+    - {args: [/usr/bin/systemctl, ⋯⋯], path: /usr/bin/systemctl}
+    - {args: [/usr/bin/tar, --posix, -cf, cache.tgz, --exclude, cache.tgz, -P, -C, /home/runner/_work/⋯/⋯, --files-from, manifest.txt, -z], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, --version], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, -I, zstd, -xf, /tmp/⋯, -C, /, --no-same-owner], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, -x, -f, '-', --warning=no-timestamp], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, -xf, /home/runner/_work/_temp/⋯/cache.tgz, -P, -C, /home/runner/_work/⋯/⋯, -z], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, -xz, -C, /home/runner/_work/_temp], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, -xz, -C, /opt/hostedtoolcache/Ruby/3.3.12, -f, /home/runner/_work/_temp/⋯], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, -xzf, /home/runner/_work/_actions/⋯/⋯], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, xz, --warning=no-unknown-keyword, --overwrite, -C, /home/runner/_work/_temp/⋯, -f, /home/runner/_work/_temp/⋯], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, xzf, tmp], path: /usr/bin/tar}
+    - {args: [tee, ⋯⋯], path: /usr/bin/tee}
+    - {args: [/usr/bin/update-alternatives, --install, /usr/bin/automake, automake, /usr/bin/automake-1.16, ⋯, --slave, /usr/bin/aclocal, aclocal, /usr/bin/aclocal-1.16, --slave, /usr/share/man/man1/automake.1.gz, automake.1.gz, /usr/share/man/man1/automake-1.16.1.gz, --slave, /usr/share/man/man1/aclocal.1.gz, aclocal.1.gz, /usr/share/man/man1/aclocal-1.16.1.gz], path: /usr/bin/update-alternatives}
+    - {args: [/usr/bin/update-mime-database, /usr/share/mime], path: /usr/bin/update-mime-database}
+    - {args: [/usr/bin/which, update-mime-database], path: /usr/bin/which}
+    - {args: [/usr/bin/as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
+    - {args: [as, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-as}
+    - {args: [/usr/bin/cpp, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-cpp-13}
+    - {args: [/usr/bin/cc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [/usr/bin/gcc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [gcc, ⋯⋯], path: /usr/bin/x86_64-linux-gnu-gcc-13}
+    - {args: [/usr/lib/git-core/git, --exec-path], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/⋯/⋯/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, --keep=fetch-pack 231 on k3s-2-runner-wftln, '--pack_header=2,171'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/⋯/⋯/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, --keep=fetch-pack 234 on k3s-2-runner-lfrnp, '--pack_header=2,324'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/⋯/⋯/src/.git/shallow.lock, index-pack, --stdin, --fix-thin, ⋯, ⋯], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/⋯/⋯/src/.git/shallow.lock, rev-list, --objects, --stdin, --quiet, --alternate-refs], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, --shallow-file, /home/runner/_work/⋯/⋯/src/.git/shallow.lock, unpack-objects, -q, ⋯], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, remote-https, origin, 'https://github.com/⋯/⋯'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-dir], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --git-path, objects], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --is-inside-work-tree], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-prefix], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, rev-parse, --show-toplevel], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, --variables, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, sh-i18n--envsubst, 'usage: $dashless $USAGE'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/git-core/git, submodule--helper, foreach, --recursive, --, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/lib/git-core/git}
+    - {args: [/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-ani.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-bmp.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-gif.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-icns.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-ico.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-pnm.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-qtif.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-svg.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-tga.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-tiff.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-xbm.so, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-xpm.so], path: /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders}
+    - {args: [/sbin/ldconfig.real], path: /usr/sbin/ldconfig.real}
+    - {args: [/sbin/ldconfig.real, -p], path: /usr/sbin/ldconfig.real}
+    - {args: [/sbin/ldconfig.real, -r, /], path: /usr/sbin/ldconfig.real}
+    - {args: [/usr/sbin/update-catalog, ⋯⋯], path: /usr/sbin/update-catalog}
+    - {args: [/var/lib/dpkg/info/keyboxd.postinst, configure], path: /var/lib/dpkg/info/keyboxd.postinst}
+    - {args: ['/var/lib/dpkg/info/libgdk-pixbuf-2.0-0:amd64.postinst', configure], path: '/var/lib/dpkg/info/libgdk-pixbuf-2.0-0:amd64.postinst'}
+    - {args: ['/var/lib/dpkg/info/libgdk-pixbuf-2.0-0:amd64.postinst', triggered, /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders], path: '/var/lib/dpkg/info/libgdk-pixbuf-2.0-0:amd64.postinst'}
+    - {args: ['/var/lib/dpkg/info/libglib2.0-0t64:amd64.postinst', triggered, /usr/share/glib-2.0/schemas], path: '/var/lib/dpkg/info/libglib2.0-0t64:amd64.postinst'}
+    - {args: [/var/lib/dpkg/info/libglib2.0-dev-bin.postinst, configure], path: /var/lib/dpkg/info/libglib2.0-dev-bin.postinst}
+    - {args: ['/var/lib/dpkg/info/librsvg2-common:amd64.postinst', configure], path: '/var/lib/dpkg/info/librsvg2-common:amd64.postinst'}
+    - {args: [/var/lib/dpkg/info/python3-packaging.postinst, configure], path: /var/lib/dpkg/info/python3-packaging.postinst}
+    - {args: [/var/lib/dpkg/info/python3.12-venv.postinst, configure], path: /var/lib/dpkg/info/python3.12-venv.postinst}
+    - {args: [/var/lib/dpkg/info/sgml-base.postinst, triggered, /usr/share/xml /usr/share/sgml], path: /var/lib/dpkg/info/sgml-base.postinst}
+    - {args: [/var/lib/dpkg/info/shared-mime-info.postinst, configure], path: /var/lib/dpkg/info/shared-mime-info.postinst}
+    - {args: [/var/lib/dpkg/info/xz-utils.postinst, configure], path: /var/lib/dpkg/info/xz-utils.postinst}
+  identifiedCallStacks: null
+  imageID: ""
+  imageTag: ""
+  ingress: null
+  opens:
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/coder.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/coder.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/colors.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/colors.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/delegates.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/delegates.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/log.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/log.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/magic.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/magic.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/mime.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/mime.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/policy-debian.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/policy-debian.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/policy-limited.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/policy-limited.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/policy-open.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/policy-open.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/policy-secure.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/policy-secure.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/policy-websafe.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/policy-websafe.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/policy.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/policy.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/quantization-table.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/quantization-table.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/thresholds.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/thresholds.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/type-apple.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/type-apple.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/type-dejavu.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/type-dejavu.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/type-ghostscript.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/type-ghostscript.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/type-urw-base35.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/type-urw-base35.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/type-windows.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/type-windows.xml.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/ImageMagick-6/type.xml}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/ImageMagick-6/type.xml.dpkg-new}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/apache2}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/apache2/conf-available}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/apache2/mods-available}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/apache2/sites-available}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/apt.conf.d/20packagekit}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_RDONLY], path: /etc/apt/sources.list.d/git-core-ubuntu-ppa-noble.sources}
+    - {flags: [O_RDONLY], path: /etc/firebird/3.0/fbintl.conf}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/firebird/3.0/fbintl.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/firebird/3.0/firebird.conf}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/firebird/3.0/firebird.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/firebird/3.0/plugins.conf}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/firebird/3.0/plugins.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/gnupg/common.conf}
+    - {flags: [O_RDONLY], path: /etc/magic}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/magic.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/magic.mime}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/magic.mime.dpkg-new}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx/sites-available}
+    - {flags: [O_NOCTTY, O_NONBLOCK], path: /etc/odbcinst.ini}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/sgml}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/sgml/xml-core.cat}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.access_functions.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.array-user.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.check_values.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.check_values_local.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.column_defines.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.column_enums.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.column_storage.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.container.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.create-dataset.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.genhtml.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.int_watch.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.iterate.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.iterate_access.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.mfd.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.notify.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.old-api.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.org-mode.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.perl.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.raw-table.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.scalar.conf.dpkg-new}
+    - {flags: [O_RDONLY], path: /etc/snmp/mib2c.table_data.conf.dpkg-new}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user-preset}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user/dirmngr.socket}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user/dirmngr.socket.d}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user/keyboxd.socket}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user/keyboxd.socket.d}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/user/sockets.target.d}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /home/runner/.bundle/cache/*}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /home/runner/.install-action}
+    - {flags: [O_RDONLY], path: /home/runner/externals/node24/bin/node}
+    - {flags: [O_RDONLY], path: /home/runner/run-helper.sh.template}
+    - {flags: [O_RDONLY], path: /home/runner/run.sh}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/rust-toolchain}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /home/runner/rust-toolchain.toml}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.75}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.76}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.77}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libicuuc.so.78}
+    - {flags: [O_DIRECTORY, O_NONBLOCK], path: /lib/x86_64-linux-gnu/*}
+    - {flags: [O_RDONLY], path: /nonexistent/.dpkg.cfg}
+    - {flags: [O_RDONLY], path: /proc/⋯/limits}
+    - {flags: [O_RDONLY], path: /root/.magick/log.xml}
+    - {flags: [O_RDONLY], path: /root/.magick/policy.xml}
+    - {flags: [O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /run/php}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/user/dirmngr.socket}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/user/keyboxd.socket}
+    - {flags: [O_EXCL, O_RDWR], path: /tmp}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/rake-compiler/ruby/x86_64-redhat-linux-gnu/ruby-3.3.0-rc1/lib/glibc-hwcaps/⋯/libdl.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/rake-compiler/ruby/x86_64-redhat-linux-gnu/ruby-3.3.0-rc1/lib/libdl.so.2}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/local/share}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/share/fonts}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/fonts/.uuid}
+    - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /usr/local/share/systemd}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /usr/local/share/systemd/user/dirmngr.socket}
+    - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /usr/local/share/systemd/user/keyboxd.socket}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/sbin/addgnupghome.dpkg-new}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/sbin/applygnupgdefaults.dpkg-new}
+    - {flags: [O_RDONLY], path: /usr/sbin/ldconfig}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/update-catalog}
+    - {flags: [O_NOCTTY, O_NONBLOCK], path: /var/lib/emacsen-common/state/package/installed/dictionaries-common}
+    - {flags: [O_NOCTTY, O_NONBLOCK], path: /var/lib/emacsen-common/state/package/installed/emacsen-common}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/sgml-base/supercatalog.new}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-helper-enabled/.stateUwRz9.tmp}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-user-helper-enabled/.statedOAy1.tmp}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOFOLLOW, O_RDWR], path: /var/lib/systemd/deb-systemd-user-helper-enabled/.statem39nj.tmp}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/utmp}
+  rulePolicies:
+    R0005:
+      processAllowed:
+        - Runner.Worker
+    R0011:
+      processAllowed:
+        - Runner.Worker
+    R1030:
+      processAllowed:
+        - Runner.Worker
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

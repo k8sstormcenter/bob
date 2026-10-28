@@ -1,3 +1,8 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Multi-stage: stdlib-only build, distroless runtime. Backend is the
 # vulnerable target — keep the image minimal so any extra binary that
 # appears at runtime (redis-cli, curl, sh) is unambiguously attacker-

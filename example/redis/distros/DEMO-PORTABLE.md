@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # Portable SBoB demo — learn once, ship anywhere, compose a client
 
 Takes the redis distro from `DEMO.md` and shows the portability workflow end to

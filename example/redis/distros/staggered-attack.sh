@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # staggered-attack.sh — run each attack in an AttackSuite individually, in the
 # suite's declared order, with a fixed sleep between fires so the resulting
 # detections land on distinct, well-separated timestamps instead of one

@@ -1,3 +1,8 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 import json, types, importlib.util, sys, io, os
 
 spec_ = importlib.util.spec_from_file_location("report", "report.py")

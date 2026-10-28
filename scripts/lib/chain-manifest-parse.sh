@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # chain-manifest-parse.sh — minimal `yq`-based reader for ChainManifest.
 #
 # This is the STUB that anchors the contract: when the refactor lands,

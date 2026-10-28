@@ -1,0 +1,14 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: soc-bob-sources
+    files:
+      - default-rules.yaml=../rules/default-rules.yaml
+      - github-runner-kpi.json=../../github-runner-kpi.json
