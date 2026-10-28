@@ -75,6 +75,8 @@ spec:
     - {args: [/bin/tar, --version, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, -I, zstd, -x, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, -I, zstd, -xf, ⋯⋯], path: /bin/tar}
+    - {args: [/bin/tar, -cf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /bin/tar}
+    - {args: [/bin/tar, -czf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, -t, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, -tf, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, -tzf, ⋯⋯], path: /bin/tar}
@@ -86,6 +88,8 @@ spec:
     - {args: [/bin/tar, -xvzf, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, -xz, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, -xzf, ⋯⋯], path: /bin/tar}
+    - {args: [/bin/tar, cf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /bin/tar}
+    - {args: [/bin/tar, czf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, x, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, xJf, ⋯⋯], path: /bin/tar}
     - {args: [/bin/tar, xf, ⋯⋯], path: /bin/tar}
@@ -100,6 +104,8 @@ spec:
     - {args: [tar, --version, ⋯⋯], path: /bin/tar}
     - {args: [tar, -I, zstd, -x, ⋯⋯], path: /bin/tar}
     - {args: [tar, -I, zstd, -xf, ⋯⋯], path: /bin/tar}
+    - {args: [tar, -cf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /bin/tar}
+    - {args: [tar, -czf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /bin/tar}
     - {args: [tar, -t, ⋯⋯], path: /bin/tar}
     - {args: [tar, -tf, ⋯⋯], path: /bin/tar}
     - {args: [tar, -tzf, ⋯⋯], path: /bin/tar}
@@ -111,6 +117,8 @@ spec:
     - {args: [tar, -xvzf, ⋯⋯], path: /bin/tar}
     - {args: [tar, -xz, ⋯⋯], path: /bin/tar}
     - {args: [tar, -xzf, ⋯⋯], path: /bin/tar}
+    - {args: [tar, cf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /bin/tar}
+    - {args: [tar, czf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /bin/tar}
     - {args: [tar, x, ⋯⋯], path: /bin/tar}
     - {args: [tar, xJf, ⋯⋯], path: /bin/tar}
     - {args: [tar, xf, ⋯⋯], path: /bin/tar}
@@ -3102,7 +3110,9 @@ spec:
     - {args: [/usr/bin/tar, --version, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, -I, zstd, -x, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, -I, zstd, -xf, ⋯⋯], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, -cf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, -czf, /home/runner/_work/_temp/⋯, -C, /home/runner/_work/⋯/⋯/src/dist, .], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, -czf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, -t, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, -tf, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, -tzf, ⋯⋯], path: /usr/bin/tar}
@@ -3117,6 +3127,8 @@ spec:
     - {args: [/usr/bin/tar, -xz, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, -xzf, /home/runner/_work/_actions/⋯/⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, -xzf, ⋯⋯], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, cf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /usr/bin/tar}
+    - {args: [/usr/bin/tar, czf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, x, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, xJf, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, xf, ⋯⋯], path: /usr/bin/tar}
@@ -3132,6 +3144,8 @@ spec:
     - {args: [tar, --version, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, -I, zstd, -x, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, -I, zstd, -xf, ⋯⋯], path: /usr/bin/tar}
+    - {args: [tar, -cf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /usr/bin/tar}
+    - {args: [tar, -czf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, -t, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, -tf, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, -tzf, ⋯⋯], path: /usr/bin/tar}
@@ -3143,6 +3157,8 @@ spec:
     - {args: [tar, -xvzf, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, -xz, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, -xzf, ⋯⋯], path: /usr/bin/tar}
+    - {args: [tar, cf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /usr/bin/tar}
+    - {args: [tar, czf, /home/runner/_work/_temp/⋯, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, x, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, xJf, ⋯⋯], path: /usr/bin/tar}
     - {args: [tar, xf, ⋯⋯], path: /usr/bin/tar}
