@@ -2428,10 +2428,12 @@ spec:
     - {args: [/usr/bin/dpkg-maintscript-helper, rm_conffile, /etc/mysql/my.cnf, 5.6.22-1~, mysql-common, --, install], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, symlink_to_dir, /usr/share/doc/libcrypt-dev, libcrypt1, '1:4.4.27-1.1~', --, configure], path: /usr/bin/dash}
     - {args: [/usr/bin/dpkg-maintscript-helper, symlink_to_dir, /usr/share/doc/libcrypt-dev, libcrypt1, '1:4.4.27-1.1~', --, install], path: /usr/bin/dash}
+    - {args: [/usr/bin/dpkg-maintscript-helper, ⋯⋯], path: /usr/bin/dash}
     - {args: [/usr/bin/lsb_release, -a], path: /usr/bin/dash}
     - {args: [/usr/bin/pear, channel-update, pear.php.net], path: /usr/bin/dash}
     - {args: [/usr/bin/pecl, channel-update, pecl.php.net], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -s, --, --default-toolchain, none, -y], path: /usr/bin/dash}
+    - {args: [/usr/bin/which, ⋯], path: /usr/bin/dash}
     - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, git config --local --show-origin --name-only --get-regexp remote.origin.url], path: /usr/bin/dash}
     - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''core\.sshCommand'' && git config --local --unset-all ''core.sshCommand'' || :"'], path: /usr/bin/dash}
     - {args: [/usr/lib/git-core/git-submodule, foreach, --recursive, 'sh -c "git config --local --name-only --get-regexp ''http\.https\:\/\/github\.com\/\.extraheader'' && git config --local --unset-all ''http.https://github.com/.extraheader'' || :"'], path: /usr/bin/dash}
@@ -2459,6 +2461,7 @@ spec:
     - {args: [/var/lib/dpkg/info/snmp.postinst, configure], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/unixodbc-common.postinst, configure], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/info/x11-common.postinst, configure], path: /usr/bin/dash}
+    - {args: [/var/lib/dpkg/info/⋯, ⋯⋯], path: /usr/bin/dash}
     - {args: [/var/lib/dpkg/tmp.ci/preinst, install], path: /usr/bin/dash}
     - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
     - {args: [/usr/bin/deb-systemd-helper, ⋯⋯], path: /usr/bin/deb-systemd-helper}
@@ -2720,6 +2723,8 @@ spec:
     - {args: [/usr/bin/install, -c, -m, ⋯, prism.so, ./⋯/prism], path: /usr/bin/install}
     - {args: [/usr/bin/install, -c, -m, ⋯, strscan.so, ./⋯], path: /usr/bin/install}
     - {args: [/usr/bin/ischroot, -t], path: /usr/bin/ischroot}
+    - {args: [/usr/bin/journalctl, --update-catalog, ⋯⋯], path: /usr/bin/journalctl}
+    - {args: [journalctl, --update-catalog, ⋯⋯], path: /usr/bin/journalctl}
     - {args: [/usr/bin/jq, -c, --arg, p, x86_64_linux_gnu, '.template[$p]', /home/runner/_work/_actions/taiki-e/install-action/⋯/manifests/cargo-nextest.json], path: /usr/bin/jq}
     - {args: [/usr/bin/jq, -c, --arg, p, x86_64_linux_musl, '.template[$p]', /home/runner/_work/_actions/taiki-e/install-action/⋯/manifests/cargo-llvm-cov.json], path: /usr/bin/jq}
     - {args: [/usr/bin/jq, -r, --arg, p, ⋯, '.[$p]'], path: /usr/bin/jq}
@@ -2743,6 +2748,8 @@ spec:
     - {args: [/usr/bin/make, ⋯⋯], path: /usr/bin/make}
     - {args: [make, ⋯⋯], path: /usr/bin/make}
     - {args: [/usr/bin/awk, ⋯⋯], path: /usr/bin/mawk}
+    - {args: [/usr/bin/md5sum, ⋯⋯], path: /usr/bin/md5sum}
+    - {args: [md5sum, ⋯⋯], path: /usr/bin/md5sum}
     - {args: [/usr/bin/mkdir, ⋯⋯], path: /usr/bin/mkdir}
     - {args: [/usr/bin/mktemp, ⋯⋯], path: /usr/bin/mktemp}
     - {args: [/usr/bin/mv, ⋯⋯], path: /usr/bin/mv}
@@ -2975,12 +2982,14 @@ spec:
     - {args: [/usr/sbin/aspell-autobuildhash, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/sbin/dpkg-preconfigure, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/sbin/ispell-autobuildhash, ⋯⋯], path: /usr/bin/perl}
+    - {args: [/usr/sbin/pam-auth-update, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/sbin/update-default-ispell, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/sbin/update-default-wordlist, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/sbin/update-dictcommon-aspell, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/sbin/update-dictcommon-hunspell, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/sbin/update-rc.d, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/share/debconf/frontend, ⋯⋯], path: /usr/bin/perl}
+    - {args: [/var/cache/debconf/tmp.ci/⋯, ⋯⋯], path: /usr/bin/perl}
     - {args: [/var/lib/dpkg/info/dictionaries-common.config, ⋯⋯], path: /usr/bin/perl}
     - {args: [/usr/bin/php, -C, -q, -d, include_path=/usr/share/php, -d, date.timezone=UTC, -d, output_buffering=1, -d, variables_order=EGPCS, -d, open_basedir=, -d, safe_mode=0, -d, register_argc_argv=On, -d, auto_prepend_file=, -d], path: /usr/bin/php}
     - {args: [/usr/bin/php, -C, -q, -d, include_path=/usr/share/php, -d, date.timezone=UTC, -d, output_buffering=1, -d, variables_order=EGPCS, -d, safe_mode=0, -d, register_argc_argv=On, /usr/share/php/peclcmd.php, channel-update, pecl.php.net], path: /usr/bin/php}
@@ -3100,6 +3109,12 @@ spec:
     - {args: [/usr/bin/sha256sum, ⋯⋯], path: /usr/bin/sha256sum}
     - {args: [/usr/bin/sort, ⋯⋯], path: /usr/bin/sort}
     - {args: [/usr/bin/sudo, ⋯⋯], path: /usr/bin/sudo}
+    - {args: [/usr/bin/systemd-machine-id-setup, ⋯⋯], path: /usr/bin/systemd-machine-id-setup}
+    - {args: [systemd-machine-id-setup, ⋯⋯], path: /usr/bin/systemd-machine-id-setup}
+    - {args: [/usr/bin/systemd-sysusers, ⋯⋯], path: /usr/bin/systemd-sysusers}
+    - {args: [systemd-sysusers, ⋯⋯], path: /usr/bin/systemd-sysusers}
+    - {args: [/usr/bin/systemd-tmpfiles, --create, ⋯⋯], path: /usr/bin/systemd-tmpfiles}
+    - {args: [systemd-tmpfiles, --create, ⋯⋯], path: /usr/bin/systemd-tmpfiles}
     - {args: [/usr/bin/tail, ⋯⋯], path: /usr/bin/tail}
     - {args: [/usr/bin/tar, --extract, ⋯⋯], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, --no-same-owner, -xzf, golangci-lint-1.61.0-linux-amd64.tar.gz], path: /usr/bin/tar}
@@ -3261,6 +3276,8 @@ spec:
     - {args: [/usr/lib/apt/methods/https, ⋯⋯], path: /usr/lib/apt/methods/http}
     - {args: [/usr/lib/apt/methods/https, ⋯⋯], path: /usr/lib/apt/methods/https}
     - {args: [/usr/lib/apt/methods/store], path: /usr/lib/apt/methods/store}
+    - {args: [/usr/bin/md5sum, ⋯⋯], path: /usr/lib/cargo/bin/coreutils/md5sum}
+    - {args: [md5sum, ⋯⋯], path: /usr/lib/cargo/bin/coreutils/md5sum}
     - {args: [/usr/lib/emacsen-common/emacs-package-install, ⋯⋯], path: /usr/lib/emacsen-common/emacs-package-install}
     - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/⋯/⋯'], path: /usr/lib/git-core/git-remote-http}
     - {args: [/usr/lib/git-core/git-remote-https, origin, 'https://github.com/⋯/⋯'], path: /usr/lib/git-core/git-remote-https}
@@ -3908,10 +3925,15 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /etc/odbc.ini.dpkg-new}
     - {flags: [O_CREAT, O_RDONLY, O_WRONLY], path: /etc/odbcinst.ini}
     - {flags: [O_RDONLY], path: /etc/pam.d/common-account}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/pam.d/common-account.pam-new}
     - {flags: [O_RDONLY], path: /etc/pam.d/common-auth}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/pam.d/common-auth.pam-new}
     - {flags: [O_RDONLY], path: /etc/pam.d/common-password}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/pam.d/common-password.pam-new}
     - {flags: [O_RDONLY], path: /etc/pam.d/common-session}
     - {flags: [O_RDONLY], path: /etc/pam.d/common-session-noninteractive}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/pam.d/common-session-noninteractive.pam-new}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/pam.d/common-session.pam-new}
     - {flags: [O_RDONLY], path: /etc/pam.d/other}
     - {flags: [O_RDONLY], path: /etc/pam.d/sudo}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd}
@@ -3924,6 +3946,8 @@ spec:
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /etc/php/8.3/mods-available/*}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /etc/php/8.3/phpdbg/*}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/profile.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/profile.d/80-systemd-osc-context.sh}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols}
     - {flags: [O_NOCTTY, O_RDONLY], path: /etc/python/debian_config}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/rc0.d}
@@ -4000,6 +4024,7 @@ spec:
     - {flags: [O_NONBLOCK, O_RDONLY], path: /etc/sudo.conf}
     - {flags: [O_NONBLOCK, O_RDONLY], path: /etc/sudoers}
     - {flags: [O_RDONLY], path: /etc/svc.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/sysctl.d}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/system}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/system-preset}
@@ -4010,6 +4035,8 @@ spec:
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/system/phpsessionclean.timer}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/system/phpsessionclean.timer.d}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /etc/systemd/system/timers.target.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/sysusers.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/tmpfiles.d}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /home}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/.cargo/config}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /home/package.json}
@@ -4089,8 +4116,16 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat}
     - {flags: [O_RDONLY], path: /proc/sys/crypto/fips_enabled}
     - {flags: [O_RDONLY], path: /proc/sys/kernel/cap_last_cap}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/core_pattern}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/kptr_restrict}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/ngroups_max}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/pid_max}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/printk}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/random/boot_id}
     - {flags: [O_RDONLY], path: /proc/sys/kernel/seccomp/actions_avail}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/sysrq}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/yama/ptrace_scope}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/vm/max_map_count}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/vm/overcommit_memory}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/version_signature}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
@@ -4118,13 +4153,23 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /root/.snmp/mibs}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/sysctl.d}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /run/systemd}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/generator}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/generator.early}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/generator.early/phpsessionclean.timer}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/generator/phpsessionclean.timer}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/system}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/system-preset}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/system.attached}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/system.attached/phpsessionclean.timer}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/system.control}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/system.control/phpsessionclean.timer}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/system/phpsessionclean.timer}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/transient}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_RDONLY], path: /run/systemd/transient/phpsessionclean.timer}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/sysusers.d}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/tmpfiles.d}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /rust-toolchain}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /rust-toolchain.toml}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /rustc/⋯/library/core/src/macros/mod.rs}
@@ -4169,6 +4214,7 @@ spec:
     - {flags: [O_RDONLY], path: /usr/sbin/invoke-rc.d}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/ispell-autobuildhash}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/sbin/ispell-autobuildhash.dpkg-new}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/sbin/pam-auth-update}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_NOCTTY, O_NONBLOCK, O_WRONLY], path: /usr/sbin/php-fpm8.3}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/sbin/phpenmod.dpkg-new}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/sbin/phpquery.dpkg-new}
@@ -4207,11 +4253,13 @@ spec:
     - {flags: [O_CREAT, O_WRONLY], path: /var/lib/emacsen-common/state/package/installed/emacsen-common}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/ispell}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /var/lib/ispell/README.dpkg-new}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/pam/*}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/snmp/cert_indexes}
     - {flags: [O_RDONLY], path: /var/lib/snmp/snmp.conf}
     - {flags: [O_RDONLY], path: /var/lib/snmp/snmp.local.conf}
     - {flags: [O_RDONLY], path: /var/lib/snmp/snmpapp.conf}
     - {flags: [O_RDONLY], path: /var/lib/snmp/snmpapp.local.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/systemd/catalog/*}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/systemd/deb-systemd-helper-enabled/phpsessionclean.timer.dsh-also}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/systemd/deb-systemd-helper-enabled/timers.target.wants/phpsessionclean.timer}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/lib/systemd/deb-systemd-helper-masked}
