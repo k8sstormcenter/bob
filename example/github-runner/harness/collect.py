@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Pull one runner pod's alerts and learned profile chunks into the replay dataset layout.
 
 alerts: <out>/alerts/<RULE>.jsonl, one line per alert, event fields from the infected process.

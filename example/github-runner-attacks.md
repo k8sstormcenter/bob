@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # GitHub Actions runner attack suite — vulnerability record and mapping
 
 Companion to `github-runner-attacks.yaml`. Covers **October 2025 – October 2026**.

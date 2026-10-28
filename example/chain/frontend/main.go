@@ -1,3 +1,8 @@
+// Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0; see LICENSE.
+// All trademarks are expressly reserved.
+
 // chain-frontend is the public-facing HTTP entrypoint for the chain
 // demo. It exposes:
 //   - GET  /                 → simple landing HTML

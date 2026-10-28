@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Deploy the redis-protocol distros via their most-popular native installer,
 # EXACTLY PINNED (chart version + image digest) so the learned SBoBs in sbobs/
 # are strongly versioned and reproducible. One namespace each.

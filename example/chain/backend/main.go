@@ -1,3 +1,8 @@
+// Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0; see LICENSE.
+// All trademarks are expressly reserved.
+
 // chain-backend is the deliberately-vulnerable Go service that anchors
 // the multi-pod chain demo. It exposes a benign surface (used by
 // protocol_loadtest_server during sbob learning) plus three admin

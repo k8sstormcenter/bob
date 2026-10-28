@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Confusion matrix over a recorded dataset (layout: see README.md), from live alerts and dx KPI rows.
 
 Positives are suite steps run in an attack build. A step is detected when node-agent raised a

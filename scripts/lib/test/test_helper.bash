@@ -1,3 +1,8 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # test_helper.bash — hermetic test scaffolding for scripts/lib/chain-*.sh.
 #
 # Source this at the top of every *_test.sh. Provides:

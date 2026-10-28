@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # compose-split.sh — build the final side-by-side demo video.
 #
 #   left  = RanUI, the disease path        (ran-attack-left.webm,  960x1080)

@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # Signed SBoB fragment bundles — redis distros demo
 
 The [distros demo](../DEMO.md) with §5's `kubectl patch` replaced by a **cryptographically signed admission fragment**.

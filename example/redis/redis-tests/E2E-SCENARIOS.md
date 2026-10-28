@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # Redis End-to-End Breach Scenarios & Load Tests
 
 This doc accompanies the four `e2e-*.yaml` attack suites and the five new

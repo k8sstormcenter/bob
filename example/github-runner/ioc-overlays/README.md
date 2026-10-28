@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # IoC subtract fragments
 
 An IoC fragment is an advisory's footprint, lifted from the runner's **shadow-profile** of a run that was actually hit. Its entries sit under `spec.subtract`, not under the allow sections; an allow-section copy would *allow* the IoC. `bobctl compose` unions every fragment's `spec.subtract` into the composed profile and removes nothing. The agent evaluates every profile helper as `match(allow) && !match(subtract)`, with the same matcher for both. Allow `/home/runner/*` with subtract `/home/runner/.config/systemd/user/sysmon.py` alerts on `sysmon.py` only; everything else under `/home/runner` stays admitted.

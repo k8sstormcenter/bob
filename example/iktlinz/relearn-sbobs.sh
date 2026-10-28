@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # relearn-sbobs.sh — learn CLEAN (benign-only) ContainerProfiles for every
 # IKT-Linz component, then generalise them into shippable SBoBs.
 #

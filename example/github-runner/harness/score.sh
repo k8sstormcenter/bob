@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Scores profiles offline against a dataset of recorded builds (layout: see README.md).
 # FP  = attack-distinguishing alerts per clean build (target 0); FLOOR rules are reported apart.
 # Detection = suite steps with at least one distinguishing alert, out of every step in the suite.

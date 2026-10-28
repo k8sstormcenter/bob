@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # react — GitOps-managed front-end (blind detection exercise)
 
 A Next.js / React 19 front-end (React2Shell class, CVE-2025-55182) running on

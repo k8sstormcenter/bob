@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # IKT-Linz 2027 — the demo script (canonical, do not improvise)
 
 Transcribed from the IKT-Linz 2027 workshop units 2-7 and their screenshots.

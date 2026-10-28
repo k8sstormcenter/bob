@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Compare tuned distros and report whether they are CONTRAST-EQUIVALENT.
 
 The question: does a contrast SBoB actually distinguish valkey from redis, or

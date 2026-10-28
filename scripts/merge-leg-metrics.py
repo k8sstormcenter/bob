@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Merge per-leg tune metrics into one metrics.json for a product-wide GIF.
 
 A single Argo CD subcomponent tunes in two or three iterations, so its GIF is

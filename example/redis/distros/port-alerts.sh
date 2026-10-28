@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # issue #80 — egress port alerting, internal + external.
 # A user-defined ContainerProfile allows a client to reach:
 #   - an external IP on TCP/80  (fusioncore.ai 162.0.217.171)

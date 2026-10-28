@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # GitHub runners on ARC: profiles, rules and suite
 
 Everything needed to run self-hosted GitHub Actions runners (ARC, `containerMode: dind`) under kubescape with zero attack-distinguishing alerts on clean builds, and to prove it with the attack suite in `../github-runner-attacks.yaml`.

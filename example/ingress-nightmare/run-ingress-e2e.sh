@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # run-ingress-e2e.sh — IngressNightmare (CVE-2025-1974) chain, start to finish, driven by Ran.
 #
 # Deploys the shared iktlinz worker platform + a vulnerable ingress-nginx v1.11.0

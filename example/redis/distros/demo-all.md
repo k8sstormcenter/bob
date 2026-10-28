@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # Redis-protocol distros — detect + allowlist a client by identity (ingress)
 
 Same flow as `DEMO.md` §5, for the other distros. Bring up the stack first:

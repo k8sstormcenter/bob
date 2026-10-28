@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 """Render a kubescape rule-coverage GIF for a contrast SBoB.
 
 This is the generator for the animation used by example/redis-client/redis-killchain.gif:

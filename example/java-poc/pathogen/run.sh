@@ -1,4 +1,9 @@
 #!/bin/sh
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # HTTP server hosting Payload.class on :8888
 cd /pathogen/www && python3 -m http.server 8888 &
 HTTP_PID=$!

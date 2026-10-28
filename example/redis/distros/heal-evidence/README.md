@@ -1,3 +1,9 @@
+<!--
+Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+SPDX-License-Identifier: Apache-2.0
+Licensed under the Apache License, Version 2.0; see LICENSE.
+All trademarks are expressly reserved.
+-->
 # Redis client-overlay heal — before/after evidence
 
 Cluster: k3s, chart 1.41.0-duckling23, node-agent v0.1.0-rogue35, storage rc-rogue23.

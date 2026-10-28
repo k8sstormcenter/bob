@@ -1,3 +1,8 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
 # Stdlib-only build, distroless runtime. Frontend is the entrypoint —
 # minimal image so any extra binary at runtime is unambiguously attacker-
 # introduced (mirrors chain-backend's posture).
