@@ -59,9 +59,7 @@ spec:
     - {args: [/bin/sh, /usr/local/bin/dind, docker-init, --, dockerd, '--host=unix:///var/run/docker.sock', --group=123], path: /bin/sh}
     - {args: [/check], path: /check}
     - {args: [/pause], path: /pause}
-    - {args: [/proc/self/fd/6, init], path: /proc/self/fd/6}
     - {args: [/proc/self/fd/6, ⋯⋯], path: /proc/self/fd/6}
-    - {args: [/proc/self/fd/6, init], path: /runc}
     - {args: [/proc/self/fd/6, ⋯⋯], path: /runc}
     - {args: [/proc/self/fd/⋯, ⋯⋯], path: /runc}
     - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
@@ -76,7 +74,6 @@ spec:
     - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -address, /var/run/docker/containerd/containerd.sock, -publish-binary, /usr/local/bin/containerd, -id, ⋯, start], path: /usr/local/bin/containerd-shim-runc-v2}
     - {args: [/usr/local/bin/containerd-shim-runc-v2, -namespace, moby, -id, ⋯, -address, /var/run/docker/containerd/containerd.sock], path: /usr/local/bin/containerd-shim-runc-v2}
     - {args: [/usr/local/bin/dind, ⋯⋯], path: /usr/local/bin/dind}
-    - {args: [/usr/local/bin/docker, info], path: /usr/local/bin/docker}
     - {args: [/usr/local/bin/docker, ⋯⋯], path: /usr/local/bin/docker}
     - {args: [docker, ⋯⋯], path: /usr/local/bin/docker}
     - {args: [/usr/local/bin/docker-init, ⋯⋯], path: /usr/local/bin/docker-init}
@@ -96,8 +93,6 @@ spec:
     - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, exec, --process, /tmp/⋯, --detach, --pid-file, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/⋯, ⋯], path: /usr/local/bin/runc}
     - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, kill, ⋯, ⋯], path: /usr/local/bin/runc}
     - {args: [/usr/local/bin/runc, --root, /var/run/docker/runtime-runc/moby, --log, /var/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/⋯/log.json, --log-format, json, start, ⋯], path: /usr/local/bin/runc}
-    - {args: [/usr/local/bin/runc, --version], path: /usr/local/bin/runc}
-    - {args: [/usr/local/bin/runc, features], path: /usr/local/bin/runc}
     - {args: [/usr/local/bin/runc, ⋯⋯], path: /usr/local/bin/runc}
     - {args: [runc, ⋯⋯], path: /usr/local/bin/runc}
     - {args: [/usr/local/libexec/docker/cli-plugins/docker-buildx, docker-cli-plugin-metadata], path: /usr/local/libexec/docker/cli-plugins/docker-buildx}
@@ -160,12 +155,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/keys/root_maxkeys}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/threads-max}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/ip_forward}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/ip_local_port_range}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/ipv4/ip_local_reserved_ports}
-    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /proc/sys/net/ipv6/conf/docker0/accept_ra}
-    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /proc/sys/net/ipv6/conf/eth0/disable_ipv6}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/fd}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/fd/⋯}

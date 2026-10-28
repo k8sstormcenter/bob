@@ -226,11 +226,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/containerd/io.containerd.runtime.v2.task/k8s.io/*/libseccomp.so.2}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/containerd/runc/k8s.io}
     - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR], path: /run/containerd/runc/k8s.io/*}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/containerd-logrotate.service}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/getty@tty1.service}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/getty@tty5.service}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/serial-getty@ttyS1.service}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/sshd-ensurer.service}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /run/credentials/⋯}
     - {flags: [O_RDWR], path: /run/faillock/metal}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /run/motd.d}
@@ -270,8 +265,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:systemd-networkd.service'}
     - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/systemd/units/log-extra-fields:systemd-udevd.service'}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/systemd/users/⋯}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/udev/data/b259:2'}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: '/run/udev/data/b259:5'}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/udev/data/⋯}
     - {flags: [O_CREAT, O_RDONLY], path: /run/xtables.lock}
     - {flags: [O_CLOEXEC, O_NOFOLLOW, O_RDONLY], path: /runc}
@@ -325,8 +318,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/Etc/UTC}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/calico/mtu}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/cni/networks/k8s-pod-network}
-    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/lib/cni/networks/k8s-pod-network/last_reserved_ip.0}
-    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY], path: /var/lib/cni/networks/k8s-pod-network/lock}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_RDWR], path: /var/lib/cni/networks/k8s-pod-network/⋯}
     - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/cni/results/⋯}
     - {flags: [O_CLOEXEC, O_RDONLY, O_RDWR], path: /var/lib/containerd-logrotate.status}
