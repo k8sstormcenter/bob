@@ -13,8 +13,31 @@ Everything needed to run self-hosted GitHub Actions runners (ARC, `containerMode
 | `deploy/` | the bound ContainerProfiles the agent binds (`nnf-runner-noble-*` and `nnf-runner-resolute-*` runner/dind/chowner/init, `arc-controller-manager`, `arc-listener-listener`, `arc-cleanup-cleanup`, node hosts), plus `kustomization.yaml` | Flux (point a Kustomization at it) |
 | `rules/default-rules.yaml` | the Rules spec these profiles are tuned for | the rt-security extension values |
 | `sbobs/runner-family/runner.yaml`, `sbobs/runner-family/runner-overlay-<profile>.yaml` | the two runner profiles (NNF noble, NNF resolute) split by `bobctl base --class runner` into what both do and what each adds; the base is the portable CI/CD behaviour, an overlay is one image's remainder | people; `harness/compose.sh` builds the two `deploy/*-runner.yaml` from them byte for byte, and CI fails on drift |
+| `ioc-overlays/` | subtract fragments: an advisory's footprint under `spec.subtract`, which the agent denies even where the wide allow-set would admit it (see `ioc-overlays/README.md`) | `harness/compose.sh` unions them into every composed runner profile |
 | `sbobs/node-k3s-2-worker-host.yaml` | generalized k3s-2 worker host baseline (both workers merged + collapsed); materialized into `deploy/node-k3s-2-worker-{1,2}-host.yaml`, name per node so each binds | people; regenerate with `bobctl generalize` from fresh captures |
 | `harness/` | `compose.sh`, `collect.py`, `score.sh`, `check_deploy.py` | the measuring loop and CI |
+
+## Stack requirement
+
+The runner profiles are the max-fold family: the allow-set is folded as wide as the corpus allows, and `spec.subtract` carries the IoC footprint back out. They need, in this roll order:
+
+1. storage with the `spec.subtract` section (k8sstormcenter/storage #73/#74), e.g. `ghcr.io/k8sstormcenter/storage:rc-rogue-subtract-d9df44a7`; an older storage drops `spec.subtract` on write;
+2. a node-agent that evaluates `match(allow) && !match(subtract)` and the in-token `⋯⋯` span, e.g. `docker.io/entlein/duckling:v0.1.0-subtract-f8d02709` (chart `kubescape-operator 1.41.0-duckling96`); on an older agent the `⋯⋯` node-script tokens match nothing and clean node builds alert;
+3. these profiles.
+
+A subtract exec entry with an argv denies that argv only (R0040); the path stays granted for every other argv. A path-only subtract entry denies the path (R0001).
+
+## How the profiles are built
+
+Everything in `deploy/` is bobctl output, never hand-edited:
+
+```
+bobctl harden --file sbobs/runner-family/runner.yaml --ecosystems all --preset-egress cicd --recover-veto … --in-place
+bobctl harden --file sbobs/runner-family/runner-overlay-<profile>.yaml --fold-toolchain-verbs --in-place
+harness/compose.sh        # base + overlay + ioc-overlays/*.yaml → deploy/*-runner.yaml
+```
+
+`--ecosystems all` declares each language toolchain's build/test/install surface at its install paths; `--preset-egress cicd` adds the CI/CD registry and GitHub results-storage names; `--recover-veto` drops any entry that would admit a recorded attack or IoC. bobctl and the agent share one matcher test corpus (storage `matchercorpus`), so a pattern that passes bobctl's replay matches the same way in the agent.
 
 ## Binding
 
@@ -69,7 +92,13 @@ progressively for some minutes after the attack, so collect the KPI rows once dx
 
 ## Evidence
 
-k3s-2, node-agent rogue84, runner image `ghcr.io/actions/actions-runner:latest`, 48 clean builds of 14 repositories (cpp, dotnet, go, gradle, maven, helm, terraform, js-npm, js-pnpm, js-yarn, php, python, ruby, rust) plus the node-agent repository's own CI. Replayed against `deploy/` with these rules:
+**Current (2026-10-28), storage d9df44a7 + node-agent f8d02709 + these profiles:**
+
+- NNF, 4 runs (noble and resolute ×2): clean builds 0 distinguishing alerts in 4/4; attack steps 58–61 of 62 by node-agent alone; the TeamPCP action (`ben-dac`) on both images raises R0040 on the `tpcp.tar.gz` exfil and the `sysmon.py --c2` backdoor (both through `spec.subtract`) and R0001 on the four C2 `getent` lookups.
+- k3s-2: dual gate passed: the exfil tar flips silent → R0040, the three must-survive catches (`/tmp/xmrig`, `_work/.rogue/run.sh`, `sysmon.py`) fire, clean R0040 0.
+- node-agent ∪ dx on the 62-step suite, re-scored with `matrix.py`: 40–45 of 62 across five k3s-2 runs; 17 steps are missed by both in every run, mostly escape and lateral attempts that cannot act from an unprivileged runner container.
+
+**Earlier (rogue84),** k3s-2, node-agent rogue84, runner image `ghcr.io/actions/actions-runner:latest`, 48 clean builds of 14 repositories (cpp, dotnet, go, gradle, maven, helm, terraform, js-npm, js-pnpm, js-yarn, php, python, ruby, rust) plus the node-agent repository's own CI. Replayed against `deploy/` with these rules:
 
 **Clean builds: 0 to 20 distinguishing alerts per build.**
 
@@ -87,7 +116,7 @@ The floor is 0 except on dotnet (12 to 16, R0011 to rotating CDN addresses; a DN
 
 **Docker builds (dind V7):** dind V6 was learned from the engine only and never saw a Dockerfile build, so an organic `docker build`/`buildx`/`compose` raised 45–53 distinguishing alerts (buildkit and runc reading `/run/runc/<id>`, `/proc/pressure`, `/sys/fs/cgroup/docker`). dind V7 adds those four organic runs to the dind corpus and drops the residue to 7–9 in-sample, with no loss of dind-side attack detection. The remainder is three families, still open: runc re-exec through `/proc/<pid>/exe` (R0001), dind capability use (R0004), and buildkit's localhost gRPC (R0012). Held-out confirmation needs one fresh docker build.
 
-**Attack: 29 of 58 steps raise a distinguishing alert** when every step runs as the runner user (k3s-2 fresh pod, 2026-10-10, `bobctl simulate --container runner`). The earlier 55/58 ran the 12 docker steps inside the privileged `dind` container and is void.
+**Attack (rogue84, superseded above): 29 of 58 steps raise a distinguishing alert** when every step runs as the runner user (k3s-2 fresh pod, 2026-10-10, `bobctl simulate --container runner`). The earlier 55/58 ran the 12 docker steps inside the privileged `dind` container and is void.
 
 | cause of silence | steps | lever |
 |---|---|---|
