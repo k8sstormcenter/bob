@@ -2170,6 +2170,7 @@ spec:
     - {args: [/usr/bin/curl, -sSfL, 'https://github.com/⋯/⋯/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz'], path: /usr/bin/curl}
     - {args: [/usr/bin/curl, -w, '%{http_code}', -o, /tmp/⋯, -sL, ⋯], path: /usr/bin/curl}
     - {args: [/usr/bin/cut, ⋯⋯], path: /usr/bin/cut}
+    - {path: /usr/bin/dash}
     - {args: ["", -c, mktemp -d "/tmp/⋯], path: /usr/bin/dash}
     - {args: ["", -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  aspell-autobuildhash], path: /usr/bin/dash}
     - {args: ["", -c, type dpkg-trigger >/dev/null 2>&1 && dpkg-trigger  --no-await  update-default-ispell], path: /usr/bin/dash}
