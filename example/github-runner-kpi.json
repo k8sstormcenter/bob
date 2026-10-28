@@ -896,34 +896,20 @@
    "rule": "R0002",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/hijack%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/hijack/git%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','chmod')",
+      "predicate": "comm = 'chmod' AND pcomm IN ('sh','dash','bash')",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','chmod') AND exit_ns > 0",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm IN ('sh','dash','bash','cp','mv','tee','install') AND (file LIKE 'tmp/%/git' OR file LIKE 'tmp/%/node' OR file LIKE 'tmp/%/npm' OR file LIKE 'tmp/%/npx' OR file LIKE 'tmp/%/python3' OR file LIKE 'tmp/%/pip' OR file LIKE 'tmp/%/docker' OR file LIKE 'tmp/%/kubectl' OR file LIKE 'tmp/%/curl' OR file LIKE 'tmp/%/go' OR file LIKE 'tmp/%/cargo' OR file LIKE 'var/tmp/%/git' OR file LIKE 'var/tmp/%/node' OR file LIKE 'var/tmp/%/npm' OR file LIKE 'var/tmp/%/npx' OR file LIKE 'var/tmp/%/python3' OR file LIKE 'var/tmp/%/pip' OR file LIKE 'var/tmp/%/docker' OR file LIKE 'var/tmp/%/kubectl' OR file LIKE 'var/tmp/%/curl' OR file LIKE 'var/tmp/%/go' OR file LIKE 'var/tmp/%/cargo' OR file LIKE 'dev/shm/%/git' OR file LIKE 'dev/shm/%/node' OR file LIKE 'dev/shm/%/npm' OR file LIKE 'dev/shm/%/npx' OR file LIKE 'dev/shm/%/python3' OR file LIKE 'dev/shm/%/pip' OR file LIKE 'dev/shm/%/docker' OR file LIKE 'dev/shm/%/kubectl' OR file LIKE 'dev/shm/%/curl' OR file LIKE 'dev/shm/%/go' OR file LIKE 'dev/shm/%/cargo')",
+      "minimal": 1
      }
     ]
    },
@@ -931,13 +917,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','mkdir','chmod') OR file LIKE '%tmp/hijack%' OR file LIKE '%tmp/hijack/git%'",
+     "predicate": "(comm IN ('sh','dash','bash','cp','mv','tee','install') AND (file LIKE 'tmp/%/git' OR file LIKE 'tmp/%/node' OR file LIKE 'tmp/%/npm' OR file LIKE 'tmp/%/npx' OR file LIKE 'tmp/%/python3' OR file LIKE 'tmp/%/pip' OR file LIKE 'tmp/%/docker' OR file LIKE 'tmp/%/kubectl' OR file LIKE 'tmp/%/curl' OR file LIKE 'tmp/%/go' OR file LIKE 'tmp/%/cargo' OR file LIKE 'var/tmp/%/git' OR file LIKE 'var/tmp/%/node' OR file LIKE 'var/tmp/%/npm' OR file LIKE 'var/tmp/%/npx' OR file LIKE 'var/tmp/%/python3' OR file LIKE 'var/tmp/%/pip' OR file LIKE 'var/tmp/%/docker' OR file LIKE 'var/tmp/%/kubectl' OR file LIKE 'var/tmp/%/curl' OR file LIKE 'var/tmp/%/go' OR file LIKE 'var/tmp/%/cargo' OR file LIKE 'dev/shm/%/git' OR file LIKE 'dev/shm/%/node' OR file LIKE 'dev/shm/%/npm' OR file LIKE 'dev/shm/%/npx' OR file LIKE 'dev/shm/%/python3' OR file LIKE 'dev/shm/%/pip' OR file LIKE 'dev/shm/%/docker' OR file LIKE 'dev/shm/%/kubectl' OR file LIKE 'dev/shm/%/curl' OR file LIKE 'dev/shm/%/go' OR file LIKE 'dev/shm/%/cargo'))",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','mkdir','chmod')",
+     "predicate": "(comm = 'chmod' AND pcomm IN ('sh','dash','bash'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -958,7 +944,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'docker'",
+      "predicate": "comm = 'docker' AND pcomm IN ('sh','dash','bash')",
       "minimal": 1
      }
     ],
@@ -966,16 +952,8 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%entrypoint-inject%' AND comm = 'docker'",
+      "predicate": "comm = 'docker' AND file LIKE '%run/docker.sock%'",
       "minimal": 1
-     }
-    ],
-    "O": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'docker' AND exit_ns > 0",
-      "minimal": 0
      }
     ]
    },
@@ -983,13 +961,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','docker','head')",
+     "predicate": "(comm = 'docker' AND file LIKE '%run/docker.sock%')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','docker','head')",
+     "predicate": "(comm = 'docker' AND pcomm IN ('sh','dash','bash'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -1010,7 +988,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','bash')",
+      "predicate": "comm IN ('sh','dash','bash')",
       "minimal": 1
      }
     ],
@@ -1018,16 +996,14 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%set\\_env\\_probe%'",
+      "predicate": "file LIKE '%\\_runner\\_file\\_commands/set\\_env%' AND comm IN ('sh','dash','bash')",
       "minimal": 1
-     }
-    ],
-    "O": [
+     },
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','bash') AND exit_ns > 0",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "file LIKE 'tmp/%.so' OR file LIKE 'dev/shm/%.so' OR file LIKE 'var/tmp/%.so'",
+      "minimal": 1
      }
     ]
    },
@@ -1035,13 +1011,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh') OR file LIKE '%_work%' OR file LIKE '%tmp/evil.so%'",
+     "predicate": "(file LIKE '%\\_runner\\_file\\_commands/set\\_env%' AND comm IN ('sh','dash','bash')) OR (file LIKE 'tmp/%.so' OR file LIKE 'dev/shm/%.so' OR file LIKE 'var/tmp/%.so')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh')",
+     "predicate": "(comm IN ('sh','dash','bash'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -1114,7 +1090,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cp')",
+      "predicate": "comm IN ('sh','dash','bash','cp','mv','tee','install')",
       "minimal": 1
      }
     ],
@@ -1122,16 +1098,8 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "(file LIKE '%poison/postinstall.js%' OR file LIKE '%.m2/repository/.poison%') AND comm IN ('sh','cp')",
+      "predicate": "comm IN ('sh','dash','bash','cp','mv','tee','install') AND (file LIKE '%/node\\_modules/%' OR file LIKE '%.m2/repository/%' OR file LIKE '%go/pkg/mod/%' OR file LIKE '%.gradle/caches/%' OR file LIKE '%.cache/%')",
       "minimal": 1
-     }
-    ],
-    "O": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','cp') AND exit_ns > 0",
-      "minimal": 0
      }
     ]
    },
@@ -1139,25 +1107,19 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','mkdir','cp') OR file LIKE '%_work%'",
+     "predicate": "(comm IN ('sh','dash','bash','cp','mv','tee','install') AND (file LIKE '%/node\\_modules/%' OR file LIKE '%.m2/repository/%' OR file LIKE '%go/pkg/mod/%' OR file LIKE '%.gradle/caches/%' OR file LIKE '%.cache/%'))",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','mkdir','cp')",
+     "predicate": "(comm IN ('sh','dash','bash','cp','mv','tee','install'))",
      "minimal": 0
     },
     "stack_trace": {
      "source": "",
      "table": "stack_trace",
      "predicate": "",
-     "minimal": 0
-    },
-    "wire": {
-     "source": "",
-     "table": "dns_events",
-     "predicate": "req_body ILIKE '%postinstall.js%'",
      "minimal": 0
     }
    },
@@ -1227,34 +1189,20 @@
    "rule": "R0002",
    "class": "persistence",
    "parts": {
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/.beacon%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/.cron-stage%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','chmod','ls')",
+      "predicate": "comm = 'chmod' AND pcomm IN ('sh','dash','bash')",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','chmod','ls') AND exit_ns > 0",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm IN ('sh','dash','bash','cp','mv','tee','install') AND (file LIKE '%cron%' OR file LIKE 'var/spool/cron/%')",
+      "minimal": 1
      }
     ]
    },
@@ -1262,13 +1210,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','chmod','ls') OR file LIKE '%tmp/.beacon%' OR file LIKE '%tmp/.cron-stage%'",
+     "predicate": "(comm IN ('sh','dash','bash','cp','mv','tee','install') AND (file LIKE '%cron%' OR file LIKE 'var/spool/cron/%'))",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','chmod','ls')",
+     "predicate": "(comm = 'chmod' AND pcomm IN ('sh','dash','bash'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -1546,56 +1494,6 @@
    "pod": "${RUNNER_PREFIX}%"
   },
   {
-   "name": "escape-nested-host-namespace-join",
-   "class": "privilege",
-   "trigger": "evidence",
-   "parts": {
-    "E": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'docker'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE 'proc/1/ns/%'",
-      "minimal": 1
-     }
-    ],
-    "C": [
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE 'proc/1/ns/%'",
-      "minimal": 1
-     }
-    ]
-   },
-   "stored": {
-    "dc_snoop": {
-     "source": "",
-     "table": "dc_snoop",
-     "predicate": "file LIKE 'proc/%/ns/%' OR file IN ('etc/passwd','etc/group') OR comm IN ('sh','docker','nsenter','id','busybox')",
-     "minimal": 0
-    },
-    "forest": {
-     "source": "",
-     "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','docker','nsenter','id','busybox')",
-     "minimal": 0
-    },
-    "stack_trace": {
-     "source": "",
-     "table": "stack_trace",
-     "predicate": "",
-     "minimal": 0
-    }
-   },
-   "pod": "${RUNNER_PREFIX}%"
-  },
-  {
    "name": "escape-harvest-node-pod-secrets",
    "rule": "R0006",
    "class": "credential",
@@ -1654,7 +1552,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir')",
+      "predicate": "comm IN ('sh','dash','bash','mkdir','tee')",
       "minimal": 1
      }
     ],
@@ -1662,16 +1560,8 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%sys/fs/cgroup/rdma/esc%'",
+      "predicate": "file LIKE 'sys/fs/cgroup/%/release\\_agent' OR file LIKE 'sys/fs/cgroup/%/notify\\_on\\_release'",
       "minimal": 1
-     }
-    ],
-    "O": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir') AND exit_ns > 0",
-      "minimal": 0
      }
     ]
    },
@@ -1679,13 +1569,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','mkdir','ls','head') OR file LIKE '%sys/fs/cgroup%' OR file LIKE '%sys/fs/cgroup/%' OR file LIKE '%sys/fs/cgroup/rdma/esc%' OR file LIKE '%sys/fs/cgroup/rdma/esc/notify_on_release%'",
+     "predicate": "(file LIKE 'sys/fs/cgroup/%/release\\_agent' OR file LIKE 'sys/fs/cgroup/%/notify\\_on\\_release')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','mkdir','ls','head')",
+     "predicate": "(comm IN ('sh','dash','bash','mkdir','tee'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -1702,34 +1592,20 @@
    "rule": "R1002",
    "class": "privilege",
    "parts": {
-    "C": [
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%dummy.ko%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "comm IN ('insmod','modprobe') AND file LIKE '%.ko%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('insmod','modprobe')",
+      "predicate": "comm IN ('insmod','modprobe','kmod')",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%dummy.ko%' AND resp_body != ''",
-      "minimal": 0
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm IN ('insmod','modprobe','kmod') AND (file LIKE '%.ko' OR file LIKE '%.ko.%')",
+      "minimal": 1
      }
     ]
    },
@@ -1737,25 +1613,19 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','ls','head','modprobe','insmod') OR file LIKE '%lib/modules/%'",
+     "predicate": "(comm IN ('insmod','modprobe','kmod') AND (file LIKE '%.ko' OR file LIKE '%.ko.%'))",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','ls','head','modprobe','insmod')",
+     "predicate": "(comm IN ('insmod','modprobe','kmod'))",
      "minimal": 0
     },
     "stack_trace": {
      "source": "",
      "table": "stack_trace",
      "predicate": "",
-     "minimal": 0
-    },
-    "wire": {
-     "source": "",
-     "table": "dns_events",
-     "predicate": "req_body ILIKE '%dummy.ko%'",
      "minimal": 0
     }
    },
@@ -1829,7 +1699,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%.shadow-link%' OR file LIKE '%.sock-link%'",
+      "predicate": "comm = 'ln' AND (file LIKE '%shadow%' OR file LIKE '%docker.sock%' OR file LIKE '%sock%' OR file LIKE '%sudoers%' OR file LIKE '%kubeconfig%')",
       "minimal": 1
      }
     ]
@@ -1838,13 +1708,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','ln','ls') OR file LIKE '%_work%' OR file LIKE '%etc/shadow%' OR file LIKE '%var/run/docker.sock%'",
+     "predicate": "(comm = 'ln' AND (file LIKE '%shadow%' OR file LIKE '%docker.sock%' OR file LIKE '%sock%' OR file LIKE '%sudoers%' OR file LIKE '%kubeconfig%'))",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','ln','ls')",
+     "predicate": "(comm = 'ln')",
      "minimal": 0
     },
     "stack_trace": {
@@ -1874,7 +1744,7 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%.passwd-hard%'",
+      "predicate": "comm = 'ln' AND (file LIKE '%passwd%' OR file LIKE '%shadow%' OR file LIKE '%sudoers%')",
       "minimal": 1
      }
     ]
@@ -1883,13 +1753,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','cp','ln','ls','head') OR file LIKE '%_work%' OR file LIKE '%etc/passwd%' OR file LIKE '%tmp/.passwd-hard%'",
+     "predicate": "(comm = 'ln' AND (file LIKE '%passwd%' OR file LIKE '%shadow%' OR file LIKE '%sudoers%'))",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','cp','ln','ls','head')",
+     "predicate": "(comm = 'ln')",
      "minimal": 0
     },
     "stack_trace": {
@@ -1969,9 +1839,9 @@
     ],
     "C": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%github-arc-secret%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm = 'kubectl' AND file LIKE '%serviceaccount/token%'",
       "minimal": 1
      }
     ]
@@ -1980,13 +1850,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','kubectl','head')",
+     "predicate": "(comm = 'kubectl' AND file LIKE '%serviceaccount/token%')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','kubectl','head')",
+     "predicate": "(comm = 'kubectl')",
      "minimal": 0
     },
     "stack_trace": {
@@ -2013,9 +1883,9 @@
     ],
     "C": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%secrets-all-namespaces%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm = 'kubectl' AND file LIKE '%serviceaccount/token%'",
       "minimal": 1
      }
     ]
@@ -2024,13 +1894,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','kubectl','head')",
+     "predicate": "(comm = 'kubectl' AND file LIKE '%serviceaccount/token%')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','kubectl','head')",
+     "predicate": "(comm = 'kubectl')",
      "minimal": 0
     },
     "stack_trace": {
@@ -2167,15 +2037,15 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('curl','wget')",
+      "predicate": "(comm IN ('config.sh','Runner.Listener') OR file LIKE '%/config.sh') AND pcomm IN ('sh','dash','bash')",
       "minimal": 1
      }
     ],
     "C": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%api.github.com%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm IN ('sh','dash','bash','cp','mv','tee','install') AND (file LIKE '%/.runner' OR file LIKE '%/.credentials%') AND file NOT LIKE 'home/runner/.runner'",
       "minimal": 1
      }
     ],
@@ -2192,13 +2062,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','head')",
+     "predicate": "(comm IN ('sh','dash','bash','cp','mv','tee','install') AND (file LIKE '%/.runner' OR file LIKE '%/.credentials%') AND file NOT LIKE 'home/runner/.runner')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','head')",
+     "predicate": "((comm IN ('config.sh','Runner.Listener') OR file LIKE '%/config.sh') AND pcomm IN ('sh','dash','bash'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -2209,8 +2079,8 @@
     },
     "wire": {
      "source": "",
-     "table": "dns_events",
-     "predicate": "req_body ILIKE '%api.github.com%'",
+     "table": "conn_stats",
+     "predicate": "(remote_port = 443 AND bytes_sent > 0)",
      "minimal": 0
     }
    },
@@ -2225,7 +2095,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','chmod')",
+      "predicate": "file LIKE '%/\\_work/.%'",
       "minimal": 1
      }
     ],
@@ -2233,16 +2103,8 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%.rogue/run.sh%'",
+      "predicate": "comm IN ('sh','dash','bash','cp','mv','tee','install') AND file LIKE '%\\_work/.%/%'",
       "minimal": 1
-     }
-    ],
-    "O": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','mkdir','chmod') AND exit_ns > 0",
-      "minimal": 0
      }
     ]
    },
@@ -2250,13 +2112,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','mkdir','do','chmod','run.sh') OR file LIKE '%_work%'",
+     "predicate": "(comm IN ('sh','dash','bash','cp','mv','tee','install') AND file LIKE '%\\_work/.%/%')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','mkdir','do','chmod','run.sh')",
+     "predicate": "(file LIKE '%/\\_work/.%')",
      "minimal": 0
     },
     "stack_trace": {
@@ -2321,7 +2183,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('curl','wget')",
+      "predicate": "comm IN ('curl','wget') AND pcomm IN ('sh','dash','bash')",
       "minimal": 1
      }
     ],
@@ -2329,7 +2191,7 @@
      {
       "source": "wire",
       "table": "dns_events",
-      "predicate": "req_body ILIKE '%api.github.com%'",
+      "predicate": "(req_body ILIKE '%trycloudflare.com%' OR req_body ILIKE '%ngrok%' OR req_body ILIKE '%raw.icp0.io%' OR req_body ILIKE '%pastebin.com%' OR req_body ILIKE '%webhook.site%' OR req_body ILIKE '%requestbin%' OR req_body ILIKE '%transfer.sh%' OR req_body ILIKE '%interact.sh%' OR req_body ILIKE '%oast.%' OR req_body ILIKE '%burpcollaborator%' OR req_body ILIKE '%duckdns.org%' OR req_body ILIKE '%serveo.net%' OR req_body ILIKE '%localtunnel.me%' OR req_body ILIKE '%pipedream.net%')",
       "minimal": 1
      }
     ],
@@ -2346,13 +2208,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','(command','curl','wget','head')",
+     "predicate": "",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','(command','curl','wget','head')",
+     "predicate": "(comm IN ('curl','wget') AND pcomm IN ('sh','dash','bash'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -2364,7 +2226,7 @@
     "wire": {
      "source": "",
      "table": "dns_events",
-     "predicate": "req_body ILIKE '%api.github.com%'",
+     "predicate": "((req_body ILIKE '%trycloudflare.com%' OR req_body ILIKE '%ngrok%' OR req_body ILIKE '%raw.icp0.io%' OR req_body ILIKE '%pastebin.com%' OR req_body ILIKE '%webhook.site%' OR req_body ILIKE '%requestbin%' OR req_body ILIKE '%transfer.sh%' OR req_body ILIKE '%interact.sh%' OR req_body ILIKE '%oast.%' OR req_body ILIKE '%burpcollaborator%' OR req_body ILIKE '%duckdns.org%' OR req_body ILIKE '%serveo.net%' OR req_body ILIKE '%localtunnel.me%' OR req_body ILIKE '%pipedream.net%'))",
      "minimal": 0
     }
    },
@@ -2375,34 +2237,20 @@
    "rule": "R1007",
    "class": "execution",
    "parts": {
-    "C": [
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%pool.minexmr.com%'",
-      "minimal": 1
-     },
-     {
-      "source": "dc_snoop",
-      "table": "dc_snoop",
-      "predicate": "file LIKE '%tmp/xmrig%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','chmod','xmrig','head')",
+      "predicate": "file LIKE '/tmp/%' OR file LIKE '/var/tmp/%' OR file LIKE '/dev/shm/%'",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "wire",
       "table": "dns_events",
-      "predicate": "req_body ILIKE '%pool.minexmr.com%' AND resp_body != ''",
-      "minimal": 0
+      "predicate": "req_body ILIKE '%minexmr%' OR req_body ILIKE '%minergate%' OR req_body ILIKE '%nanopool%' OR req_body ILIKE '%supportxmr%' OR req_body ILIKE '%2miners%' OR req_body ILIKE '%hashvault%'",
+      "minimal": 1
      }
     ]
    },
@@ -2410,13 +2258,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','chmod','xmrig','head') OR file LIKE '%tmp/xmrig%'",
+     "predicate": "",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','chmod','xmrig','head')",
+     "predicate": "(file LIKE '/tmp/%' OR file LIKE '/var/tmp/%' OR file LIKE '/dev/shm/%')",
      "minimal": 0
     },
     "stack_trace": {
@@ -2428,7 +2276,7 @@
     "wire": {
      "source": "",
      "table": "dns_events",
-     "predicate": "req_body ILIKE '%pool.minexmr.com%'",
+     "predicate": "(req_body ILIKE '%minexmr%' OR req_body ILIKE '%minergate%' OR req_body ILIKE '%nanopool%' OR req_body ILIKE '%supportxmr%' OR req_body ILIKE '%2miners%' OR req_body ILIKE '%hashvault%')",
      "minimal": 0
     }
    },
@@ -2630,15 +2478,15 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'git'",
+      "predicate": "comm = 'git' AND pcomm IN ('sh','dash','bash')",
       "minimal": 1
      }
     ],
     "C": [
      {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%codeload.github.com%'",
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm = 'git' AND file LIKE '%.gitconfig%'",
       "minimal": 1
      }
     ],
@@ -2647,7 +2495,7 @@
       "source": "wire",
       "table": "conn_stats",
       "predicate": "remote_port = 443 AND bytes_sent > 0",
-      "minimal": 1
+      "minimal": 0
      }
     ]
    },
@@ -2655,13 +2503,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','git','head') OR file LIKE '%_work%'",
+     "predicate": "(comm = 'git' AND file LIKE '%.gitconfig%')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','git','head')",
+     "predicate": "(comm = 'git' AND pcomm IN ('sh','dash','bash'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -2672,8 +2520,8 @@
     },
     "wire": {
      "source": "",
-     "table": "dns_events",
-     "predicate": "req_body ILIKE '%user.email%'",
+     "table": "conn_stats",
+     "predicate": "(remote_port = 443 AND bytes_sent > 0)",
      "minimal": 0
     }
    },
@@ -2685,28 +2533,20 @@
    "class": "egress",
    "trigger": "evidence",
    "parts": {
-    "C": [
-     {
-      "source": "wire",
-      "table": "dns_events",
-      "predicate": "req_body ILIKE '%exfil.invalid%'",
-      "minimal": 1
-     }
-    ],
     "E": [
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm IN ('sh','head','base32','tr','getent')",
+      "predicate": "comm IN ('getent','nslookup','dig','host','curl','wget')",
       "minimal": 1
      }
     ],
-    "O": [
+    "C": [
      {
       "source": "wire",
       "table": "dns_events",
-      "predicate": "req_body ILIKE '%exfil.invalid%' AND resp_body != ''",
-      "minimal": 0
+      "predicate": "length(splitByChar('.', JSONExtractString(req_body,'queries',1,'name'))[1]) >= 25 AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%github%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%githubusercontent%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%.cluster.local%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%.ts.net%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%.novalocal%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%windows.net%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%docker%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%ubuntu%'",
+      "minimal": 1
      }
     ]
    },
@@ -2714,13 +2554,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','head','base32','tr','getent') OR file LIKE '%var/run/secrets/kubernetes.io/serviceaccount/token%'",
+     "predicate": "",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','head','base32','tr','getent')",
+     "predicate": "(comm IN ('getent','nslookup','dig','host','curl','wget'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -2732,7 +2572,7 @@
     "wire": {
      "source": "",
      "table": "dns_events",
-     "predicate": "req_body ILIKE '%exfil.invalid%'",
+     "predicate": "(length(splitByChar('.', JSONExtractString(req_body,'queries',1,'name'))[1]) >= 25 AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%github%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%githubusercontent%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%.cluster.local%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%.ts.net%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%.novalocal%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%windows.net%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%docker%' AND JSONExtractString(req_body,'queries',1,'name') NOT ILIKE '%ubuntu%')",
      "minimal": 0
     }
    },
@@ -2851,7 +2691,7 @@
      {
       "source": "forest",
       "table": "dx_process_forest",
-      "predicate": "comm = 'sh'",
+      "predicate": "comm IN ('sh','dash','bash')",
       "minimal": 1
      }
     ],
@@ -2859,16 +2699,8 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "file LIKE '%.dead-mans-switch%'",
+      "predicate": "comm IN ('sh','dash','bash','tee') AND file LIKE 'home/runner/.%' AND file NOT LIKE 'home/runner/.cache%' AND file NOT LIKE 'home/runner/.npm%' AND file NOT LIKE 'home/runner/.config%' AND file NOT LIKE 'home/runner/.local%' AND file NOT LIKE 'home/runner/.cargo%' AND file NOT LIKE 'home/runner/.rustup%' AND file NOT LIKE 'home/runner/.gradle%' AND file NOT LIKE 'home/runner/.m2%' AND file NOT LIKE 'home/runner/.dotnet%' AND file NOT LIKE 'home/runner/.nuget%' AND file NOT LIKE 'home/runner/.docker%' AND file NOT LIKE 'home/runner/.pki%' AND file NOT LIKE 'home/runner/.ssh%' AND file NOT LIKE 'home/runner/.bundle%' AND file NOT LIKE 'home/runner/.gem%' AND file NOT LIKE 'home/runner/.composer%' AND file NOT LIKE 'home/runner/.yarn%' AND file NOT LIKE 'home/runner/.pnpm%'",
       "minimal": 1
-     }
-    ],
-    "O": [
-     {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'sh' AND exit_ns > 0",
-      "minimal": 0
      }
     ]
    },
@@ -2876,13 +2708,13 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','ls')",
+     "predicate": "(comm IN ('sh','dash','bash','tee') AND file LIKE 'home/runner/.%' AND file NOT LIKE 'home/runner/.cache%' AND file NOT LIKE 'home/runner/.npm%' AND file NOT LIKE 'home/runner/.config%' AND file NOT LIKE 'home/runner/.local%' AND file NOT LIKE 'home/runner/.cargo%' AND file NOT LIKE 'home/runner/.rustup%' AND file NOT LIKE 'home/runner/.gradle%' AND file NOT LIKE 'home/runner/.m2%' AND file NOT LIKE 'home/runner/.dotnet%' AND file NOT LIKE 'home/runner/.nuget%' AND file NOT LIKE 'home/runner/.docker%' AND file NOT LIKE 'home/runner/.pki%' AND file NOT LIKE 'home/runner/.ssh%' AND file NOT LIKE 'home/runner/.bundle%' AND file NOT LIKE 'home/runner/.gem%' AND file NOT LIKE 'home/runner/.composer%' AND file NOT LIKE 'home/runner/.yarn%' AND file NOT LIKE 'home/runner/.pnpm%')",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','ls')",
+     "predicate": "(comm IN ('sh','dash','bash'))",
      "minimal": 0
     },
     "stack_trace": {
@@ -2963,15 +2795,103 @@
      {
       "source": "dc_snoop",
       "table": "dc_snoop",
-      "predicate": "(file LIKE '%tmp/.beacon%' OR file LIKE '%tmp/.cron-stage%' OR file LIKE '%tmp/hijack%' OR file LIKE '%tmp/xmrig%') AND comm = 'rm'",
+      "predicate": "comm = 'rm' AND (file LIKE 'tmp/.%' OR file LIKE '%\\_work/.%' OR file LIKE 'home/runner/.cache/%')",
+      "minimal": 1
+     }
+    ]
+   },
+   "stored": {
+    "dc_snoop": {
+     "source": "",
+     "table": "dc_snoop",
+     "predicate": "(comm = 'rm' AND (file LIKE 'tmp/.%' OR file LIKE '%\\_work/.%' OR file LIKE 'home/runner/.cache/%'))",
+     "minimal": 0
+    },
+    "forest": {
+     "source": "",
+     "table": "dx_process_forest",
+     "predicate": "(comm = 'rm')",
+     "minimal": 0
+    },
+    "stack_trace": {
+     "source": "",
+     "table": "stack_trace",
+     "predicate": "",
+     "minimal": 0
+    }
+   },
+   "pod": "${RUNNER_PREFIX}%"
+  },
+  {
+   "name": "persist-systemd-user-backdoor",
+   "rule": "R0002",
+   "class": "persistence",
+   "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "comm IN ('sh','dash','bash','mkdir','chmod')",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm IN ('sh','dash','bash','cp','mv','tee','install') AND file LIKE 'home/%/.config/systemd/user/%'",
+      "minimal": 1
+     }
+    ]
+   },
+   "stored": {
+    "dc_snoop": {
+     "source": "",
+     "table": "dc_snoop",
+     "predicate": "(comm IN ('sh','dash','bash','cp','mv','tee','install') AND file LIKE 'home/%/.config/systemd/user/%')",
+     "minimal": 0
+    },
+    "forest": {
+     "source": "",
+     "table": "dx_process_forest",
+     "predicate": "(comm IN ('sh','dash','bash','mkdir','chmod'))",
+     "minimal": 0
+    },
+    "stack_trace": {
+     "source": "",
+     "table": "stack_trace",
+     "predicate": "",
+     "minimal": 0
+    }
+   },
+   "pod": "${RUNNER_PREFIX}%"
+  },
+  {
+   "name": "persist-backdoor-process-exec",
+   "rule": "R0040",
+   "class": "execution",
+   "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "comm IN ('sh','dash','bash','env')",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "arrayExists(x -> x LIKE '%/.config/systemd/user/%', execs)",
       "minimal": 1
      }
     ],
     "O": [
      {
-      "source": "forest",
-      "table": "dx_process_forest",
-      "predicate": "comm = 'rm' AND exit_ns > 0",
+      "source": "wire",
+      "table": "conn_stats",
+      "predicate": "bytes_sent > 0",
       "minimal": 0
      }
     ]
@@ -2980,13 +2900,121 @@
     "dc_snoop": {
      "source": "",
      "table": "dc_snoop",
-     "predicate": "comm IN ('sh','rm') OR file LIKE '%_work%' OR file LIKE '%tmp/.beacon%' OR file LIKE '%tmp/.cron-stage%' OR file LIKE '%tmp/hijack%' OR file LIKE '%tmp/xmrig%'",
+     "predicate": "",
      "minimal": 0
     },
     "forest": {
      "source": "",
      "table": "dx_process_forest",
-     "predicate": "comm IN ('sh','rm')",
+     "predicate": "(comm IN ('sh','dash','bash','env')) OR (arrayExists(x -> x LIKE '%/.config/systemd/user/%', execs))",
+     "minimal": 0
+    },
+    "stack_trace": {
+     "source": "",
+     "table": "stack_trace",
+     "predicate": "",
+     "minimal": 0
+    },
+    "wire": {
+     "source": "",
+     "table": "conn_stats",
+     "predicate": "(bytes_sent > 0)",
+     "minimal": 0
+    }
+   },
+   "pod": "${RUNNER_PREFIX}%"
+  },
+  {
+   "name": "c2-beacon-over-dns",
+   "rule": "R0005",
+   "class": "egress",
+   "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "comm IN ('getent','nslookup','dig','host','curl','wget')",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "wire",
+      "table": "dns_events",
+      "predicate": "(req_body ILIKE '%trycloudflare.com%' OR req_body ILIKE '%ngrok%' OR req_body ILIKE '%raw.icp0.io%' OR req_body ILIKE '%pastebin.com%' OR req_body ILIKE '%webhook.site%' OR req_body ILIKE '%requestbin%' OR req_body ILIKE '%transfer.sh%' OR req_body ILIKE '%interact.sh%' OR req_body ILIKE '%oast.%' OR req_body ILIKE '%burpcollaborator%' OR req_body ILIKE '%duckdns.org%' OR req_body ILIKE '%serveo.net%' OR req_body ILIKE '%localtunnel.me%' OR req_body ILIKE '%pipedream.net%')",
+      "minimal": 1
+     }
+    ],
+    "O": [
+     {
+      "source": "wire",
+      "table": "conn_stats",
+      "predicate": "remote_port = 443 AND bytes_sent > 0",
+      "minimal": 0
+     }
+    ]
+   },
+   "stored": {
+    "dc_snoop": {
+     "source": "",
+     "table": "dc_snoop",
+     "predicate": "",
+     "minimal": 0
+    },
+    "forest": {
+     "source": "",
+     "table": "dx_process_forest",
+     "predicate": "(comm IN ('getent','nslookup','dig','host','curl','wget'))",
+     "minimal": 0
+    },
+    "stack_trace": {
+     "source": "",
+     "table": "stack_trace",
+     "predicate": "",
+     "minimal": 0
+    },
+    "wire": {
+     "source": "",
+     "table": "dns_events",
+     "predicate": "((req_body ILIKE '%trycloudflare.com%' OR req_body ILIKE '%ngrok%' OR req_body ILIKE '%raw.icp0.io%' OR req_body ILIKE '%pastebin.com%' OR req_body ILIKE '%webhook.site%' OR req_body ILIKE '%requestbin%' OR req_body ILIKE '%transfer.sh%' OR req_body ILIKE '%interact.sh%' OR req_body ILIKE '%oast.%' OR req_body ILIKE '%burpcollaborator%' OR req_body ILIKE '%duckdns.org%' OR req_body ILIKE '%serveo.net%' OR req_body ILIKE '%localtunnel.me%' OR req_body ILIKE '%pipedream.net%'))",
+     "minimal": 0
+    }
+   },
+   "pod": "${RUNNER_PREFIX}%"
+  },
+  {
+   "name": "exfil-stage-archive",
+   "rule": "R0040",
+   "class": "exfiltration",
+   "parts": {
+    "E": [
+     {
+      "source": "forest",
+      "table": "dx_process_forest",
+      "predicate": "comm IN ('tar','zip','7z','gzip')",
+      "minimal": 1
+     }
+    ],
+    "C": [
+     {
+      "source": "dc_snoop",
+      "table": "dc_snoop",
+      "predicate": "comm IN ('tar','zip','7z','gzip') AND (file LIKE 'home/%.tar.gz' OR file LIKE 'home/%.tgz' OR file LIKE 'home/%.zip' OR file LIKE 'tmp/%.tar.gz') AND file NOT LIKE '%\\_work/%'",
+      "minimal": 1
+     }
+    ]
+   },
+   "stored": {
+    "dc_snoop": {
+     "source": "",
+     "table": "dc_snoop",
+     "predicate": "(comm IN ('tar','zip','7z','gzip') AND (file LIKE 'home/%.tar.gz' OR file LIKE 'home/%.tgz' OR file LIKE 'home/%.zip' OR file LIKE 'tmp/%.tar.gz') AND file NOT LIKE '%\\_work/%')",
+     "minimal": 0
+    },
+    "forest": {
+     "source": "",
+     "table": "dx_process_forest",
+     "predicate": "(comm IN ('tar','zip','7z','gzip'))",
      "minimal": 0
     },
     "stack_trace": {

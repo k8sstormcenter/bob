@@ -770,6 +770,10 @@ attacks:
       command: ["sh", "-c", "S=$HOME/.config/systemd/user/sysmon.py; [ -x $S ] || { mkdir -p $HOME/.config/systemd/user; printf '#!/usr/bin/env python3\\nimport sys\\nprint(sys.argv[1:])\\n' > $S; chmod +x $S; }; $S --c2 45.148.10.212 --host scan.aquasecurtiy.org || true; echo ran"]
     expectedDetections:
       - attackType: custom
+        ruleID: R0040
+        ruleName: Unexpected process arguments
+        containerName: runner
+      - attackType: custom
         ruleID: R0002
         ruleName: Files Access Anomalies in container
         containerName: runner
@@ -913,7 +917,11 @@ attacks:
     type: custom
     exec:
       command: ["sh", "-c", "W=$(mktemp -d); echo tpcp > $W/collected.txt; tar czf $HOME/tpcp.tar.gz -C $W collected.txt; ls -l $HOME/tpcp.tar.gz; echo archived"]
-    expectedDetections: []
+    expectedDetections:
+      - attackType: custom
+        ruleID: R0040
+        ruleName: Unexpected process arguments
+        containerName: runner
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 10: DEFENCE EVASION AND ANTI-FORENSICS (TA0005)
