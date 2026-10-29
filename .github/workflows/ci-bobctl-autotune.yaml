@@ -38,6 +38,11 @@ on:
     types: [node-agent-build-complete]
 
 
+env:
+  # Build pkg/ exactly as its go.mod pins storage; the root go.work points at a ../storage checkout.
+  GOWORK: 'off'
+  GOPRIVATE: github.com/k8sstormcenter/storage
+
 jobs:
   build:
     name: Build bobctl
@@ -49,25 +54,20 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
 
-      - name: Clone storage dependency
+      - name: Private storage module
+        env:
+          STORAGE_TOKEN: ${{ secrets.ENTLEIN_PAT }}
         run: |
-          # main now carries the v0.0.2 NetworkNeighbor refactor that
-          # bobctl's network_collapse.go depends on (the prior
-          # merge/upstream-profile-rearch branch was merged into main
-          # and deleted upstream on 2026-05-16; CI built green on
-          # that SHA but the very next push failed with "Remote branch
-          # merge/upstream-profile-rearch not found").
-          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
+          git config --global url."https://x-access-token:${STORAGE_TOKEN}@github.com/k8sstormcenter/storage".insteadOf "https://github.com/k8sstormcenter/storage"
 
       - name: Verify layout
         run: |
           ls pkg/go.mod pkg/main.go
-          ls ../storage/go.mod
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version-file: pkg/go.mod
           cache-dependency-path: pkg/go.sum
 
       - name: Build bobctl
@@ -241,6 +241,13 @@ jobs:
           kubectl get nodes
           uname -a
           helm version
+
+      - name: Log in to the private image registries
+        # node-agent (docker.io/entlein/duckling) and storage (ghcr.io/k8sstormcenter/storage) are private;
+        # make kubescape turns ~/.docker/config.json into the duckling-pull secret the chart references.
+        run: |
+          echo "${{ secrets.DOCKERHUB_PAT }}" | docker login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.ENTLEIN_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Install kubescape
         run: make kubescape
@@ -975,6 +982,13 @@ jobs:
           echo "=== cluster B CIDRs (should be 10.98 / 10.99, NOT cluster A's) ==="
           kubectl get nodes -o jsonpath='{.items[*].spec.podCIDRs}{"\n"}'
           kubectl get servicecidrs 2>/dev/null || true
+      - name: Log in to the private image registries
+        # node-agent (docker.io/entlein/duckling) and storage (ghcr.io/k8sstormcenter/storage) are private;
+        # make kubescape turns ~/.docker/config.json into the duckling-pull secret the chart references.
+        run: |
+          echo "${{ secrets.DOCKERHUB_PAT }}" | docker login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.ENTLEIN_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
       - name: Install kubescape + deploy app on B
         if: steps.check.outputs.skip != 'true'
         run: |
