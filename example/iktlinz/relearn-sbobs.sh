@@ -80,7 +80,7 @@ for i in $(seq 1 30); do
   for ns in agent-system oopservability; do
     while read -r n st; do
       [ -z "$n" ] && continue
-      TOTAL=$((TOTAL+1)); [ "$st" = "completed" ] && DONE=$((DONE+1))
+      TOTAL=$((TOTAL+1)); { [ "$st" = "completed" ] || [ "$st" = "ready" ]; } && DONE=$((DONE+1))
     done < <(kubectl -n "$ns" get "$CP" -o jsonpath='{range .items[*]}{.metadata.name} {.metadata.annotations.kubescape\.io/status}{"\n"}{end}' 2>/dev/null)
   done
   say "  profiles completed: $DONE/$TOTAL"
