@@ -15,7 +15,8 @@ Everything needed to run self-hosted GitHub Actions runners (ARC, `containerMode
 | `sbobs/runner-family/runner.yaml`, `sbobs/runner-family/runner-overlay-<profile>.yaml` | the two runner profiles (NNF noble, NNF resolute) split by `bobctl base --class runner` into what both do and what each adds; the base is the portable CI/CD behaviour, an overlay is one image's remainder | people; `harness/compose.sh` builds the two `deploy/*-runner.yaml` from them byte for byte, and CI fails on drift |
 | `ioc-overlays/` | subtract fragments: an advisory's footprint under `spec.subtract`, which the agent denies even where the wide allow-set would admit it (see `ioc-overlays/README.md`) | `harness/compose.sh` unions them into every composed runner profile |
 | `sbobs/node-k3s-2-worker-host.yaml` | generalized k3s-2 worker host baseline (both workers merged + collapsed); materialized into `deploy/node-k3s-2-worker-{1,2}-host.yaml`, name per node so each binds | people; regenerate with `bobctl generalize` from fresh captures |
-| `harness/` | `compose.sh`, `collect.py`, `score.sh`, `check_deploy.py` | the measuring loop and CI |
+| `harness/` | `compose.sh`, `check_deploy.py`, `collect.py`, `score.sh`, `demo.sh`, `matrix.py`, `teampcp-steps.txt` | the measuring loop and CI |
+| `../github-runner-kpi.json` | dx's KPI document: one behaviour-keyed suspicion per suite step | dx, through the rt-security extension's suite path |
 
 ## Stack requirement
 
@@ -45,7 +46,7 @@ Label the runner pod template `kubescape.io/user-defined-profile: nnf-runner-nob
 
 ## Rules
 
-`rules/default-rules.yaml` is the 32-rule spec the runners are tuned for (candidate-5). Recompute its hash with `harness/collect.py rules-hash` after a roll (`sha256(json.dumps(spec, sort_keys=True))[:12]`); candidate-4 was `58ef86be9a2e`. candidate-5 adds `supportPolicy: true` on R1006 to candidate-4 so the dind profile's per-comm escape policy takes effect. It differs from the shipped ruleset in these ways:
+`rules/default-rules.yaml` is the 32-rule spec the runners are tuned for, hash `5ea7ea6b3605` (`harness/collect.py rules-hash`, `sha256(json.dumps(spec, sort_keys=True))[:12]`). It differs from the shipped ruleset in these ways:
 
 - `supportPolicy: true` on 14 rules (R0002 R0004 R0005 R0006 R0008 R0009 R0011 R0012 R0040 R1006 R1010 R1011 R1012 R1030). R0008 joins so the runner profiles can except `Runner.Worker`, which reads its own job processes' environ by design, while `ps`, `sh` and `pgrep` reading other processes' environ, the credential-sweep shape, keep alerting. Per-process exclusions in a profile (`rulePolicies.processAllowed`) only take effect on rules with `supportPolicy: true`. The exclusion matches the kernel comm, at most 15 characters. R1006 allows `runc`/`dockerd` unshare on dind; any other comm still alerts.
 - R1030 ignores io_uring opcodes `0 6 7 11 12 14 15 29`. The 818 libuv `EPOLL_CTL` (29) alerts per Node build go away, and io_uring `OPENAT` (18) and `READ` (22) still alert.
@@ -92,42 +93,12 @@ progressively for some minutes after the attack, so collect the KPI rows once dx
 
 ## Evidence
 
-**Current (2026-10-28), storage d9df44a7 + node-agent f8d02709 + these profiles:**
+Storage `d9df44a7`, node-agent `f8d02709`, these profiles (2026-10-28):
 
-- NNF, 4 runs (noble and resolute ×2): clean builds 0 distinguishing alerts in 4/4; attack steps 58–61 of 62 by node-agent alone; the TeamPCP action (`ben-dac`) on both images raises R0040 on the `tpcp.tar.gz` exfil and the `sysmon.py --c2` backdoor (both through `spec.subtract`) and R0001 on the four C2 `getent` lookups.
-- k3s-2: dual gate passed: the exfil tar flips silent → R0040, the three must-survive catches (`/tmp/xmrig`, `_work/.rogue/run.sh`, `sysmon.py`) fire, clean R0040 0.
-- node-agent ∪ dx on the 62-step suite, re-scored with `matrix.py`: 40–45 of 62 across five k3s-2 runs; 17 steps are missed by both in every run, mostly escape and lateral attempts that cannot act from an unprivileged runner container.
-
-**Earlier (rogue84),** k3s-2, node-agent rogue84, runner image `ghcr.io/actions/actions-runner:latest`, 48 clean builds of 14 repositories (cpp, dotnet, go, gradle, maven, helm, terraform, js-npm, js-pnpm, js-yarn, php, python, ruby, rust) plus the node-agent repository's own CI. Replayed against `deploy/` with these rules:
-
-**Clean builds: 0 to 20 distinguishing alerts per build.**
-
-| residue | where | what fixes it |
-|---|---|---|
-| R0040 exec arguments | js, python, ruby | inherent to argv matching on interpreters |
-| R0004 capabilities | gradle, maven, php | `runc` under `containerd-shim` in dind (Testcontainers), and the cluster's Pixie `px_jattach` attaching to the JVM. Neither is the job's own process, and plain `runc` stays unexcluded because a job can name a binary that. Open. |
-| R0001 / R1001 unexpected exec | terraform, ruby, dotnet | per-repository overlays |
-| R0008 /proc reads | php, dotnet | open |
-| R0002 file opens | php (20) | the agent does not project open flags, so R0002 cannot tell a write from a read (entlein/node-agent#126) |
-
-The floor is 0 except on dotnet (12 to 16, R0011 to rotating CDN addresses; a DNS-aware R0011 is entlein/node-agent#10).
-
-**Offline replay, 2026-10-25.** `harness/score.sh` over the 73 recorded k3s-2 builds (50 learn, 4 clean, 4 held-out, 6 attack) is the gate every profile change passes before it ships: detection on the attack recordings must stay identical, and the clean-side distinguishing alerts (R1030 lines recorded before the opcode filter excluded) must not rise. Five tool-emitted rounds took them from 263 to 127 with detection unchanged: per-run `/tmp` and Rust `target` directories folded and the pip bootstrap program wildcarded as one token (248); per-process exceptions for `px_jattach`, the apt postinst helpers and `Runner.Worker`, with R0008 honouring exceptions (198); the Ruby toolchain unioned from its recorded build and repository literals scrubbed (159); repo-defined argv of `npx`, `yarn`, `pnpm`, `npm`, `corepack`, `printf` and `docker-buildx` folded and dind's `/proc/<pid>/exe` re-exec declared (133); the setup-dotnet install script admitted (127). Of the 127 left, 21 are sensor artifacts (exec paths recorded relative to the working directory, failed opens with no path), 6 are `ps`, `pgrep`, `grep` and `fuser` capability uses kept alerting on purpose, and most of the rest is argv of interpreters running repository code.
-
-**Docker builds (dind V7):** dind V6 was learned from the engine only and never saw a Dockerfile build, so an organic `docker build`/`buildx`/`compose` raised 45–53 distinguishing alerts (buildkit and runc reading `/run/runc/<id>`, `/proc/pressure`, `/sys/fs/cgroup/docker`). dind V7 adds those four organic runs to the dind corpus and drops the residue to 7–9 in-sample, with no loss of dind-side attack detection. The remainder is three families, still open: runc re-exec through `/proc/<pid>/exe` (R0001), dind capability use (R0004), and buildkit's localhost gRPC (R0012). Held-out confirmation needs one fresh docker build.
-
-**Attack (rogue84, superseded above): 29 of 58 steps raise a distinguishing alert** when every step runs as the runner user (k3s-2 fresh pod, 2026-10-10, `bobctl simulate --container runner`). The earlier 55/58 ran the 12 docker steps inside the privileged `dind` container and is void.
-
-| cause of silence | steps | lever |
-|---|---|---|
-| dedup: R0040 and R1004 key on comm (and exec), so once one `curl`/`sh` alert fires on a pod, later steps using the same binary are suppressed; the suite runs all 58 steps on one pod | not yet separated | per-process uniqueId in the rules (being measured) |
-| payload runs in a container started through dind's socket, which the agent does not profile; the runner side only shows the `docker` CLI (R0040) | read-node-kubeconfig, symlink, and the escape chain beyond R0040 | agent (entlein/node-agent#37) |
-| agent coverage: fileless execution, kernel modules, DNS for names that do not resolve | 4 | agent (#126); R1032 for DNS exfiltration |
-| `kubectl` is absent from `actions-runner:latest`, so the 5 kubectl steps exec nothing; they measure only on an image that ships kubectl | 5 | image prerequisite |
-| the profile admits it: `/home/runner/.credentials` is written by the runner itself; `cp`/`chmod` take any arguments | to be quantified | profile |
-
-Builds recorded before these rules (`build-j/k/l/n`, `r2-*`) have R1030 lines without the opcode field. Their R1030 counts cannot be replayed through the filter.
+- **NNF**, noble and resolute, two runs each, repeated over three rounds: 0 distinguishing alerts on every clean build; 58–61 of 62 attack steps detected by node-agent alone. The TeamPCP action (`ben-dac`) on both images raises R0040 on the `tpcp.tar.gz` exfil and the `sysmon.py --c2` backdoor, both through `spec.subtract`, and R0001 on the four C2 `getent` lookups.
+- **k3s-2**: the exfil tar goes from silent to R0040; the three must-survive catches (`/tmp/xmrig`, `_work/.rogue/run.sh`, `sysmon.py`) fire; clean R0040 is 0. On the 62-step suite node-agent detects 60 and node-agent ∪ dx all 62 (`matrix.py`).
+- **Floor**: about 90 R0011 per clean build, egress to GitHub and Azure addresses that the profile allows by name but R0011 matches by address. Not scored.
 
 ## Limits
 
-The profiles are learned from one image on one cluster. A runner image with a different userspace (another Ubuntu release, other preinstalled toolchains) has different exec and library paths and needs its own learning run before binding.
+The profiles are learned from two runner images, `ghcr.io/actions/actions-runner` on Ubuntu noble and its resolute build. A runner image with a different userspace (other preinstalled toolchains, another release) has different exec and library paths and needs its own learning run before binding.
