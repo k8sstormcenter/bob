@@ -20,6 +20,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # Build pkg/ exactly as its go.mod pins storage; the root go.work points at a ../storage checkout.
+  GOWORK: 'off'
+  GOPRIVATE: github.com/k8sstormcenter/storage
+
 jobs:
   lint:
     name: golangci-lint
@@ -33,14 +38,16 @@ jobs:
           token: ${{ secrets.ENTLEIN_PAT }}
           persist-credentials: false
 
-      - name: Clone storage dependency
+      - name: Private storage module
+        env:
+          STORAGE_TOKEN: ${{ secrets.ENTLEIN_PAT }}
         run: |
-          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
+          git config --global url."https://x-access-token:${STORAGE_TOKEN}@github.com/k8sstormcenter/storage".insteadOf "https://github.com/k8sstormcenter/storage"
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version-file: pkg/go.mod
           cache-dependency-path: pkg/go.sum
 
       - name: Run golangci-lint
@@ -62,14 +69,16 @@ jobs:
           token: ${{ secrets.ENTLEIN_PAT }}
           persist-credentials: false
 
-      - name: Clone storage dependency
+      - name: Private storage module
+        env:
+          STORAGE_TOKEN: ${{ secrets.ENTLEIN_PAT }}
         run: |
-          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
+          git config --global url."https://x-access-token:${STORAGE_TOKEN}@github.com/k8sstormcenter/storage".insteadOf "https://github.com/k8sstormcenter/storage"
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version-file: pkg/go.mod
           cache-dependency-path: pkg/go.sum
 
       - name: Run unit tests

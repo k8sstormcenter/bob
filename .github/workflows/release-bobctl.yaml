@@ -30,6 +30,11 @@ on:
 permissions:
   contents: write
 
+env:
+  # Build pkg/ exactly as its go.mod pins storage; the root go.work points at a ../storage checkout.
+  GOWORK: 'off'
+  GOPRIVATE: github.com/k8sstormcenter/storage
+
 jobs:
   # A release must not be able to ship a red test: build gates on this and
   # release gates on build. Runs once, not per build-matrix entry.
@@ -43,14 +48,16 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
 
-      - name: Clone storage dependency
+      - name: Private storage module
+        env:
+          STORAGE_TOKEN: ${{ secrets.ENTLEIN_PAT }}
         run: |
-          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
+          git config --global url."https://x-access-token:${STORAGE_TOKEN}@github.com/k8sstormcenter/storage".insteadOf "https://github.com/k8sstormcenter/storage"
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version-file: pkg/go.mod
           cache-dependency-path: pkg/go.sum
 
       - name: go test
@@ -75,22 +82,21 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
 
-      # The go.mod replace directive: ../../storage relative to pkg/
-      - name: Clone storage dependency
+      - name: Private storage module
+        env:
+          STORAGE_TOKEN: ${{ secrets.ENTLEIN_PAT }}
         run: |
-          git clone --depth 1 --branch main https://github.com/k8sstormcenter/storage.git ../storage
+          git config --global url."https://x-access-token:${STORAGE_TOKEN}@github.com/k8sstormcenter/storage".insteadOf "https://github.com/k8sstormcenter/storage"
 
       - name: Verify layout
         run: |
           echo "=== pkg/ ==="
           ls pkg/go.mod pkg/main.go
-          echo "=== storage/ ==="
-          ls ../storage/go.mod
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version-file: pkg/go.mod
           cache-dependency-path: pkg/go.sum
 
       - name: go vet
