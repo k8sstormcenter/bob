@@ -1,0 +1,105 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: flux-source-manager
+  namespace: flux-system
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_NET_ADMIN
+  egress:
+    - {dns: "", dnsNames: null, identifier: 8f64268da3c313e78300758f33ace641b84914832d6ec2a25b695b033a862d7e, ipAddress: 140.82.121.36, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: a111ccfacec0b09bc806793e9a5aaa94885f6e0ce13aa94602ed167b7e7103aa, ipAddress: 154.41.192.2, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.gha-runners.f388fc7cf1.internal.k8s.metalstackcloud.io., dnsNames: [api.gha-runners.f388fc7cf1.internal.k8s.metalstackcloud.io.], identifier: 9167389659c46e3e0ba5379aec0e5b78bd7fdd0c86b34c6ddc9ac81380c1eef1, ipAddress: 154.41.192.2, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ghcr.io., dnsNames: [ghcr.io.], identifier: 2a0ed2ea62a29faf0e7069f4097c797cf45e855cabb0d4e1fd754a75e7268c98, ipAddress: 140.82.121.33, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ghcr.io., dnsNames: [ghcr.io.], identifier: 5e3613830a4ce975415a91fd9225e464c65e0ce0315cfd80529efca44be95f75, ipAddress: 140.82.121.34, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ghcr.io., dnsNames: [ghcr.io.], identifier: d7211206906d3a79f8ff3dd6a6340fbec43d32a47e0ad84f964f22184c417251, ipAddress: 20.250.119.73, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: github.com., dnsNames: [github.com.], identifier: 1e2c3b8253ef65bbb38bb96e642bd3c6d40827f27a1f6c41435805be35b74c77, ipAddress: 140.82.121.3, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: github.com., dnsNames: [github.com.], identifier: b5b004e9170d84c35c473466761979f8805df92aa0becb5f5d8a13886292cf94, ipAddress: 140.82.121.4, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: github.com., dnsNames: [github.com.], identifier: 3a4fc8256643b0cdb5cfcd1a94cbceb3997042854a5639059bb821fadb412668, ipAddress: 20.250.119.67, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: 4aa13ba51009bedc1b376423e063ea820bcd24da14b6cfe4ff3891fb4266191f, ipAddress: 185.199.108.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: 4e32e51ad294f4a8795e408f8fcc801165e7769d40f45a1c6f5bb0a64e5f1317, ipAddress: 185.199.109.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: dc93fbad0ac0bf8cba186db8b4ebd16185e5588cb8aa01f6b62cb12848fbf444, ipAddress: 185.199.110.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: pkg-containers.githubusercontent.com., dnsNames: [pkg-containers.githubusercontent.com.], identifier: c2ae281371342dca380d55b18abe181ade61fe63630e29b7b2c197551d8e0cba, ipAddress: 185.199.111.154, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: prometheus-community.github.io., dnsNames: [prometheus-community.github.io.], identifier: d6a58dfc9dc84ec3ecf80c58c4d1c575dd2fb0a17429c6b5b04b498358e30c11, ipAddress: 185.199.108.153, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: prometheus-community.github.io., dnsNames: [prometheus-community.github.io.], identifier: 190d91ac0a4fca177812de6fc3d577123a64d05ab4a8981538dc98ea78a89572, ipAddress: 185.199.109.153, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: prometheus-community.github.io., dnsNames: [prometheus-community.github.io.], identifier: 8370c3b33b4ff02dd214956fcfe5b37922ebe0fdae37c40912e50cf8473dfa8f, ipAddress: 185.199.110.153, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: prometheus-community.github.io., dnsNames: [prometheus-community.github.io.], identifier: 37c79504c23088f4ffcf35c837eea1eaa6efaf77feb0d8432acdcd128a495302, ipAddress: 185.199.111.153, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ssh.github.com., dnsNames: [ssh.github.com.], identifier: f46bb311f2b0daeec4e5c6e88d1a2bcede9798aa5efa957d5f52a1d7ee5f32b9, ipAddress: 140.82.121.35, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ssh.github.com., dnsNames: [ssh.github.com.], identifier: 7db14c6e278ae7ceee935e07255025a737b12b5ffb08471f304a05ce1c6e596d, ipAddress: 140.82.121.36, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: ssh.github.com., dnsNames: [ssh.github.com.], identifier: dcf2bccf435376ef9792e7ce2e833e9e7b61fc7c41441f03ff86b57cc62af12c, ipAddress: 20.250.119.68, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 2a91885a2b3c7c8bc0f5fd078f08758a2b085c13b56f3da4583cfc658c69ff26, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: notification-controller}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], serviceRefName: notification-controller, serviceRefNamespace: flux-system, type: internal}
+    - {dns: "", dnsNames: null, identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+  endpoints: null
+  execs:
+    - {args: [/pause], path: /pause}
+    - {args: [/usr/local/bin/source-controller, ⋯⋯], path: /usr/local/bin/source-controller}
+    - {args: [source-controller, ⋯⋯], path: /usr/local/bin/source-controller}
+  identifiedCallStacks: null
+  imageID: ghcr.io/fluxcd/source-controller@sha256:6a6693172589f8ff26123a231d5fa6ceb194a6efb4dc647cdf057c959f76a2e3
+  imageTag: ghcr.io/fluxcd/source-controller:v1.9.6
+  ingress:
+    - {dns: "", dnsNames: null, identifier: 45f627cdf6364a6662d8ea88db6fd50a38ee0551424a477d82059c603ecc131b, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: helm-controller, app.kubernetes.io/component: helm-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: b8d58739dd83e7374b6f6d120e0fc9d0ba732eaae17fa0e716fc84fd2d1af50b, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: kustomize-controller, app.kubernetes.io/component: kustomize-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+  matchLabels:
+    app: source-controller
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.config/helm/registry/config.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.docker/config.json}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /.ssh/config}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /data}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_RDONLY, O_RDWR], path: /data/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/httpd/conf/mime.types}
+    - {flags: [O_RDONLY], path: /etc/localtime}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/machine-id}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mime.types}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssh/ssh_config}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/ssl/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs/ca-certificates.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cpuset}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/class/⋯/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /tmp}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/source-controller}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token}
+  rulePolicies:
+    R0006:
+      processAllowed:
+        - helm-controller
+        - kustomize-contr
+        - source-controll
+        - notification-co
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
