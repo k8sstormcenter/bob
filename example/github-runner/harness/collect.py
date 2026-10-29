@@ -59,8 +59,21 @@ def signatures(fire):
         if not step.get("t0") or not cmd:
             continue
         script = cmd[2] if len(cmd) >= 3 and cmd[0] in ("sh", "bash") and cmd[1] == "-c" else " ".join(cmd)
-        out.append((step["name"], script.strip()[:80]))
+        out.append((step["name"], script.strip()[:80], len(script.strip()), int(step["t0"]), int(step.get("t1") or step["t0"])))
     return out
+
+
+def pick_step(sigs, blob, t):
+    """The step an alert belongs to: of the steps whose command is in the process tree, the one whose run
+    window contains the alert, else the one with the longest command. A step that runs another step's command
+    as a subshell (exfil-over-dns reads the token cred-service-account-token reads) matches both."""
+    hits = [s for s in sigs if s[1] and s[1] in blob]
+    if not hits:
+        return None, 0
+    grace = 10 * 10**9
+    timed = [s for s in hits if t and s[3] <= t <= s[4] + grace]
+    best = max(timed or hits, key=lambda s: s[2])
+    return best[0], len(hits)
 
 
 def alerts(a):
@@ -69,7 +82,7 @@ def alerts(a):
         where += f" AND event_time >= {a.since}"
     if a.until:
         where += f" AND event_time <= {a.until}"
-    rows = clickhouse("SELECT RuleID, JSONExtractString(RuntimeK8sDetails,'containerName') AS ctr, "
+    rows = clickhouse("SELECT RuleID, event_time AS t, JSONExtractString(RuntimeK8sDetails,'containerName') AS ctr, "
                       "RuntimeProcessDetails, BaseRuntimeMetadata FROM forensic_db.kubescape_logs "
                       f"WHERE {where} FORMAT JSONEachRow")
     sigs = signatures(json.load(open(a.fire))) if a.fire else None
@@ -93,10 +106,10 @@ def alerts(a):
                "arguments": args}
         if sigs is not None:
             blob = " || ".join(cmdlines(tree, []))
-            hits = [name for name, sig in sorted(sigs, key=lambda s: -len(s[1])) if sig and sig in blob]
-            rec["step"] = hits[0] if hits else "_build"
-            tagged += bool(hits)
-            if len(hits) > 1:
+            step, n = pick_step(sigs, blob, int(d.get("t") or 0))
+            rec["step"] = step or "_build"
+            tagged += bool(step)
+            if n > 1:
                 rec["ambiguous"] = True
                 ambiguous += 1
         buf.setdefault(rule, []).append(json.dumps(rec))
