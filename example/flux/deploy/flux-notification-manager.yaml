@@ -1,0 +1,75 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  name: flux-notification-manager
+  namespace: flux-system
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_NET_ADMIN
+  egress:
+    - {dns: "", dnsNames: null, identifier: a111ccfacec0b09bc806793e9a5aaa94885f6e0ce13aa94602ed167b7e7103aa, ipAddress: 154.41.192.2, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 9ffe5632f0598caa4543f80e1a3b5087689be3994094bef1d7d3a3b88fa853a2, ipAddress: 3.68.124.95, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.gha-runners.f388fc7cf1.internal.k8s.metalstackcloud.io., dnsNames: [api.gha-runners.f388fc7cf1.internal.k8s.metalstackcloud.io.], identifier: 9167389659c46e3e0ba5379aec0e5b78bd7fdd0c86b34c6ddc9ac81380c1eef1, ipAddress: 154.41.192.2, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: slack.com., dnsNames: [slack.com.], identifier: 701902f09c5413194dee8c56a3312ce268221e8ed5c59ecf57a0393d4dbdf072, ipAddress: 18.159.197.225, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: slack.com., dnsNames: [slack.com.], identifier: 42ce4c83289ae0ff33bc9ab42b06ea4922d03a505846ac0790708ff73e94be7e, ipAddress: 3.68.124.168, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: slack.com., dnsNames: [slack.com.], identifier: 586260eb15fd9cc04fd2efad91cddd296ae6600b5e72914a602460515e26d8d6, ipAddress: 3.68.124.95, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: slack.com., dnsNames: [slack.com.], identifier: ae5b889619d6f97796e7437d7abd23c713028d2599814fb358df31a52e035d5a, ipAddress: 3.68.170.153, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: slack.com., dnsNames: [slack.com.], identifier: 344a4b8da81b51cd8bbb981a949a091b81a743e5df2cbb87548747e5eaac7c10, ipAddress: 3.68.175.98, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: slack.com., dnsNames: [slack.com.], identifier: 58f64ccece588e9243eb834cac4c08dbc9bbabcb67cdacb8a1e7fef721249656, ipAddress: 52.29.238.212, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+  endpoints: null
+  execs:
+    - {args: [/pause], path: /pause}
+    - {args: [/usr/local/bin/notification-controller, ⋯⋯], path: /usr/local/bin/notification-controller}
+    - {args: [notification-controller, ⋯⋯], path: /usr/local/bin/notification-controller}
+  identifiedCallStacks: null
+  imageID: ghcr.io/fluxcd/notification-controller@sha256:840f318265ee26f0d2c48a158bf7896b22aa4e998e320a18646309f0e40b15da
+  imageTag: ghcr.io/fluxcd/notification-controller:v1.9.4
+  ingress:
+    - {dns: "", dnsNames: null, identifier: 45f627cdf6364a6662d8ea88db6fd50a38ee0551424a477d82059c603ecc131b, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: helm-controller, app.kubernetes.io/component: helm-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: b8d58739dd83e7374b6f6d120e0fc9d0ba732eaae17fa0e716fc84fd2d1af50b, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: kustomize-controller, app.kubernetes.io/component: kustomize-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: f514c00a5358fe8151a30a93e4463666dcdeef01b0448aae06ee10a2465316e3, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: source-controller, app.kubernetes.io/component: source-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+  matchLabels:
+    app: notification-controller
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_RDONLY], path: /etc/localtime}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/ssl/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs/ca-certificates.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/notification-controller}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/*}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token}
+  rulePolicies:
+    R0006:
+      processAllowed:
+        - helm-controller
+        - kustomize-contr
+        - source-controll
+        - notification-co
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}
