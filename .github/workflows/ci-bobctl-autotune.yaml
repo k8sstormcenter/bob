@@ -294,14 +294,14 @@ jobs:
             sleep 5
           done
 
-          # Poll for completed, non-user-generated profile
+          # Poll for a learned (ready, or completed on older agents), non-user-generated profile
           TIMEOUT=600
           ELAPSED=0
           PROFILE=""
           while [ $ELAPSED -lt $TIMEOUT ]; do
             ALL=$(kubectl get containerprofiles -n ${{ matrix.app_namespace }} \
-              -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-              2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
+              -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.annotations.kubescape\.io/status}{"\n"}{end}' \
+              2>/dev/null | awk -F'\t' '$2=="ready" || $2=="completed" {print $1}' | grep -v "^ug-" | grep -v "^job-" || true)
             # ONLY a profile matching the app/service name ends the wait.
             #
             # There used to be a bare `head -1` fallback here, and it made the

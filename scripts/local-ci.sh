@@ -180,8 +180,8 @@ if ! $TUNE_ONLY; then
   PROFILE=""
   while [ $ELAPSED -lt $TIMEOUT ]; do
     ALL_COMPLETED=$(kubectl get containerprofiles -n "$APP_NS" \
-      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-      2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
+      -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.annotations.kubescape\.io/status}{"\n"}{end}' \
+      2>/dev/null | awk -F'\t' '$2=="ready" || $2=="completed" {print $1}' | grep -v "^ug-" | grep -v "^job-" || true)
     PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | grep -v "client" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | grep -i "$MATCH" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_COMPLETED" | head -1)
@@ -208,8 +208,8 @@ else
     # Discover from cluster — prefer profile whose name contains the app/service name
     log "Discovering completed profiles in $APP_NS..."
     ALL_LEARNED=$(kubectl get containerprofiles -n "$APP_NS" \
-      -o jsonpath='{range .items[?(@.metadata.annotations.kubescape\.io/status=="completed")]}{.metadata.name}{"\n"}{end}' \
-      2>/dev/null | grep -v "^ug-" | grep -v "^job-" || true)
+      -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.annotations.kubescape\.io/status}{"\n"}{end}' \
+      2>/dev/null | awk -F'\t' '$2=="ready" || $2=="completed" {print $1}' | grep -v "^ug-" | grep -v "^job-" || true)
     MATCH="${APP_PROFILE_MATCH:-$APP}"
     PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | grep -v "client" | head -1)
     [[ -z "$PROFILE" ]] && PROFILE=$(echo "$ALL_LEARNED" | grep -i "$MATCH" | head -1)
