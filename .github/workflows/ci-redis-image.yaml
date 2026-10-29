@@ -17,10 +17,12 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   build:
+    permissions:
+      contents: read
+      packages: write
     name: Build & push redis-vulnerable
     runs-on: ubuntu-latest
     steps:

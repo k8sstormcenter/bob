@@ -28,7 +28,7 @@ on:
 
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   # Build pkg/ exactly as its go.mod pins storage; the root go.work points at a ../storage checkout.
@@ -163,6 +163,10 @@ jobs:
     # level requests write for GITHUB_TOKEN on this job.)
     permissions:
       contents: write
+      # Keyless cosign signing: the job's OIDC identity is the signer.
+      id-token: write
+    outputs:
+      hashes: ${{ steps.hashes.outputs.hashes }}
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -178,6 +182,22 @@ jobs:
             chmod +x "release/$name"
           done
           ls -lh release/
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign release assets
+        run: |
+          for f in release/bobctl-*; do
+            cosign sign-blob --yes --bundle "$f.sigstore.json" "$f"
+          done
+          ls -lh release/
+
+      - name: Hash release binaries
+        id: hashes
+        run: |
+          cd release
+          echo "hashes=$(sha256sum $(ls bobctl-* | grep -v '\.sigstore\.json$') | base64 -w0)" >> "$GITHUB_OUTPUT"
 
       - name: Determine release tag
         id: tag
@@ -209,3 +229,19 @@ jobs:
             --prerelease=${{ steps.tag.outputs.prerelease }} \
             --generate-notes \
             release/bobctl-*
+
+  provenance:
+    name: SLSA provenance
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    # The generator verifies its own provenance only when called by tag, so this one is not pinned to a SHA.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: ${{ needs.release.outputs.hashes }}
+      provenance-name: bobctl.intoto.jsonl
+      upload-assets: true
+      upload-tag-name: ${{ github.ref_name }}

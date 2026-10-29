@@ -30,10 +30,12 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   build-and-push:
+    permissions:
+      contents: read
+      packages: write
     name: ${{ matrix.component }}
     runs-on: ubuntu-24.04
     strategy:

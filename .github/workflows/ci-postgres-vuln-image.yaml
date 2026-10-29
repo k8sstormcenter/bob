@@ -27,10 +27,12 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   build:
+    permissions:
+      contents: read
+      packages: write
     name: Build & push postgres-vuln
     runs-on: ubuntu-24.04
     steps:
