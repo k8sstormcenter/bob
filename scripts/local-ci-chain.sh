@@ -332,13 +332,13 @@ if ! $ATTACK_ONLY; then
           | (.metadata.annotations["kubescape.io/status"] // "missing") + "|" + ((.spec.execs // []) | length | tostring)')
       status="${info%%|*}"
       execs="${info##*|}"
-      if [[ "$status" == "completed" && "$execs" -gt 0 ]]; then
+      if [[ ( "$status" == "completed" || "$status" == "ready" ) && "$execs" -gt 0 ]]; then
         log "    $app: completed (execs=$execs)"
         break
       fi
       # If sealed empty, delete + retry. Topping up benign traffic
       # is what gives kubescape something to learn.
-      if [[ "$status" == "completed" && "$execs" -eq 0 ]]; then
+      if [[ ( "$status" == "completed" || "$status" == "ready" ) && "$execs" -eq 0 ]]; then
         log "    $app: completed-but-empty, deleting CP to force re-learn"
         cp_name=$(kubectl get containerprofile -n "$NS" -o json | jq -r --arg app "$app" '[.items[] | select(.metadata.name | startswith("replicaset-" + $app))][0].metadata.name')
         [[ -n "$cp_name" && "$cp_name" != "null" ]] && kubectl delete containerprofile -n "$NS" "$cp_name" --ignore-not-found >/dev/null 2>&1
@@ -362,7 +362,7 @@ if ! $ATTACK_ONLY; then
       fi
       sleep 4
     done
-    [[ "$status" == "completed" && "$execs" -gt 0 ]] \
+    [[ ( "$status" == "completed" || "$status" == "ready" ) && "$execs" -gt 0 ]] \
       || log "    WARN: $app profile status=$status execs=$execs (continuing — detections may be unreliable)"
   done
 fi  # end setup
