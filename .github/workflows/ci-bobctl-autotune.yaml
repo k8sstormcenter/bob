@@ -242,6 +242,13 @@ jobs:
           uname -a
           helm version
 
+      - name: Log in to the private image registries
+        # node-agent (docker.io/entlein/duckling) and storage (ghcr.io/k8sstormcenter/storage) are private;
+        # make kubescape turns ~/.docker/config.json into the duckling-pull secret the chart references.
+        run: |
+          echo "${{ secrets.DOCKER_SECRET }}" | docker login docker.io -u "${{ vars.DOCKER_USERNAME }}" --password-stdin
+          echo "${{ secrets.ENTLEIN_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
       - name: Install kubescape
         run: make kubescape
 
@@ -975,6 +982,13 @@ jobs:
           echo "=== cluster B CIDRs (should be 10.98 / 10.99, NOT cluster A's) ==="
           kubectl get nodes -o jsonpath='{.items[*].spec.podCIDRs}{"\n"}'
           kubectl get servicecidrs 2>/dev/null || true
+      - name: Log in to the private image registries
+        # node-agent (docker.io/entlein/duckling) and storage (ghcr.io/k8sstormcenter/storage) are private;
+        # make kubescape turns ~/.docker/config.json into the duckling-pull secret the chart references.
+        run: |
+          echo "${{ secrets.DOCKER_SECRET }}" | docker login docker.io -u "${{ vars.DOCKER_USERNAME }}" --password-stdin
+          echo "${{ secrets.ENTLEIN_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
       - name: Install kubescape + deploy app on B
         if: steps.check.outputs.skip != 'true'
         run: |
