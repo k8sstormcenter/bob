@@ -246,7 +246,7 @@ jobs:
         # node-agent (docker.io/entlein/duckling) and storage (ghcr.io/k8sstormcenter/storage) are private;
         # make kubescape turns ~/.docker/config.json into the duckling-pull secret the chart references.
         run: |
-          echo "${{ secrets.DOCKER_SECRET }}" | docker login docker.io -u "${{ vars.DOCKER_USERNAME }}" --password-stdin
+          echo "${{ secrets.DOCKERHUB_PAT }}" | docker login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
           echo "${{ secrets.ENTLEIN_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Install kubescape
@@ -986,7 +986,7 @@ jobs:
         # node-agent (docker.io/entlein/duckling) and storage (ghcr.io/k8sstormcenter/storage) are private;
         # make kubescape turns ~/.docker/config.json into the duckling-pull secret the chart references.
         run: |
-          echo "${{ secrets.DOCKER_SECRET }}" | docker login docker.io -u "${{ vars.DOCKER_USERNAME }}" --password-stdin
+          echo "${{ secrets.DOCKERHUB_PAT }}" | docker login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
           echo "${{ secrets.ENTLEIN_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Install kubescape + deploy app on B
