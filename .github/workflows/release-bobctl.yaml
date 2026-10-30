@@ -163,8 +163,6 @@ jobs:
     # level requests write for GITHUB_TOKEN on this job.)
     permissions:
       contents: write
-      # Keyless cosign signing: the job's OIDC identity is the signer.
-      id-token: write
     outputs:
       hashes: ${{ steps.hashes.outputs.hashes }}
     steps:
@@ -185,11 +183,20 @@ jobs:
 
       - name: Install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: 'v3.0.2'
 
       - name: Sign release assets
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
         run: |
           for f in release/bobctl-*; do
-            cosign sign-blob --yes --bundle "$f.sigstore.json" "$f"
+            cosign sign-blob --key env://COSIGN_PRIVATE_KEY --tlog-upload=false \
+              --yes --bundle "$f.sigstore.json" "$f"
+            cosign verify-blob --key env://COSIGN_PUBLIC_KEY --insecure-ignore-tlog=true \
+              --bundle "$f.sigstore.json" "$f"
           done
           ls -lh release/
 
