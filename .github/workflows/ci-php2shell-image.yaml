@@ -5,10 +5,11 @@
 
 name: CI - php2shell-vulnerable image
 
-# Builds and publishes the php2shell demo image (unpatched php:8.4.26-apache +
-# the PHP2Shell calibration profile, CVE-2026-109618 / CVE-2026-109619) to GHCR,
-# so the example/php2shell/ demo does not depend on a locally-built image.
-# Mirrors ci-postgres-vuln-image.yaml / ci-redis-image.yaml.
+# Builds, publishes and SIGNS the php2shell demo image (unpatched
+# php:8.4.26-apache + the PHP2Shell calibration profile,
+# CVE-2026-109618 / CVE-2026-109619) to GHCR. Mirrors ci-redis-image.yaml /
+# ci-postgres-vuln-image.yaml, plus keyless cosign signing like the other
+# example images (feat/sign-example-images / PR #255).
 #
 # Tags pushed:
 #   - ghcr.io/k8sstormcenter/php2shell-vulnerable:<short-sha>
@@ -20,6 +21,7 @@ on:
   push:
     branches:
       - main
+      - feat/php2shell-chain
     paths:
       - 'example/php2shell/**'
       - '.github/workflows/ci-php2shell-image.yaml'
@@ -36,7 +38,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-    name: Build & push php2shell-vulnerable
+      id-token: write
+    name: Build, push & sign php2shell-vulnerable
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -53,7 +56,7 @@ jobs:
             TAGS="${TAGS},${IMG}:${PHP_VERSION},${IMG}:latest"
           fi
           echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
-          echo "primary=${IMG}:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "img=${IMG}" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
@@ -85,21 +88,19 @@ jobs:
           if [[ "${ok:-}" != "1" ]]; then
             echo "FAIL: app never became ready"; docker logs p2s-smoke | tail -20; docker rm -f p2s-smoke; exit 1
           fi
-          # Unpatched version is the whole point — fail if the base ever bumps past the fix.
           ver=$(docker exec p2s-smoke php -r 'echo PHP_VERSION;')
           echo "PHP version: ${ver}"
           [[ "${ver}" == "${PHP_VERSION}" ]] || { echo "FAIL: expected PHP ${PHP_VERSION}, got ${ver}"; docker rm -f p2s-smoke; exit 1; }
-          # The vulnerable surface must be live.
           up=$(docker exec p2s-smoke php -r 'echo ini_get("session.upload_progress.enabled") ? "On" : "Off";')
           echo "session.upload_progress.enabled: ${up}"
           [[ "${up}" == "On" ]] || { echo "FAIL: session.upload_progress disabled — target not vulnerable"; docker rm -f p2s-smoke; exit 1; }
-          # The upload form must render the progress field (benign app wired correctly).
           curl -fsS http://127.0.0.1:8080/index.php | grep -q 'PHP_SESSION_UPLOAD_PROGRESS' \
             || { echo "FAIL: index.php did not render the upload-progress field"; docker rm -f p2s-smoke; exit 1; }
           echo "OK: php2shell-vulnerable serves, runs unpatched PHP ${PHP_VERSION}, upload_progress On"
           docker rm -f p2s-smoke
 
-      - name: Push (multi-arch)
+      - name: Build & push (multi-arch)
+        id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
           context: example/php2shell
@@ -107,3 +108,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign image (keyless, by digest)
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          IMG: ${{ steps.tags.outputs.img }}
+        run: cosign sign --yes "${IMG}@${DIGEST}"
