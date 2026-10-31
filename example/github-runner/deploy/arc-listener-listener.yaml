@@ -13,22 +13,47 @@ metadata:
 spec:
   architectures:
     - amd64
-  capabilities: null
+  capabilities:
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_NET_ADMIN
   egress:
+    - {dns: "", dnsNames: null, identifier: 82d30054d18d8106a90d0ffb7c90b2a0a30327a81aeac2023a7f56bbbddd613c, ipAddress: 140.82.121.5, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: 5577ee4136aeb5d98e430534026b3515f722b0ea7abdd67b67592561db6a3b07, ipAddress: 140.82.121.6, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.gha-runners.f388fc7cf1.internal.k8s.metalstackcloud.io., dnsNames: [api.gha-runners.f388fc7cf1.internal.k8s.metalstackcloud.io.], identifier: 9167389659c46e3e0ba5379aec0e5b78bd7fdd0c86b34c6ddc9ac81380c1eef1, ipAddress: 154.41.192.2, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 39d67cda4a9b4712d70b0c31dc865e59b82c8e8a550e0d196e9d2f16f35ed8cb, ipAddress: 140.82.121.5, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: api.github.com., dnsNames: [api.github.com.], identifier: d9fa39732f4a5b9ec7c85eb85d18eab507f24dac6fe56b155e3f865b447d31e3, ipAddress: 140.82.121.6, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: api.github.com., dnsNames: [api.github.com.], identifier: 1fb64c9531a29bedc930cc7739f9f5d16819c8e101671fc75166f6c5c5086271, ipAddress: 20.250.119.72, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: broker.actions.githubusercontent.com., dnsNames: [broker.actions.githubusercontent.com.], identifier: 221d79a366f89502d4a245876e971a8ebad43114ced8606357d116d66fb3ea33, ipAddress: 20.85.130.105, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
     - {dns: "", dnsNames: null, identifier: e5e8ca3d76f701a19b7478fdc1c8c24ccc6cef9902b52c8c7e015439e2a1ddf3, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], type: internal}
-    - {dns: "", dnsNames: [broker.actions.githubusercontent.com.], identifier: egress-dns, ipAddress: "", namespaceSelector: null, podSelector: null, ports: null, type: external}
   endpoints: null
   execs:
     - {args: [/ghalistener], path: /ghalistener}
     - {args: [/pause], path: /pause}
   identifiedCallStacks: null
-  imageID: ghcr.io/actions/gha-runner-scale-set-controller@sha256:162dfb5bfbda9e7e49fbed67d428994c9ced55b41a37a18b75b46dab0aa98d37
-  imageTag: ghcr.io/actions/gha-runner-scale-set-controller:0.15.0
-  ingress: null
+  imageID: ghcr.io/actions/gha-runner-scale-set-controller@sha256:4f589b93e55a0e20c12ff51c35249877c15429bbfe6a2c531072af18dfce7d00
+  imageTag: ghcr.io/actions/gha-runner-scale-set-controller:0.14.1
+  ingress:
+    - {dns: "", dnsNames: null, identifier: aac630ecf62e61c25af25689e414898237e0184d8cbf8b39d5361218d4c2b18b, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: monitoring}}, podSelector: {matchLabels: {app.kubernetes.io/instance: kube-prometheus-stack-prometheus, app.kubernetes.io/managed-by: prometheus-operator, app.kubernetes.io/name: prometheus, operator.prometheus.io/name: kube-prometheus-stack-prometheus, operator.prometheus.io/shard: "0", prometheus: kube-prometheus-stack-prometheus}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_RDONLY], path: /etc/localtime}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/ssl/certs}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs/ca-certificates.crt}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /ghalistener}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gha-listener/⋯/config.json}
   rulePolicies:
     R0002:
       processAllowed:
