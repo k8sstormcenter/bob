@@ -33,6 +33,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     name: Build & push postgres-vuln
     runs-on: ubuntu-24.04
     steps:
@@ -90,6 +91,7 @@ jobs:
           docker rm -f pgv-smoke
 
       - name: Push (multi-arch)
+        id: push
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
           context: example/postgres-vuln
@@ -97,3 +99,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign image (keyless)
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: cosign sign --yes "ghcr.io/${{ github.repository_owner }}/postgres-vuln@${DIGEST}"
