@@ -53,39 +53,6 @@ The pod carries `kubescape.io/user-defined-profile: php2shell` so node-agent
 enforces from pod start. Learn/bind the baseline the usual way (benign app =
 Apache serving web requests, no child processes), then run the attack live.
 
-## Run it (verified on the `honey` k3s, 2026-10-31)
-
-```
-kubectl apply -f php2shell.yaml           # Namespace + Deployment + Service
-kubectl apply -f loadgen.yaml             # benign upload baseline (optional)
-kubectl apply -f sbobs/cp-php2shell.yaml  # bind the learned SBoB (enforce mode; skips the 10m learn)
-# exploit the pod directly (port-forward jitter breaks stage-3 grooming — use the pod IP or an in-cluster client):
-POD_IP=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].status.podIP}')
-bash ../../pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" 'id>/tmp/p2s'
-# watch node-agent: R0001 "Unexpected process launched"  apache2 -> sh -> id
-```
-
-Verified end to end: unpatched 8.4.26 target → learned `execs=0` baseline →
-genuine RCE (`uid=33(www-data)`) → node-agent R0001 on the `apache2→sh→id`
-lineage. Pause the loadgen during the exploit (it contends for the single
-Apache worker and perturbs the heap grooming).
-
-## As a CI/CD integration test — and a detection blind spot
-
-The same image also runs as a self-contained CI job: a build on a self-hosted
-runner stands up an ephemeral Kind cluster in its own dind, deploys this image
-as an integration-test fixture, and runs PHP2Shell against it — so the workload
-is owned *during* the build (`uid=33(www-data)`, verified on NNF 2026-11-01).
-
-This deliberately exposes a runtime blind spot. When the victim runs on a
-node-agent-covered node (above), the `apache2→sh→id` spawn fires R0001. But
-buried two levels down in Kind-in-dind (runner → dind → containerd → kind node →
-victim pod), it is **invisible** to the host sensor: node-agent's nested-container
-visibility reaches the kind node (one level) but not pods inside it, so the RCE
-goes undetected and only the CI driver (`kubectl`/`kind`/`containerd`) shows up.
-A CI runner that uses Kind-in-dind can be compromised beneath the sensor's
-horizon. See `pkg/attack/php2shell-groundtruth.md` for the full evidence.
-
 ## Detection payoff
 
 The benign baseline never spawns a child process from the web worker. A
