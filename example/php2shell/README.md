@@ -53,6 +53,31 @@ The pod carries `kubescape.io/user-defined-profile: php2shell` so node-agent
 enforces from pod start. Learn/bind the baseline the usual way (benign app =
 Apache serving web requests, no child processes), then run the attack live.
 
+## Run it (verified on the `honey` k3s, 2026-10-31)
+
+```
+kubectl apply -f php2shell.yaml           # Namespace + Deployment + Service
+kubectl apply -f loadgen.yaml             # benign upload baseline (optional)
+kubectl apply -f sbobs/cp-php2shell.yaml  # bind the learned SBoB (enforce mode; skips the 10m learn)
+# exploit the pod directly (port-forward jitter breaks stage-3 grooming — use the pod IP or an in-cluster client):
+POD_IP=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].status.podIP}')
+bash ../../pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" 'id>/tmp/p2s'
+# watch node-agent: R0001 "Unexpected process launched"  apache2 -> sh -> id
+```
+
+Verified end to end: unpatched 8.4.26 target → learned `execs=0` baseline →
+genuine RCE (`uid=33(www-data)`) → node-agent R0001 on the `apache2→sh→id`
+lineage. Pause the loadgen during the exploit (it contends for the single
+Apache worker and perturbs the heap grooming).
+
+## Run on the NNF gha-runner cluster
+
+The NNF cluster is GitOps-managed by Flux from `example/github-runner/`. Run
+this there the same way — apply the three manifests above into the NNF cluster
+(via its kubeconfig, or by adding them to the Flux-synced path and merging),
+then drive `run-php2shell.sh` against the pod from an in-cluster client. Keep it
+separate from the teampcp tradecraft (its own `php2shell` namespace).
+
 ## Detection payoff
 
 The benign baseline never spawns a child process from the web worker. A
