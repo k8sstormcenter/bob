@@ -1,0 +1,205 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: CI - php2shell NNF detection demo
+
+# Runs the PHP2Shell chain (CVE-2026-109618 / CVE-2026-109619) end to end on the
+# NNF gha-runner cluster (k3s-2), SEPARATELY from the teampcp runner tradecraft:
+# deploy the genuinely-vulnerable php:8.4.26 target, bind the learned
+# ContainerProfile (enforce mode, no 10m learn), drive the sealed public PoC
+# against the pod IP, then read node-agent for the R0001 apache2->sh->id lineage.
+#
+# Must run on a SELF-HOSTED NNF runner: the exploit reaches a cluster-internal
+# pod IP and k3s-2's API is on the tailnet, both unreachable from GitHub-hosted
+# runners. The exploit stays sealed (pkg/ private submodule via ENTLEIN_PAT); the
+# public workflow never embeds the PoC recipe.
+#
+# Fire it one of two ways:
+#   - workflow_dispatch (needs the file on the default branch), or
+#   - push to branch demo/php2shell-nnf (works from any branch; no merge needed).
+#
+# Requires (confirm with the NNF operator before the first run):
+#   - secrets.ENTLEIN_PAT   : checkout of the private pkg/ submodule
+#   - secrets.NNF_KUBECONFIG: kubeconfig for k3s-2 with RBAC to create the
+#       php2shell namespace + Deployment/Service, apply the ContainerProfile,
+#       and read pods/logs in the node-agent namespace. Omit only if the runner
+#       pod's own ServiceAccount already carries that RBAC (in-cluster fallback).
+#   - a runner label that selects an NNF self-hosted runner (input: runner).
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: php2shell-vulnerable image (signed)
+        default: ghcr.io/k8sstormcenter/php2shell-vulnerable:feat-php2shell-chain
+      command:
+        description: command to land via system() (<=14 bytes for the single-shot carrier)
+        default: id>/tmp/p2s
+      runner:
+        description: self-hosted NNF runner label
+        default: nnf-c-ubuntu-24.04-2-8-x86
+      agent_ns:
+        description: node-agent (kubescape-operator) namespace on k3s-2
+        default: kubescape
+      teardown:
+        description: delete the php2shell namespace when done
+        default: "true"
+      strict:
+        description: fail the job if no R0001 lands on php2shell
+        default: "true"
+  push:
+    branches:
+      - demo/php2shell-nnf
+
+permissions:
+  contents: read
+
+concurrency:
+  group: php2shell-nnf-demo
+  cancel-in-progress: false
+
+jobs:
+  demo:
+    name: Deploy, exploit & verify detection on NNF
+    runs-on: ${{ github.event.inputs.runner || 'nnf-c-ubuntu-24.04-2-8-x86' }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout (with sealed exploit submodule)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Resolve parameters
+        id: p
+        run: |
+          set -euo pipefail
+          echo "image=${{ github.event.inputs.image || 'ghcr.io/k8sstormcenter/php2shell-vulnerable:feat-php2shell-chain' }}" >> "$GITHUB_OUTPUT"
+          echo "command=${{ github.event.inputs.command || 'id>/tmp/p2s' }}" >> "$GITHUB_OUTPUT"
+          echo "agent_ns=${{ github.event.inputs.agent_ns || 'kubescape' }}" >> "$GITHUB_OUTPUT"
+          echo "teardown=${{ github.event.inputs.teardown || 'true' }}" >> "$GITHUB_OUTPUT"
+          echo "strict=${{ github.event.inputs.strict || 'true' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up kubectl + KUBECONFIG
+        env:
+          NNF_KUBECONFIG: ${{ secrets.NNF_KUBECONFIG }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          if ! command -v kubectl >/dev/null 2>&1; then
+            case "$(uname -m)" in
+              x86_64|amd64) ARCH=amd64 ;;
+              aarch64|arm64) ARCH=arm64 ;;
+              *) echo "unsupported arch $(uname -m)"; exit 1 ;;
+            esac
+            KVER=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
+            curl -fsSLo "$HOME/.local/bin/kubectl" "https://dl.k8s.io/release/${KVER}/bin/linux/${ARCH}/kubectl"
+            chmod 0755 "$HOME/.local/bin/kubectl"
+          fi
+          mkdir -p "$HOME/.kube"
+          if [ -n "${NNF_KUBECONFIG:-}" ]; then
+            printf '%s' "$NNF_KUBECONFIG" | base64 -d > "$HOME/.kube/config" 2>/dev/null \
+              || printf '%s' "$NNF_KUBECONFIG" > "$HOME/.kube/config"
+            chmod 600 "$HOME/.kube/config"
+            echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+          fi
+          "$HOME/.local/bin/kubectl" get ns >/dev/null
+
+      - name: Deploy target + bind learned SBoB
+        env:
+          IMAGE: ${{ steps.p.outputs.image }}
+        run: |
+          set -euo pipefail
+          kubectl apply -f example/php2shell/php2shell.yaml
+          kubectl -n php2shell set image deployment/php2shell php2shell="$IMAGE"
+          kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
+          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
+          sleep 20
+          kubectl -n php2shell get pods -o wide
+
+      - name: Exploit (sealed PoC against the pod IP)
+        id: exploit
+        env:
+          COMMAND: ${{ steps.p.outputs.command }}
+        run: |
+          set -euo pipefail
+          POD=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].metadata.name}')
+          POD_IP=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.status.podIP}')
+          echo "target pod=$POD ip=$POD_IP"
+          echo "pod=$POD" >> "$GITHUB_OUTPUT"
+          WORK=/tmp/php2shell-poc
+          mkdir -p "$WORK"
+          if [ ! -d "$WORK/src" ]; then
+            git clone --depth 1 https://github.com/devploit/php2shell "$WORK/src"
+          fi
+          if [ -f "$WORK/src/requirements.txt" ]; then
+            python3 -m pip install --user -r "$WORK/src/requirements.txt" || true
+          fi
+          bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK"
+
+      - name: Confirm RCE
+        run: |
+          set -euo pipefail
+          POD=${{ steps.exploit.outputs.pod }}
+          kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no /tmp/p2s; command may not write it)"'
+
+      - name: Read node-agent detections
+        id: detect
+        env:
+          AGENT_NS: ${{ steps.p.outputs.agent_ns }}
+        run: |
+          set -euo pipefail
+          POD=${{ steps.exploit.outputs.pod }}
+          NODE=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.spec.nodeName}')
+          echo "php2shell pod on node $NODE"
+          APOD=$(kubectl -n "$AGENT_NS" get pods -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.nodeName}{"\n"}{end}' \
+            | awk -v n="$NODE" '$2==n && $1 ~ /node-agent/ {print $1; exit}')
+          [ -n "${APOD:-}" ] || APOD=$(kubectl -n "$AGENT_NS" get pods -o name | grep node-agent | head -1 | cut -d/ -f2)
+          echo "node-agent pod: ${APOD:-<none>}"
+          mkdir -p artifacts
+          kubectl -n "$AGENT_NS" logs "$APOD" --since=6m > artifacts/node-agent.log 2>/dev/null || true
+          grep -iE "R0001|Unexpected process" artifacts/node-agent.log | grep -i php2shell > artifacts/r0001-php2shell.txt || true
+          n=$(wc -l < artifacts/r0001-php2shell.txt | tr -d ' ')
+          echo "R0001 lines mentioning php2shell: $n"
+          sed -n '1,20p' artifacts/r0001-php2shell.txt || true
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+
+      - name: Upload detection evidence
+        if: always()
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
+        with:
+          name: php2shell-nnf-detections
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Verdict
+        run: |
+          set -euo pipefail
+          n=${{ steps.detect.outputs.count }}
+          {
+            echo "## php2shell NNF detection demo"
+            echo ""
+            echo "| field | value |"
+            echo "| --- | --- |"
+            echo "| image | ${{ steps.p.outputs.image }} |"
+            echo "| command | ${{ steps.p.outputs.command }} |"
+            echo "| R0001 lines (php2shell) | ${n} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${n:-0}" -ge 1 ]; then
+            echo "PASS: node-agent raised R0001 on php2shell ($n lines) — the apache2->sh->id spawn deviated from the execs=0 baseline."
+          elif [ "${{ steps.p.outputs.strict }}" = "true" ]; then
+            echo "FAIL: no R0001 for php2shell in the window. Check artifacts/node-agent.log for the real log format / namespace."
+            exit 1
+          else
+            echo "WARN: no R0001 for php2shell (strict=false)."
+          fi
+
+      - name: Teardown
+        if: always()
+        run: |
+          if [ "${{ steps.p.outputs.teardown }}" = "true" ]; then
+            kubectl delete ns php2shell --wait=false || true
+          fi
