@@ -70,13 +70,21 @@ genuine RCE (`uid=33(www-data)`) → node-agent R0001 on the `apache2→sh→id`
 lineage. Pause the loadgen during the exploit (it contends for the single
 Apache worker and perturbs the heap grooming).
 
-## Run on the NNF gha-runner cluster
+## As a CI/CD integration test — and a detection blind spot
 
-The NNF cluster is GitOps-managed by Flux from `example/github-runner/`. Run
-this there the same way — apply the three manifests above into the NNF cluster
-(via its kubeconfig, or by adding them to the Flux-synced path and merging),
-then drive `run-php2shell.sh` against the pod from an in-cluster client. Keep it
-separate from the teampcp tradecraft (its own `php2shell` namespace).
+The same image also runs as a self-contained CI job: a build on a self-hosted
+runner stands up an ephemeral Kind cluster in its own dind, deploys this image
+as an integration-test fixture, and runs PHP2Shell against it — so the workload
+is owned *during* the build (`uid=33(www-data)`, verified on NNF 2026-11-01).
+
+This deliberately exposes a runtime blind spot. When the victim runs on a
+node-agent-covered node (above), the `apache2→sh→id` spawn fires R0001. But
+buried two levels down in Kind-in-dind (runner → dind → containerd → kind node →
+victim pod), it is **invisible** to the host sensor: node-agent's nested-container
+visibility reaches the kind node (one level) but not pods inside it, so the RCE
+goes undetected and only the CI driver (`kubectl`/`kind`/`containerd`) shows up.
+A CI runner that uses Kind-in-dind can be compromised beneath the sensor's
+horizon. See `pkg/attack/php2shell-groundtruth.md` for the full evidence.
 
 ## Detection payoff
 
