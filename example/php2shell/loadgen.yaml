@@ -1,0 +1,48 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+#
+# Benign baseline traffic for the php2shell target: continuous artifact uploads
+# over the same multipart POST the PHP2Shell exploit abuses, so the malicious
+# request cannot be separated by shape — only by runtime behaviour. Runs in its
+# own namespace labelled kubescape.io/ignore so node-agent does not profile the
+# generator itself, only the traffic it drives into php2shell.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: php2shell-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: php2shell-loadgen
+  labels: {app: loadgen}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: loadgen}}
+  template:
+    metadata:
+      labels: {app: loadgen}
+    spec:
+      containers:
+      - name: loadgen
+        image: curlimages/curl:8.11.1
+        resources: {requests: {cpu: "20m", memory: "32Mi"}, limits: {cpu: "100m", memory: "64Mi"}}
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          BASE=http://php2shell.php2shell.svc.cluster.local
+          echo "artifact-$(date +%s)" > /tmp/art.bin
+          while true; do
+            curl -fsS "$BASE/healthz.php" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/index.php"   >/dev/null 2>&1 || true
+            curl -fsS -c /tmp/cj -b /tmp/cj \
+              -F "PHP_SESSION_UPLOAD_PROGRESS=ci-artifact" \
+              -F "artifact=@/tmp/art.bin" \
+              "$BASE/upload.php" >/dev/null 2>&1 || true
+            sleep 3
+          done

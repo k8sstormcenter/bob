@@ -1,0 +1,119 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: CI - php2shell-vulnerable image
+
+# Builds, publishes and SIGNS the php2shell demo image (unpatched
+# php:8.4.26-apache + the PHP2Shell calibration profile,
+# CVE-2026-109618 / CVE-2026-109619) to GHCR. Mirrors ci-redis-image.yaml /
+# ci-postgres-vuln-image.yaml, plus keyless cosign signing like the other
+# example images (feat/sign-example-images / PR #255).
+#
+# Tags pushed:
+#   - ghcr.io/k8sstormcenter/php2shell-vulnerable:<short-sha>
+#   - ghcr.io/k8sstormcenter/php2shell-vulnerable:<branch>
+#   - ghcr.io/k8sstormcenter/php2shell-vulnerable:8.4.26   (main only)
+#   - ghcr.io/k8sstormcenter/php2shell-vulnerable:latest   (main only)
+
+on:
+  push:
+    branches:
+      - main
+      - feat/php2shell-chain
+    paths:
+      - 'example/php2shell/**'
+      - '.github/workflows/ci-php2shell-image.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PHP_VERSION: '8.4.26'
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    name: Build, push & sign php2shell-vulnerable
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          BRANCH_SAFE="${GITHUB_REF_NAME//\//-}"
+          IMG=ghcr.io/${{ github.repository_owner }}/php2shell-vulnerable
+          TAGS="${IMG}:${SHORT_SHA},${IMG}:${BRANCH_SAFE}"
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            TAGS="${TAGS},${IMG}:${PHP_VERSION},${IMG}:latest"
+          fi
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "img=${IMG}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+
+      - name: Build (load for smoke test)
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: example/php2shell
+          file: example/php2shell/Dockerfile
+          load: true
+          tags: php2shell-vulnerable:smoke
+
+      - name: Smoke-test (app serves + unpatched PHP + vulnerable surface on)
+        run: |
+          set -euo pipefail
+          docker run -d --name p2s-smoke -p 8080:80 php2shell-vulnerable:smoke
+          ok=
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/healthz.php >/dev/null 2>&1; then ok=1; break; fi
+            sleep 2
+          done
+          if [[ "${ok:-}" != "1" ]]; then
+            echo "FAIL: app never became ready"; docker logs p2s-smoke | tail -20; docker rm -f p2s-smoke; exit 1
+          fi
+          ver=$(docker exec p2s-smoke php -r 'echo PHP_VERSION;')
+          echo "PHP version: ${ver}"
+          [[ "${ver}" == "${PHP_VERSION}" ]] || { echo "FAIL: expected PHP ${PHP_VERSION}, got ${ver}"; docker rm -f p2s-smoke; exit 1; }
+          up=$(docker exec p2s-smoke php -r 'echo ini_get("session.upload_progress.enabled") ? "On" : "Off";')
+          echo "session.upload_progress.enabled: ${up}"
+          [[ "${up}" == "On" ]] || { echo "FAIL: session.upload_progress disabled — target not vulnerable"; docker rm -f p2s-smoke; exit 1; }
+          curl -fsS http://127.0.0.1:8080/index.php | grep -q 'PHP_SESSION_UPLOAD_PROGRESS' \
+            || { echo "FAIL: index.php did not render the upload-progress field"; docker rm -f p2s-smoke; exit 1; }
+          echo "OK: php2shell-vulnerable serves, runs unpatched PHP ${PHP_VERSION}, upload_progress On"
+          docker rm -f p2s-smoke
+
+      - name: Build & push (multi-arch)
+        id: build
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: example/php2shell
+          file: example/php2shell/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign image (keyless, by digest)
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          IMG: ${{ steps.tags.outputs.img }}
+        run: cosign sign --yes "${IMG}@${DIGEST}"

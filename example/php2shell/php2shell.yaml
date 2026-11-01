@@ -1,0 +1,64 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+#
+# php2shell — a believable, genuinely-vulnerable PHP2Shell target
+# (CVE-2026-109618 / CVE-2026-109619). The pod carries user-defined profile +
+# network labels so node-agent enforces a learned baseline from pod start: the
+# benign app only serves Apache/php-fpm web traffic, so when the exploit drives
+# the PHP worker to spawn /bin/sh|curl|wget the deviation fires the runtime
+# rules. Deploy standalone, or onto the NNF gha-runner cluster as a serviced
+# workload the runners build and expose.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: php2shell
+  labels:
+    app.kubernetes.io/part-of: bob-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php2shell
+  namespace: php2shell
+  labels: {app: php2shell}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: php2shell}}
+  template:
+    metadata:
+      labels:
+        app: php2shell
+        kubescape.io/user-defined-profile: php2shell
+        kubescape.io/user-defined-network: php2shell
+    spec:
+      containers:
+      - name: php2shell
+        image: ghcr.io/k8sstormcenter/php2shell-vulnerable:latest
+        imagePullPolicy: IfNotPresent
+        ports: [{containerPort: 80}]
+        resources:
+          requests: {cpu: "100m", memory: "64Mi"}
+          limits: {cpu: "500m", memory: "256Mi"}
+        readinessProbe:
+          httpGet: {path: /healthz.php, port: 80}
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet: {path: /healthz.php, port: 80}
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        volumeMounts:
+        - {name: uploads, mountPath: /var/www/html/uploads}
+      volumes:
+      - {name: uploads, emptyDir: {}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php2shell
+  namespace: php2shell
+spec:
+  selector: {app: php2shell}
+  ports: [{port: 80, targetPort: 80}]
