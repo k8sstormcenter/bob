@@ -24,8 +24,10 @@ name: CI - php2shell NNF detection demo
 #   - secrets.ENTLEIN_PAT   : checkout of the private pkg/ submodule
 #   - secrets.NNF_KUBECONFIG: kubeconfig for k3s-2 with RBAC to create the
 #       php2shell namespace + Deployment/Service, apply the ContainerProfile,
-#       and read pods/logs in the node-agent namespace. Omit only if the runner
-#       pod's own ServiceAccount already carries that RBAC (in-cluster fallback).
+#       read pods/logs in the node-agent namespace (honey), and exec the
+#       ClickHouse pod in ch_ns to query forensic_db (the authoritative NNF
+#       alert store). Omit only if the runner pod's own ServiceAccount already
+#       carries that RBAC (in-cluster fallback).
 #   - a runner label that selects an NNF self-hosted runner (input: runner).
 
 on:
@@ -41,8 +43,20 @@ on:
         description: self-hosted NNF runner label
         default: nnf-c-ubuntu-24.04-2-8-x86
       agent_ns:
-        description: node-agent (kubescape-operator) namespace on k3s-2
-        default: kubescape
+        description: node-agent namespace on k3s-2 (NNF = honey)
+        default: honey
+      ch_ns:
+        description: ClickHouse namespace (NNF forensic SOC db)
+        default: clickhouse
+      ch_pod:
+        description: ClickHouse pod to query for alerts
+        default: chi-forensic-soc-db-soc-cluster-0-0-0
+      ch_db:
+        description: ClickHouse database holding kubescape_logs
+        default: forensic_db
+      window_s:
+        description: detection lookback window (seconds)
+        default: "600"
       teardown:
         description: delete the php2shell namespace when done
         default: "true"
@@ -78,7 +92,11 @@ jobs:
           set -euo pipefail
           echo "image=${{ github.event.inputs.image || 'ghcr.io/k8sstormcenter/php2shell-vulnerable:feat-php2shell-chain' }}" >> "$GITHUB_OUTPUT"
           echo "command=${{ github.event.inputs.command || 'id>/tmp/p2s' }}" >> "$GITHUB_OUTPUT"
-          echo "agent_ns=${{ github.event.inputs.agent_ns || 'kubescape' }}" >> "$GITHUB_OUTPUT"
+          echo "agent_ns=${{ github.event.inputs.agent_ns || 'honey' }}" >> "$GITHUB_OUTPUT"
+          echo "ch_ns=${{ github.event.inputs.ch_ns || 'clickhouse' }}" >> "$GITHUB_OUTPUT"
+          echo "ch_pod=${{ github.event.inputs.ch_pod || 'chi-forensic-soc-db-soc-cluster-0-0-0' }}" >> "$GITHUB_OUTPUT"
+          echo "ch_db=${{ github.event.inputs.ch_db || 'forensic_db' }}" >> "$GITHUB_OUTPUT"
+          echo "window_s=${{ github.event.inputs.window_s || '600' }}" >> "$GITHUB_OUTPUT"
           echo "teardown=${{ github.event.inputs.teardown || 'true' }}" >> "$GITHUB_OUTPUT"
           echo "strict=${{ github.event.inputs.strict || 'true' }}" >> "$GITHUB_OUTPUT"
 
@@ -146,26 +164,43 @@ jobs:
           POD=${{ steps.exploit.outputs.pod }}
           kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no /tmp/p2s; command may not write it)"'
 
-      - name: Read node-agent detections
+      - name: Read detections (ClickHouse authoritative, node-agent stdout secondary)
         id: detect
         env:
           AGENT_NS: ${{ steps.p.outputs.agent_ns }}
+          CH_NS: ${{ steps.p.outputs.ch_ns }}
+          CH_POD: ${{ steps.p.outputs.ch_pod }}
+          CH_DB: ${{ steps.p.outputs.ch_db }}
+          WINDOW_S: ${{ steps.p.outputs.window_s }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
           POD=${{ steps.exploit.outputs.pod }}
-          NODE=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.spec.nodeName}')
-          echo "php2shell pod on node $NODE"
-          APOD=$(kubectl -n "$AGENT_NS" get pods -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.nodeName}{"\n"}{end}' \
-            | awk -v n="$NODE" '$2==n && $1 ~ /node-agent/ {print $1; exit}')
-          [ -n "${APOD:-}" ] || APOD=$(kubectl -n "$AGENT_NS" get pods -o name | grep node-agent | head -1 | cut -d/ -f2)
-          echo "node-agent pod: ${APOD:-<none>}"
+          NODE=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.spec.nodeName}' 2>/dev/null || true)
+          echo "php2shell pod on node ${NODE:-<unknown>}"
           mkdir -p artifacts
-          kubectl -n "$AGENT_NS" logs "$APOD" --since=6m > artifacts/node-agent.log 2>/dev/null || true
-          grep -iE "R0001|Unexpected process" artifacts/node-agent.log | grep -i php2shell > artifacts/r0001-php2shell.txt || true
-          n=$(wc -l < artifacts/r0001-php2shell.txt | tr -d ' ')
-          echo "R0001 lines mentioning php2shell: $n"
-          sed -n '1,20p' artifacts/r0001-php2shell.txt || true
-          echo "count=$n" >> "$GITHUB_OUTPUT"
+
+          APOD=$(kubectl -n "$AGENT_NS" get pods -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.nodeName}{"\n"}{end}' 2>/dev/null \
+            | awk -v n="$NODE" '$2==n && $1 ~ /node-agent/ {print $1; exit}')
+          [ -n "${APOD:-}" ] || APOD=$(kubectl -n "$AGENT_NS" get pods -o name 2>/dev/null | grep node-agent | head -1 | cut -d/ -f2)
+          echo "node-agent pod: ${APOD:-<none>}"
+          kubectl -n "$AGENT_NS" logs "$APOD" --since="${WINDOW_S}s" > artifacts/node-agent.log 2>/dev/null || true
+          grep -iE "R0001|Unexpected process" artifacts/node-agent.log 2>/dev/null | grep -i php2shell > artifacts/r0001-stdout.txt || true
+          sn=$(wc -l < artifacts/r0001-stdout.txt 2>/dev/null | tr -d ' '); sn=${sn:-0}
+          echo "node-agent stdout R0001(php2shell) lines: $sn"
+
+          Q="RuleID='R0001' AND JSONExtractString(RuntimeK8sDetails,'namespace')='php2shell' AND event_time > (toUnixTimestamp(now())-${WINDOW_S})*1000000000"
+          chq() { kubectl -n "$CH_NS" exec -i "$CH_POD" -c clickhouse -- clickhouse-client -d "$CH_DB" -q "$1" 2>/dev/null; }
+          cn=$(chq "SELECT count() FROM kubescape_logs WHERE $Q")
+          chq "SELECT * FROM kubescape_logs WHERE $Q ORDER BY event_time FORMAT JSONEachRow" > artifacts/ch-r0001.json || true
+          if printf '%s' "${cn:-}" | grep -qE '^[0-9]+$'; then
+            echo "ClickHouse R0001(php2shell) rows: $cn"
+            echo "source=clickhouse" >> "$GITHUB_OUTPUT"
+            echo "count=$cn" >> "$GITHUB_OUTPUT"
+          else
+            echo "ClickHouse query unavailable; falling back to node-agent stdout"
+            echo "source=stdout" >> "$GITHUB_OUTPUT"
+            echo "count=$sn" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Upload detection evidence
         if: always()
@@ -179,6 +214,7 @@ jobs:
         run: |
           set -euo pipefail
           n=${{ steps.detect.outputs.count }}
+          src=${{ steps.detect.outputs.source }}
           {
             echo "## php2shell NNF detection demo"
             echo ""
@@ -186,10 +222,11 @@ jobs:
             echo "| --- | --- |"
             echo "| image | ${{ steps.p.outputs.image }} |"
             echo "| command | ${{ steps.p.outputs.command }} |"
-            echo "| R0001 lines (php2shell) | ${n} |"
+            echo "| detection source | ${src} |"
+            echo "| R0001 events (php2shell) | ${n} |"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "${n:-0}" -ge 1 ]; then
-            echo "PASS: node-agent raised R0001 on php2shell ($n lines) — the apache2->sh->id spawn deviated from the execs=0 baseline."
+            echo "PASS: node-agent raised R0001 on php2shell ($n via $src) — the apache2->sh->id spawn deviated from the execs=0 baseline."
           elif [ "${{ steps.p.outputs.strict }}" = "true" ]; then
             echo "FAIL: no R0001 for php2shell in the window. Check artifacts/node-agent.log for the real log format / namespace."
             exit 1
