@@ -239,7 +239,12 @@ jobs:
       id-token: write
       contents: write
     # The generator verifies its own provenance only when called by tag, so this one is not pinned to a SHA.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    # Pinned to v2.0.0: v2.1.0's generic generator builds slsa-generator-generic-linux-amd64 in the
+    # builder checkout but looks for it in the workspace root (upstream slsa-github-generator #39),
+    # failing with "No such file or directory" (exit 127) before any provenance is produced — that is
+    # why v0.1.10's release run went red with no bobctl.intoto.jsonl. v2.0.0 predates the break and is
+    # actions/upload-artifact@v4-based. Keep on v2.x: v1.x uses the retired upload-artifact@v3.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
       base64-subjects: ${{ needs.release.outputs.hashes }}
       provenance-name: bobctl.intoto.jsonl
