@@ -40,10 +40,28 @@ jobs:
       - name: Profiles
         run: python3 example/github-runner/harness/check_deploy.py example/github-runner/deploy --workload arc-runner=runner,dind
 
-      - name: Runner profiles compose from sbobs/runner-family
+      - name: Install bobctl (verified)
+        env:
+          BOBCTL_VERSION: v0.1.14
+          BOBCTL_SHA256_AMD64: "114adcf62562f7cb0d87f564d04d2625878d5accbe87401f10842d36e2c3102e"
         run: |
-          curl -sSfL -o /usr/local/bin/bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.8-rc2/bobctl-linux-amd64
-          chmod +x /usr/local/bin/bobctl
+          set -euo pipefail
+          base="https://github.com/${{ github.repository }}/releases/download/${BOBCTL_VERSION}"
+          curl -sSfL -o /tmp/bobctl "${base}/bobctl-linux-amd64"
+          curl -sSfL -o /tmp/bobctl.intoto.jsonl "${base}/bobctl.intoto.jsonl"
+          echo "${BOBCTL_SHA256_AMD64}  /tmp/bobctl" | sha256sum -c -
+
+      - name: Install slsa-verifier
+        uses: slsa-framework/slsa-verifier/actions/installer@3714a2a4684014deb874a0e737dffa0ee02dd647 # v2.6.0
+
+      - name: Runner profiles compose from sbobs/runner-family (verify provenance + drift)
+        run: |
+          set -euo pipefail
+          slsa-verifier verify-artifact /tmp/bobctl \
+            --provenance-path /tmp/bobctl.intoto.jsonl \
+            --source-uri github.com/${{ github.repository }} \
+            --source-tag v0.1.14
+          sudo install -m 0755 /tmp/bobctl /usr/local/bin/bobctl
           example/github-runner/harness/compose.sh
           git diff --exit-code -- example/github-runner/deploy
 
