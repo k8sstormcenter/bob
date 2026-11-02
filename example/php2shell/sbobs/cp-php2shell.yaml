@@ -17,6 +17,7 @@ metadata:
 spec:
   architectures:
     - "amd64"
+    - "arm64"
   capabilities:
     - "CAP_DAC_OVERRIDE"
     - "CAP_SETGID"
@@ -37,7 +38,6 @@ spec:
         Connection:
           - "close"
         Host:
-          - "10.42.0.74:80"
           - "php2shell.php2shell.svc.cluster.local"
       internal: True
       methods:
@@ -102,8 +102,8 @@ spec:
         - "/var/run/apache2"
       path: "/usr/bin/mkdir"
   identifiedCallStacks: null
-  imageID: "ghcr.io/k8sstormcenter/php2shell-vulnerable@sha256:cd27d091287cbc8b1c6ea2721d31b95a3afb780c9a7b77e9ebfa34715dc2d304"
-  imageTag: "ghcr.io/k8sstormcenter/php2shell-vulnerable:feat-php2shell-chain"
+  imageID: ""
+  imageTag: "ghcr.io/k8sstormcenter/php2shell-vulnerable:latest"
   ingress:
     - dns: ""
       dnsNames: null
@@ -375,7 +375,7 @@ spec:
         - "O_RDWR"
         - "O_CREAT"
         - "O_EXCL"
-      path: "/run/apache2/apache2.pid.Tlkl7z"
+      path: "/run/apache2/⋯"
     - flags:
         - "O_CLOEXEC"
         - "O_RDONLY"
@@ -799,7 +799,7 @@ spec:
         - "O_WRONLY"
         - "O_CREAT"
         - "O_TRUNC"
-      path: "/var/www/html/uploads/art.bin"
+      path: "/var/www/html/uploads/⋯"
   rulePolicies: {}
   seccompProfile:
     spec:
