@@ -1,0 +1,181 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: CI - php2shell k3s detection demo
+
+# Self-contained PHP2Shell detection demo (CVE-2026-109618 / CVE-2026-109619),
+# end to end on a THROWAWAY k3s inside the GitHub-hosted runner — no NNF, no
+# self-hosted runner, no external cluster. It mirrors ci-bobctl-autotune.yaml's
+# "k3s + make kubescape" setup and ci-php2shell-nnf-demo.yaml's exploit/verdict,
+# but deploys the target to the in-runner k3s and reads detections straight from
+# node-agent's stdout.
+#
+# Flow: build the genuinely-vulnerable php:8.4.26 image and import it into k3s ->
+# install our kubescape chart (honey ns) -> deploy the target + bind the
+# generalized ContainerProfile (enforce, no learn) -> drive the sealed public
+# PoC against the pod IP -> read node-agent for the R0001 apache2->sh->id lineage
+# that deviates from the Apache-only baseline. The detection log is the artifact.
+#
+# Requires:
+#   - secrets.ENTLEIN_PAT        : checkout of the private pkg/ submodule (sealed PoC)
+#   - secrets.DOCKERHUB_USERNAME : pull the private node-agent image (docker.io/entlein/duckling)
+#   - secrets.DOCKERHUB_PAT      : the chart's node-agent/storage are private; make kubescape
+#                                  turns ~/.docker/config.json into the in-cluster duckling-pull secret
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: command to land via system() (<=14 bytes for the single-shot carrier)
+        default: id>/tmp/p2s
+      strict:
+        description: fail the job if no R0001 lands on php2shell
+        default: "true"
+  push:
+    branches:
+      - demo/php2shell-k3s
+    paths:
+      - 'example/php2shell/**'
+      - '.github/workflows/ci-php2shell-k3s-demo.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: php2shell-k3s-demo-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  demo:
+    name: Deploy, exploit & read detection on in-runner k3s
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout (with sealed exploit submodule)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Log in to Docker Hub (private node-agent image for the chart)
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
+
+      - name: Build php2shell-vulnerable image
+        run: |
+          set -euo pipefail
+          docker build -t php2shell-vulnerable:demo \
+            -f example/php2shell/Dockerfile example/php2shell
+
+      - name: Set up k3s + helm
+        uses: jupyterhub/action-k3s-helm@502a9ff4d816dad543e359971fe2c3128d0f4c6e # v4
+        with:
+          k3s-version: v1.33.3+k3s1
+
+      - name: Import the app image into k3s containerd
+        run: |
+          set -euo pipefail
+          docker save php2shell-vulnerable:demo | sudo k3s ctr images import -
+          sudo k3s ctr images ls | grep php2shell-vulnerable
+
+      - name: Install kubescape (our chart) + alertmanager
+        run: |
+          set -euo pipefail
+          make kubescape
+          make alertmanager
+
+      - name: Wait for kubescape components (honey)
+        run: |
+          set -euo pipefail
+          kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=240s
+          kubectl wait --for=condition=ready pod -l app=storage      -n honey --timeout=240s
+          kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s || true
+          kubectl -n honey get pods -o wide
+
+      - name: Deploy target + bind the generalized SBoB (enforce, no learn)
+        run: |
+          set -euo pipefail
+          kubectl apply -f example/php2shell/php2shell.yaml
+          # use the locally-built image already imported into k3s
+          kubectl -n php2shell set image deployment/php2shell php2shell=php2shell-vulnerable:demo
+          kubectl -n php2shell patch deployment/php2shell --type=json \
+            -p '[{"op":"replace","path":"/spec/template/spec/containers/0/imagePullPolicy","value":"IfNotPresent"}]'
+          kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
+          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
+          # give node-agent a moment to bind the user-defined profile
+          sleep 20
+          kubectl -n php2shell get pods -o wide
+          kubectl -n php2shell get containerprofile php2shell -o jsonpath='{.metadata.annotations.kubescape\.io/managed-by}{"\n"}' || true
+
+      - name: Exploit (sealed PoC against the pod IP)
+        id: exploit
+        env:
+          COMMAND: ${{ github.event.inputs.command || 'id>/tmp/p2s' }}
+        run: |
+          set -euo pipefail
+          POD=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].metadata.name}')
+          POD_IP=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.status.podIP}')
+          echo "target pod=$POD ip=$POD_IP"
+          echo "pod=$POD" >> "$GITHUB_OUTPUT"
+          WORK=/tmp/php2shell-poc
+          mkdir -p "$WORK"
+          [ -d "$WORK/src" ] || git clone --depth 1 https://github.com/devploit/php2shell "$WORK/src"
+          [ -f "$WORK/src/requirements.txt" ] && python3 -m pip install --user -r "$WORK/src/requirements.txt" || true
+          bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK"
+
+      - name: Confirm RCE
+        run: |
+          set -euo pipefail
+          POD=${{ steps.exploit.outputs.pod }}
+          kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no /tmp/p2s; command may not write it)"'
+
+      - name: Read detections (node-agent stdout)
+        id: detect
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts
+          # settle so the exploit's execve lineage is flushed to node-agent stdout
+          sleep 30
+          APOD=$(kubectl -n honey get pods -o name | grep node-agent | head -1 | cut -d/ -f2)
+          echo "node-agent pod: ${APOD:-<none>}"
+          kubectl -n honey logs "$APOD" --since=15m > artifacts/node-agent.log 2>/dev/null || true
+          grep -iE 'R0001|Unexpected process' artifacts/node-agent.log | grep -i php2shell > artifacts/r0001-php2shell.txt || true
+          n=$(wc -l < artifacts/r0001-php2shell.txt | tr -d ' '); n=${n:-0}
+          echo "R0001(php2shell) detection lines: $n"
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+          echo "=== detections ==="; cat artifacts/r0001-php2shell.txt || true
+
+      - name: Upload detection evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: php2shell-k3s-detections
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Verdict
+        run: |
+          set -euo pipefail
+          n=${{ steps.detect.outputs.count }}
+          {
+            echo "## php2shell k3s detection demo"
+            echo ""
+            echo "| field | value |"
+            echo "| --- | --- |"
+            echo "| target | php2shell (php:8.4.26-apache, unpatched) |"
+            echo "| command | ${{ github.event.inputs.command || 'id>/tmp/p2s' }} |"
+            echo "| R0001 events (php2shell) | ${n} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${n:-0}" -ge 1 ]; then
+            echo "PASS: node-agent raised R0001 on php2shell ($n) — the apache2->sh->id spawn deviated from the Apache-only baseline."
+          elif [ "${{ github.event.inputs.strict || 'true' }}" = "true" ]; then
+            echo "FAIL: no R0001 for php2shell. See artifacts/node-agent.log for the real log format."
+            exit 1
+          else
+            echo "WARN: no R0001 for php2shell (strict=false)."
+          fi
