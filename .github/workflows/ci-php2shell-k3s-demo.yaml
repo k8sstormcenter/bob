@@ -91,8 +91,9 @@ jobs:
           # the node-agent log shows only honey + kube-system, never php2shell deployed afterward).
           # So the target + its ContainerProfile must exist BEFORE node-agent starts; then its
           # startup scan picks php2shell up and adopts the user-authored SBoB in enforce.
+          # Only the ns + Deployment + Service here. The ContainerProfile CRD is installed BY the
+          # kubescape chart, so the SBoB is applied after `make kubescape` (next step).
           kubectl create namespace php2shell --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
           sed 's#ghcr.io/k8sstormcenter/php2shell-vulnerable:latest#php2shell-vulnerable:demo#' \
             example/php2shell/php2shell.yaml | kubectl apply -f -
           kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
@@ -110,6 +111,9 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=300s
           kubectl wait --for=condition=ready pod -l app=storage      -n honey --timeout=300s
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s || true
+          # ContainerProfile CRD now exists (installed by the chart) — apply the user SBoB so
+          # node-agent adopts it as the enforced base for the php2shell container it saw at startup.
+          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
           APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
           echo "node-agent pod: $APOD"
           echo "waiting for ContainerWatcher + the php2shell bind in node-agent's startup scan..."
