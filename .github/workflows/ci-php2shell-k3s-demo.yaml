@@ -125,7 +125,7 @@ jobs:
             example/php2shell/php2shell.yaml | kubectl apply -f -
           kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
           kubectl -n php2shell get pods -o wide
-          kubectl -n php2shell get containerprofile php2shell \
+          kubectl -n php2shell get containerprofile php2shell-php2shell \
             -o jsonpath='profile managed-by={.metadata.annotations.kubescape\.io/managed-by}{"\n"}'
           echo "settling 120s for node-agent to see the new container, bind the php2shell profile, and trace its process tree before the exploit"
           sleep 120
