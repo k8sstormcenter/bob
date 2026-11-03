@@ -97,20 +97,22 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s || true
           kubectl -n honey get pods -o wide
 
-      - name: Deploy target + bind the generalized SBoB (enforce, no learn)
+      - name: Deploy target with the SBoB bound from pod start (no patch, no restart)
         run: |
           set -euo pipefail
-          kubectl apply -f example/php2shell/php2shell.yaml
-          # use the locally-built image already imported into k3s
-          kubectl -n php2shell set image deployment/php2shell php2shell=php2shell-vulnerable:demo
-          kubectl -n php2shell patch deployment/php2shell --type=json \
-            -p '[{"op":"replace","path":"/spec/template/spec/containers/0/imagePullPolicy","value":"IfNotPresent"}]'
-          kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
+          # 1) namespace + ContainerProfile FIRST, so node-agent already holds the profile
+          #    when the container starts -> bound in enforce from the very first process.
+          kubectl create namespace php2shell --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
-          # give node-agent a moment to bind the user-defined profile
-          sleep 20
+          # 2) bake the locally-built image into the manifest BEFORE apply (manifest already
+          #    sets imagePullPolicy: IfNotPresent). No runtime set-image / patch, so the pod
+          #    starts exactly once and is never rolled mid-demo.
+          sed 's#ghcr.io/k8sstormcenter/php2shell-vulnerable:latest#php2shell-vulnerable:demo#' \
+            example/php2shell/php2shell.yaml | kubectl apply -f -
+          kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
           kubectl -n php2shell get pods -o wide
-          kubectl -n php2shell get containerprofile php2shell -o jsonpath='{.metadata.annotations.kubescape\.io/managed-by}{"\n"}' || true
+          kubectl -n php2shell get containerprofile php2shell \
+            -o jsonpath='profile managed-by={.metadata.annotations.kubescape\.io/managed-by}{"\n"}'
 
       - name: Exploit (sealed PoC against the pod IP)
         id: exploit
