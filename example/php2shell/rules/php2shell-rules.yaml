@@ -1,0 +1,57 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+# php2shell detection via the RULES approach (no learned ContainerProfile).
+# A profile-independent behavioural rule: a shell interpreter executed as a
+# child of a web-server/PHP process is the php2shell command-execution signal
+# (CVE-2026-109618 / CVE-2026-109619 — Apache mod_php session.upload_progress
+# heap RCE). This mirrors the advisory guidance ("suspicious child processes
+# spawned by PHP") and Falco's spawn_shell_under_httpd / "Suspicious Command
+# Executed by Web Server" rules. MITRE T1505.003 (Web Shell) / T1059.
+#
+# profileDependency: 2 == NotRequired — the rule fires with no SBoB, which is
+# exactly the contrast against cp-php2shell.yaml (the SBoB/R0001 arm).
+---
+apiVersion: kubescape.io/v1
+kind: Rules
+metadata:
+  name: php2shell-rules
+  namespace: honey
+spec:
+  rules:
+  - id: R1505
+    name: Suspicious shell spawned by web server
+    description: A shell interpreter was executed as a child of a web-server/PHP process — the php2shell command-execution signal; fires without a learned profile.
+    enabled: true
+    severity: 10
+    isTriggerAlert: true
+    supportPolicy: false
+    profileDependency: 2
+    mitreTactic: TA0002
+    mitreTechnique: T1059
+    tags:
+    - exec
+    - signature
+    - webshell
+    - malicious
+    expressions:
+      message: "'Web server (' + event.pcomm + ') spawned a shell: ' + event.comm + ' PID ' + string(event.pid)"
+      ruleExpression:
+      - eventType: exec
+        expression: "event.comm in ['sh','bash','dash','ash','zsh'] && event.pcomm in ['apache2','httpd','php','php-fpm','php-cgi','nginx']"
+      uniqueId: event.comm + '_' + event.pcomm + '_' + event.exepath
+---
+apiVersion: kubescape.io/v1
+kind: RuntimeRuleAlertBinding
+metadata:
+  name: php2shell-webshell-binding
+  namespace: php2shell
+spec:
+  podSelector:
+    matchLabels:
+      app: php2shell
+  rules:
+  - ruleID: R1505
+    parameters: {}
