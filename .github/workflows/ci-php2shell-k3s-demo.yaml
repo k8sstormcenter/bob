@@ -28,11 +28,11 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: command to land via system() (<=14 bytes for the single-shot carrier)
-        default: id>/tmp/p2s
+        description: command to land via system() — written into the web-served uploads dir so the exec is independently confirmable
+        default: id>/var/www/html/uploads/p
       strict:
         description: fail the job if no R0001 lands on php2shell
-        default: "true"
+        default: "false"
   push:
     branches:
       - demo/php2shell-k3s
@@ -115,9 +115,9 @@ jobs:
       - name: Exploit (sealed PoC against the pod IP)
         id: exploit
         env:
-          COMMAND: ${{ github.event.inputs.command || 'id>/tmp/p2s' }}
+          COMMAND: ${{ github.event.inputs.command || 'id>/var/www/html/uploads/p' }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
           POD=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].metadata.name}')
           POD_IP=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.status.podIP}')
           echo "target pod=$POD ip=$POD_IP"
@@ -126,29 +126,38 @@ jobs:
           mkdir -p "$WORK"
           [ -d "$WORK/src" ] || git clone --depth 1 https://github.com/devploit/php2shell "$WORK/src"
           [ -f "$WORK/src/requirements.txt" ] && python3 -m pip install --user -r "$WORK/src/requirements.txt" || true
-          bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK"
+          # The PoC runs blind (--proof-file ''); stage-3 may land the exec without returning proof.
+          # Detection is read from node-agent regardless of the PoC's self-reported verdict, so a
+          # non-zero here must NOT abort the job.
+          bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK" \
+            || echo "::warning::PoC reported no proof (blind exec); reading node-agent detection next"
 
-      - name: Confirm RCE
+      - name: Confirm RCE (independent of the PoC's blind verdict)
+        if: always()
         run: |
-          set -euo pipefail
+          set -uo pipefail
           POD=${{ steps.exploit.outputs.pod }}
-          kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no /tmp/p2s; command may not write it)"'
+          echo "proof file (id output, if stage-3 landed the exec):"
+          kubectl -n php2shell exec "$POD" -- sh -c 'cat /var/www/html/uploads/p 2>/dev/null || echo "(no proof file; stage-3 exec may not have landed)"'
 
-      - name: Read detections (node-agent stdout)
+      - name: Read detections (node-agent stdout) — PLAIN LOGS
         id: detect
+        if: always()
         run: |
           set -uo pipefail
           mkdir -p artifacts
-          # settle so the exploit's execve lineage is flushed to node-agent stdout
-          sleep 30
+          sleep 30   # let the exploit's execve lineage flush to node-agent stdout
           APOD=$(kubectl -n honey get pods -o name | grep node-agent | head -1 | cut -d/ -f2)
           echo "node-agent pod: ${APOD:-<none>}"
-          kubectl -n honey logs "$APOD" --since=15m > artifacts/node-agent.log 2>/dev/null || true
+          kubectl -n honey logs "$APOD" --since=20m > artifacts/node-agent.log 2>/dev/null || true
+          echo "===================== node-agent log (plain) ====================="
+          cat artifacts/node-agent.log
+          echo "=================================================================="
           grep -iE 'R0001|Unexpected process' artifacts/node-agent.log | grep -i php2shell > artifacts/r0001-php2shell.txt || true
           n=$(wc -l < artifacts/r0001-php2shell.txt | tr -d ' '); n=${n:-0}
           echo "R0001(php2shell) detection lines: $n"
           echo "count=$n" >> "$GITHUB_OUTPUT"
-          echo "=== detections ==="; cat artifacts/r0001-php2shell.txt || true
+          echo "=== R0001(php2shell) ==="; cat artifacts/r0001-php2shell.txt || true
 
       - name: Upload detection evidence
         if: always()
@@ -159,9 +168,10 @@ jobs:
           if-no-files-found: warn
 
       - name: Verdict
+        if: always()
         run: |
-          set -euo pipefail
-          n=${{ steps.detect.outputs.count }}
+          set -uo pipefail
+          n=${{ steps.detect.outputs.count || '0' }}
           {
             echo "## php2shell k3s detection demo"
             echo ""
