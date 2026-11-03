@@ -86,7 +86,7 @@ jobs:
       - name: Install kubescape (our chart) + alertmanager FIRST
         run: |
           set -euo pipefail
-          make kubescape
+          make kubescape KUBESCAPE_CHART_VER=1.41.0-duckling119
           make alertmanager
 
       - name: Wait for node-agent to be up and TRACING, then settle 2 min
