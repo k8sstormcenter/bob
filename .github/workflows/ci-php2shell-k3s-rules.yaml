@@ -28,6 +28,12 @@ on:
       chart_ver:
         description: kubescape-operator chart version to install
         default: 1.41.0-duckling119
+      na_tag:
+        description: override node-agent image tag (empty = chart default)
+        default: ""
+      na_digest:
+        description: override node-agent image digest sha256:... (with na_tag)
+        default: ""
 
 permissions:
   contents: read
@@ -75,7 +81,15 @@ jobs:
       - name: Install kubescape (our chart) + alertmanager FIRST
         run: |
           set -euo pipefail
-          make kubescape KUBESCAPE_CHART_VER=${{ github.event.inputs.chart_ver || '1.41.0-duckling119' }} KS_EXTRA='--set logger.level=debug'
+          EXTRA="--set logger.level=debug"
+          NA_TAG="${{ github.event.inputs.na_tag }}"
+          NA_DIGEST="${{ github.event.inputs.na_digest }}"
+          if [ -n "$NA_TAG" ]; then
+            EXTRA="$EXTRA --set nodeAgent.image.tag=$NA_TAG"
+            [ -n "$NA_DIGEST" ] && EXTRA="$EXTRA --set nodeAgent.image.digest=$NA_DIGEST"
+            echo "node-agent image override: $NA_TAG ${NA_DIGEST:-(no digest)}"
+          fi
+          make kubescape KUBESCAPE_CHART_VER=${{ github.event.inputs.chart_ver || '1.41.0-duckling119' }} KS_EXTRA="$EXTRA"
           make alertmanager
 
       - name: Wait for node-agent to be up and TRACING, then settle 2 min
