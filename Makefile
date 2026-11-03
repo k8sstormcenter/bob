@@ -355,6 +355,8 @@ endif
 endif
 
 KS_LEARN_FLAGS := $(if $(KS_LEARN_PERIOD),--set nodeAgent.config.maxLearningPeriod=$(KS_LEARN_PERIOD))
+# Arbitrary extra helm flags appended to `make kubescape` (e.g. KS_EXTRA='--set logger.level=debug').
+KS_EXTRA ?=
 #
 # node-agent ContainerProfile signature verification. bobctl emits UNSIGNED
 # SBoBs; with verification ON, node-agent silently refuses to enforce them and
@@ -411,7 +413,7 @@ kubescape: check-registry-auth
 	@echo "chart: $(KUBESCAPE_CHART_URL)"
 	kubectl create ns honey --dry-run=client -o yaml | kubectl apply -f -
 	kubectl create secret docker-registry duckling-pull -n honey --from-file=.dockerconfigjson=$(HOME)/.docker/config.json --dry-run=client -o yaml | kubectl apply -f -
-	helm upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS)
+	helm upgrade --install kubescape $(KUBESCAPE_CHART_URL) -n honey --create-namespace --values kubescape/values.yaml $(KS_RUNC_FLAGS) $(KS_LEARN_FLAGS) $(KS_POST_RENDER_FLAGS) $(KS_EXTRA)
 	./kubescape/set-signature-verification.sh $(KS_SIGNATURES)
 
 # Wait for node-agent to become Ready by itself. This is a WAIT, never a
