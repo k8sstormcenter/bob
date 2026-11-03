@@ -28,8 +28,8 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: command to land via system() — written into the web-served uploads dir so the exec is independently confirmable
-        default: id>/var/www/html/uploads/p
+        description: command to land via system() (<=14 bytes — the single-shot carrier limit)
+        default: id>/tmp/p2s
       strict:
         description: fail the job if no R0001 lands on php2shell
         default: "false"
@@ -51,7 +51,7 @@ jobs:
   demo:
     name: Deploy, exploit & read detection on in-runner k3s
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout (with sealed exploit submodule)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -108,6 +108,8 @@ jobs:
           done
           echo "tracers started: $(kubectl -n honey logs "$APOD" 2>/dev/null | grep -c 'Started tracer')"
           kubectl -n honey get pods -o wide
+          echo "settling 120s so kubescape is really ready before deploying the target"
+          sleep 120
 
       - name: Deploy target with the SBoB bound from pod start (no patch, no restart)
         run: |
@@ -125,11 +127,13 @@ jobs:
           kubectl -n php2shell get pods -o wide
           kubectl -n php2shell get containerprofile php2shell \
             -o jsonpath='profile managed-by={.metadata.annotations.kubescape\.io/managed-by}{"\n"}'
+          echo "settling 120s for node-agent to see the new container, bind the php2shell profile, and trace its process tree before the exploit"
+          sleep 120
 
       - name: Exploit (sealed PoC against the pod IP)
         id: exploit
         env:
-          COMMAND: ${{ github.event.inputs.command || 'id>/var/www/html/uploads/p' }}
+          COMMAND: ${{ github.event.inputs.command || 'id>/tmp/p2s' }}
         run: |
           set -uo pipefail
           POD=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].metadata.name}')
@@ -149,7 +153,7 @@ jobs:
           for try in $(seq 1 "$ATTEMPTS"); do
             echo "================= exploit pass $try/$ATTEMPTS ================="
             bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK" || true
-            if kubectl -n php2shell exec "$POD" -- sh -c 'test -s /var/www/html/uploads/p' 2>/dev/null; then
+            if kubectl -n php2shell exec "$POD" -- sh -c 'test -s /tmp/p2s' 2>/dev/null; then
               echo "stage-3 LANDED on pass $try (proof file written => sh/id executed)"; landed=1; break
             fi
             echo "pass $try: no exec yet; re-grooming"
@@ -163,7 +167,7 @@ jobs:
           set -uo pipefail
           POD=${{ steps.exploit.outputs.pod }}
           echo "proof file (id output, if stage-3 landed the exec):"
-          kubectl -n php2shell exec "$POD" -- sh -c 'cat /var/www/html/uploads/p 2>/dev/null || echo "(no proof file; stage-3 exec may not have landed)"'
+          kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no proof file; stage-3 exec may not have landed)"'
 
       - name: Read detections (node-agent stdout) — PLAIN LOGS
         id: detect
