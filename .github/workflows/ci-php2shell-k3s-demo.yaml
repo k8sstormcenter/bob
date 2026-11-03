@@ -89,12 +89,24 @@ jobs:
           make kubescape
           make alertmanager
 
-      - name: Wait for kubescape components (honey)
+      - name: Wait for kubescape components (honey) — and for node-agent to actually be TRACING
         run: |
           set -euo pipefail
-          kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=240s
-          kubectl wait --for=condition=ready pod -l app=storage      -n honey --timeout=240s
+          kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=storage      -n honey --timeout=300s
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s || true
+          # the REAL node-agent DaemonSet pod (label app=node-agent, Running) — NOT the
+          # node-agent-direct-keygen Job pod that a name-grep would catch.
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          echo "node-agent pod: $APOD"
+          # Ready fires ~60s before the eBPF tracers attach; the target+exploit must come AFTER
+          # ContainerWatcher is up or the apache process tree is never traced.
+          echo "waiting for node-agent tracers + ContainerWatcher..."
+          for i in $(seq 1 48); do
+            kubectl -n honey logs "$APOD" 2>/dev/null | grep -q 'ContainerWatcher started successfully' && { echo "node-agent TRACING after ~$((i*5))s"; break; }
+            sleep 5
+          done
+          echo "tracers started: $(kubectl -n honey logs "$APOD" 2>/dev/null | grep -c 'Started tracer')"
           kubectl -n honey get pods -o wide
 
       - name: Deploy target with the SBoB bound from pod start (no patch, no restart)
@@ -128,11 +140,22 @@ jobs:
           mkdir -p "$WORK"
           [ -d "$WORK/src" ] || git clone --depth 1 https://github.com/devploit/php2shell "$WORK/src"
           [ -f "$WORK/src/requirements.txt" ] && python3 -m pip install --user -r "$WORK/src/requirements.txt" || true
-          # The PoC runs blind (--proof-file ''); stage-3 may land the exec without returning proof.
-          # Detection is read from node-agent regardless of the PoC's self-reported verdict, so a
-          # non-zero here must NOT abort the job.
-          bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK" \
-            || echo "::warning::PoC reported no proof (blind exec); reading node-agent detection next"
+          # Settings are exact (profile php-8.4.26-bookworm-amd64 == the pinned image, SAPI apache,
+          # real pod IP). stage-1/2 leaks succeed; stage-3 is a heap-groom race that is noisier on a
+          # shared GH-hosted runner than on a dedicated node, so retry the WHOLE exploit (fresh groom
+          # each pass) until the command actually writes its proof file — i.e. until sh/id truly exec'd.
+          ATTEMPTS="${ATTEMPTS:-8}"
+          landed=0
+          for try in $(seq 1 "$ATTEMPTS"); do
+            echo "================= exploit pass $try/$ATTEMPTS ================="
+            bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK" || true
+            if kubectl -n php2shell exec "$POD" -- sh -c 'test -s /var/www/html/uploads/p' 2>/dev/null; then
+              echo "stage-3 LANDED on pass $try (proof file written => sh/id executed)"; landed=1; break
+            fi
+            echo "pass $try: no exec yet; re-grooming"
+          done
+          echo "landed=$landed" >> "$GITHUB_OUTPUT"
+          [ "$landed" = 1 ] || echo "::warning::exploit did not land in $ATTEMPTS passes; node-agent log read next anyway"
 
       - name: Confirm RCE (independent of the PoC's blind verdict)
         if: always()
@@ -148,13 +171,15 @@ jobs:
         run: |
           set -uo pipefail
           mkdir -p artifacts
-          sleep 30   # let the exploit's execve lineage flush to node-agent stdout
-          APOD=$(kubectl -n honey get pods -o name | grep node-agent | head -1 | cut -d/ -f2)
-          echo "node-agent pod: ${APOD:-<none>}"
-          kubectl -n honey logs "$APOD" --since=20m > artifacts/node-agent.log 2>/dev/null || true
-          echo "===================== node-agent log (plain) ====================="
+          # REAL node-agent DaemonSet pod (label + Running), NOT the node-agent-direct-keygen Job
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          echo "node-agent pod: ${APOD:-<none>}  restarts=$(kubectl -n honey get pod "$APOD" -o jsonpath='{.status.containerStatuses[0].restartCount}' 2>/dev/null)"
+          # capture the whole run, then FOLLOW live for 150s so the detection is visible as it fires
+          kubectl -n honey logs "$APOD" --since=40m > artifacts/node-agent.log 2>/dev/null || true
+          timeout 150 kubectl -n honey logs "$APOD" -f --since=1s >> artifacts/node-agent.log 2>/dev/null || true
+          echo "===================== node-agent log (plain — full run + 150s live follow) ====================="
           cat artifacts/node-agent.log
-          echo "=================================================================="
+          echo "==============================================================================================="
           grep -iE 'R0001|Unexpected process' artifacts/node-agent.log | grep -i php2shell > artifacts/r0001-php2shell.txt || true
           n=$(wc -l < artifacts/r0001-php2shell.txt | tr -d ' '); n=${n:-0}
           echo "R0001(php2shell) detection lines: $n"
