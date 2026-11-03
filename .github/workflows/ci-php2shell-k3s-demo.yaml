@@ -83,52 +83,39 @@ jobs:
           docker save php2shell-vulnerable:demo | sudo k3s ctr images import -
           sudo k3s ctr images ls | grep php2shell-vulnerable
 
-      - name: Deploy target + SBoB BEFORE kubescape (node-agent only sees startup-existing containers)
-        run: |
-          set -euo pipefail
-          # The GH-hosted k3s containerd event stream does NOT deliver new-container events to
-          # node-agent — it only ever processes the containers that exist when it starts (every run
-          # the node-agent log shows only honey + kube-system, never php2shell deployed afterward).
-          # So the target + its ContainerProfile must exist BEFORE node-agent starts; then its
-          # startup scan picks php2shell up and adopts the user-authored SBoB in enforce.
-          # Only the ns + Deployment + Service here. The ContainerProfile CRD is installed BY the
-          # kubescape chart, so the SBoB is applied after `make kubescape` (next step).
-          kubectl create namespace php2shell --dry-run=client -o yaml | kubectl apply -f -
-          sed 's#ghcr.io/k8sstormcenter/php2shell-vulnerable:latest#php2shell-vulnerable:demo#' \
-            example/php2shell/php2shell.yaml | kubectl apply -f -
-          kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
-          kubectl -n php2shell get pods -o wide
-
-      - name: Install kubescape (our chart) + alertmanager — AFTER the target is running
+      - name: Install kubescape (our chart) + alertmanager FIRST
         run: |
           set -euo pipefail
           make kubescape
           make alertmanager
 
-      - name: Wait for node-agent to be TRACING and to have BOUND php2shell
+      - name: Wait for node-agent to be up and TRACING, then settle 2 min
         run: |
           set -euo pipefail
           kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=300s
           kubectl wait --for=condition=ready pod -l app=storage      -n honey --timeout=300s
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s || true
-          # ContainerProfile CRD now exists (installed by the chart) — apply the user SBoB so
-          # node-agent adopts it as the enforced base for the php2shell container it saw at startup.
-          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
           APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
           echo "node-agent pod: $APOD"
-          echo "waiting for ContainerWatcher + the php2shell bind in node-agent's startup scan..."
-          for i in $(seq 1 48); do
-            L=$(kubectl -n honey logs "$APOD" 2>/dev/null)
-            if echo "$L" | grep -q 'ContainerWatcher started successfully' && echo "$L" | grep -qi 'php2shell'; then
-              echo "node-agent tracing AND saw php2shell after ~$((i*5))s"; break
-            fi
+          for i in $(seq 1 60); do
+            kubectl -n honey logs "$APOD" 2>/dev/null | grep -q 'ContainerWatcher started successfully' && { echo "node-agent tracing after ~$((i*5))s"; break; }
             sleep 5
           done
           echo "tracers started: $(kubectl -n honey logs "$APOD" 2>/dev/null | grep -c 'Started tracer')"
+          sleep 120
+
+      - name: Deploy the SBoB + the bound php2shell app together, then settle 2 min
+        run: |
+          set -euo pipefail
+          kubectl create namespace php2shell --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
+          sed 's#ghcr.io/k8sstormcenter/php2shell-vulnerable:latest#php2shell-vulnerable:demo#' \
+            example/php2shell/php2shell.yaml | kubectl apply -f -
+          kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
+          kubectl -n php2shell get pods -o wide
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
           echo "=== node-agent php2shell bind lines ==="
           kubectl -n honey logs "$APOD" 2>/dev/null | grep -i php2shell | grep -iE 'user defined profile|adopted|processing container' | head -5 || echo "(none yet)"
-          kubectl -n honey get pods -o wide
-          echo "settling 120s so node-agent is fully enforcing php2shell before the exploit"
           sleep 120
 
       - name: Exploit (sealed PoC against the pod IP)
