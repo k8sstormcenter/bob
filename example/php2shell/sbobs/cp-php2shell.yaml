@@ -7,6 +7,10 @@ kind: ContainerProfile
 metadata:
   annotations:
     kubescape.io/managed-by: User
+  labels:
+    signature.kubescape.io/generator: bobctl
+    signature.kubescape.io/generator-ref: bobctl-v0.1.14-330c839
+    signature.kubescape.io/matcher-version: a6dba81c26bcf0d7
   name: php2shell-php2shell
   namespace: php2shell
 spec:
@@ -39,49 +43,7 @@ spec:
     - {dns: "", dnsNames: null, identifier: f6637962006c38d31fa1bc980d80adc5a2a372a5f4e31e8bdcf1ce74996f59ad, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: php2shell-loadgen}}, podSelector: {matchLabels: {app: loadgen}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_NONBLOCK, O_RDWR], path: /dev/tty}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/apache2.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/conf-available/charset.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/conf-available/docker-php.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/conf-available/localized-error-pages.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/conf-available/other-vhosts-access-log.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/conf-available/security.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/conf-available/serve-cgi-bin.conf}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apache2/conf-enabled}
-    - {flags: [O_RDONLY], path: /etc/apache2/envvars}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/access_compat.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/alias.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/alias.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/auth_basic.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/authn_core.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/authn_file.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/authz_core.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/authz_host.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/authz_user.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/autoindex.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/autoindex.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/deflate.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/deflate.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/dir.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/dir.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/env.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/filter.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/mime.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/mime.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/mpm_prefork.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/mpm_prefork.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/negotiation.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/negotiation.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/php.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/reqtimeout.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/reqtimeout.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/setenvif.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/setenvif.load}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/status.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mods-available/status.load}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apache2/mods-enabled}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/ports.conf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/sites-available/000-default.conf}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apache2/sites-enabled}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /etc/apache2/*}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf}
@@ -106,16 +68,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/*}
     - {flags: [O_RDONLY], path: /usr/local/bin/apache2-foreground}
     - {flags: [O_RDONLY], path: /usr/local/bin/docker-php-entrypoint}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/etc/php/conf.d}
-    - {flags: [O_RDONLY], path: /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini}
-    - {flags: [O_RDONLY], path: /usr/local/etc/php/conf.d/docker-php-ext-sodium.ini}
-    - {flags: [O_RDONLY], path: /usr/local/etc/php/conf.d/zz-php2shell.ini}
-    - {flags: [O_RDONLY], path: /usr/local/etc/php/php-apache2handler.ini}
-    - {flags: [O_RDONLY], path: /usr/local/etc/php/php.ini}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/php/extensions/⋯/opcache}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/php/extensions/⋯/opcache.so}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/php/extensions/⋯/sodium}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/php/extensions/⋯/sodium.so}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/etc/php/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/php/*}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/locale/locale.alias}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/Etc/UTC}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/log/apache2/access.log}
