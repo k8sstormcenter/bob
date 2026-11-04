@@ -222,6 +222,9 @@ jobs:
           n=$(wc -l < artifacts/r1505-php2shell.txt | tr -d ' '); n=${n:-0}
           echo "R1505(php2shell) detection lines: $n"
           echo "count=$n" >> "$GITHUB_OUTPUT"
+          fb=$(grep -c "wasn't detected by the main hook" artifacts/node-agent.log 2>/dev/null || echo 0)
+          nd=$(grep -c "never delivered by the container watcher" artifacts/node-agent.log 2>/dev/null || echo 0)
+          echo "hook-health: fallback-added=$fb never-delivered=$nd  (fallback-added=0 => native add-hook works; =container-count => running on the fallback informer; never-delivered MUST be 0)"
           echo "=== R1505(php2shell) ==="; cat artifacts/r1505-php2shell.txt || true
 
       - name: Restart probe — is a REPLACEMENT container delivered? (node-agent RCA)
