@@ -188,7 +188,9 @@ jobs:
           # Aggregated-API List returns empty specs — GET each by name for the full observed
           # (shadow) spec: the execs/opens/syscalls/capabilities node-agent actually recorded.
           for n in $(kubectl -n php2shell get containerprofiles -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null); do
-            echo "=== GET php2shell/$n (full spec) ==="
+            mb=$(kubectl -n php2shell get containerprofile "$n" -o jsonpath='{.metadata.labels.kubescape\.io/managed-by}{.metadata.annotations.kubescape\.io/managed-by}' 2>/dev/null)
+            [ "$mb" = "User" ] && kind="USER SBoB" || kind="OBSERVED/SHADOW"
+            echo "=== GET php2shell/$n  (managed-by=${mb:-?} => $kind) ==="
             kubectl -n php2shell get containerprofile "$n" -o yaml | tee "artifacts/shadow-$n.yaml"
           done
           echo "=== observed exec summary (sh/id present => the exploit fired and node-agent saw it) ==="
