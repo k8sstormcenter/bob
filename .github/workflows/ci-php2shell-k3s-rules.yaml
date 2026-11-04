@@ -37,6 +37,9 @@ on:
       restart_probe:
         description: after detection, delete+recreate the pod to test if the replacement container is delivered (node-agent RCA)
         default: "false"
+      log_level:
+        description: node-agent log level (info default; debug only for the hook RCA)
+        default: info
 
 permissions:
   contents: read
@@ -92,6 +95,7 @@ jobs:
             [ -n "$NA_DIGEST" ] && EXTRA="$EXTRA --set nodeAgent.image.digest=$NA_DIGEST"
             echo "node-agent image override: $NA_TAG ${NA_DIGEST:-(no digest)}"
           fi
+          [ "${{ github.event.inputs.log_level }}" = "debug" ] && EXTRA="$EXTRA --set logger.level=debug"
           make kubescape KUBESCAPE_CHART_VER=${{ github.event.inputs.chart_ver || '1.41.0-duckling119' }} KS_EXTRA="$EXTRA"
           make alertmanager
 
