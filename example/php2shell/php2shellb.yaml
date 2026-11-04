@@ -4,26 +4,26 @@
 # All trademarks are expressly reserved.
 #
 # Twin #2 of the php2shell target: byte-identical image to php2shell.yaml, but
-# app=php2shell-2 and NO kubescape.io/user-defined-profile label (the rule arm,
+# app=php2shellb and NO kubescape.io/user-defined-profile label (the rule arm,
 # detected by R1505 instead of a bound SBoB). Used by ci-php2shell-k3s-twin.yaml
 # to compare SBoB-vs-rule detection and the observed shadow profile across two
 # identical workloads.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: php2shell-2
+  name: php2shellb
   namespace: php2shell
   labels:
-    app: php2shell-2
+    app: php2shellb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: php2shell-2
+      app: php2shellb
   template:
     metadata:
       labels:
-        app: php2shell-2
+        app: php2shellb
     spec:
       containers:
       - name: php2shell

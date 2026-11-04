@@ -7,7 +7,7 @@ name: CI - php2shell k3s TWIN (SBoB vs rule, shadow diff)
 
 # Two byte-identical php2shell workloads side by side on one node-agent:
 #   php2shell   -> SBoB arm   (bound ContainerProfile, R0001 detection)
-#   php2shell-2 -> rule arm   (no profile, R1505 web-shell rule)
+#   php2shellb -> rule arm   (no profile, R1505 web-shell rule)
 # Both get the same image (built once, imported once), the same exploit, the same
 # node-agent. Then we dump BOTH observed/shadow ContainerProfiles and diff them, to
 # answer: do two identical workloads detect the same way, and are their shadows equal?
@@ -89,8 +89,8 @@ jobs:
           kubectl create ns php2shell --dry-run=client -o yaml | kubectl apply -f -
           # SBoB for twin #1 (php2shell), named <label>-<container> = php2shell-php2shell
           kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
-          # rule (R1505) for twin #2 (php2shell-2); bind to app=php2shell-2
-          sed 's/app: php2shell$/app: php2shell-2/; s/name: php2shell-webshell-binding/name: php2shell2-webshell-binding/' \
+          # rule (R1505) for twin #2 (php2shellb); bind to app=php2shellb
+          sed 's/app: php2shell$/app: php2shellb/; s/name: php2shell-webshell-binding/name: php2shellb-webshell-binding/' \
             example/php2shell/rules/php2shell-rules.yaml | kubectl apply -f -
           sleep 180
 
@@ -100,11 +100,11 @@ jobs:
           # twin #1: SBoB-bound (label kubescape.io/user-defined-profile: php2shell)
           sed 's#ghcr.io/k8sstormcenter/php2shell-vulnerable:latest#php2shell-vulnerable:demo#' \
             example/php2shell/php2shell.yaml | kubectl apply -f -
-          # twin #2: identical image, app=php2shell-2, NO user profile (rule arm)
+          # twin #2: identical image, app=php2shellb, NO user profile (rule arm)
           sed 's#ghcr.io/k8sstormcenter/php2shell-vulnerable:latest#php2shell-vulnerable:demo#' \
-            example/php2shell/php2shell-2.yaml | kubectl apply -f -
+            example/php2shell/php2shellb.yaml | kubectl apply -f -
           kubectl -n php2shell rollout status deploy/php2shell   --timeout=180s
-          kubectl -n php2shell rollout status deploy/php2shell-2 --timeout=180s
+          kubectl -n php2shell rollout status deploy/php2shellb --timeout=180s
           kubectl -n php2shell get pods -o wide
           sleep 150
 
@@ -113,7 +113,7 @@ jobs:
         run: |
           set -uo pipefail
           WORK=/tmp/poc; mkdir -p "$WORK"
-          for app in php2shell php2shell-2; do
+          for app in php2shell php2shellb; do
             POD=$(kubectl -n php2shell get pod -l app=$app -o jsonpath='{.items[0].metadata.name}')
             IP=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.status.podIP}')
             echo "=== exploiting $app ($POD $IP) ==="
@@ -133,19 +133,19 @@ jobs:
           timeout 120 kubectl -n honey logs "$AP" -f --since=1s >> artifacts/node-agent.log 2>/dev/null || true
           echo "=== DETECTIONS ==="
           echo "twin1 php2shell   R0001: $(grep -ac '"RuleID":"R0001"' artifacts/node-agent.log) | R1505: $(grep -ac '"RuleID":"R1505"' artifacts/node-agent.log)"
-          for app in php2shell php2shell-2; do
+          for app in php2shell php2shellb; do
             echo "-- $app --"
-            grep -aE '"RuleID":"R0001"|"RuleID":"R1505"|spawned a shell|Unexpected process' artifacts/node-agent.log | grep -a "podName\":\"$app" | grep -oaE '"RuleID":"[^"]+"|"alertName":"[^"]+"' | sort | uniq -c | head
+            grep -aE '"RuleID":"R0001"|"RuleID":"R1505"|spawned a shell|Unexpected process' artifacts/node-agent.log | grep -a "podName\":\"$app-" | grep -oaE '"RuleID":"[^"]+"|"alertName":"[^"]+"' | sort | uniq -c | head
           done
           echo "=== SHADOW PROFILES (observed, per twin) ==="
-          for app in php2shell php2shell-2; do
+          for app in php2shell php2shellb; do
             n=$(kubectl -n php2shell get containerprofiles -o jsonpath="{range .items[*]}{.metadata.name}{\"\n\"}{end}" 2>/dev/null | grep -E "replicaset-$app-" | head -1)
             echo "-- shadow for $app = $n --"
             kubectl -n php2shell get containerprofile "$n" -o json 2>/dev/null \
               | jq '{execs:[.spec.execs[]?.path]|sort, opens:[.spec.opens[]?.path]|sort, caps:(.spec.capabilities//[]|sort), syscalls:(.spec.syscalls//[]|sort)}' > artifacts/shadow-$app.json || echo "{}" > artifacts/shadow-$app.json
           done
           echo "=== DIFF of the two shadows (behaviour only; empty diff => identical) ==="
-          diff <(jq -S . artifacts/shadow-php2shell.json) <(jq -S . artifacts/shadow-php2shell-2.json) && echo "IDENTICAL behavioural shadow" || echo "^ shadows differ"
+          diff <(jq -S . artifacts/shadow-php2shell.json) <(jq -S . artifacts/shadow-php2shellb.json) && echo "IDENTICAL behavioural shadow" || echo "^ shadows differ"
 
       - name: Upload
         if: always()
