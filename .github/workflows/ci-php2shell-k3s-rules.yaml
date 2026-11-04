@@ -73,10 +73,18 @@ jobs:
           docker build -t php2shell-vulnerable:demo \
             -f example/php2shell/Dockerfile example/php2shell
 
-      - name: Set up k3s + helm
-        uses: jupyterhub/action-k3s-helm@502a9ff4d816dad543e359971fe2c3128d0f4c6e # v4
-        with:
-          k3s-version: v1.33.3+k3s1
+      - name: Set up k3s NATIVELY on the runner VM (real fanotify; not k3s-in-docker)
+        run: |
+          set -euo pipefail
+          # jupyterhub/action-k3s-helm runs k3s inside a docker container, which blinds node-agent's
+          # fanotify container-add hook (post-start containers are never delivered). Installing k3s
+          # directly on the runner VM gives node-agent the host's real runc/containerd, where the
+          # hook fires (verified on a plain-k3s playground).
+          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.33.3+k3s1 sh -s - --write-kubeconfig-mode 644
+          mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown "$(id -u):$(id -g)" ~/.kube/config
+          command -v helm >/dev/null 2>&1 || curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          kubectl wait --for=condition=ready node --all --timeout=150s
+          kubectl get nodes -o wide
 
       - name: Import the app image into k3s containerd
         run: |
