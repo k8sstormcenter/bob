@@ -100,7 +100,7 @@ jobs:
           make kubescape KUBESCAPE_CHART_VER=${{ github.event.inputs.chart_ver || '1.41.0-duckling119' }} KS_EXTRA="$EXTRA"
           make alertmanager
 
-      - name: Wait for node-agent to be up and TRACING, then settle 2 min
+      - name: Wait for node-agent FULLY running, pre-load the SBoB, then settle
         run: |
           set -euo pipefail
           kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=300s
@@ -108,25 +108,35 @@ jobs:
           kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s || true
           APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
           echo "node-agent pod: $APOD"
-          for i in $(seq 1 60); do
-            kubectl -n honey logs "$APOD" 2>/dev/null | grep -q 'ContainerWatcher started successfully' && { echo "node-agent tracing after ~$((i*5))s"; break; }
+          # Pod-ready is NOT enough: the fanotify add hook only catches a NEW container once
+          # ContainerWatcher is up, the tracers are attached AND the ruleset has synced. Deploying
+          # the target before that is the miss we have been chasing. Gate on all three.
+          for i in $(seq 1 120); do
+            L=$(kubectl -n honey logs "$APOD" 2>/dev/null || true)
+            cw=$(printf '%s' "$L" | grep -c 'ContainerWatcher started successfully' || true)
+            tr=$(printf '%s' "$L" | grep -c 'Started tracer' || true)
+            rs=$(printf '%s' "$L" | grep -c 'RulesWatcher - synced rules from cluster' || true)
+            if [ "${cw:-0}" -ge 1 ] && [ "${tr:-0}" -ge 15 ] && [ "${rs:-0}" -ge 1 ]; then
+              echo "node-agent fully running after ~$((i*5))s (ContainerWatcher up, ${tr} tracers, rules synced)"; break
+            fi
             sleep 5
           done
-          echo "tracers started: $(kubectl -n honey logs "$APOD" 2>/dev/null | grep -c 'Started tracer')"
-          sleep 120
-
-      - name: Deploy the SBoB + the bound php2shell app together, then settle 2 min
-        run: |
-          set -euo pipefail
+          # CRD exists now — pre-load the SBoB so it is bound before the container is ever created.
           kubectl create namespace php2shell --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
+          echo "settling 180s so node-agent is fully enforcing before the target exists"
+          sleep 180
+
+      - name: Deploy the php2shell app (node-agent already running, SBoB preloaded), then settle
+        run: |
+          set -euo pipefail
           sed 's#ghcr.io/k8sstormcenter/php2shell-vulnerable:latest#php2shell-vulnerable:demo#' \
             example/php2shell/php2shell.yaml | kubectl apply -f -
           kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
           kubectl -n php2shell get pods -o wide
           APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
-          echo "=== node-agent php2shell bind lines ==="
-          kubectl -n honey logs "$APOD" 2>/dev/null | grep -i php2shell | grep -iE 'user defined profile|adopted|processing container' | head -5 || echo "(none yet)"
+          echo "=== node-agent php2shell processing/bind lines ==="
+          kubectl -n honey logs "$APOD" 2>/dev/null | grep -i php2shell | grep -iE 'processing container|user defined profile|adopted|never delivered' | head -5 || echo "(none yet)"
           sleep 120
 
       - name: Exploit (sealed PoC against the pod IP)
