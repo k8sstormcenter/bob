@@ -89,7 +89,7 @@ jobs:
       - name: Install kubescape (our chart) + alertmanager FIRST
         run: |
           set -euo pipefail
-          EXTRA="--set logger.level=debug"
+          EXTRA=""
           NA_TAG="${{ github.event.inputs.na_tag }}"
           NA_DIGEST="${{ github.event.inputs.na_digest }}"
           if [ -n "$NA_TAG" ]; then
