@@ -34,6 +34,11 @@ on:
       na_digest:
         description: override node-agent image digest sha256:... (with na_tag)
         default: ""
+  push:
+    branches:
+      - demo/php2shell-k3s
+    paths:
+      - '.github/workflows/ci-php2shell-k3s-rules.yaml'
 
 permissions:
   contents: read
