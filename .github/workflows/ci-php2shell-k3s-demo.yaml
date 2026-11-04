@@ -168,6 +168,23 @@ jobs:
           echo "proof file (id output, if stage-3 landed the exec):"
           kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no proof file; stage-3 exec may not have landed)"'
 
+      - name: Dump shadow ContainerProfile(s) for php2shell (full observed spec)
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts
+          echo "=== ContainerProfiles across namespaces ==="
+          kubectl get containerprofiles -A 2>/dev/null | tee artifacts/cp-list.txt || echo "(none / CRD absent)"
+          # Aggregated-API List returns empty specs — GET each by name for the full observed
+          # (shadow) spec: the execs/opens/syscalls/capabilities node-agent actually recorded.
+          for n in $(kubectl -n php2shell get containerprofiles -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null); do
+            echo "=== GET php2shell/$n (full spec) ==="
+            kubectl -n php2shell get containerprofile "$n" -o yaml | tee "artifacts/shadow-$n.yaml"
+          done
+          echo "=== observed exec summary (sh/id present => the exploit fired and node-agent saw it) ==="
+          grep -hnE 'path: |args:|- (sh|bash|dash|id)$|/usr/bin/id|/usr/bin/sh|syscalls:' artifacts/shadow-*.yaml 2>/dev/null | head -120 \
+            || echo "(no shadow profile — container was not observed by node-agent)"
+
       - name: Read detections (node-agent stdout) — PLAIN LOGS
         id: detect
         if: always()
