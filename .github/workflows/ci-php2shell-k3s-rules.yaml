@@ -34,6 +34,9 @@ on:
       na_digest:
         description: override node-agent image digest sha256:... (with na_tag)
         default: ""
+      restart_probe:
+        description: after detection, delete+recreate the pod to test if the replacement container is delivered (node-agent RCA)
+        default: "false"
 
 permissions:
   contents: read
@@ -208,6 +211,25 @@ jobs:
           echo "R1505(php2shell) detection lines: $n"
           echo "count=$n" >> "$GITHUB_OUTPUT"
           echo "=== R1505(php2shell) ==="; cat artifacts/r1505-php2shell.txt || true
+
+      - name: Restart probe — is a REPLACEMENT container delivered? (node-agent RCA)
+        if: ${{ github.event.inputs.restart_probe == 'true' }}
+        run: |
+          set -uo pipefail
+          OLDPOD=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].metadata.name}')
+          echo "deleting $OLDPOD to force an RS recreate"
+          kubectl -n php2shell delete pod "$OLDPOD" --wait=false
+          kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
+          NEWPOD=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].metadata.name}')
+          NEWCID=$(kubectl -n php2shell get pod "$NEWPOD" -o jsonpath='{.status.containerStatuses[0].containerID}' | sed 's#.*/##')
+          echo "replacement pod=$NEWPOD cid=${NEWCID:0:12}"
+          echo "waiting 150s (past the 90s detector grace) to see if the replacement is delivered or also missed"
+          sleep 150
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          echo "=== node-agent lines for the REPLACEMENT container ${NEWCID:0:12} ==="
+          kubectl -n honey logs "$APOD" --since=8m 2>/dev/null \
+            | grep -E "${NEWCID:0:12}|processing container|never delivered by the container watcher" \
+            | sed 's/\x1b\[[0-9;]*m//g' | tail -15 || echo "(no lines)"
 
       - name: Upload detection evidence
         if: always()
