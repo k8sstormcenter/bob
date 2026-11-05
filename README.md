@@ -56,30 +56,67 @@ Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.
 Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
 
-## TLDR — run bobctl
-Here for the vulnerable redis example:
-
-⚠️ may currently be broken as stated, due to very frequent rewriting, see lab for pinned workable example please
+## TLDR — bobctl
 
 ```bash
-curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.2/bobctl-linux-amd64
+curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.14/bobctl-linux-amd64
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/
+make kubescape && make alertmanager
+```
+Release binaries are cosign-signed (`bobctl-linux-amd64.sigstore.json`).
 
+### Generate an SBoB
 
-make kubescape
-make alertmanager
+```bash
+# N learned profiles → one portable SBoB (CI/CD preset, drop L7 endpoints)
+bobctl generalize -d profiles/ --type cicd --sbob cp-app -n NS --drop-endpoints -o cp-app.yaml
 
+# runner family: base + per-image overlays, rebuilt by the harness
+bobctl harden --file sbobs/runner-family/runner.yaml --ecosystems all --preset-egress cicd --recover-veto --in-place
+bobctl harden --file sbobs/runner-family/runner-overlay-nnf-runner-noble-runner.yaml --fold-toolchain-verbs --in-place
+harness/compose.sh                       # base + overlays + ioc-overlays/*.yaml → deploy/*-runner.yaml
 
-kubectl apply -f example/redis/sbobs/
-kubectl apply -f example/redis/redis.yaml
-kubectl apply -f example/redis/client.yaml
+# union IoC subtract fragments (agent evaluates match(allow) && !match(subtract))
+bobctl compose --name cp-app cp-app.yaml ioc-overlays/*.yaml -o cp-app.deploy.yaml
 
-
-bobctl simulate --suite example/redis-attacks.yaml -n redis-demo --service redis --service-port 6379 --format table
-
-kubectl logs -n honey -l app=node-agent -c node-agent
+# drop L7 endpoints from a shipped SBoB
+bobctl strip-endpoints --file cp-app.yaml --in-place
 ```
 
+### Test an SBoB
 
+```bash
+# contrast a learned profile against its app TYPE envelope
+bobctl contrast --profile cp-app.yaml --type web-app --strict
 
+# run the attack + functional suite against the target
+bobctl simulate --suite example/<app>-attacks.yaml -n NS --service <svc> --service-port <port> --format table
 
+# score a shipped SBoB offline against alerts recorded on another build (<RULE>.jsonl per dir)
+bobctl replay -p cp-app.yaml -a alerts/ --type cicd
+
+# recommend CollapseConfig for noisy paths; --apply writes the cluster-wide CRD
+bobctl collapse --namespaces NS
+bobctl collapse --namespaces NS --apply
+```
+
+### Sign
+
+```bash
+bobctl sign --profile cp-app --key key.hmac -o cp-app.signed.json
+bobctl verify --profile cp-app --key key.hmac
+```
+
+### Verbs
+
+`learn` `install` `reinstall` `suggest` `onboard` · `generalize` `compose` `base` `harden`
+`collapse` `strip-endpoints` `portable` `translate` `seccomp` · `contrast` `simulate` `test`
+`replay` `verify` `report` `diff` · `tune` `exclusions` `portability-probe` `overlay` ·
+`sign` `apply` `deploy` `get` `validate` `version`
+
+### Examples
+
+| path | suite |
+|---|---|
+| `example/github-runner` | `../github-runner-attacks.yaml`; `ioc-overlays/` → `spec.subtract` |
+| `example/php2shell` | `ci-php2shell-k3s-demo` / `-twin` / `-rules` |
