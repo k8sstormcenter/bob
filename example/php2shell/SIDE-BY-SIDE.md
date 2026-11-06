@@ -19,25 +19,26 @@ detection mechanism.
 
 ## Shared preconditions (both arms)
 - Exploit lands and RCE is confirmed (proof file written by `sh`/`id`, uid 33).
-- node-agent must actually monitor the pod. This needs the live-container fix in
-  node-agent image `v0.1.0-rogue91-mcontract-*` (identity repaired before the ignore
-  decision; a not-yet-registered container is no longer read as departed). Without it
-  the post-start pod never binds and neither arm fires.
+- node-agent must actually monitor the pod. On GH-hosted k3s (kernel 7.0.0-azure) the
+  container-add fanotify hook is silently blind, so post-start pods are adopted by the
+  node-agent fallback pod-informer (startup-enumeration path, a bounded delay instead of a
+  blind spot). It ships in the node-agent bundled with chart `1.41.0-duckling124`, the
+  default `chart_ver` for both workflows, so both arms bind out of the box — no override.
 
 ## Evidence
-- **SBoB arm — CONFIRMED.** Run 41761761179 (patched image, info logs): container binds
-  (`processing container namespace:php2shell`), profile `php2shell-php2shell` completed,
-  **R0001 × 5** on `apache2(uid33)→sh→id` (PID 12503). Reproduced 2/2.
-- **Rule arm — rule verified, detection gated on hook delivery.** The custom rule loads
-  and binds (`RulesWatcher 28→29 enabledRules`, `RuntimeRuleAlertBinding /php2shell-webshell-binding`),
-  exploit lands, but on 2/2 runs the node-agent container-fanotify ADD hook never fired
-  for the pod (24 startup containers processed, 0 for php2shell), so no exec event
-  reached the rule. This is a non-deterministic node-agent hook flake on GH-hosted k3s
-  (kernel 7.0.0-azure, k3s v1.33.3+k3s1), under RCA with the node-agent owner; the fix
-  in progress adopts such containers through the startup enumeration path (bounded delay
-  instead of blind spot). On a run where the hook fires, R1505 fires on `apache2→sh`.
+- **SBoB arm — CONFIRMED.** Run 42144465569 (chart duckling124): exploit lands, the pod
+  binds profile `php2shell-php2shell`, and **R0001 "Unexpected process launched"** fires on
+  `apache2(uid33)→sh→id`.
+- **Rule arm — CONFIRMED.** Run 42144475334 (chart duckling124): the custom rule loads and
+  binds (`RuntimeRuleAlertBinding /php2shell-webshell-binding`), the exploit lands, and
+  **R1505 "web server spawned a shell"** fires on `apache2→sh`. The earlier Azure-kernel
+  hook flake is resolved by the fallback pod-informer (RCA'd with the node-agent owner).
+- **Twin (both arms, one node-agent) — CONFIRMED.** Run 42144484971: `php2shell` (SBoB) and
+  `php2shellb` (rule) both RCE-land; detections **R0001 × 3** (SBoB) + **R1505 × 2** (rule).
+  The two observed shadow profiles share identical execs and differ only in incidental
+  opens — expected per-instance learned-profile variance.
 
 ## Reproduce
-Both workflows take `chart_ver`, `na_tag`, `na_digest` dispatch inputs; pin the patched
-node-agent image with `na_tag`/`na_digest`. SBoB arm is reliable today; the rule arm
-becomes reliable once the node-agent hook-adoption fix lands.
+Both workflows default to chart `1.41.0-duckling124` (carries the fallback pod-informer),
+so both arms are reliable on GH-hosted k3s out of the box. `na_tag`/`na_digest` override the
+node-agent image only to pin a different build; `chart_ver` overrides the chart.
