@@ -4,10 +4,9 @@ SPDX-License-Identifier: Apache-2.0
 Licensed under the Apache License, Version 2.0; see LICENSE.
 All trademarks are expressly reserved.
 -->
-🚨 New preview lab: auto-discovery for profile fragments 
-or "how to compose an SBOB and have different people sign different pieces"
+🥳 We were selected by the eBPF Foundation for their [Community& Advocacy Fellowship](https://ebpf.foundation/ebpf-foundation-announces-2026-community-advocacy-fellowship-recipients/)
 
-Try the preview on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/2signandverify/blue#suggest) 
+🚨 Newly released: the counterpart [Sovereign-SOC-Chart](https://github.com/k8sstormcenter/soc/blob/main/skaffold.yaml) that contains the (alpha) runtime security stack, for which this tool is built.
 
 # Software Bill of Behavior SBOB 
 
