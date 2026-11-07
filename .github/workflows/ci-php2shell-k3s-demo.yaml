@@ -105,6 +105,7 @@ jobs:
             [ -n "$NA_DIGEST" ] && EXTRA="$EXTRA --set nodeAgent.image.digest=$NA_DIGEST"
             echo "node-agent image override: $NA_TAG ${NA_DIGEST:-(no digest)}"
           fi
+          EXTRA="$EXTRA --set nodeAgent.config.prometheusExporter=enable"
           make kubescape KUBESCAPE_CHART_VER=${{ github.event.inputs.chart_ver || '1.41.0-duckling119' }} KS_EXTRA="$EXTRA"
           make alertmanager
 
@@ -147,6 +148,18 @@ jobs:
           kubectl -n honey logs "$APOD" 2>/dev/null | grep -i php2shell | grep -iE 'processing container|user defined profile|adopted|never delivered' | head -5 || echo "(none yet)"
           sleep 120
 
+      - name: RCA witness — trace_exec v0.48.1 + node-agent counters (pre)
+        run: |
+          set -uo pipefail
+          IGV=v0.48.1
+          curl -sfL -o /tmp/ig.tgz "https://github.com/inspektor-gadget/inspektor-gadget/releases/download/${IGV}/ig-linux-amd64-${IGV}.tar.gz"
+          sudo tar -C /usr/local/bin -xzf /tmp/ig.tgz ig && ig version | head -1
+          sudo bash -c "nohup ig run ghcr.io/inspektor-gadget/gadget/trace_exec:${IGV} --containername php2shell --runtimes=containerd --containerd-socketpath=/run/k3s/containerd/containerd.sock --verify-image=false -o json >/tmp/witness.jsonl 2>/tmp/witness.err &"
+          sleep 20; sudo tail -3 /tmp/witness.err || true
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          kubectl get --raw "/api/v1/namespaces/honey/pods/${APOD}:8080/proxy/metrics" > /tmp/metrics-pre.txt 2>&1 || true
+          grep -E '^node_agent_' /tmp/metrics-pre.txt | grep -vE '_bucket|_sum\{|nested_containers|program_' | sed -E 's/otel_scope_[a-z_]+="[^"]*",?//g' | head -60
+
       - name: Exploit (sealed PoC against the pod IP)
         id: exploit
         env:
@@ -185,6 +198,31 @@ jobs:
           POD=${{ steps.exploit.outputs.pod }}
           echo "proof file (id output, if stage-3 landed the exec):"
           kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no proof file; stage-3 exec may not have landed)"'
+
+      - name: RCA witness — kernel execs vs node-agent (post)
+        if: always()
+        run: |
+          set -uo pipefail
+          sleep 15
+          mkdir -p artifacts
+          sudo pkill -INT -f 'ig run ghcr.io/inspektor-gadget/gadget/trace_exec' || true
+          sleep 3
+          sudo cp /tmp/witness.jsonl artifacts/witness-trace-exec.jsonl; sudo chmod 644 artifacts/witness-trace-exec.jsonl
+          echo "=== trace_exec witness (kernel ground truth, php2shell container) ==="
+          python3 -I -c '
+          import json,sys
+          for l in open(sys.argv[1]):
+              try: d=json.loads(l)
+              except Exception: continue
+              p=d.get("proc",{}); pa=p.get("parent",{})
+              print(d.get("timestamp",""), p.get("comm"), p.get("pid"), "ppid", pa.get("pid"), pa.get("comm"), "uid", (p.get("creds") or {}).get("uid"), "err", d.get("error"), "|", d.get("args"))
+          ' artifacts/witness-trace-exec.jsonl
+          echo "=== witness stderr ==="; sudo tail -20 /tmp/witness.err || true
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          kubectl get --raw "/api/v1/namespaces/honey/pods/${APOD}:8080/proxy/metrics" > artifacts/metrics-post.txt 2>&1 || true
+          cp /tmp/metrics-pre.txt artifacts/metrics-pre.txt || true
+          echo "=== node-agent counters pre -> post ==="
+          for f in artifacts/metrics-pre.txt artifacts/metrics-post.txt; do echo "--- $f"; grep -E '^node_agent_' "$f" | grep -vE '_bucket|_sum\{|nested_containers|program_' | sed -E 's/otel_scope_[a-z_]+="[^"]*",?//g' | head -60; done
 
       - name: Dump shadow ContainerProfile(s) for php2shell (full observed spec)
         if: always()
