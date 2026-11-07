@@ -1,0 +1,26 @@
+name: php2shell-uaf
+description: 'php2shell CVE-2026-109618/109619 UAF -> system() in mod_php: uprobe on libphp zif_system, k8s-enriched'
+homepageURL: https://github.com/k8sstormcenter/bob
+documentationURL: https://github.com/k8sstormcenter/bob/tree/main/example/php2shell
+sourceURL: https://github.com/k8sstormcenter/bob/tree/main/example/php2shell/gadget
+datasources:
+  uaf:
+    fields:
+      comm:
+        annotations:
+          description: process that reached zif_system (expected apache2 under the exploit)
+      execute_data:
+        annotations:
+          description: zif_system arg0 — the forged zend_execute_data pointer
+      mntns_id:
+        annotations:
+          description: mount namespace id (IG enriches to pod/namespace/container)
+      pid:
+        annotations:
+          description: process id in the host pid namespace
+      tid:
+        annotations:
+          description: thread id in the host pid namespace
+      uid:
+        annotations:
+          description: uid of the worker (33/www-data on the php2shell target)

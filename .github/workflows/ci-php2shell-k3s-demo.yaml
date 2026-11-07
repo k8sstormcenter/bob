@@ -1,0 +1,293 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: CI - php2shell k3s detection demo
+
+# Self-contained PHP2Shell detection demo (CVE-2026-109618 / CVE-2026-109619),
+# end to end on a THROWAWAY k3s inside the GitHub-hosted runner — no NNF, no
+# self-hosted runner, no external cluster. It mirrors ci-bobctl-autotune.yaml's
+# "k3s + make kubescape" setup and ci-php2shell-nnf-demo.yaml's exploit/verdict,
+# but deploys the target to the in-runner k3s and reads detections straight from
+# node-agent's stdout.
+#
+# Flow: build the genuinely-vulnerable php:8.4.26 image and import it into k3s ->
+# install our kubescape chart (honey ns) -> deploy the target + bind the
+# generalized ContainerProfile (enforce, no learn) -> drive the sealed public
+# PoC against the pod IP -> read node-agent for the R0001 apache2->sh->id lineage
+# that deviates from the Apache-only baseline. The detection log is the artifact.
+#
+# Requires:
+#   - secrets.ENTLEIN_PAT        : checkout of the private pkg/ submodule (sealed PoC)
+#   - secrets.DOCKERHUB_USERNAME : pull the private node-agent image (docker.io/entlein/duckling)
+#   - secrets.DOCKERHUB_PAT      : the chart's node-agent/storage are private; make kubescape
+#                                  turns ~/.docker/config.json into the in-cluster duckling-pull secret
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: command to land via system() (<=14 bytes — the single-shot carrier limit)
+        default: id>/tmp/p2s
+      strict:
+        description: fail the job if no R0001 lands on php2shell
+        default: "false"
+      chart_ver:
+        description: kubescape-operator chart version to install
+        default: 1.41.0-duckling124
+      na_tag:
+        description: override node-agent image tag (empty = chart default)
+        default: ""
+      na_digest:
+        description: override node-agent image digest sha256:... (with na_tag)
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: php2shell-k3s-demo-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  demo:
+    name: Deploy, exploit & read detection on in-runner k3s
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout (with sealed exploit submodule)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Log in to Docker Hub (private node-agent image for the chart)
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
+
+      - name: Build php2shell-vulnerable image
+        run: |
+          set -euo pipefail
+          docker build -t php2shell-vulnerable:demo \
+            -f example/php2shell/Dockerfile example/php2shell
+
+      - name: Set up k3s NATIVELY on the runner VM (real fanotify; not k3s-in-docker)
+        run: |
+          set -euo pipefail
+          # jupyterhub/action-k3s-helm runs k3s inside a docker container, which blinds node-agent's
+          # fanotify container-add hook (post-start containers are never delivered). Installing k3s
+          # directly on the runner VM gives node-agent the host's real runc/containerd, where the
+          # hook fires (verified on a plain-k3s playground).
+          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.33.3+k3s1 sh -s - --write-kubeconfig-mode 644
+          mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown "$(id -u):$(id -g)" ~/.kube/config
+          command -v helm >/dev/null 2>&1 || curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          kubectl wait --for=condition=ready node --all --timeout=150s
+          kubectl get nodes -o wide
+
+      - name: Import the app image into k3s containerd
+        run: |
+          set -euo pipefail
+          docker save php2shell-vulnerable:demo | sudo k3s ctr images import -
+          sudo k3s ctr images ls | grep php2shell-vulnerable
+
+      - name: Install kubescape (our chart) + alertmanager FIRST
+        run: |
+          set -euo pipefail
+          EXTRA=""
+          NA_TAG="${{ github.event.inputs.na_tag }}"
+          NA_DIGEST="${{ github.event.inputs.na_digest }}"
+          if [ -n "$NA_TAG" ]; then
+            EXTRA="$EXTRA --set nodeAgent.image.tag=$NA_TAG"
+            [ -n "$NA_DIGEST" ] && EXTRA="$EXTRA --set nodeAgent.image.digest=$NA_DIGEST"
+            echo "node-agent image override: $NA_TAG ${NA_DIGEST:-(no digest)}"
+          fi
+          make kubescape KUBESCAPE_CHART_VER=${{ github.event.inputs.chart_ver || '1.41.0-duckling119' }} KS_EXTRA="$EXTRA"
+          make alertmanager
+
+      - name: Wait for node-agent FULLY running, pre-load the SBoB, then settle
+        run: |
+          set -euo pipefail
+          kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=storage      -n honey --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s || true
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          echo "node-agent pod: $APOD"
+          # Pod-ready is NOT enough: the fanotify add hook only catches a NEW container once
+          # ContainerWatcher is up, the tracers are attached AND the ruleset has synced. Deploying
+          # the target before that is the miss we have been chasing. Gate on all three.
+          for i in $(seq 1 120); do
+            L=$(kubectl -n honey logs "$APOD" 2>/dev/null || true)
+            cw=$(printf '%s' "$L" | grep -c 'ContainerWatcher started successfully' || true)
+            tr=$(printf '%s' "$L" | grep -c 'Started tracer' || true)
+            rs=$(printf '%s' "$L" | grep -c 'RulesWatcher - synced rules from cluster' || true)
+            if [ "${cw:-0}" -ge 1 ] && [ "${tr:-0}" -ge 15 ] && [ "${rs:-0}" -ge 1 ]; then
+              echo "node-agent fully running after ~$((i*5))s (ContainerWatcher up, ${tr} tracers, rules synced)"; break
+            fi
+            sleep 5
+          done
+          # CRD exists now — pre-load the SBoB so it is bound before the container is ever created.
+          kubectl create namespace php2shell --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
+          echo "settling 180s so node-agent is fully enforcing before the target exists"
+          sleep 180
+
+      - name: Deploy the php2shell app (node-agent already running, SBoB preloaded), then settle
+        run: |
+          set -euo pipefail
+          sed 's#ghcr.io/k8sstormcenter/php2shell-vulnerable:latest#php2shell-vulnerable:demo#' \
+            example/php2shell/php2shell.yaml | kubectl apply -f -
+          kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
+          kubectl -n php2shell get pods -o wide
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          echo "=== node-agent php2shell processing/bind lines ==="
+          kubectl -n honey logs "$APOD" 2>/dev/null | grep -i php2shell | grep -iE 'processing container|user defined profile|adopted|never delivered' | head -5 || echo "(none yet)"
+          sleep 120
+
+      - name: Build & arm the php2shell-uaf Inspektor Gadget (uprobe on libphp zif_system)
+        run: |
+          set -uo pipefail
+          IGV=v0.58.0
+          curl -sfL -o /tmp/ig.tgz "https://github.com/inspektor-gadget/inspektor-gadget/releases/download/${IGV}/ig-linux-amd64-${IGV}.tar.gz"
+          sudo tar -C /usr/local/bin -xzf /tmp/ig.tgz ig && ig version | head -1
+          # image-based gadget, built locally on the runner (no registry needed)
+          sudo ig image build -t php2shell-uaf:latest example/php2shell/gadget 2>&1 | tail -3
+          SOCK=/run/k3s/containerd/containerd.sock
+          sudo rm -f /tmp/ig-gadget.out /tmp/ig-gadget.err
+          sudo bash -c "nohup ig run php2shell-uaf:latest --containername php2shell --runtimes=containerd --containerd-socketpath=${SOCK} --verify-image=false -o json >/tmp/ig-gadget.out 2>/tmp/ig-gadget.err &"
+          sleep 12
+          echo "gadget launched; attach stderr:"; sudo tail -4 /tmp/ig-gadget.err || true
+
+      - name: Exploit (sealed PoC against the pod IP)
+        id: exploit
+        env:
+          COMMAND: ${{ github.event.inputs.command || 'id>/tmp/p2s' }}
+        run: |
+          set -uo pipefail
+          POD=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].metadata.name}')
+          POD_IP=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.status.podIP}')
+          echo "target pod=$POD ip=$POD_IP"
+          echo "pod=$POD" >> "$GITHUB_OUTPUT"
+          WORK=/tmp/php2shell-poc
+          mkdir -p "$WORK"
+          [ -d "$WORK/src" ] || git clone --depth 1 https://github.com/devploit/php2shell "$WORK/src"
+          [ -f "$WORK/src/requirements.txt" ] && python3 -m pip install --user -r "$WORK/src/requirements.txt" || true
+          # Settings are exact (profile php-8.4.26-bookworm-amd64 == the pinned image, SAPI apache,
+          # real pod IP). stage-1/2 leaks succeed; stage-3 is a heap-groom race that is noisier on a
+          # shared GH-hosted runner than on a dedicated node, so retry the WHOLE exploit (fresh groom
+          # each pass) until the command actually writes its proof file — i.e. until sh/id truly exec'd.
+          ATTEMPTS="${ATTEMPTS:-8}"
+          landed=0
+          for try in $(seq 1 "$ATTEMPTS"); do
+            echo "================= exploit pass $try/$ATTEMPTS ================="
+            bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK" || true
+            if kubectl -n php2shell exec "$POD" -- sh -c 'test -s /tmp/p2s' 2>/dev/null; then
+              echo "stage-3 LANDED on pass $try (proof file written => sh/id executed)"; landed=1; break
+            fi
+            echo "pass $try: no exec yet; re-grooming"
+          done
+          echo "landed=$landed" >> "$GITHUB_OUTPUT"
+          [ "$landed" = 1 ] || echo "::warning::exploit did not land in $ATTEMPTS passes; node-agent log read next anyway"
+
+      - name: Confirm RCE (independent of the PoC's blind verdict)
+        if: always()
+        run: |
+          set -uo pipefail
+          POD=${{ steps.exploit.outputs.pod }}
+          echo "proof file (id output, if stage-3 landed the exec):"
+          kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no proof file; stage-3 exec may not have landed)"'
+
+      - name: eBPF UAF gadget — events (php2shell-uaf, in-process proof of the UAF)
+        if: always()
+        run: |
+          set -uo pipefail
+          sleep 5
+          mkdir -p artifacts
+          echo "===================== php2shell-uaf gadget events (zif_system reached = UAF->RCE) ====================="
+          sudo cat /tmp/ig-gadget.out 2>/dev/null | tee artifacts/uaf-gadget.jsonl || echo "(no gadget output)"
+          n=$(sudo grep -c '"comm"' /tmp/ig-gadget.out 2>/dev/null || echo 0); n=${n:-0}
+          echo "======================================================================================================"
+          echo "gadget UAF->RCE (zif_system) events: ${n}"
+          echo "--- gadget stderr tail ---"; sudo tail -5 /tmp/ig-gadget.err 2>/dev/null || true
+
+      - name: Dump shadow ContainerProfile(s) for php2shell (full observed spec)
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts
+          echo "=== ContainerProfiles across namespaces ==="
+          kubectl get containerprofiles -A 2>/dev/null | tee artifacts/cp-list.txt || echo "(none / CRD absent)"
+          # Aggregated-API List returns empty specs — GET each by name for the full observed
+          # (shadow) spec: the execs/opens/syscalls/capabilities node-agent actually recorded.
+          for n in $(kubectl -n php2shell get containerprofiles -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null); do
+            mb=$(kubectl -n php2shell get containerprofile "$n" -o jsonpath='{.metadata.labels.kubescape\.io/managed-by}{.metadata.annotations.kubescape\.io/managed-by}' 2>/dev/null)
+            [ "$mb" = "User" ] && kind="USER SBoB" || kind="OBSERVED/SHADOW"
+            echo "=== GET php2shell/$n  (managed-by=${mb:-?} => $kind) ==="
+            kubectl -n php2shell get containerprofile "$n" -o yaml | tee "artifacts/shadow-$n.yaml"
+          done
+          echo "=== observed exec summary (sh/id present => the exploit fired and node-agent saw it) ==="
+          grep -hnE 'path: |args:|- (sh|bash|dash|id)$|/usr/bin/id|/usr/bin/sh|syscalls:' artifacts/shadow-*.yaml 2>/dev/null | head -120 \
+            || echo "(no shadow profile — container was not observed by node-agent)"
+
+      - name: Read detections (node-agent stdout) — PLAIN LOGS
+        id: detect
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts
+          # REAL node-agent DaemonSet pod (label + Running), NOT the node-agent-direct-keygen Job
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          echo "node-agent pod: ${APOD:-<none>}  restarts=$(kubectl -n honey get pod "$APOD" -o jsonpath='{.status.containerStatuses[0].restartCount}' 2>/dev/null)"
+          # capture the whole run, then FOLLOW live for 150s so the detection is visible as it fires
+          kubectl -n honey logs "$APOD" --since=40m > artifacts/node-agent.log 2>/dev/null || true
+          timeout 150 kubectl -n honey logs "$APOD" -f --since=1s >> artifacts/node-agent.log 2>/dev/null || true
+          echo "===================== node-agent log (plain — full run + 150s live follow) ====================="
+          cat artifacts/node-agent.log
+          echo "==============================================================================================="
+          grep -iE 'R0001|Unexpected process' artifacts/node-agent.log | grep -i php2shell > artifacts/r0001-php2shell.txt || true
+          n=$(wc -l < artifacts/r0001-php2shell.txt | tr -d ' '); n=${n:-0}
+          echo "R0001(php2shell) detection lines: $n"
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+          fb=$(grep -c "wasn't detected by the main hook" artifacts/node-agent.log 2>/dev/null || echo 0)
+          nd=$(grep -c "never delivered by the container watcher" artifacts/node-agent.log 2>/dev/null || echo 0)
+          echo "hook-health: fallback-added=$fb never-delivered=$nd  (fallback-added=0 => native add-hook works; =container-count => running on the fallback informer; never-delivered MUST be 0)"
+          echo "=== R0001(php2shell) ==="; cat artifacts/r0001-php2shell.txt || true
+          # node-agent enrichment RCA lines (debug): the container's processing callback, the
+          # not-yet-registered drop, and the identity-repair/retry the kubescape agent named.
+          grep -iE 'processing container|container gone before its shared data could be built|pod identity resolved from the runtime|shared watched container data not available|RBCache - adding pod|absent from|untraced|not monitored|traced pod|running container' \
+            artifacts/node-agent.log | grep -iE 'php2shell|container gone|identity resolved|not available|absent|untraced|not monitored' > artifacts/enrichment-rca.txt || true
+          echo "=== enrichment RCA (processing / gone / identity / absent-detector) ==="; cat artifacts/enrichment-rca.txt || true
+
+      - name: Upload detection evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: php2shell-k3s-detections
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Verdict
+        if: always()
+        run: |
+          set -uo pipefail
+          n=${{ steps.detect.outputs.count || '0' }}
+          {
+            echo "## php2shell k3s detection demo"
+            echo ""
+            echo "| field | value |"
+            echo "| --- | --- |"
+            echo "| target | php2shell (php:8.4.26-apache, unpatched) |"
+            echo "| command | ${{ github.event.inputs.command || 'id>/tmp/p2s' }} |"
+            echo "| R0001 events (php2shell) | ${n} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${n:-0}" -ge 1 ]; then
+            echo "PASS: node-agent raised R0001 on php2shell ($n) — the apache2->sh->id spawn deviated from the Apache-only baseline."
+          elif [ "${{ github.event.inputs.strict || 'true' }}" = "true" ]; then
+            echo "FAIL: no R0001 for php2shell. See artifacts/node-agent.log for the real log format."
+            exit 1
+          else
+            echo "WARN: no R0001 for php2shell (strict=false)."
+          fi
