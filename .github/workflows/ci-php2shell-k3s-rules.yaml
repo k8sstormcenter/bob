@@ -21,7 +21,7 @@ on:
     inputs:
       command:
         description: command to land via system() (<=14 bytes — the single-shot carrier limit)
-        default: id>/tmp/p2s
+        default: id>uploads/p
       strict:
         description: fail the job if no R1505 lands on php2shell
         default: "false"
@@ -168,7 +168,7 @@ jobs:
       - name: Exploit (sealed PoC against the pod IP)
         id: exploit
         env:
-          COMMAND: ${{ github.event.inputs.command || 'id>/tmp/p2s' }}
+          COMMAND: ${{ github.event.inputs.command || 'id>uploads/p' }}
         run: |
           set -uo pipefail
           POD=$(kubectl -n php2shell get pod -l app=php2shell -o jsonpath='{.items[0].metadata.name}')
@@ -184,21 +184,25 @@ jobs:
           for try in $(seq 1 "$ATTEMPTS"); do
             echo "================= exploit pass $try/$ATTEMPTS ================="
             bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/index.php" "$COMMAND" "$WORK" || true
-            if kubectl -n php2shell exec "$POD" -- sh -c 'test -s /tmp/p2s' 2>/dev/null; then
-              echo "stage-3 LANDED on pass $try (proof file written => sh/id executed)"; landed=1; break
+            proof=$(curl -s -m 10 "http://$POD_IP/${COMMAND##*>}" || true)
+            if printf '%s' "$proof" | grep -q 'uid='; then
+              echo "stage-3 LANDED on pass $try — proof over HTTP: $proof"; landed=1; break
             fi
             echo "pass $try: no exec yet; re-grooming"
           done
           echo "landed=$landed" >> "$GITHUB_OUTPUT"
           [ "$landed" = 1 ] || echo "::warning::exploit did not land in $ATTEMPTS passes; node-agent log read next anyway"
 
-      - name: Confirm RCE (independent of the PoC's blind verdict)
+      - name: Confirm RCE over HTTP (no exec into the target)
         if: always()
+        env:
+          COMMAND: ${{ github.event.inputs.command || 'id>uploads/p' }}
         run: |
           set -uo pipefail
           POD=${{ steps.exploit.outputs.pod }}
-          echo "proof file (id output, if stage-3 landed the exec):"
-          kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no proof file; stage-3 exec may not have landed)"'
+          POD_IP=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.status.podIP}')
+          echo "GET /${COMMAND##*>}:"
+          curl -s -m 10 -w ' [HTTP %{http_code}]\n' "http://$POD_IP/${COMMAND##*>}" || echo "(unreachable)"
 
       - name: eBPF UAF gadget — events (php2shell-uaf, in-process proof of the UAF)
         if: always()
@@ -245,7 +249,7 @@ jobs:
           echo "===================== node-agent log (plain — full run + 150s live follow) ====================="
           cat artifacts/node-agent.log
           echo "==============================================================================================="
-          grep -iE 'R1505|spawned a shell' artifacts/node-agent.log | grep -i php2shell > artifacts/r1505-php2shell.txt || true
+          grep -iE 'R1505|spawned a shell' artifacts/node-agent.log | grep -i php2shell | grep -E '"uid":33[,}]' > artifacts/r1505-php2shell.txt || true
           n=$(wc -l < artifacts/r1505-php2shell.txt | tr -d ' '); n=${n:-0}
           echo "R1505(php2shell) detection lines: $n"
           echo "count=$n" >> "$GITHUB_OUTPUT"
@@ -286,17 +290,22 @@ jobs:
         run: |
           set -uo pipefail
           n=${{ steps.detect.outputs.count || '0' }}
+          landed=${{ steps.exploit.outputs.landed || '0' }}
           {
             echo "## php2shell k3s detection demo — RULES arm"
             echo ""
             echo "| field | value |"
             echo "| --- | --- |"
             echo "| target | php2shell (php:8.4.26-apache, unpatched) |"
-            echo "| command | ${{ github.event.inputs.command || 'id>/tmp/p2s' }} |"
+            echo "| command | ${{ github.event.inputs.command || 'id>uploads/p' }} |"
             echo "| mechanism | rule R1505 (web server spawned a shell, no profile) |"
-            echo "| R1505 events (php2shell) | ${n} |"
+            echo "| exploit landed | ${landed} |"
+            echo "| R1505 events (php2shell, uid 33 exploit lineage) | ${n} |"
           } >> "$GITHUB_STEP_SUMMARY"
-          if [ "${n:-0}" -ge 1 ]; then
+          if [ "$landed" != 1 ]; then
+            echo "INCONCLUSIVE: the exploit did not land (no proof over HTTP), so detection was not tested."
+            exit 1
+          elif [ "${n:-0}" -ge 1 ]; then
             echo "PASS: node-agent raised R1505 on php2shell ($n) — the web-server->shell spawn fired the profile-independent rule."
           elif [ "${{ github.event.inputs.strict || 'true' }}" = "true" ]; then
             echo "FAIL: no R1505 for php2shell. See artifacts/node-agent.log for the real log format."
