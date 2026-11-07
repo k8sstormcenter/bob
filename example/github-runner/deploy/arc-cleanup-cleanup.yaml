@@ -25,7 +25,6 @@ spec:
     - {args: [/opt/bitnami/kubectl/bin/kubectl, -n, arc-systems, get, ephemeralrunners, -o, 'jsonpath={range .items[?(@.status.phase==''Failed'')]}{.metadata.name}{''\n''}{end}'], path: /opt/bitnami/kubectl/bin/kubectl}
     - {args: [/opt/bitnami/kubectl/bin/kubectl, get, ephemeralrunners, -n, arc-systems, -o, json], path: /opt/bitnami/kubectl/bin/kubectl}
     - {args: [/usr/bin/jq, -r, '.items[] | select(.status.failures != null) | .metadata.name'], path: /usr/bin/jq}
-    - {args: [/bin/bash, -c, "echo \"Deleting EphemeralRunners in Failed State...\" && \\\nfor i in $(kubectl -n arc-systems get ephemeralrunners -o jsonpath=\"{range .items[?(@.status.phase=='Failed')]}{.metadata.name}{'\\n'}{end}\"); \\\ndo \\\n  kubectl -n arc-systems delete ephemeralrunner $"], path: /usr/bin/bash}
   identifiedCallStacks: null
   imageID: docker.io/bitnamilegacy/kubectl@sha256:9524faf8e3cefb47fa28244a5d15f95ec21a73d963273798e593e61f80712333
   imageTag: docker.io/bitnamilegacy/kubectl:1.32

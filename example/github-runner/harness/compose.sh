@@ -11,5 +11,5 @@ F="$G/sbobs/runner-family"
 for ov in "$F"/runner-overlay-*.yaml; do
   name=$(basename "$ov" .yaml); name=${name#runner-overlay-}
   [ "$name" = pkg-maintenance ] && continue
-  ${BOBCTL:-bobctl} compose --name "$name" -n arc-systems -o "$G/deploy/$name.yaml" "$F/runner.yaml" "$ov" "$F/runner-overlay-pkg-maintenance.yaml" "$G"/ioc-overlays/*.yaml
+  ${BOBCTL:-bobctl} compose --name "$name" -n arc-systems -o "$G/deploy/$name.yaml" --ioc-exec sysmon.py --ioc-exec tpcp.tar.gz "$F/runner.yaml" "$ov" "$F/runner-overlay-pkg-maintenance.yaml" "$G"/ioc-overlays/*.yaml
 done
