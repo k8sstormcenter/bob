@@ -151,6 +151,20 @@ jobs:
           kubectl -n honey logs "$APOD" 2>/dev/null | grep -i php2shell | grep -iE 'processing container|never delivered|unmonitored' | head -5 || echo "(none yet)"
           sleep 120
 
+      - name: Build & arm the php2shell-uaf Inspektor Gadget (uprobe on libphp zif_system)
+        run: |
+          set -uo pipefail
+          IGV=v0.58.0
+          curl -sfL -o /tmp/ig.tgz "https://github.com/inspektor-gadget/inspektor-gadget/releases/download/${IGV}/ig-linux-amd64-${IGV}.tar.gz"
+          sudo tar -C /usr/local/bin -xzf /tmp/ig.tgz ig && ig version | head -1
+          # image-based gadget, built locally on the runner (no registry needed)
+          sudo ig image build -t php2shell-uaf:latest example/php2shell/gadget 2>&1 | tail -3
+          SOCK=/run/k3s/containerd/containerd.sock
+          sudo rm -f /tmp/ig-gadget.out /tmp/ig-gadget.err
+          sudo bash -c "nohup ig run php2shell-uaf:latest --containername php2shell --runtimes=containerd --containerd-socketpath=${SOCK} --verify-image=false -o json >/tmp/ig-gadget.out 2>/tmp/ig-gadget.err &"
+          sleep 12
+          echo "gadget launched; attach stderr:"; sudo tail -4 /tmp/ig-gadget.err || true
+
       - name: Exploit (sealed PoC against the pod IP)
         id: exploit
         env:
@@ -185,6 +199,19 @@ jobs:
           POD=${{ steps.exploit.outputs.pod }}
           echo "proof file (id output, if stage-3 landed the exec):"
           kubectl -n php2shell exec "$POD" -- sh -c 'cat /tmp/p2s 2>/dev/null || echo "(no proof file; stage-3 exec may not have landed)"'
+
+      - name: eBPF UAF gadget — events (php2shell-uaf, in-process proof of the UAF)
+        if: always()
+        run: |
+          set -uo pipefail
+          sleep 5
+          mkdir -p artifacts
+          echo "===================== php2shell-uaf gadget events (zif_system reached = UAF->RCE) ====================="
+          sudo cat /tmp/ig-gadget.out 2>/dev/null | tee artifacts/uaf-gadget.jsonl || echo "(no gadget output)"
+          n=$(sudo grep -c '"comm"' /tmp/ig-gadget.out 2>/dev/null || echo 0); n=${n:-0}
+          echo "======================================================================================================"
+          echo "gadget UAF->RCE (zif_system) events: ${n}"
+          echo "--- gadget stderr tail ---"; sudo tail -5 /tmp/ig-gadget.err 2>/dev/null || true
 
       - name: Dump shadow ContainerProfile(s) for php2shell (full observed spec)
         if: always()
