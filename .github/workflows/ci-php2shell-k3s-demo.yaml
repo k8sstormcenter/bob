@@ -156,6 +156,12 @@ jobs:
           sudo tar -C /usr/local/bin -xzf /tmp/ig.tgz ig && ig version | head -1
           sudo bash -c "nohup ig run ghcr.io/inspektor-gadget/gadget/trace_exec:${IGV} --containername php2shell --runtimes=containerd --containerd-socketpath=/run/k3s/containerd/containerd.sock --verify-image=false -o json >/tmp/witness.jsonl 2>/tmp/witness.err &"
           sleep 20; sudo tail -3 /tmp/witness.err || true
+          sudo apt-get install -y -qq bpftrace xz-utils >/dev/null 2>&1 || true
+          sudo apt-get install -y -qq "linux-tools-$(uname -r)" >/dev/null 2>&1 || sudo apt-get install -y -qq linux-tools-azure >/dev/null 2>&1 || true
+          bpftrace --version || true
+          sudo bash -c "nohup bpftrace -q -e 'tracepoint:syscalls:sys_enter_execve { printf(\"E %llu tid=%d tgid=%d cpu=%d comm=%s file=%s\\n\", nsecs, tid, pid, cpu, comm, str(args.filename)); } tracepoint:sched:sched_process_exec { printf(\"X %llu old=%d pid=%d cpu=%d comm=%s file=%s\\n\", nsecs, args.old_pid, args.pid, cpu, comm, str(args.filename)); } tracepoint:syscalls:sys_exit_execve { printf(\"R %llu tid=%d cpu=%d comm=%s ret=%d\\n\", nsecs, tid, cpu, comm, args.ret); }' >/tmp/bt.txt 2>/tmp/bt.err &"
+          sleep 10; sudo head -3 /tmp/bt.txt; sudo cat /tmp/bt.err | head -5
+          sudo sysctl -w kernel.bpf_stats_enabled=1 || true
           APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
           kubectl get --raw "/api/v1/namespaces/honey/pods/${APOD}:8080/proxy/metrics" > /tmp/metrics-pre.txt 2>&1 || true
           grep -E '^node_agent_' /tmp/metrics-pre.txt | grep -vE '_bucket|_sum\{|nested_containers|program_' | sed -E 's/otel_scope_[a-z_]+="[^"]*",?//g' | head -60
@@ -218,6 +224,14 @@ jobs:
               print(d.get("timestamp",""), p.get("comm"), p.get("pid"), "ppid", pa.get("pid"), pa.get("comm"), "uid", (p.get("creds") or {}).get("uid"), "err", d.get("error"), "|", d.get("args"))
           ' artifacts/witness-trace-exec.jsonl
           echo "=== witness stderr ==="; sudo tail -20 /tmp/witness.err || true
+          sudo pkill -INT bpftrace || true; sleep 2
+          sudo cp /tmp/bt.txt artifacts/bpftrace-exec.txt; sudo chmod 644 artifacts/bpftrace-exec.txt
+          echo "=== bpftrace raw tracepoints for every php2shell-side comm (E=sys_enter_execve X=sched_process_exec R=sys_exit_execve) ==="
+          P=$(python3 -I -c 'import json,sys; print("|".join(sorted({str(json.loads(l).get("proc",{}).get("pid")) for l in open(sys.argv[1]) if l.strip().startswith("{")})))' artifacts/witness-trace-exec.jsonl 2>/dev/null)
+          grep -E 'file=(/bin/sh|/usr/bin/sh|/usr/bin/id|/usr/bin/cat|/usr/local/sbin/id|/usr/local/bin/id|/usr/sbin/id|/usr/local/sbin/cat|/usr/local/bin/cat|/usr/sbin/cat|/usr/local/sbin/sh|/usr/local/bin/sh|/usr/sbin/sh)|comm=(apache2|sh|id|cat|runc:\[2:INIT\])' artifacts/bpftrace-exec.txt | tail -80
+          echo "witness pids: ${P}"
+          echo "=== bpf prog stats (recursion_misses / run_cnt) for exec programs ==="
+          (sudo bpftool prog show 2>/dev/null || sudo /usr/lib/linux-tools/*/bpftool prog show 2>/dev/null) | grep -E -A2 'ig_execve|ig_sched_exec|ig_execveat|security_bprm' | head -60 || echo "(no bpftool)"
           APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
           kubectl get --raw "/api/v1/namespaces/honey/pods/${APOD}:8080/proxy/metrics" > artifacts/metrics-post.txt 2>&1 || true
           cp /tmp/metrics-pre.txt artifacts/metrics-pre.txt || true
