@@ -19,7 +19,7 @@ on:
         default: id>uploads/p
       chart_ver:
         description: kubescape-operator chart version to install
-        default: 1.41.0-duckling128
+        default: 1.41.0-duckling129
 
 permissions:
   contents: read
@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 60
     env:
       COMMAND: ${{ github.event.inputs.command || 'id>uploads/p' }}
-      CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling128' }}
+      CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling129' }}
     steps:
       - name: Checkout (with sealed exploit submodule)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
