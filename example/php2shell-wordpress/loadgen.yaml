@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wordpress-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: wordpress-loadgen
+  labels: {app: loadgen}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: loadgen}}
+  template:
+    metadata:
+      labels: {app: loadgen}
+    spec:
+      initContainers:
+      - name: wp-setup
+        image: ghcr.io/k8sstormcenter/php2shell-wordpress:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - {name: WORDPRESS_DB_HOST, value: mariadb.wordpress-db.svc.cluster.local}
+        - {name: WORDPRESS_DB_PASSWORD, value: wordpress-demo}
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          set -e
+          cd /var/www/html
+          until php -r 'exit(@mysqli_connect(getenv("WORDPRESS_DB_HOST"), "wordpress", getenv("WORDPRESS_DB_PASSWORD"), "wordpress") ? 0 : 1);'; do sleep 3; done
+          wp --allow-root core is-installed || wp --allow-root core install --url=http://wordpress.wordpress.svc.cluster.local --title=Media --admin_user=admin --admin_password=wordpress-demo --admin_email=admin@example.invalid --skip-email
+          wp --allow-root user application-password create admin "loadgen-$(hostname)" --porcelain > /shared/ap
+        volumeMounts: [{name: shared, mountPath: /shared}]
+      containers:
+      - name: loadgen
+        image: curlimages/curl:8.11.1
+        resources: {requests: {cpu: "20m", memory: "32Mi"}, limits: {cpu: "100m", memory: "64Mi"}}
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          BASE=http://wordpress.wordpress.svc.cluster.local
+          AP=$(cat /shared/ap)
+          printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=' | base64 -d > /tmp/img.png
+          n=0
+          while true; do
+            n=$((n+1))
+            curl -fsS "$BASE/" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/?p=1" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/?s=media+$n" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/?feed=rss2" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/?rest_route=/wp/v2/posts" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/wp-login.php" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/wp-cron.php" >/dev/null 2>&1 || true
+            curl -fsS -c /tmp/cj -b /tmp/cj -d "log=admin&pwd=wordpress-demo&wp-submit=Log+In&testcookie=1" -b "wordpress_test_cookie=WP%20Cookie%20check" "$BASE/wp-login.php" >/dev/null 2>&1 || true
+            curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/" >/dev/null 2>&1 || true
+            curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/upload.php" >/dev/null 2>&1 || true
+            curl -fsS -d "comment_post_ID=1&author=reader$n&email=reader$n@example.invalid&comment=nice+post+$n" "$BASE/wp-comments-post.php" >/dev/null 2>&1 || true
+            curl -fsS -u "admin:$AP" \
+              -H "Content-Disposition: attachment; filename=media-$(hostname)-$n.png" \
+              -H "Content-Type: image/png" \
+              --data-binary @/tmp/img.png \
+              "$BASE/?rest_route=/wp/v2/media" >/dev/null 2>&1 || true
+            sleep 5
+          done
+        volumeMounts: [{name: shared, mountPath: /shared}]
+      volumes: [{name: shared, emptyDir: {}}]
