@@ -1,0 +1,271 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: CI - php2shell wordpress k3s detection demo
+
+on:
+  push:
+    branches:
+      - demo/php2shell-wordpress
+    paths:
+      - 'example/php2shell-wordpress/**'
+      - '.github/workflows/ci-php2shell-wordpress-k3s.yaml'
+  workflow_dispatch:
+    inputs:
+      command:
+        description: command to land via system() (<=14 bytes)
+        default: id>uploads/p
+      chart_ver:
+        description: kubescape-operator chart version to install
+        default: 1.41.0-duckling125
+
+permissions:
+  contents: read
+
+concurrency:
+  group: php2shell-wordpress-k3s-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  demo:
+    name: WordPress + loadgen, exploit & read detection on in-runner k3s
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      COMMAND: ${{ github.event.inputs.command || 'id>uploads/p' }}
+      CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling125' }}
+    steps:
+      - name: Checkout (with sealed exploit submodule)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Build php2shell-wordpress image
+        run: |
+          set -euo pipefail
+          docker build -t php2shell-wordpress:demo \
+            -f example/php2shell-wordpress/Dockerfile example/php2shell-wordpress
+
+      - name: Set up k3s natively on the runner VM
+        run: |
+          set -euo pipefail
+          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.33.3+k3s1 sh -s - --write-kubeconfig-mode 644
+          mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown "$(id -u):$(id -g)" ~/.kube/config
+          command -v helm >/dev/null 2>&1 || curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          kubectl wait --for=condition=ready node --all --timeout=150s
+          kubectl get nodes -o wide
+          uname -r
+
+      - name: Import the app image into k3s containerd
+        run: |
+          set -euo pipefail
+          docker save php2shell-wordpress:demo | sudo k3s ctr images import -
+          sudo k3s ctr images ls | grep php2shell-wordpress
+
+      - name: Install kubescape (our chart) + alertmanager
+        run: |
+          set -euo pipefail
+          make kubescape KUBESCAPE_CHART_VER=$CHART_VER
+          make alertmanager
+
+      - name: Wait for node-agent fully running, pre-load the SBoB, then settle
+        run: |
+          set -euo pipefail
+          kubectl wait --for=condition=ready pod -l app=node-agent   -n honey --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=storage      -n honey --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=alertmanager -n honey --timeout=120s || true
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          echo "node-agent pod: $APOD image: $(kubectl -n honey get pod "$APOD" -o jsonpath='{.spec.containers[0].image}')"
+          for i in $(seq 1 120); do
+            L=$(kubectl -n honey logs "$APOD" 2>/dev/null || true)
+            cw=$(printf '%s' "$L" | grep -c 'ContainerWatcher started successfully' || true)
+            tr=$(printf '%s' "$L" | grep -c 'Started tracer' || true)
+            rs=$(printf '%s' "$L" | grep -c 'RulesWatcher - synced rules from cluster' || true)
+            if [ "${cw:-0}" -ge 1 ] && [ "${tr:-0}" -ge 15 ] && [ "${rs:-0}" -ge 1 ]; then
+              echo "node-agent fully running after ~$((i*5))s (ContainerWatcher up, ${tr} tracers, rules synced)"; break
+            fi
+            sleep 5
+          done
+          kubectl create namespace wordpress --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f example/php2shell-wordpress/sbobs/cp-wordpress.yaml
+          echo "settling 180s so node-agent is fully enforcing before the target exists"
+          sleep 180
+
+      - name: Deploy mariadb, WordPress (SBoB preloaded) and the loadgen
+        run: |
+          set -euo pipefail
+          kubectl apply -f example/php2shell-wordpress/mariadb.yaml
+          kubectl -n wordpress-db rollout status deployment/mariadb --timeout=300s
+          sed 's#ghcr.io/k8sstormcenter/php2shell-wordpress:latest#php2shell-wordpress:demo#' \
+            example/php2shell-wordpress/wordpress.yaml | kubectl apply -f -
+          kubectl -n wordpress rollout status deployment/wordpress --timeout=300s
+          sed 's#ghcr.io/k8sstormcenter/php2shell-wordpress:latest#php2shell-wordpress:demo#' \
+            example/php2shell-wordpress/loadgen.yaml | kubectl apply -f -
+          kubectl -n wordpress-loadgen rollout status deployment/loadgen --timeout=420s
+          kubectl get pods -A -o wide | grep -E 'wordpress|loadgen|mariadb'
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          kubectl -n honey logs "$APOD" 2>/dev/null | grep -i wordpress | grep -iE 'processing container|user defined profile|adopted|never delivered' | head -5 || echo "(none yet)"
+
+      - name: Benign window (loadgen only, 180s)
+        id: benign
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts
+          POD=$(kubectl -n wordpress get pod -l app=wordpress -o jsonpath='{.items[0].metadata.name}')
+          date -u +%FT%TZ > artifacts/t_benign
+          sleep 180
+          date -u +%FT%TZ > artifacts/t_exploit
+          L=$(kubectl -n wordpress logs "$POD" --since-time=$(cat artifacts/t_benign))
+          up=$(printf '%s\n' "$L" | grep -c 'wp/v2/media HTTP/1.1" 201' || true)
+          cm=$(printf '%s\n' "$L" | grep -c 'wp-comments-post.php HTTP/1.1" 302' || true)
+          echo "benign window: uploads=$up comments=$cm"
+          echo "uploads=$up" >> "$GITHUB_OUTPUT"
+
+      - name: Pause the loadgen for the exploit window
+        run: |
+          set -uo pipefail
+          kubectl -n wordpress-loadgen scale deployment/loadgen --replicas=0
+          kubectl -n wordpress-loadgen wait --for=delete pod -l app=loadgen --timeout=120s || true
+          sleep 10
+
+      - name: Build & arm the php2shell-uaf Inspektor Gadget (uprobe on libphp zif_system)
+        run: |
+          set -uo pipefail
+          IGV=v0.58.0
+          curl -sfL -o /tmp/ig.tgz "https://github.com/inspektor-gadget/inspektor-gadget/releases/download/${IGV}/ig-linux-amd64-${IGV}.tar.gz"
+          sudo tar -C /usr/local/bin -xzf /tmp/ig.tgz ig && ig version | head -1
+          sudo ig image build -t php2shell-uaf:latest example/php2shell/gadget 2>&1 | tail -3
+          SOCK=/run/k3s/containerd/containerd.sock
+          sudo rm -f /tmp/ig-gadget.out /tmp/ig-gadget.err
+          sudo bash -c "nohup ig run php2shell-uaf:latest --containername wordpress --runtimes=containerd --containerd-socketpath=${SOCK} --verify-image=false -o json >/tmp/ig-gadget.out 2>/tmp/ig-gadget.err &"
+          sleep 12
+          echo "gadget launched; attach stderr:"; sudo tail -4 /tmp/ig-gadget.err || true
+
+      - name: Exploit (sealed PoC against the pod IP)
+        id: exploit
+        run: |
+          set -uo pipefail
+          POD=$(kubectl -n wordpress get pod -l app=wordpress -o jsonpath='{.items[0].metadata.name}')
+          POD_IP=$(kubectl -n wordpress get pod "$POD" -o jsonpath='{.status.podIP}')
+          echo "target pod=$POD ip=$POD_IP"
+          echo "pod=$POD" >> "$GITHUB_OUTPUT"
+          WORK=/tmp/php2shell-poc
+          mkdir -p "$WORK"
+          [ -d "$WORK/src" ] || git clone --depth 1 https://github.com/devploit/php2shell "$WORK/src"
+          [ -f "$WORK/src/requirements.txt" ] && python3 -m pip install --user -r "$WORK/src/requirements.txt" || true
+          ATTEMPTS="${ATTEMPTS:-8}"
+          landed=0
+          for try in $(seq 1 "$ATTEMPTS"); do
+            echo "================= exploit pass $try/$ATTEMPTS ================="
+            bash pkg/attack/php2shell/private/run-php2shell.sh "http://$POD_IP/wp-cron.php" "$COMMAND" "$WORK" || true
+            proof=$(curl -s -m 10 "http://$POD_IP/${COMMAND##*>}" || true)
+            if printf '%s' "$proof" | grep -q 'uid='; then
+              echo "stage-3 LANDED on pass $try — proof over HTTP: $proof"; landed=1; break
+            fi
+            echo "pass $try: no exec yet; re-grooming"
+          done
+          echo "landed=$landed" >> "$GITHUB_OUTPUT"
+          [ "$landed" = 1 ] || echo "::warning::exploit did not land in $ATTEMPTS passes; node-agent log read next anyway"
+
+      - name: Restore the loadgen
+        if: always()
+        run: kubectl -n wordpress-loadgen scale deployment/loadgen --replicas=1 || true
+
+      - name: eBPF UAF gadget — events
+        if: always()
+        run: |
+          set -uo pipefail
+          sleep 5
+          mkdir -p artifacts
+          sudo cat /tmp/ig-gadget.out 2>/dev/null | tee artifacts/uaf-gadget.jsonl || echo "(no gadget output)"
+          n=$(sudo grep -c '"comm"' /tmp/ig-gadget.out 2>/dev/null || echo 0); n=${n:-0}
+          echo "gadget UAF->RCE (zif_system) events: ${n}"
+          sudo tail -5 /tmp/ig-gadget.err 2>/dev/null || true
+
+      - name: Dump ContainerProfiles for wordpress (SBoB + shadow)
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts
+          kubectl get containerprofiles -A 2>/dev/null | tee artifacts/cp-list.txt || true
+          for n in $(kubectl -n wordpress get containerprofiles -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null); do
+            kubectl -n wordpress get containerprofile "$n" -o yaml > "artifacts/cp-$n.yaml"
+          done
+          ls -l artifacts/
+
+      - name: Read detections (node-agent stdout)
+        id: detect
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p artifacts
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          echo "node-agent pod: ${APOD:-<none>}  restarts=$(kubectl -n honey get pod "$APOD" -o jsonpath='{.status.containerStatuses[0].restartCount}' 2>/dev/null)"
+          kubectl -n honey logs "$APOD" --since=60m > artifacts/node-agent.log 2>/dev/null || true
+          timeout 150 kubectl -n honey logs "$APOD" -f --since=1s >> artifacts/node-agent.log 2>/dev/null || true
+          python3 - artifacts/node-agent.log "$(cat artifacts/t_benign)" "$(cat artifacts/t_exploit)" <<'PY' | tee artifacts/alerts.txt
+          import json, sys
+          log, tb, te = sys.argv[1:4]
+          ben = exp = rce = 0
+          for l in open(log, errors="replace"):
+              try: d = json.loads(l)
+              except Exception: continue
+              if not d.get("RuleID"): continue
+              k = d.get("RuntimeK8sDetails") or {}
+              if k.get("namespace") != "wordpress": continue
+              b = d.get("BaseRuntimeMetadata") or {}
+              a = b.get("arguments") or {}
+              p = d.get("RuntimeProcessDetails", {}).get("processTree", {})
+              ts = b.get("timestamp", "")
+              line = " ".join(a.get("args") or [])
+              phase = "exploit" if ts >= te else ("benign" if ts >= tb else "setup")
+              tree = json.dumps(p)
+              hit = d["RuleID"] == "R0001" and '"uid": 33' in tree and (a.get("exec", "").endswith("/id") or "uploads/p" in tree)
+              print(phase, ts[11:23], d["RuleID"], b.get("alertName"), a.get("exec") or "", "|", line[:120], "| tree:", p.get("cmdline", "")[:80], "<= EXPLOIT LINEAGE" if hit else "")
+              if phase == "benign": ben += 1
+              if phase == "exploit": exp += 1
+              if hit: rce += 1
+          print(f"SUMMARY benign_alerts={ben} exploit_window_alerts={exp} r0001_exploit_lineage={rce}")
+          PY
+          s=$(grep '^SUMMARY' artifacts/alerts.txt)
+          echo "benign=$(echo "$s" | sed 's/.*benign_alerts=\([0-9]*\).*/\1/')" >> "$GITHUB_OUTPUT"
+          echo "count=$(echo "$s" | sed 's/.*r0001_exploit_lineage=\([0-9]*\).*/\1/')" >> "$GITHUB_OUTPUT"
+
+      - name: Upload detection evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: php2shell-wordpress-k3s-detections
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Verdict
+        if: always()
+        run: |
+          set -uo pipefail
+          n=${{ steps.detect.outputs.count || '0' }}
+          fp=${{ steps.detect.outputs.benign || '0' }}
+          landed=${{ steps.exploit.outputs.landed || '0' }}
+          {
+            echo "## php2shell wordpress k3s detection demo"
+            echo ""
+            echo "| field | value |"
+            echo "| --- | --- |"
+            echo "| target | WordPress on php:8.4.26-apache, ImageMagick CLI via shell_exec |"
+            echo "| kernel | $(uname -r) |"
+            echo "| benign uploads (180s) | ${{ steps.benign.outputs.uploads || '0' }} |"
+            echo "| benign alerts (180s) | ${fp} |"
+            echo "| command | ${COMMAND} |"
+            echo "| exploit landed | ${landed} |"
+            echo "| R0001 exploit lineage (uid 33) | ${n} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$landed" != 1 ]; then
+            echo "INCONCLUSIVE: the exploit did not land"; exit 1
+          elif [ "${n:-0}" -ge 1 ]; then
+            echo "PASS: R0001 on the exploit lineage ($n), benign alerts $fp"
+          else
+            echo "WARN: no R0001 on the exploit lineage, benign alerts $fp"
+          fi
