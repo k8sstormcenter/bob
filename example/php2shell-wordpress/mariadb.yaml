@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wordpress-db
+  labels:
+    kubescape.io/ignore: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: wordpress-db
+  labels: {app: mariadb}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: mariadb}}
+  template:
+    metadata:
+      labels:
+        app: mariadb
+        kubescape.io/user-defined-profile: mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:11.4
+        env:
+        - {name: MARIADB_DATABASE, value: wordpress}
+        - {name: MARIADB_USER, value: wordpress}
+        - {name: MARIADB_PASSWORD, value: wordpress-demo}
+        - {name: MARIADB_RANDOM_ROOT_PASSWORD, value: "1"}
+        ports: [{containerPort: 3306}]
+        readinessProbe:
+          exec: {command: ["healthcheck.sh", "--connect", "--innodb_initialized"]}
+          periodSeconds: 5
+        resources:
+          requests: {cpu: "100m", memory: "256Mi"}
+          limits: {memory: "512Mi"}
+        volumeMounts: [{name: data, mountPath: /var/lib/mysql}]
+      volumes: [{name: data, emptyDir: {}}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: wordpress-db
+spec:
+  selector: {app: mariadb}
+  ports: [{port: 3306, targetPort: 3306}]
