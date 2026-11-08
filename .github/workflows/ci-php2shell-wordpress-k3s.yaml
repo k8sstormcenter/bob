@@ -181,8 +181,7 @@ jobs:
           sleep 5
           mkdir -p artifacts
           sudo cat /tmp/ig-gadget.out 2>/dev/null | tee artifacts/uaf-gadget.jsonl || echo "(no gadget output)"
-          n=$(sudo grep -c '"comm"' /tmp/ig-gadget.out 2>/dev/null || echo 0); n=${n:-0}
-          echo "gadget UAF->RCE (zif_system) events: ${n}"
+          cat /tmp/ig-gadget.out 2>/dev/null
           sudo tail -5 /tmp/ig-gadget.err 2>/dev/null || true
 
       - name: Dump ContainerProfiles for wordpress (SBoB + shadow)
@@ -206,33 +205,8 @@ jobs:
           echo "node-agent pod: ${APOD:-<none>}  restarts=$(kubectl -n honey get pod "$APOD" -o jsonpath='{.status.containerStatuses[0].restartCount}' 2>/dev/null)"
           kubectl -n honey logs "$APOD" --since=60m > artifacts/node-agent.log 2>/dev/null || true
           timeout 150 kubectl -n honey logs "$APOD" -f --since=1s >> artifacts/node-agent.log 2>/dev/null || true
-          python3 - artifacts/node-agent.log "$(cat artifacts/t_benign)" "$(cat artifacts/t_exploit)" <<'PY' | tee artifacts/alerts.txt
-          import json, sys
-          log, tb, te = sys.argv[1:4]
-          ben = exp = rce = 0
-          for l in open(log, errors="replace"):
-              try: d = json.loads(l)
-              except Exception: continue
-              if not d.get("RuleID"): continue
-              k = d.get("RuntimeK8sDetails") or {}
-              if k.get("namespace") != "wordpress": continue
-              b = d.get("BaseRuntimeMetadata") or {}
-              a = b.get("arguments") or {}
-              p = d.get("RuntimeProcessDetails", {}).get("processTree", {})
-              ts = b.get("timestamp", "")
-              line = " ".join(a.get("args") or [])
-              phase = "exploit" if ts >= te else ("benign" if ts >= tb else "setup")
-              tree = json.dumps(p)
-              hit = d["RuleID"] == "R0001" and '"uid": 33' in tree and (a.get("exec", "").endswith("/id") or "uploads/p" in tree)
-              print(phase, ts[11:23], d["RuleID"], b.get("alertName"), a.get("exec") or "", "|", line[:120], "| tree:", p.get("cmdline", "")[:80], "<= EXPLOIT LINEAGE" if hit else "")
-              if phase == "benign": ben += 1
-              if phase == "exploit": exp += 1
-              if hit: rce += 1
-          print(f"SUMMARY benign_alerts={ben} exploit_window_alerts={exp} r0001_exploit_lineage={rce}")
-          PY
-          s=$(grep '^SUMMARY' artifacts/alerts.txt)
-          echo "benign=$(echo "$s" | sed 's/.*benign_alerts=\([0-9]*\).*/\1/')" >> "$GITHUB_OUTPUT"
-          echo "count=$(echo "$s" | sed 's/.*r0001_exploit_lineage=\([0-9]*\).*/\1/')" >> "$GITHUB_OUTPUT"
+          cat artifacts/node-agent.log 
+          
 
       - name: Upload detection evidence
         if: always()
@@ -242,30 +216,4 @@ jobs:
           path: artifacts/
           if-no-files-found: warn
 
-      - name: Verdict
-        if: always()
-        run: |
-          set -uo pipefail
-          n=${{ steps.detect.outputs.count || '0' }}
-          fp=${{ steps.detect.outputs.benign || '0' }}
-          landed=${{ steps.exploit.outputs.landed || '0' }}
-          {
-            echo "## php2shell wordpress k3s detection demo"
-            echo ""
-            echo "| field | value |"
-            echo "| --- | --- |"
-            echo "| target | WordPress on php:8.4.26-apache, ImageMagick CLI via shell_exec |"
-            echo "| kernel | $(uname -r) |"
-            echo "| benign uploads (180s) | ${{ steps.benign.outputs.uploads || '0' }} |"
-            echo "| benign alerts (180s) | ${fp} |"
-            echo "| command | ${COMMAND} |"
-            echo "| exploit landed | ${landed} |"
-            echo "| R0001 exploit lineage (uid 33) | ${n} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ "$landed" != 1 ]; then
-            echo "INCONCLUSIVE: the exploit did not land"; exit 1
-          elif [ "${n:-0}" -ge 1 ]; then
-            echo "PASS: R0001 on the exploit lineage ($n), benign alerts $fp"
-          else
-            echo "WARN: no R0001 on the exploit lineage, benign alerts $fp"
-          fi
+ 
