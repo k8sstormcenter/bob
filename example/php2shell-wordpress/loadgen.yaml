@@ -32,6 +32,7 @@ spec:
           cd /var/www/html
           until php -r 'exit(@mysqli_connect(getenv("WORDPRESS_DB_HOST"), "wordpress", getenv("WORDPRESS_DB_PASSWORD"), "wordpress") ? 0 : 1);'; do sleep 3; done
           wp --allow-root core is-installed || wp --allow-root core install --url=http://wordpress.wordpress.svc.cluster.local --title=Media --admin_user=admin --admin_password=wordpress-demo --admin_email=admin@example.invalid --skip-email
+          wp --allow-root plugin activate ewww-image-optimizer backup-backup updraftplus
           wp --allow-root user application-password create admin "loadgen-$(hostname)" --porcelain > /shared/ap
         volumeMounts: [{name: shared, mountPath: /shared}]
       containers:
@@ -62,6 +63,13 @@ spec:
             curl -fsS -d "comment_post_ID=1&author=reader$n&email=reader$n@example.invalid&comment=nice+post+$n" "$BASE/wp-comments-post.php" >/dev/null 2>&1 || true
             upload "photo-$(hostname)-$n.jpg" "image/jpeg" /tmp/img.jpg
             upload "shot-$(hostname)-$n.png" "image/png" /tmp/img.png
+            if [ $((n % 20)) -eq 1 ]; then
+              un=$(curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/options-general.php?page=updraftplus" 2>/dev/null | sed -n "s/.*updraft_credentialtest_nonce *= *'\([0-9a-f]\{10\}\)'.*/\1/p" | head -1)
+              curl -fsS -c /tmp/cj -b /tmp/cj -H "X-Requested-With: XMLHttpRequest" -d "action=updraft_ajax&subaction=backupnow&nonce=$un&action_data[backupnow_nodb]=0&action_data[backupnow_nofiles]=0&action_data[backupnow_nocloud]=1&action_data[backupnow_label]=" "$BASE/wp-admin/admin-ajax.php" >/dev/null 2>&1 || true
+              bn=$(curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/admin.php?page=backup-migration" 2>/dev/null | sed -n 's/.*f: "refresh", nonce: "\([0-9a-f]\{10\}\)".*/\1/p' | head -1)
+              curl -fsS -c /tmp/cj -b /tmp/cj -H "X-Requested-With: XMLHttpRequest" -d "action=backup_migration&token=bmi&f=create-backup&nonce=$bn" "$BASE/wp-admin/admin-ajax.php" >/dev/null 2>&1 || true
+              echo "admin round $n updraft_nonce=${un:-none} bmi_nonce=${bn:-none}"
+            fi
             sleep 3
           done
         volumeMounts: [{name: shared, mountPath: /shared}]

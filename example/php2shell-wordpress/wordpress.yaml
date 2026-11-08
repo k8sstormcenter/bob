@@ -35,10 +35,13 @@ spec:
           httpGet: {path: /license.txt, port: 80}
           initialDelaySeconds: 3
           periodSeconds: 5
+          timeoutSeconds: 10
         livenessProbe:
           httpGet: {path: /license.txt, port: 80}
           initialDelaySeconds: 10
           periodSeconds: 15
+          timeoutSeconds: 10
+          failureThreshold: 6
         volumeMounts:
         - {name: uploads, mountPath: /var/www/html/uploads}
         - {name: media, mountPath: /var/www/html/wp-content/uploads}

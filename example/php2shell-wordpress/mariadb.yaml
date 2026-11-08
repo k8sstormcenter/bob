@@ -16,7 +16,9 @@ spec:
   selector: {matchLabels: {app: mariadb}}
   template:
     metadata:
-      labels: {app: mariadb}
+      labels:
+        app: mariadb
+        kubescape.io/user-defined-profile: mariadb
     spec:
       containers:
       - name: mariadb
