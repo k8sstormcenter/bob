@@ -37,13 +37,15 @@ spec:
       containers:
       - name: loadgen
         image: curlimages/curl:8.11.1
-        resources: {requests: {cpu: "20m", memory: "32Mi"}, limits: {cpu: "100m", memory: "64Mi"}}
+        resources: {requests: {cpu: "20m", memory: "32Mi"}, limits: {cpu: "200m", memory: "64Mi"}}
         command: ["/bin/sh","-c"]
         args:
         - |
           BASE=http://wordpress.wordpress.svc.cluster.local
           AP=$(cat /shared/ap)
           printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=' | base64 -d > /tmp/img.png
+          printf '%s' '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDkKKKK8U/TD//Z' | base64 -d > /tmp/img.jpg
+          upload() { curl -fsS -u "admin:$AP" -H "Content-Disposition: attachment; filename=$1" -H "Content-Type: $2" --data-binary @"$3" "$BASE/?rest_route=/wp/v2/media" >/dev/null 2>&1 || true; }
           n=0
           while true; do
             n=$((n+1))
@@ -58,12 +60,9 @@ spec:
             curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/" >/dev/null 2>&1 || true
             curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/upload.php" >/dev/null 2>&1 || true
             curl -fsS -d "comment_post_ID=1&author=reader$n&email=reader$n@example.invalid&comment=nice+post+$n" "$BASE/wp-comments-post.php" >/dev/null 2>&1 || true
-            curl -fsS -u "admin:$AP" \
-              -H "Content-Disposition: attachment; filename=media-$(hostname)-$n.png" \
-              -H "Content-Type: image/png" \
-              --data-binary @/tmp/img.png \
-              "$BASE/?rest_route=/wp/v2/media" >/dev/null 2>&1 || true
-            sleep 5
+            upload "photo-$(hostname)-$n.jpg" "image/jpeg" /tmp/img.jpg
+            upload "shot-$(hostname)-$n.png" "image/png" /tmp/img.png
+            sleep 3
           done
         volumeMounts: [{name: shared, mountPath: /shared}]
       volumes: [{name: shared, emptyDir: {}}]

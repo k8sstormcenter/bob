@@ -12,7 +12,7 @@ ARG WPCLI_SHA512=be928f6b8ca1e8dfb9d2f4b75a13aa4aee0896f8a9a0a1c45cd5d2c98605e61
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y --no-install-recommends imagemagick; \
+    apt-get install -y --no-install-recommends imagemagick webp jpegoptim optipng libimage-exiftool-perl; \
     rm -rf /var/lib/apt/lists/*; \
     docker-php-ext-install mysqli; \
     curl -fsSL -o /tmp/wp.tgz "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz"; \
