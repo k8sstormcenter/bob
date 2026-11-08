@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wordpress-loadgen
+  labels:
+    kubescape.io/ignore: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: wordpress-loadgen
+  labels: {app: loadgen}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: loadgen}}
+  template:
+    metadata:
+      labels:
+        app: loadgen
+        kubescape.io/user-defined-profile: loadgen
+    spec:
+      initContainers:
+      - name: wp-setup
+        image: ghcr.io/k8sstormcenter/php2shell-wordpress:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - {name: WORDPRESS_DB_HOST, value: mariadb.wordpress-db.svc.cluster.local}
+        - {name: WORDPRESS_DB_PASSWORD, value: wordpress-demo}
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          set -e
+          cd /var/www/html
+          until php -r 'exit(@mysqli_connect(getenv("WORDPRESS_DB_HOST"), "wordpress", getenv("WORDPRESS_DB_PASSWORD"), "wordpress") ? 0 : 1);'; do sleep 3; done
+          wp --allow-root core is-installed || wp --allow-root core install --url=http://wordpress.wordpress.svc.cluster.local --title=Media --admin_user=admin --admin_password=wordpress-demo --admin_email=admin@example.invalid --skip-email
+          wp --allow-root plugin activate ewww-image-optimizer backup-backup updraftplus
+          wp --allow-root user application-password create admin "loadgen-$(hostname)" --porcelain > /shared/ap
+        volumeMounts: [{name: shared, mountPath: /shared}]
+      containers:
+      - name: loadgen
+        image: curlimages/curl:8.11.1
+        resources: {requests: {cpu: "20m", memory: "32Mi"}, limits: {cpu: "200m", memory: "64Mi"}}
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          BASE=http://wordpress.wordpress.svc.cluster.local
+          AP=$(cat /shared/ap)
+          printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=' | base64 -d > /tmp/img.png
+          printf '%s' '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDkKKKK8U/TD//Z' | base64 -d > /tmp/img.jpg
+          upload() { curl -fsS -u "admin:$AP" -H "Content-Disposition: attachment; filename=$1" -H "Content-Type: $2" --data-binary @"$3" "$BASE/?rest_route=/wp/v2/media" >/dev/null 2>&1 || true; }
+          n=0
+          while true; do
+            n=$((n+1))
+            curl -fsS "$BASE/" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/?p=1" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/?s=media+$n" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/?feed=rss2" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/?rest_route=/wp/v2/posts" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/wp-login.php" >/dev/null 2>&1 || true
+            curl -fsS "$BASE/wp-cron.php" >/dev/null 2>&1 || true
+            curl -fsS -c /tmp/cj -b /tmp/cj -d "log=admin&pwd=wordpress-demo&wp-submit=Log+In&testcookie=1" -b "wordpress_test_cookie=WP%20Cookie%20check" "$BASE/wp-login.php" >/dev/null 2>&1 || true
+            curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/" >/dev/null 2>&1 || true
+            curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/upload.php" >/dev/null 2>&1 || true
+            curl -fsS -d "comment_post_ID=1&author=reader$n&email=reader$n@example.invalid&comment=nice+post+$n" "$BASE/wp-comments-post.php" >/dev/null 2>&1 || true
+            upload "photo-$(hostname)-$n.jpg" "image/jpeg" /tmp/img.jpg
+            upload "shot-$(hostname)-$n.png" "image/png" /tmp/img.png
+            if [ $((n % 20)) -eq 1 ]; then
+              un=$(curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/options-general.php?page=updraftplus" 2>/dev/null | sed -n "s/.*updraft_credentialtest_nonce *= *'\([0-9a-f]\{10\}\)'.*/\1/p" | head -1)
+              curl -fsS -c /tmp/cj -b /tmp/cj -H "X-Requested-With: XMLHttpRequest" -d "action=updraft_ajax&subaction=backupnow&nonce=$un&action_data[backupnow_nodb]=0&action_data[backupnow_nofiles]=0&action_data[backupnow_nocloud]=1&action_data[backupnow_label]=" "$BASE/wp-admin/admin-ajax.php" >/dev/null 2>&1 || true
+              bn=$(curl -fsS -c /tmp/cj -b /tmp/cj "$BASE/wp-admin/admin.php?page=backup-migration" 2>/dev/null | sed -n 's/.*f: "refresh", nonce: "\([0-9a-f]\{10\}\)".*/\1/p' | head -1)
+              curl -fsS -c /tmp/cj -b /tmp/cj -H "X-Requested-With: XMLHttpRequest" -d "action=backup_migration&token=bmi&f=create-backup&nonce=$bn" "$BASE/wp-admin/admin-ajax.php" >/dev/null 2>&1 || true
+              echo "admin round $n updraft_nonce=${un:-none} bmi_nonce=${bn:-none}"
+            fi
+            sleep 3
+          done
+        volumeMounts: [{name: shared, mountPath: /shared}]
+      volumes: [{name: shared, emptyDir: {}}]
