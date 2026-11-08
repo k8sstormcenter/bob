@@ -35,13 +35,20 @@ jobs:
     timeout-minutes: 60
     env:
       COMMAND: ${{ github.event.inputs.command || 'id>uploads/p' }}
-      CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling125' }}
+      CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling127' }}
     steps:
       - name: Checkout (with sealed exploit submodule)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: recursive
           token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Log in to Docker Hub (private node-agent image)
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
 
       - name: Build php2shell-wordpress image
         run: |
@@ -91,6 +98,8 @@ jobs:
           done
           kubectl create namespace wordpress --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f example/php2shell-wordpress/sbobs/cp-wordpress.yaml
+          kubectl create namespace wordpress-db --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f example/php2shell-wordpress/sbobs/cp-mariadb.yaml
           echo "settling 180s so node-agent is fully enforcing before the target exists"
           sleep 180
 
