@@ -31,7 +31,7 @@ concurrency:
 jobs:
   demo:
     name: WordPress + loadgen, exploit & read detection on in-runner k3s
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
     env:
       COMMAND: ${{ github.event.inputs.command || 'id>uploads/p' }}
