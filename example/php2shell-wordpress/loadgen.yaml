@@ -16,7 +16,9 @@ spec:
   selector: {matchLabels: {app: loadgen}}
   template:
     metadata:
-      labels: {app: loadgen}
+      labels:
+        app: loadgen
+        kubescape.io/user-defined-profile: loadgen
     spec:
       initContainers:
       - name: wp-setup

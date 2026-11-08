@@ -100,6 +100,8 @@ jobs:
           kubectl apply -f example/php2shell-wordpress/sbobs/cp-wordpress.yaml
           kubectl create namespace wordpress-db --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f example/php2shell-wordpress/sbobs/cp-mariadb.yaml
+          kubectl create namespace wordpress-loadgen --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f example/php2shell-wordpress/sbobs/cp-loadgen-wp-setup.yaml -f example/php2shell-wordpress/sbobs/cp-loadgen-loadgen.yaml
           echo "settling 180s so node-agent is fully enforcing before the target exists"
           sleep 180
 
