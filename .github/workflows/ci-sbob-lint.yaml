@@ -1,0 +1,41 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: CI - SBoB lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BOBCTL_VERSION: v0.1.14
+  BOBCTL_SHA256: 114adcf62562f7cb0d87f564d04d2625878d5accbe87401f10842d36e2c3102e
+
+jobs:
+  sbob-lint:
+    name: SBoB lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install bobctl
+        run: |
+          curl -sSfL -o /usr/local/bin/bobctl "https://github.com/k8sstormcenter/bob/releases/download/${BOBCTL_VERSION}/bobctl-linux-amd64"
+          echo "${BOBCTL_SHA256}  /usr/local/bin/bobctl" | sha256sum -c -
+          chmod +x /usr/local/bin/bobctl
+          bobctl version
+
+      - name: bobctl validate every ContainerProfile
+        run: scripts/lint-sbobs.sh
