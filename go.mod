@@ -5,10 +5,12 @@
 
 module github.com/k8sstormcenter/bobctl
 
-go 1.25.0
+go 1.26.0
+
+toolchain go1.26.10
 
 require (
-	golang.org/x/mod v0.29.0
+	golang.org/x/mod v0.41.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
