@@ -10,7 +10,7 @@ All trademarks are expressly reserved.
 
 # Software Bill of Behavior SBOB 
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/k8sstormcenter/bob/badge)](https://scorecard.dev/viewer/?uri=github.com/k8sstormcenter/bob)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/k8sstormcenter/bob/badge)](https://scorecard.dev/viewer/?uri=github.com/k8sstormcenter/bob) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16510/badge)](https://www.bestpractices.dev/projects/16510)
 
 Imagine a software vendor distills all their knowledge of their own testing into a standard file and ships it `with each update` . Just like a Container Package-Insert (Packungsbeilage) 📦📃🩻
 
