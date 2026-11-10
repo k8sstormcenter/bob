@@ -42,7 +42,8 @@ jobs:
 
       - name: Runner profiles compose from sbobs/runner-family
         run: |
-          curl -sSfL -o /usr/local/bin/bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.8-rc2/bobctl-linux-amd64
+          curl -sSfL -o /usr/local/bin/bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.10/bobctl-linux-amd64
+          echo "1509b4b075d27f41d1026f948a2c26ce7cc0c923d02d0e9507ad71f704909af1  /usr/local/bin/bobctl" | sha256sum -c -
           chmod +x /usr/local/bin/bobctl
           example/github-runner/harness/compose.sh
           git diff --exit-code -- example/github-runner/deploy
