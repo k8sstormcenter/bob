@@ -52,7 +52,25 @@ jobs:
   build:
     name: Build bobctl
     runs-on: ubuntu-latest
+    outputs:
+      chart: ${{ steps.chart.outputs.chart }}
     steps:
+      - name: Resolve the promoted kubescape chart (once for every leg)
+        id: chart
+        run: |
+          for i in 1 2 3 4 5; do
+            TAG=$(gh api repos/k8sstormcenter/helm-charts/releases/latest --jq .tag_name 2>/dev/null || true)
+            [ -n "$TAG" ] && break
+            sleep $((i * 5))
+          done
+          CHART="${TAG#kubescape-operator-}"
+          if [ -z "$CHART" ]; then
+            echo "FAIL: could not resolve the promoted kubescape chart"
+            exit 1
+          fi
+          echo "chart=$CHART" >> "$GITHUB_OUTPUT"
+          echo "kubescape chart: $CHART" | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Checkout repo and private submodules
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -92,6 +110,8 @@ jobs:
   tune:
     name: "${{ matrix.app }} (${{ matrix.os }}, ${{ matrix.k8s-distribution }})"
     needs: build
+    env:
+      KUBESCAPE_CHART_VER: ${{ needs.build.outputs.chart }}
     strategy:
       fail-fast: false
       matrix:
@@ -1053,6 +1073,8 @@ jobs:
   portability:
     name: "portability ${{ matrix.app }}"
     needs: [build, tune]
+    env:
+      KUBESCAPE_CHART_VER: ${{ needs.build.outputs.chart }}
     if: always()
     runs-on: ubuntu-22.04
     strategy:
