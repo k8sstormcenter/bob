@@ -82,6 +82,7 @@ attacks:
 
   # T1059.004 — Unix Shell
   - name: exec-whoami
+    successIndicators: [{ responseContains: "redis" }]
     type: cmdinject
     exec:
       command: ["whoami"]
@@ -132,6 +133,7 @@ attacks:
 
   # T1059.004 — Unix Shell (from /dev/shm)
   - name: exec-devshm
+    successIndicators: [{ responseContains: "pwned" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_redis && chmod +x /dev/shm/malicious_redis && /dev/shm/malicious_redis pwned && rm -f /dev/shm/malicious_redis"]
@@ -198,6 +200,7 @@ attacks:
 
   # T1036 — Masquerading: drifted binary
   - name: exec-drifted
+    successIndicators: [{ responseContains: "proc" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_redis && /tmp/drifted_redis / && rm -f /tmp/drifted_redis"]
@@ -210,6 +213,7 @@ attacks:
 
   # T1574.006 — LD_PRELOAD hijacking
   - name: lua-ld-preload
+    successIndicators: [{ responseContains: "LD_PRELOAD" }]
     type: fileless
     redis:
       eval: |
@@ -228,7 +232,6 @@ attacks:
         local result = cmd:read('*a')
         cmd:close()
         return result
-    successIndicators: []
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -254,6 +257,7 @@ attacks:
 
   # T1552.001 — Credentials in Files: /etc/shadow
   - name: exec-etc-shadow
+    successIndicators: [{ responseContains: "root:" }]
     type: cmdinject
     exec:
       command: ["cat", "/etc/shadow"]
@@ -265,6 +269,7 @@ attacks:
 
   # T1552.001 — Credentials in Files: /etc/passwd
   - name: exec-etc-passwd
+    successIndicators: [{ responseContains: "root:x:0:0" }]
     type: cmdinject
     exec:
       command: ["cat", "/etc/passwd"]
@@ -276,9 +281,10 @@ attacks:
 
   # T1552 — Symlink to access sensitive file
   - name: exec-symlink
+    successIndicators: [{ responseContains: "/etc/shadow" }]
     type: cmdinject
     exec:
-      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && cat /tmp/shadow_link && rm -f /tmp/shadow_link"]
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/shadow_link && readlink /tmp/shadow_link && cat /tmp/shadow_link; rm -f /tmp/shadow_link"]
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -318,9 +324,10 @@ attacks:
 
   # T1082 — System Information Discovery: /proc/environ
   - name: exec-proc-environ
+    successIndicators: [{ responseContains: "environ_read" }]
     type: cmdinject
     exec:
-      command: ["cat", "/proc/1/environ"]
+      command: ["sh", "-c", "cat /proc/1/environ > /tmp/.bob_environ; test -s /tmp/.bob_environ && echo environ_read; rm -f /tmp/.bob_environ"]
     expectedDetections:
       - ruleID: R0008
         ruleName: Read Environment Variables from procfs
@@ -401,6 +408,7 @@ attacks:
 
   # T1496 — Resource Hijacking: crypto mining DNS signal
   - name: exec-crypto-dns
+    successIndicators: [{ responseContains: "xmr.pool.minergate.com" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "getent hosts xmr.pool.minergate.com || echo mining_dns_failed"]
@@ -448,6 +456,7 @@ attacks:
   # Severity: Medium (CVSS 3.9). Allows privileged user to inject Lua
   # that executes in other clients' contexts via library functions.
   - name: cve-2022-24735-lua-poisoning
+    successIndicators: [{ responseContains: "CVE-2022-24735:poisoned" }]
     type: fileless
     redis:
       eval: |
@@ -467,7 +476,6 @@ attacks:
         cmd:close()
         redis.call('SET', '__poisoned_lib', result)
         return "CVE-2022-24735:poisoned:" .. result
-    successIndicators: []
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -490,9 +498,10 @@ attacks:
   # Severity: Low (CVSS 3.6). Race in socket permissions on restart.
   # We probe for socket existence.
   - name: cve-2023-45145-socket-probe
+    successIndicators: [{ responseContains: "socket_probe_ran" }]
     type: cmdinject
     exec:
-      command: ["sh", "-c", "ls -la /var/run/redis/ 2>/dev/null || ls -la /tmp/redis* 2>/dev/null || echo no_socket"]
+      command: ["sh", "-c", "ls -la /var/run/redis/ 2>/dev/null || ls -la /tmp/redis* 2>/dev/null || echo no_socket; echo socket_probe_ran"]
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -572,6 +581,7 @@ attacks:
 
   # T1048 — Lua-based network scanner (lateral movement recon)
   - name: lua-network-scan
+    successIndicators: [{ responseContains: "port_6379:open" }]
     type: fileless
     redis:
       eval: |
@@ -586,11 +596,10 @@ attacks:
           end)
         end
         if not io_mod then return "sandbox_blocked" end
-        local cmd = io_mod.popen("sh -c 'for port in 22 80 443 3306 5432 6379 8080 9200; do (echo >/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"port_$port:open\"; done' 2>&1")
+        local cmd = io_mod.popen("bash -c 'for port in 22 80 443 3306 5432 6379 8080 9200; do (echo >/dev/tcp/127.0.0.1/$port) 2>/dev/null && echo \"port_$port:open\"; done' 2>&1")
         local result = cmd:read('*a')
         cmd:close()
         return result
-    successIndicators: []
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -849,6 +858,7 @@ attacks:
   # use it to reach the kube-apiserver (R0007). Uses $KUBERNETES_SERVICE_HOST
   # so it is cluster-portable; perl is present, curl/nc are not.
   - name: k8s-api-recon
+    successIndicators: [{ responseContains: "api_reached" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1; cp $(command -v perl) /tmp/kube-recon; chmod +x /tmp/kube-recon; /tmp/kube-recon -MSocket -e 'socket(S,PF_INET,SOCK_STREAM,getprotobyname(q{tcp})); connect(S,sockaddr_in(443,inet_aton($ENV{KUBERNETES_SERVICE_HOST}))) and print qq{api_reached}' 2>&1 | head -c 40; rm -f /tmp/kube-recon"]
@@ -881,6 +891,7 @@ attacks:
   # BPFDoor / TeamTNT eBPF rootkit. bpf(BPF_PROG_LOAD) fires on ATTEMPT — no
   # CAP_BPF needed (EPERM is enough).
   - name: rootkit-ebpf-load
+    successIndicators: [{ responseContains: "bpf errno=" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "perl -e 'syscall(321,5,0,0); print qq{bpf errno=$!}'"]
@@ -894,9 +905,10 @@ attacks:
   # even when EPERM. (The link/mount ops also exercise a capability, but R0004
   # is kernel-flaky in CI — see the mount probe below — so it is not asserted.)
   - name: persist-hardlink-shadow
+    successIndicators: [{ responseContains: "hardlink_done" }]
     type: cmdinject
     exec:
-      command: ["sh", "-c", "ln /etc/shadow /tmp/shadow.hl 2>&1 | head -c 60; rm -f /tmp/shadow.hl"]
+      command: ["sh", "-c", "ln /etc/shadow /tmp/shadow.hl && echo hardlink_done; rm -f /tmp/shadow.hl"]
     expectedDetections:
       - ruleID: R1012
         ruleName: Hard link created over sensitive file

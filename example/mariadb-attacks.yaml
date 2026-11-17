@@ -289,10 +289,10 @@ attacks:
   # sh -c) so the eBPF probe reports comm=ln cleanly, matching the
   # expectedDetection's command=ln field.
   - name: exec-symlink-etc-shadow
+    successIndicators: [{ responseContains: "/etc/shadow" }]
     type: cmdinject
     exec:
-      command: ["ln", "-sf", "/etc/shadow", "/tmp/bob_shadow_link"]
-    successIndicators: []
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/bob_shadow_link && readlink /tmp/bob_shadow_link"]
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -407,6 +407,7 @@ attacks:
     expectedDetections:
       - { ruleID: R0008, ruleName: Read Environment Variables from procfs, containerName: client, command: cat }
   - name: exec-etc-shadow
+    successIndicators: [{ responseContains: "root:" }]
     type: cmdinject
     exec: { command: ["cat", "/etc/shadow"] }
     expectedDetections:
