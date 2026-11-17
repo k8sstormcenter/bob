@@ -9,10 +9,7 @@ BUILD_DIR := bin
 
 GO ?= go
 GO_VERSION ?= 1.24
-# The chart is the one promoted as the "latest" release of k8sstormcenter/helm-charts
-# (moved only after that chart's conformance is green), resolved once per make run.
-# Pin a specific chart with KUBESCAPE_CHART_VER=1.41.0-ducklingNNN. GH_TOKEN, when
-# set, avoids the anonymous API rate limit.
+# Chart = the promoted "latest" helm-charts release unless KUBESCAPE_CHART_VER is set.
 KUBESCAPE_CHART_LATEST_API ?= https://api.github.com/repos/k8sstormcenter/helm-charts/releases/latest
 KUBESCAPE_CHART_VER ?= $(eval KUBESCAPE_CHART_VER := $(shell curl -fsSL $(if $(GH_TOKEN),-H "Authorization: Bearer $(GH_TOKEN)") $(KUBESCAPE_CHART_LATEST_API) | sed -n 's/.*"tag_name": *"kubescape-operator-\([^"]*\)".*/\1/p'))$(if $(KUBESCAPE_CHART_VER),$(KUBESCAPE_CHART_VER),$(error could not resolve the promoted kubescape chart from $(KUBESCAPE_CHART_LATEST_API); set KUBESCAPE_CHART_VER))
 KUBESCAPE_CHART_URL ?= https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-$(KUBESCAPE_CHART_VER)/kubescape-operator-$(KUBESCAPE_CHART_VER).tgz
