@@ -891,6 +891,66 @@ jobs:
           fi
           echo "PASS ($APP): score $BEST_SCORE within threshold $THRESHOLD"
 
+      # ---------- Generalize the tuned SBoB (database preset where the type has one) ----------
+      - name: Generalize tuned SBoB
+        id: generalize
+        if: always()
+        run: |
+          set -euo pipefail
+          test -s results/best-profile.yaml
+          mkdir -p results/generalize-in
+          cp results/best-profile.yaml results/generalize-in/
+          TYPE_FLAG=""
+          [ "${{ matrix.contrast_type }}" = "database" ] && TYPE_FLAG="--type database"
+          bin/bobctl generalize -d results/generalize-in $TYPE_FLAG \
+            --sbob "sbob-${{ matrix.app }}" -o results/sbob.yaml -v
+          bin/bobctl validate --file results/sbob.yaml
+
+      # ---------- Gate 2: the generalized SBoB, scored with tune's own metric ----------
+      # --baseline-file applies the SBoB unchanged as the raw-baseline iteration
+      # over the learned profile; that iteration's score is the gate.
+      - name: Gate 2 (generalized SBoB)
+        if: always() && steps.generalize.outcome == 'success'
+        run: |
+          set -uo pipefail
+          APP="${{ matrix.app }}"
+          THRESHOLD="${{ matrix.score_threshold }}"
+          SCHEME_FLAG=""
+          if [ "${{ matrix.protocol }}" = "https" ]; then
+            SCHEME_FLAG="--service-scheme https"
+          fi
+          mkdir -p results/gate2
+          bin/bobctl tune \
+            --profile "${{ steps.profile.outputs.name }}" \
+            --baseline-file results/sbob.yaml \
+            --max-rounds 0 \
+            -n ${{ matrix.app_namespace }} \
+            --ks-namespace honey \
+            --functional-tests ${{ matrix.functional_tests }} \
+            --suite ${{ matrix.attack_suite }} \
+            --alertmanager-service alertmanager \
+            --alertmanager-port 9093 \
+            --output-dir results/gate2 \
+            $SCHEME_FLAG \
+            -v 2>&1 | tee results/gate2/tune-output.txt
+          if [ ! -f results/gate2/metrics.json ]; then
+            echo "FAIL ($APP): gate 2 produced no metrics.json"
+            exit 1
+          fi
+          GEN=$(jq '[to_entries[] | select(.value.phase == "raw-baseline")] | .[0].value' results/gate2/metrics.json)
+          SCORE=$(echo "$GEN" | jq '.score // "null"')
+          echo "$GEN" | jq '{score, missed_detections, false_positives, phase, iteration}'
+          if [ "$SCORE" = "null" ]; then
+            echo "FAIL ($APP): no scored raw-baseline iteration for the generalized SBoB"
+            exit 1
+          fi
+          echo "$APP generalized SBoB score: $SCORE (threshold: $THRESHOLD)"
+          if [ "$SCORE" -gt "$THRESHOLD" ]; then
+            echo "FAIL ($APP): generalized SBoB score $SCORE exceeds threshold $THRESHOLD"
+            exit 1
+          fi
+          echo "PASS ($APP): generalized SBoB score $SCORE within threshold $THRESHOLD"
+
       - name: Validate artifact isolation
         if: always()
         run: |
