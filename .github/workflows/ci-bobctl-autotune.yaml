@@ -30,8 +30,8 @@ on:
         description: "Run the Redis load-stress suite (60k RESP ops, off by default)"
         type: boolean
         default: false
-      include_ubuntu_22_04:
-        description: "Also run the ubuntu-22.04 matrix leg (off by default — R0006 SA-token detection is environmentally flaky on 22.04 runners)"
+      include_ubuntu_24_04:
+        description: "Also run the ubuntu-24.04 matrix leg (off by default — its 7.0-azure kernel skips BPF on sys_enter_* for most syscalls, so open/link detections drop)"
         type: boolean
         default: false
   repository_dispatch:
@@ -93,13 +93,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # ubuntu-24.04 is the default runner. The 22.04 leg is opt-in via the
-        # workflow_dispatch input `include_ubuntu_22_04` — R0006 (SA token
-        # access) detection is environmentally flaky on 22.04 GitHub-hosted
-        # runners and shifts which app fails between runs without indicating
-        # any algorithm regression. Keeping the matrix entry available so it
-        # can be re-enabled when needed for cross-OS validation.
-        os: ${{ (github.event_name == 'workflow_dispatch' && inputs.include_ubuntu_22_04) && fromJSON('["ubuntu-22.04","ubuntu-24.04"]') || fromJSON('["ubuntu-24.04"]') }}
+        # ubuntu-22.04 (6.8-azure kernel) is the default runner. The 24.04 runner's
+        # 7.0-azure kernel skips BPF programs on sys_enter_* for most syscalls; the
+        # exec gadget recovers at sched_process_exec, but the open, hardlink and
+        # symlink gadgets still depend on the enter tracepoint, so R0006/R0008/
+        # R0010/R1010/R1012 lose most events there. The 24.04 leg is opt-in via
+        # the workflow_dispatch input `include_ubuntu_24_04`.
+        os: ${{ (github.event_name == 'workflow_dispatch' && inputs.include_ubuntu_24_04) && fromJSON('["ubuntu-22.04","ubuntu-24.04"]') || fromJSON('["ubuntu-22.04"]') }}
         k8s-distribution: [k3s]
         kubernetes-version: [v1.33.3]
         # Each app entry defines its manifest, tests, attacks, and namespace.
@@ -1002,7 +1002,7 @@ jobs:
     name: "portability ${{ matrix.app }}"
     needs: [build, tune]
     if: always()
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -1031,7 +1031,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: result-${{ matrix.app }}-ubuntu-24.04-k3s-v1.33.3
+          name: result-${{ matrix.app }}-ubuntu-22.04-k3s-v1.33.3
           path: results
       - name: Skip if the tune leg produced no profile
         id: check
@@ -1110,13 +1110,13 @@ jobs:
           cat results/kpi.json
           pip install --quiet matplotlib pillow numpy pyyaml 2>/dev/null || true
           ./scripts/render-gif.sh results/metrics.json results/tune.gif \
-            --title "${{ matrix.app }} (ubuntu-24.04)" || echo "GIF re-render failed (non-fatal)"
+            --title "${{ matrix.app }} (ubuntu-22.04)" || echo "GIF re-render failed (non-fatal)"
       - name: Re-upload tune GIF (with measured P)
         if: always() && steps.check.outputs.skip != 'true'
         continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: tune-gif-${{ matrix.app }}-ubuntu-24.04
+          name: tune-gif-${{ matrix.app }}-ubuntu-22.04
           path: results/tune.gif
           overwrite: true
           if-no-files-found: ignore
