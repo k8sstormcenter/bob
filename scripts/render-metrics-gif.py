@@ -66,6 +66,7 @@ C_YELLOW   = "#e0af68"
 C_BLUE     = "#7aa2f7"
 C_CYAN     = "#7dcfff"
 C_GREY     = "#3b4261"
+C_PURPLE   = "#bb9af7"
 
 MITRE_PHASES = [
     "Recon", "Init Access", "Execution", "Persistence", "Priv Esc",
@@ -406,7 +407,7 @@ def load_kpi_sidecar(metrics_path: str) -> dict:
     return out
 
 
-def build_attack_analysis(attacks, detections):
+def build_attack_analysis(attacks, detections, not_scored=()):
     """Build per-attack detection data + per-phase grouping."""
     det_by_attack = {}
     for d in detections:
@@ -425,6 +426,7 @@ def build_attack_analysis(attacks, detections):
         phase = classify_attack(a["name"])
         info = det_by_attack.get(a["name"], {"found": set(), "missed": set(), "rules_found": [], "rules_missed": []})
         has_det = a["name"] in det_by_attack
+        unscored = a["name"] in not_scored
         phase_attacks[phase].append({
             "name": a["name"],
             "short": short_name(a["name"]),
@@ -432,6 +434,8 @@ def build_attack_analysis(attacks, detections):
             "all_found": has_det and len(info["missed"]) == 0,
             "any_missed": has_det and len(info["missed"]) > 0,
             "has_expectations": has_det,
+            "not_scored": unscored,
+            "scored": has_det or unscored,
             "rules_found": sorted(info["found"]),
             "rules_missed": sorted(info["missed"]),
         })
@@ -474,13 +478,13 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, 
     angles += angles[:1]
 
     if attacks:
-        det_by_attack, phase_attacks = build_attack_analysis(attacks, detections)
+        det_by_attack, phase_attacks = build_attack_analysis(attacks, detections, set(current.get("not_scored_attacks") or []))
 
         total_per_phase = []
         detected_per_phase = []
         for p in MITRE_PHASES:
             pa = phase_attacks[p]
-            total_per_phase.append(len(pa))
+            total_per_phase.append(sum(1 for a in pa if a["has_expectations"] and not a["not_scored"]))
             detected_per_phase.append(sum(1 for a in pa if a["all_found"]))
 
         max_radar = max(*total_per_phase, 1)
@@ -731,6 +735,9 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, 
                 elif a["any_missed"]:
                     fc = C_RED
                     alpha = 0.7
+                elif a["not_scored"]:
+                    fc = C_PURPLE
+                    alpha = 0.6
                 elif not a["has_expectations"]:
                     fc = C_BLUE
                     alpha = 0.35
@@ -808,6 +815,7 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, 
         legend_elements = [
             Patch(facecolor=C_GREEN, edgecolor=C_BORDER, alpha=0.7, label="All detected"),
             Patch(facecolor=C_RED, edgecolor=C_BORDER, alpha=0.7, label="Detection missed"),
+            Patch(facecolor=C_PURPLE, edgecolor=C_BORDER, alpha=0.6, label="Attack did not land (not scored)"),
             Patch(facecolor=C_BLUE, edgecolor=C_BORDER, alpha=0.35, label="No expected detection"),
         ]
         ax_kc.legend(handles=legend_elements, fontsize=6, loc="lower right",
@@ -822,7 +830,7 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, 
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Design 5: Hybrid Radar + Kill-Chain Detail")
+    parser = argparse.ArgumentParser(description="Render tune metrics as a GIF")
     parser.add_argument("metrics_json")
     parser.add_argument("output_gif")
     parser.add_argument("--title", default="bobctl tune")
@@ -859,7 +867,7 @@ def main():
         )
 
     limits = compute_global_limits(records)
-    print(f"Rendering {len(records)} frames (Design 5: Hybrid + KPI)...", file=sys.stderr)
+    print(f"Rendering {len(records)} frames...", file=sys.stderr)
 
     # savefig(bbox_inches="tight") trims each frame to its own content, so a frame
     # whose kill-chain detail panel carries different labels (or one fewer phase

@@ -25,7 +25,6 @@
 # rule drops to gap. Without it, an asserted rule is verified on the suite's word.
 
 defaults:
-  agent: sbob-rc4
   # R0003 (syscall anomalies) is noise at this granularity. R1007/R1009 need a real
   # miner binary and its ports. R1030 (io_uring) needs a kernel op we never issue.
   # R1016 (signed-profile tampering) and R1031 (kubelet TLS exec) are control-plane
@@ -38,10 +37,8 @@ defaults:
 apps:
   - name: redis
     title: redis
-    agent: node-agent v0.3.158
     out: example/redis/redis-killchain.gif
     suites: [example/redis-attacks.yaml]
-    note: live-verified on the new chart's node-agent v0.3.158
     # Attempted by the suite but not assertable on this image: the capability and
     # mount probes are kernel-flaky, module load and container escape depend on the
     # host kernel, and ptrace needs CAP_SYS_PTRACE to land.
@@ -53,14 +50,12 @@ apps:
     out: example/rule-coverage/webapp-killchain.gif
     suites: [example/webapp-attacks.yaml]
     metrics_glob: results/legs/webapp.json
-    note: bash/dash are in the learned baseline, so `sh -c` is never anomalous
 
   - name: postgres
     title: postgres
     out: example/rule-coverage/postgres-killchain.gif
     suites: [example/postgres-attacks.yaml]
     metrics_glob: results/legs/postgres.json
-    note: CloudNativePG cluster, client-side contrast leg
     # R1004: a successful exec staged on the only writable mount fires R0001+R1000
     # here, never R1004. R0006: pg-client has no readable SA token on CI (zero
     # such alerts in a 1748-alert run), so the read never happens.
@@ -71,7 +66,6 @@ apps:
     out: example/rule-coverage/postgres-vuln-killchain.gif
     suites: [example/postgres-vuln-attacks.yaml]
     metrics_glob: results/legs/postgres-vuln.json
-    note: CVE-2019-9193 COPY TO/FROM PROGRAM superuser misconfiguration
     probe: [R1004]
 
   - name: mariadb
@@ -79,7 +73,6 @@ apps:
     out: example/rule-coverage/mariadb-killchain.gif
     suites: [example/mariadb-attacks.yaml]
     metrics_glob: results/legs/mariadb.json
-    note: intentionally insecure mariadb, cross-pod auth enabled
     probe: [R1004]
 
   # Argo CD is one leg per container, so the card covers the whole product: the
@@ -96,7 +89,6 @@ apps:
       - example/argocd-dex-server-attacks.yaml
       - example/argocd-redis-attacks.yaml
     metrics_glob: results/legs/argocd-*.json
-    note: live-verified by bobctl tune across all 7 subcomponent legs
     # R0009: bpf(2) returns EPERM in an unprivileged container, so no program ever
     # loads. R1001: this node-agent build emits zero R1001 cluster-wide — the
     # drifted exec trips R1000 instead, which IS asserted.
@@ -112,25 +104,21 @@ apps:
     suites: [example/redis/distros/attacks/redis-oss.yaml]
     observed: [R0002, R0004]
     probe: [R0009, R0040, R1001, R1002, R1003, R1006, R1011, R1015, R2000]
-    note: bitnami/redis native install, SBoB bound at deploy
   - name: valkey
     title: valkey (bitnami)
     out: example/redis/distros/rule-coverage/valkey.gif
     suites: [example/redis/distros/attacks/valkey.yaml]
     observed: [R0002, R0004]
     probe: [R0009, R0040, R1001, R1002, R1003, R1006, R1011, R1015, R2000]
-    note: bitnami/valkey native install, SBoB bound at deploy
   - name: keydb
     title: keydb (enapter)
     out: example/redis/distros/rule-coverage/keydb.gif
     suites: [example/redis/distros/attacks/keydb.yaml]
     observed: [R0002, R0004]
     probe: [R0009, R0040, R1001, R1002, R1003, R1006, R1011, R1015, R2000]
-    note: enapter/keydb native install, SBoB bound at deploy
   - name: dragonfly
     title: dragonfly (operator)
     out: example/redis/distros/rule-coverage/dragonfly.gif
     suites: [example/redis/distros/attacks/dragonfly.yaml]
     observed: [R0002, R0004]
     probe: [R0009, R0040, R1001, R1002, R1003, R1006, R1011, R1015, R2000]
-    note: dragonfly-operator native install, SBoB bound at deploy

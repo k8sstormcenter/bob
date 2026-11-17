@@ -4,7 +4,7 @@
 # Licensed under the Apache License, Version 2.0; see LICENSE.
 # All trademarks are expressly reserved.
 
-"""Render a kubescape rule-coverage GIF for a contrast SBoB.
+"""Render a rule-coverage GIF for a contrast SBoB.
 
 This is the generator for the animation used by example/redis-client/redis-killchain.gif:
 one tile per rule in the cluster ruleset, lighting up as each rule is confirmed
@@ -33,7 +33,7 @@ Usage:
       --ruleset kubescape/.rules-from-chart.yaml   # make rules-from-chart \
       --suite example/redis-attacks.yaml \
       --metrics results/metrics.json \
-      --title "redis" --agent "node-agent v0.3.158" \
+      --title "redis" \
       --probe R0004,R0040,R1002 --exclude R0003,R1007
 """
 import argparse
@@ -95,7 +95,7 @@ def asserted_rules(suite_paths):
     ATTACK that first asserts each rule — the reference card names the attack per
     frame, not just the rule."""
     rules, labels, probes = set(), [], 0
-    by_rule = {}
+    by_rule, attackers = {}, {}
     for p in suite_paths:
         doc = yaml.safe_load(Path(p).read_text())
         labels.append(doc.get("metadata", {}).get("name") or Path(p).stem)
@@ -109,28 +109,31 @@ def asserted_rules(suite_paths):
                     continue
                 rules.add(rid)
                 by_rule.setdefault(rid, (a.get("name", "?"), a.get("type", "")))
-    return rules, labels, probes, by_rule
+                attackers.setdefault(rid, set()).add(a.get("name", "?"))
+    return rules, labels, probes, by_rule, attackers
 
 
 def verified_rules(metrics_paths):
-    """Rule ids the tuner actually observed firing (detections with found=true)."""
-    seen = set()
+    """Rule ids the tuner observed firing, and the attacks that did not land."""
+    seen, not_scored = set(), set()
     for p in metrics_paths:
         for entry in json.loads(Path(p).read_text()):
             for d in entry.get("detections") or []:
                 if d.get("found") and d.get("rule_id"):
                     seen.add(d["rule_id"])
-    return seen
+            not_scored.update(entry.get("not_scored_attacks") or [])
+    return seen, not_scored
 
 
-def classify(ruleset, asserted, verified, probe, exclude, have_metrics, observed=frozenset()):
+def classify(ruleset, asserted, verified, probe, exclude, have_metrics, observed=frozenset(),
+             unlanded=frozenset()):
     """Assign every rule in the ruleset exactly one state."""
     order = sorted(ruleset)
     state = {}
     for rid in order:
         if rid in exclude:
             state[rid] = "excluded"
-        elif rid in probe:
+        elif rid in probe or (rid in unlanded and rid not in verified):
             state[rid] = "probe"
         elif rid in asserted:
             # With metrics, only rules actually seen firing earn "verified"; an
@@ -145,7 +148,7 @@ def classify(ruleset, asserted, verified, probe, exclude, have_metrics, observed
     return order, state
 
 
-def draw(order, state, lit, title, agent, suite_labels, note, probes, exclude, size, lit_seq):
+def draw(order, state, lit, title, suite_labels, probes, exclude, size, lit_seq):
     n_verified = sum(1 for r in order if state[r] == "verified")
     n_probe = sum(1 for r in order if state[r] == "probe")
     w, h = size
@@ -153,14 +156,13 @@ def draw(order, state, lit, title, agent, suite_labels, note, probes, exclude, s
     ax = fig.add_axes([0, 0, 1, 1]); ax.set_axis_off()
     ax.set_xlim(0, 1); ax.set_ylim(0, 1)
 
-    head = f"{title} — kubescape rules verified firing ({agent})"
+    head = f"{title} — rule coverage"
     # Monospace at fontsize F occupies ~F*0.6 px per char; shrink to fit the width
     # rather than overflow the canvas.
     tsize = min(15.0, (w * 0.94) / (len(head) * 0.62))
     ax.text(0.032, 0.945, head, color=C_TITLE, fontsize=tsize,
             fontweight="bold", va="center", family="monospace")
-    ax.text(0.032, 0.882, f"{lit} / {n_verified} verified rules lit   ·   "
-                          "amber = kernel-flaky/gated probe   ·   grey = excluded",
+    ax.text(0.032, 0.882, f"{lit} / {n_verified} verified",
             color=C_SUB, fontsize=9.5, va="center", family="monospace")
 
     rows = (len(order) + COLS - 1) // COLS
@@ -207,10 +209,9 @@ def draw(order, state, lit, title, agent, suite_labels, note, probes, exclude, s
         fires = f"fires: {rid}"
     else:
         headline = suite_labels[0] if len(suite_labels) == 1 else f"{len(suite_labels)} suites"
-        sub = note
+        sub = ""
         excl_txt = f" · {len(exclude)} excluded" if exclude else ""
-        fires = (f"{n_verified} rules fire · {n_probe} kernel/gated probes"
-                 f"{excl_txt} · {probes} probe attacks")
+        fires = f"{n_verified} verified · {n_probe} probe{excl_txt} · {probes} probe attacks"
     ax.text(fx + 0.022, fy + fh - 0.055, headline, color=C_TITLE, fontsize=11.5,
             fontweight="bold", va="center", family="monospace")
     if sub:
@@ -240,20 +241,26 @@ def csv_set(v):
     return {x.strip() for x in (v or "").split(",") if x.strip()}
 
 
-def render_one(ruleset, out, suites, metrics, title, agent, note, probe, exclude,
+def unlanded_rules(attackers, not_scored):
+    """Rules every asserting attack of which did not land in this run."""
+    return {rid for rid, atks in attackers.items() if atks and atks <= not_scored}
+
+
+def render_one(ruleset, out, suites, metrics, title, probe, exclude,
                observed, size, duration, last_duration):
     """Render one app's card. Returns (verified, probe, excluded, gaps)."""
     metrics = [m for m in metrics if Path(m).is_file()]
-    asserted, labels, probe_attacks, by_rule = asserted_rules(suites)
-    verified = verified_rules(metrics)
+    asserted, labels, probe_attacks, by_rule, attackers = asserted_rules(suites)
+    verified, not_scored = verified_rules(metrics)
     order, state = classify(ruleset, asserted, verified, probe, exclude,
-                            bool(metrics), observed=observed)
+                            bool(metrics), observed=observed,
+                            unlanded=unlanded_rules(attackers, not_scored))
 
     # Tiles light in grid order; each step names the attack that asserts that rule.
     lit_seq = [(r, *by_rule.get(r, ("(fires without being asserted)", "")))
                for r in order if state[r] == "verified"]
     n_verified = len(lit_seq)
-    frames = [draw(order, state, lit, title, agent, labels, note, probe_attacks,
+    frames = [draw(order, state, lit, title, labels, probe_attacks,
                    exclude, size, lit_seq) for lit in range(n_verified + 1)]
 
     cw = max(f.width for f in frames)
@@ -294,14 +301,13 @@ def run_config(args):
         if missing:
             print(f"{name}: SKIP — missing suite(s) {', '.join(missing)}", file=sys.stderr)
             continue
-        metrics = list(a.get("metrics") or [])
+        metrics = list(a.get("metrics") or []) + list(args.metrics)
         if a.get("metrics_glob"):
             metrics += sorted(glob.glob(a["metrics_glob"]))
         v, p, e, gaps = render_one(
             ruleset, a["out"], a["suites"],
             metrics,
-            a.get("title", name), a.get("agent", dflt.get("agent", "node-agent")),
-            a.get("note", ""),
+            a.get("title", name),
             set(dflt.get("probe", [])) | set(a.get("probe", [])),
             set(dflt.get("exclude", [])) | set(a.get("exclude", [])),
             set(dflt.get("observed", [])) | set(a.get("observed", [])),
@@ -312,7 +318,7 @@ def run_config(args):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Render a kubescape rule-coverage GIF")
+    ap = argparse.ArgumentParser(description="Render a rule-coverage GIF")
     ap.add_argument("--config", help="render every app in this config (batch mode)")
     ap.add_argument("--app", action="append", help="with --config: only these apps")
     ap.add_argument("--out")
@@ -320,8 +326,6 @@ def main():
     ap.add_argument("--suite", action="append")
     ap.add_argument("--metrics", action="append", default=[])
     ap.add_argument("--title")
-    ap.add_argument("--agent", default="node-agent")
-    ap.add_argument("--note", default="")
     ap.add_argument("--observed", default="",
                     help="comma-separated rules confirmed firing in-cluster but not asserted by any suite")
     ap.add_argument("--probe", default="", help="comma-separated rules exercised but not assertable here")
@@ -342,19 +346,20 @@ def main():
         print(f"no rules parsed from {args.ruleset}", file=sys.stderr)
         return 1
     metrics = [m for m in args.metrics if Path(m).is_file()]
-    asserted, labels, probe_attacks, by_rule = asserted_rules(args.suite)
-    verified = verified_rules(metrics)
+    asserted, labels, probe_attacks, by_rule, attackers = asserted_rules(args.suite)
+    verified, not_scored = verified_rules(metrics)
     order, state = classify(ruleset, asserted, verified,
                             csv_set(args.probe), csv_set(args.exclude), bool(metrics),
-                            observed=csv_set(args.observed))
+                            observed=csv_set(args.observed),
+                            unlanded=unlanded_rules(attackers, not_scored))
 
     lit_seq = [(r, *by_rule.get(r, ("(fires without being asserted)", "")))
                for r in order if state[r] == "verified"]
     n_verified = len(lit_seq)
     frames = []
     for lit in range(n_verified + 1):
-        frames.append(draw(order, state, lit, args.title, args.agent, labels,
-                           args.note, probe_attacks, csv_set(args.exclude),
+        frames.append(draw(order, state, lit, args.title, labels,
+                           probe_attacks, csv_set(args.exclude),
                            (args.width, args.height), lit_seq))
 
     cw = max(f.width for f in frames)
