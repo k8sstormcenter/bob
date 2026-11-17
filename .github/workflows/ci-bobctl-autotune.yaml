@@ -35,7 +35,9 @@ on:
         type: boolean
         default: false
   repository_dispatch:
-    types: [node-agent-build-complete]
+    types: [node-agent-build-complete, chart-promoted]
+  schedule:
+    - cron: '17 4 * * *'
 
 
 permissions:
@@ -239,7 +241,7 @@ jobs:
           token: ${{ secrets.ENTLEIN_PAT}}
 
       - name: Patch image tags from dispatch
-        if: github.event_name == 'repository_dispatch'
+        if: github.event_name == 'repository_dispatch' && github.event.action == 'node-agent-build-complete'
         run: |
           TAG="${{ github.event.client_payload.image_tag }}"
           echo "Patching kubescape/values.yaml with tag: ${TAG}"
