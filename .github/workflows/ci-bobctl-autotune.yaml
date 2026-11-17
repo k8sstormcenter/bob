@@ -45,6 +45,8 @@ env:
   # Build pkg/ exactly as its go.mod pins storage; the root go.work points at a ../storage checkout.
   GOWORK: 'off'
   GOPRIVATE: github.com/k8sstormcenter/storage
+  # The Makefile resolves the promoted kubescape chart through the GitHub API.
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   build:
