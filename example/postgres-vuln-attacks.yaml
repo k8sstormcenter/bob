@@ -910,7 +910,7 @@ attacks:
       - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: pg-vuln-client, command: ln }
   - name: hardlink-shadow
     type: cmdinject
-    exec: { command: ["sh", "-c", "ln /etc/shadow /dev/shm/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /dev/shm/hl_probe"] }
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_probe"] }
     successIndicators: [{ responseContains: "hardlink_done" }]
     expectedDetections:
       - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: pg-vuln-client, command: ln }
