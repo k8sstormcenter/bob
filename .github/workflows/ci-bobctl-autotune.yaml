@@ -302,6 +302,14 @@ jobs:
             ALL=$(kubectl get containerprofiles -n ${{ matrix.app_namespace }} \
               -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.annotations.kubescape\.io/status}{"\n"}{end}' \
               2>/dev/null | awk -F'\t' '$2=="ready" || $2=="completed" {print $1}' | grep -v "^ug-" | grep -v "^job-" || true)
+            # A rolled Deployment leaves the old ReplicaSet's profile behind
+            # (empty, never exercised); keep only profiles of a running pod's template.
+            LIVE=$(kubectl get pods -n ${{ matrix.app_namespace }} --field-selector=status.phase=Running \
+              -o jsonpath='{range .items[*]}{.metadata.labels.pod-template-hash}{"\n"}{end}' 2>/dev/null | sed '/^$/d' | sort -u)
+            if [ -n "$LIVE" ]; then
+              STALE=$(echo "$ALL" | grep '^replicaset-' | grep -v -F -f <(echo "$LIVE" | sed 's/.*/-&-/') || true)
+              ALL=$(printf '%s\n' "$ALL" | grep -v -x -F -f <(printf '%s\n' "$STALE" | sed '/^$/d') || true)
+            fi
             # ONLY a profile matching the app/service name ends the wait.
             #
             # There used to be a bare `head -1` fallback here, and it made the
@@ -902,7 +910,9 @@ jobs:
           cp results/best-profile.yaml results/generalize-in/
           TYPE_FLAG=""
           [ "${{ matrix.contrast_type }}" = "database" ] && TYPE_FLAG="--type database"
+          GEN_REF=$(git ls-tree HEAD pkg | awk '{print $3}')
           bin/bobctl generalize -d results/generalize-in $TYPE_FLAG \
+            --generator-ref "$GEN_REF" \
             --sbob "sbob-${{ matrix.app }}" -o results/sbob.yaml -v
           bin/bobctl validate --file results/sbob.yaml
 
