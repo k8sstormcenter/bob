@@ -134,7 +134,7 @@ jobs:
           go build -trimpath \
             -ldflags="$LDFLAGS" \
             -o ../bin/bobctl-${{ matrix.goos }}-${{ matrix.goarch }} \
-            ./main.go
+            .
 
       - name: Verify binary (native only)
         if: matrix.goarch == 'amd64'
