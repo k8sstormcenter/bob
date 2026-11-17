@@ -156,6 +156,8 @@ jobs:
             contrast_expect: reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: redis
             score_threshold: 0
+            # uid 999: /etc/shadow is root:shadow 0640 and protected_hardlinks refuses the link
+            known_mitigated: "exec-etc-shadow persist-hardlink-shadow"
           - app: postgres
             functional_tests: example/postgres-functional-tests.yaml
             attack_suite: example/postgres-attacks.yaml
@@ -165,6 +167,8 @@ jobs:
             protocol: tcp
             profile_match: pg-client
             score_threshold: 0
+            # uid 26: /etc/shadow is root:shadow 0640 and protected_hardlinks refuses the link
+            known_mitigated: "exec-etc-shadow hardlink-shadow"
           - app: postgres-vuln
             functional_tests: example/postgres-vuln-functional-tests.yaml
             attack_suite: example/postgres-vuln-attacks.yaml
@@ -900,6 +904,33 @@ jobs:
             exit 1
           fi
           echo "PASS ($APP): score $BEST_SCORE within threshold $THRESHOLD"
+
+      # ---------- Attacks that did not succeed are not scored; only known mitigations may ----------
+      - name: Not-scored guard
+        if: always()
+        run: |
+          set -uo pipefail
+          APP="${{ matrix.app }}"
+          KNOWN=" ${{ matrix.known_mitigated }} "
+          if [ ! -f results/metrics.json ]; then
+            echo "FAIL ($APP): no metrics.json"
+            exit 1
+          fi
+          NAMES=$(jq -r '[.[].not_scored_attacks // [] | .[]] | unique | .[]' results/metrics.json)
+          COUNT=$(jq '[.[].not_scored // 0] | max // 0' results/metrics.json)
+          echo "### Not scored — $APP: $COUNT expectation(s)" >> "$GITHUB_STEP_SUMMARY"
+          UNEXPECTED=""
+          for n in $NAMES; do
+            case "$KNOWN" in
+              *" $n "*) echo "- $n (known mitigation)" >> "$GITHUB_STEP_SUMMARY" ;;
+              *) echo "- $n (UNEXPECTED)" >> "$GITHUB_STEP_SUMMARY"; UNEXPECTED="$UNEXPECTED $n" ;;
+            esac
+          done
+          echo "not scored: ${NAMES:-none}"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL ($APP): attacks did not succeed and are not known mitigations:$UNEXPECTED"
+            exit 1
+          fi
 
       # ---------- Generalize the tuned SBoB (database preset where the type has one) ----------
       - name: Generalize tuned SBoB
