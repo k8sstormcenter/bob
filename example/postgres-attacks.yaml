@@ -61,6 +61,7 @@ attacks:
 
   # T1059.004 — Unix Shell (whoami)
   - name: exec-whoami
+    successIndicators: [{ responseContains: "postgres" }]
     type: cmdinject
     exec:
       command: ["whoami"]
@@ -72,6 +73,7 @@ attacks:
 
   # T1059.004 — Unix Shell (exec from /dev/shm)
   - name: exec-devshm
+    successIndicators: [{ responseContains: "pwned" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_pg && chmod +x /dev/shm/malicious_pg && /dev/shm/malicious_pg pwned && rm -f /dev/shm/malicious_pg"]
@@ -98,6 +100,7 @@ attacks:
 
   # T1611 — Escape to Host (unshare attempt)
   - name: exec-unshare
+    successIndicators: [{ responseContains: "uid=0" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "unshare -r id 2>&1 || echo unshare_blocked"]
@@ -114,6 +117,7 @@ attacks:
 
   # T1036 — Masquerading: drifted binary
   - name: exec-drifted-binary
+    successIndicators: [{ responseContains: "passwd" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_pg && /tmp/drifted_pg /etc && rm -f /tmp/drifted_pg"]
@@ -141,10 +145,9 @@ attacks:
   - name: exec-sa-token-attempt
     type: cmdinject
     exec:
-      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token 2>&1 || true"]
+      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1; echo sa_token_probe_ran"]
     successIndicators:
-      - responseRegex: ".+"
-      - responseContains: "No such file or directory"
+      - responseContains: "sa_token_probe_ran"
     # R0001 only — the exec of `cat` is the unconditional signal. R0006
     # depends on the file actually opening, which doesn't happen when the
     # mount is missing.
@@ -171,6 +174,7 @@ attacks:
 
   # T1552.001 — Credentials in Files: /etc/shadow
   - name: exec-etc-shadow
+    successIndicators: [{ responseContains: "root:" }]
     type: cmdinject
     exec:
       command: ["cat", "/etc/shadow"]
@@ -189,6 +193,7 @@ attacks:
 
   # T1552.001 — Credentials in Files: /etc/passwd
   - name: exec-etc-passwd
+    successIndicators: [{ responseContains: "root:x:0:0" }]
     type: cmdinject
     exec:
       command: ["cat", "/etc/passwd"]
@@ -211,6 +216,7 @@ attacks:
 
   # T1082 — System Information Discovery: /proc/environ
   - name: exec-proc-environ
+    successIndicators: [{ responseContains: "PATH=" }]
     type: cmdinject
     exec:
       command: ["cat", "/proc/1/environ"]
@@ -225,6 +231,7 @@ attacks:
   # commands (`cat`, `getent`). Don't pin `command:` so the expectation matches
   # whichever process the runtime engine surfaces first.
   - name: exec-net-recon
+    successIndicators: [{ responseContains: "nameserver" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "cat /etc/resolv.conf && cat /etc/hosts && getent hosts kubernetes.default.svc || true"]
@@ -261,6 +268,7 @@ attacks:
 
   # T1496 — Resource Hijacking: crypto mining DNS signal
   - name: exec-crypto-dns
+    successIndicators: [{ responseContains: "xmr.pool.minergate.com" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "getent hosts xmr.pool.minergate.com || echo mining_dns_failed"]
@@ -460,6 +468,7 @@ attacks:
     expectedDetections:
       - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: pg-client }
   - name: exec-etc-shadow
+    successIndicators: [{ responseContains: "root:" }]
     type: cmdinject
     exec: { command: ["cat", "/etc/shadow"] }
     expectedDetections:
@@ -498,7 +507,7 @@ attacks:
       - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: pg-client, command: ln }
   - name: hardlink-shadow
     type: cmdinject
-    exec: { command: ["sh", "-c", "ln /etc/shadow /dev/shm/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /dev/shm/hl_probe"] }
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_probe"] }
     successIndicators: [{ responseContains: "hardlink_done" }]
     expectedDetections:
       - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: pg-client, command: ln }

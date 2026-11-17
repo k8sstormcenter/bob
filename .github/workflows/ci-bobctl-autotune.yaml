@@ -30,8 +30,8 @@ on:
         description: "Run the Redis load-stress suite (60k RESP ops, off by default)"
         type: boolean
         default: false
-      include_ubuntu_22_04:
-        description: "Also run the ubuntu-22.04 matrix leg (off by default — R0006 SA-token detection is environmentally flaky on 22.04 runners)"
+      include_ubuntu_24_04:
+        description: "Also run the ubuntu-24.04 matrix leg (off by default — its 7.0-azure kernel skips BPF on sys_enter_* for most syscalls, so open/link detections drop)"
         type: boolean
         default: false
   repository_dispatch:
@@ -45,14 +45,34 @@ env:
   # Build pkg/ exactly as its go.mod pins storage; the root go.work points at a ../storage checkout.
   GOWORK: 'off'
   GOPRIVATE: github.com/k8sstormcenter/storage
+  # The Makefile resolves the promoted kubescape chart through the GitHub API.
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   build:
     name: Build bobctl
     runs-on: ubuntu-latest
+    outputs:
+      chart: ${{ steps.chart.outputs.chart }}
     steps:
+      - name: Resolve the promoted kubescape chart (once for every leg)
+        id: chart
+        run: |
+          for i in 1 2 3 4 5; do
+            TAG=$(gh api repos/k8sstormcenter/helm-charts/releases/latest --jq .tag_name 2>/dev/null || true)
+            [ -n "$TAG" ] && break
+            sleep $((i * 5))
+          done
+          CHART="${TAG#kubescape-operator-}"
+          if [ -z "$CHART" ]; then
+            echo "FAIL: could not resolve the promoted kubescape chart"
+            exit 1
+          fi
+          echo "chart=$CHART" >> "$GITHUB_OUTPUT"
+          echo "kubescape chart: $CHART" | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Checkout repo and private submodules
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
@@ -68,7 +88,7 @@ jobs:
           ls pkg/go.mod pkg/main.go
 
       - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: pkg/go.mod
           cache-dependency-path: pkg/go.sum
@@ -82,7 +102,7 @@ jobs:
         run: ./scripts/validate-suites.sh bin/bobctl
 
       - name: Upload bobctl binary
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bobctl
           path: bin/bobctl
@@ -90,16 +110,18 @@ jobs:
   tune:
     name: "${{ matrix.app }} (${{ matrix.os }}, ${{ matrix.k8s-distribution }})"
     needs: build
+    env:
+      KUBESCAPE_CHART_VER: ${{ needs.build.outputs.chart }}
     strategy:
       fail-fast: false
       matrix:
-        # ubuntu-24.04 is the default runner. The 22.04 leg is opt-in via the
-        # workflow_dispatch input `include_ubuntu_22_04` — R0006 (SA token
-        # access) detection is environmentally flaky on 22.04 GitHub-hosted
-        # runners and shifts which app fails between runs without indicating
-        # any algorithm regression. Keeping the matrix entry available so it
-        # can be re-enabled when needed for cross-OS validation.
-        os: ${{ (github.event_name == 'workflow_dispatch' && inputs.include_ubuntu_22_04) && fromJSON('["ubuntu-22.04","ubuntu-24.04"]') || fromJSON('["ubuntu-24.04"]') }}
+        # ubuntu-22.04 (6.8-azure kernel) is the default runner. The 24.04 runner's
+        # 7.0-azure kernel skips BPF programs on sys_enter_* for most syscalls; the
+        # exec gadget recovers at sched_process_exec, but the open, hardlink and
+        # symlink gadgets still depend on the enter tracepoint, so R0006/R0008/
+        # R0010/R1010/R1012 lose most events there. The 24.04 leg is opt-in via
+        # the workflow_dispatch input `include_ubuntu_24_04`.
+        os: ${{ (github.event_name == 'workflow_dispatch' && inputs.include_ubuntu_24_04) && fromJSON('["ubuntu-22.04","ubuntu-24.04"]') || fromJSON('["ubuntu-22.04"]') }}
         k8s-distribution: [k3s]
         kubernetes-version: [v1.33.3]
         # Each app entry defines its manifest, tests, attacks, and namespace.
@@ -154,6 +176,8 @@ jobs:
             contrast_expect: reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: redis
             score_threshold: 0
+            # uid 999: /etc/shadow is root:shadow 0640 and protected_hardlinks refuses the link
+            known_mitigated: "exec-etc-shadow persist-hardlink-shadow"
           - app: postgres
             functional_tests: example/postgres-functional-tests.yaml
             attack_suite: example/postgres-attacks.yaml
@@ -163,6 +187,8 @@ jobs:
             protocol: tcp
             profile_match: pg-client
             score_threshold: 0
+            # uid 26: /etc/shadow is root:shadow 0640 and protected_hardlinks refuses the link
+            known_mitigated: "exec-etc-shadow hardlink-shadow"
           - app: postgres-vuln
             functional_tests: example/postgres-vuln-functional-tests.yaml
             attack_suite: example/postgres-vuln-attacks.yaml
@@ -204,7 +230,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           token: ${{ secrets.ENTLEIN_PAT}}
 
@@ -218,7 +244,7 @@ jobs:
           grep 'tag:' kubescape/values.yaml
 
       - name: Download bobctl binary
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: bobctl
           path: bin
@@ -234,7 +260,7 @@ jobs:
 
       - name: Set up Kind cluster
         if: matrix.k8s-distribution == 'kind'
-        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
         with:
           node_image: kindest/node:${{ matrix.kubernetes-version }}
 
@@ -302,6 +328,14 @@ jobs:
             ALL=$(kubectl get containerprofiles -n ${{ matrix.app_namespace }} \
               -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.annotations.kubescape\.io/status}{"\n"}{end}' \
               2>/dev/null | awk -F'\t' '$2=="ready" || $2=="completed" {print $1}' | grep -v "^ug-" | grep -v "^job-" || true)
+            # A rolled Deployment leaves the old ReplicaSet's profile behind
+            # (empty, never exercised); keep only profiles of a running pod's template.
+            LIVE=$(kubectl get pods -n ${{ matrix.app_namespace }} --field-selector=status.phase=Running \
+              -o jsonpath='{range .items[*]}{.metadata.labels.pod-template-hash}{"\n"}{end}' 2>/dev/null | sed '/^$/d' | sort -u)
+            if [ -n "$LIVE" ]; then
+              STALE=$(echo "$ALL" | grep '^replicaset-' | grep -v -F -f <(echo "$LIVE" | sed 's/.*/-&-/') || true)
+              ALL=$(printf '%s\n' "$ALL" | grep -v -x -F -f <(printf '%s\n' "$STALE" | sed '/^$/d') || true)
+            fi
             # ONLY a profile matching the app/service name ends the wait.
             #
             # There used to be a bare `head -1` fallback here, and it made the
@@ -662,7 +696,7 @@ jobs:
       - name: Upload tune GIF
         if: always()
         id: upload-gif
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tune-gif-${{ matrix.app }}-${{ matrix.os }}
           path: results/tune.gif
@@ -694,7 +728,7 @@ jobs:
       - name: Upload rule-coverage (contrast) GIF
         if: always()
         id: upload-coverage-gif
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-gif-${{ matrix.app }}-${{ matrix.os }}
           path: results/coverage.gif
@@ -891,6 +925,95 @@ jobs:
           fi
           echo "PASS ($APP): score $BEST_SCORE within threshold $THRESHOLD"
 
+      # ---------- Attacks that did not succeed are not scored; only known mitigations may ----------
+      - name: Not-scored guard
+        if: always()
+        run: |
+          set -uo pipefail
+          APP="${{ matrix.app }}"
+          KNOWN=" ${{ matrix.known_mitigated }} "
+          if [ ! -f results/metrics.json ]; then
+            echo "FAIL ($APP): no metrics.json"
+            exit 1
+          fi
+          NAMES=$(jq -r '[.[].not_scored_attacks // [] | .[]] | unique | .[]' results/metrics.json)
+          COUNT=$(jq '[.[].not_scored // 0] | max // 0' results/metrics.json)
+          echo "### Not scored — $APP: $COUNT expectation(s)" >> "$GITHUB_STEP_SUMMARY"
+          UNEXPECTED=""
+          for n in $NAMES; do
+            case "$KNOWN" in
+              *" $n "*) echo "- $n (known mitigation)" >> "$GITHUB_STEP_SUMMARY" ;;
+              *) echo "- $n (UNEXPECTED)" >> "$GITHUB_STEP_SUMMARY"; UNEXPECTED="$UNEXPECTED $n" ;;
+            esac
+          done
+          echo "not scored: ${NAMES:-none}"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL ($APP): attacks did not succeed and are not known mitigations:$UNEXPECTED"
+            exit 1
+          fi
+
+      # ---------- Generalize the tuned SBoB (database preset where the type has one) ----------
+      - name: Generalize tuned SBoB
+        id: generalize
+        if: always()
+        run: |
+          set -euo pipefail
+          test -s results/best-profile.yaml
+          mkdir -p results/generalize-in
+          cp results/best-profile.yaml results/generalize-in/
+          TYPE_FLAG=""
+          [ "${{ matrix.contrast_type }}" = "database" ] && TYPE_FLAG="--type database"
+          GEN_REF=$(git ls-tree HEAD pkg | awk '{print $3}')
+          bin/bobctl generalize -d results/generalize-in $TYPE_FLAG \
+            --generator-ref "$GEN_REF" \
+            --sbob "sbob-${{ matrix.app }}" -o results/sbob.yaml -v
+          bin/bobctl validate --file results/sbob.yaml
+
+      # ---------- Gate 2: the generalized SBoB, scored with tune's own metric ----------
+      # --baseline-file applies the SBoB unchanged as the raw-baseline iteration
+      # over the learned profile; that iteration's score is the gate.
+      - name: Gate 2 (generalized SBoB)
+        if: always() && steps.generalize.outcome == 'success'
+        run: |
+          set -uo pipefail
+          APP="${{ matrix.app }}"
+          THRESHOLD="${{ matrix.score_threshold }}"
+          SCHEME_FLAG=""
+          if [ "${{ matrix.protocol }}" = "https" ]; then
+            SCHEME_FLAG="--service-scheme https"
+          fi
+          mkdir -p results/gate2
+          bin/bobctl tune \
+            --profile "${{ steps.profile.outputs.name }}" \
+            --baseline-file results/sbob.yaml \
+            --max-rounds 0 \
+            -n ${{ matrix.app_namespace }} \
+            --ks-namespace honey \
+            --functional-tests ${{ matrix.functional_tests }} \
+            --suite ${{ matrix.attack_suite }} \
+            --alertmanager-service alertmanager \
+            --alertmanager-port 9093 \
+            --output-dir results/gate2 \
+            $SCHEME_FLAG \
+            -v 2>&1 | tee results/gate2/tune-output.txt || true
+          if [ ! -f results/gate2/metrics.json ]; then
+            echo "FAIL ($APP): gate 2 produced no metrics.json"
+            exit 1
+          fi
+          GEN=$(jq '[to_entries[] | select(.value.phase == "raw-baseline")] | .[0].value' results/gate2/metrics.json)
+          SCORE=$(echo "$GEN" | jq '.score // "null"')
+          echo "$GEN" | jq '{score, missed_detections, false_positives, phase, iteration}'
+          if [ "$SCORE" = "null" ]; then
+            echo "FAIL ($APP): no scored raw-baseline iteration for the generalized SBoB"
+            exit 1
+          fi
+          echo "$APP generalized SBoB score: $SCORE (threshold: $THRESHOLD)"
+          if [ "$SCORE" -gt "$THRESHOLD" ]; then
+            echo "FAIL ($APP): generalized SBoB score $SCORE exceeds threshold $THRESHOLD"
+            exit 1
+          fi
+          echo "PASS ($APP): generalized SBoB score $SCORE within threshold $THRESHOLD"
+
       - name: Validate artifact isolation
         if: always()
         run: |
@@ -916,9 +1039,28 @@ jobs:
           echo "PASS: All iteration files belong to ${{ matrix.app }}"
           ls results/*-iteration*.yaml 2>/dev/null || echo "  (no iteration files)"
 
+      - name: Record kubescape stack
+        if: always()
+        run: |
+          mkdir -p results
+          CHART=$(helm list -n honey -o json 2>/dev/null | jq -r '.[] | select(.name=="kubescape") | .chart' || true)
+          AGENT=$(kubectl get pods -n honey -l app=node-agent \
+            -o jsonpath='{.items[0].status.containerStatuses[?(@.name=="node-agent")].imageID}' 2>/dev/null || true)
+          STORAGE=$(kubectl get pods -n honey -l app=storage \
+            -o jsonpath='{.items[0].status.containerStatuses[0].imageID}' 2>/dev/null || true)
+          jq -n --arg chart "$CHART" --arg agent "$AGENT" --arg storage "$STORAGE" \
+            '{chart: $chart, node_agent_image: $agent, storage_image: $storage}' > results/stack.json
+          cat results/stack.json
+          {
+            echo "### Kubescape stack — ${{ matrix.app }}"
+            echo "- chart: \`$CHART\`"
+            echo "- node-agent: \`$AGENT\`"
+            echo "- storage: \`$STORAGE\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload result artifact
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: result-${{ matrix.app }}-${{ matrix.os }}-${{ matrix.k8s-distribution }}-${{ matrix.kubernetes-version }}
           path: results/
@@ -931,8 +1073,10 @@ jobs:
   portability:
     name: "portability ${{ matrix.app }}"
     needs: [build, tune]
+    env:
+      KUBESCAPE_CHART_VER: ${{ needs.build.outputs.chart }}
     if: always()
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -947,21 +1091,21 @@ jobs:
             app_namespace: postgres-vuln
     steps:
       - name: Checkout repo and private submodules
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: 'recursive'
           token: ${{ secrets.ENTLEIN_PAT}}
       - name: Download bobctl
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: bobctl
           path: bin
       - run: chmod +x bin/bobctl
       - name: Download tune result
         continue-on-error: true
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: result-${{ matrix.app }}-ubuntu-24.04-k3s-v1.33.3
+          name: result-${{ matrix.app }}-ubuntu-22.04-k3s-v1.33.3
           path: results
       - name: Skip if the tune leg produced no profile
         id: check
@@ -1040,20 +1184,20 @@ jobs:
           cat results/kpi.json
           pip install --quiet matplotlib pillow numpy pyyaml 2>/dev/null || true
           ./scripts/render-gif.sh results/metrics.json results/tune.gif \
-            --title "${{ matrix.app }} (ubuntu-24.04)" || echo "GIF re-render failed (non-fatal)"
+            --title "${{ matrix.app }} (ubuntu-22.04)" || echo "GIF re-render failed (non-fatal)"
       - name: Re-upload tune GIF (with measured P)
         if: always() && steps.check.outputs.skip != 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: tune-gif-${{ matrix.app }}-ubuntu-24.04
+          name: tune-gif-${{ matrix.app }}-ubuntu-22.04
           path: results/tune.gif
           overwrite: true
           if-no-files-found: ignore
           retention-days: 30
       - name: Upload portability result
         if: always() && steps.check.outputs.skip != 'true'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: portability-${{ matrix.app }}
           path: results/portability.json
@@ -1065,7 +1209,7 @@ jobs:
     if: always()
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: artifacts
 

@@ -289,10 +289,10 @@ attacks:
   # sh -c) so the eBPF probe reports comm=ln cleanly, matching the
   # expectedDetection's command=ln field.
   - name: exec-symlink-etc-shadow
+    successIndicators: [{ responseContains: "/etc/shadow" }]
     type: cmdinject
     exec:
-      command: ["ln", "-sf", "/etc/shadow", "/tmp/bob_shadow_link"]
-    successIndicators: []
+      command: ["sh", "-c", "ln -sf /etc/shadow /tmp/bob_shadow_link && readlink /tmp/bob_shadow_link"]
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched
@@ -407,6 +407,7 @@ attacks:
     expectedDetections:
       - { ruleID: R0008, ruleName: Read Environment Variables from procfs, containerName: client, command: cat }
   - name: exec-etc-shadow
+    successIndicators: [{ responseContains: "root:" }]
     type: cmdinject
     exec: { command: ["cat", "/etc/shadow"] }
     expectedDetections:
@@ -445,7 +446,7 @@ attacks:
       - { ruleID: R1008, ruleName: Crypto Mining Domain Communication, containerName: client }
   - name: hardlink-shadow
     type: cmdinject
-    exec: { command: ["sh", "-c", "ln /etc/shadow /dev/shm/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /dev/shm/hl_probe"] }
+    exec: { command: ["sh", "-c", "ln /etc/shadow /tmp/hl_probe >/dev/null 2>&1 && echo hardlink_done; rm -f /tmp/hl_probe"] }
     successIndicators: [{ responseContains: "hardlink_done" }]
     expectedDetections:
       - { ruleID: R1012, ruleName: Hard link created over sensitive file, containerName: client, command: ln }
