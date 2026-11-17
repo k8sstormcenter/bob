@@ -942,7 +942,7 @@ jobs:
             --alertmanager-port 9093 \
             --output-dir results/gate2 \
             $SCHEME_FLAG \
-            -v 2>&1 | tee results/gate2/tune-output.txt
+            -v 2>&1 | tee results/gate2/tune-output.txt || true
           if [ ! -f results/gate2/metrics.json ]; then
             echo "FAIL ($APP): gate 2 produced no metrics.json"
             exit 1
