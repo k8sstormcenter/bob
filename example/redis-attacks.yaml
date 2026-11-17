@@ -501,7 +501,7 @@ attacks:
     successIndicators: [{ responseContains: "socket_probe_ran" }]
     type: cmdinject
     exec:
-      command: ["sh", "-c", "ls -la /var/run/redis/ 2>/dev/null || ls -la /tmp/redis* 2>/dev/null || echo no_socket; echo socket_probe_ran"]
+      command: ["sh", "-c", "{ ls -la /var/run/redis/ 2>/dev/null || ls -la /tmp/redis* 2>/dev/null; } && echo socket_probe_ran"]
     expectedDetections:
       - ruleID: R0001
         ruleName: Unexpected process launched

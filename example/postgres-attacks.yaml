@@ -145,9 +145,9 @@ attacks:
   - name: exec-sa-token-attempt
     type: cmdinject
     exec:
-      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1; echo sa_token_probe_ran"]
+      command: ["sh", "-c", "cat /var/run/secrets/kubernetes.io/serviceaccount/token >/dev/null 2>&1 && echo sa_token_read"]
     successIndicators:
-      - responseContains: "sa_token_probe_ran"
+      - responseContains: "sa_token_read"
     # R0001 only — the exec of `cat` is the unconditional signal. R0006
     # depends on the file actually opening, which doesn't happen when the
     # mount is missing.

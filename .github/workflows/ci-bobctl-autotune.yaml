@@ -101,6 +101,10 @@ jobs:
       - name: Validate all example suites against the current schema
         run: ./scripts/validate-suites.sh bin/bobctl
 
+      - name: Example-suite tests (the release gate runs these too)
+        working-directory: pkg
+        run: go test ./pkg/autotune -run 'TestRabbit|TestAttackSuite' -count=1
+
       - name: Upload bobctl binary
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -176,8 +180,8 @@ jobs:
             contrast_expect: reads-host-files   # accepted type deviations (calibrated from tuned SBoB)
             protocol: redis
             score_threshold: 0
-            # uid 999: /etc/shadow is root:shadow 0640 and protected_hardlinks refuses the link
-            known_mitigated: "exec-etc-shadow persist-hardlink-shadow"
+            # uid 999: /etc/shadow is root:shadow 0640 and protected_hardlinks refuses the link; no unixsocket configured (CVE-2023-45145 n/a)
+            known_mitigated: "exec-etc-shadow persist-hardlink-shadow cve-2023-45145-socket-probe"
           - app: postgres
             functional_tests: example/postgres-functional-tests.yaml
             attack_suite: example/postgres-attacks.yaml
