@@ -26,8 +26,8 @@ on:
         description: fail the job if no R1505 lands on php2shell
         default: "false"
       chart_ver:
-        description: kubescape-operator chart version to install
-        default: 1.41.0-duckling124
+        description: kubescape-operator chart version to install (empty = the promoted latest)
+        default: ""
       na_tag:
         description: override node-agent image tag (empty = chart default)
         default: ""
@@ -47,6 +47,9 @@ permissions:
 concurrency:
   group: php2shell-k3s-rules-${{ github.ref }}
   cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   demo:
@@ -104,7 +107,7 @@ jobs:
             echo "node-agent image override: $NA_TAG ${NA_DIGEST:-(no digest)}"
           fi
           [ "${{ github.event.inputs.log_level }}" = "debug" ] && EXTRA="$EXTRA --set logger.level=debug"
-          make kubescape KUBESCAPE_CHART_VER=${{ github.event.inputs.chart_ver || '1.41.0-duckling119' }} KS_EXTRA="$EXTRA"
+          make kubescape ${{ github.event.inputs.chart_ver && format('KUBESCAPE_CHART_VER={0}', github.event.inputs.chart_ver) || '' }} KS_EXTRA="$EXTRA"
           make alertmanager
 
       - name: Wait for node-agent FULLY running, pre-load the rule, then settle

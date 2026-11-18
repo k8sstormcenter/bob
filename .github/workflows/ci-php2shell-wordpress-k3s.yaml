@@ -18,8 +18,8 @@ on:
         description: command to land via system() (<=14 bytes)
         default: id>uploads/p
       chart_ver:
-        description: kubescape-operator chart version to install
-        default: 1.41.0-duckling129
+        description: kubescape-operator chart version to install (empty = the promoted latest)
+        default: ""
 
 permissions:
   contents: read
@@ -28,6 +28,9 @@ concurrency:
   group: php2shell-wordpress-k3s-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  GH_TOKEN: ${{ github.token }}
+
 jobs:
   demo:
     name: WordPress + loadgen, exploit & read detection on in-runner k3s
@@ -35,7 +38,7 @@ jobs:
     timeout-minutes: 60
     env:
       COMMAND: ${{ github.event.inputs.command || 'id>uploads/p' }}
-      CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling129' }}
+      CHART_VER: ${{ github.event.inputs.chart_ver }}
     steps:
       - name: Checkout (with sealed exploit submodule)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -69,7 +72,7 @@ jobs:
       - name: Install kubescape (our chart) + alertmanager
         run: |
           set -euo pipefail
-          make kubescape KUBESCAPE_CHART_VER=$CHART_VER
+          make kubescape ${CHART_VER:+KUBESCAPE_CHART_VER=$CHART_VER}
           make alertmanager
 
       - name: Wait for node-agent fully running, pre-load the SBoB, then settle
