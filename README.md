@@ -8,6 +8,14 @@ All trademarks are expressly reserved.
 
 🚨 Newly released: the counterpart [Sovereign-SOC-Chart](https://github.com/k8sstormcenter/soc/blob/main/skaffold.yaml) that contains the (alpha) runtime security stack, for which this tool is built.
 
+### 🗺️ Roadmap — coming soon
+
+| | Feature | When |
+|---|---|---|
+| 1 | MCP server: produce an SBOB for your own application | soon |
+| 2 | Signature fragment release of node-agent | ~January 2027 (fork and open PR to upstream) |
+| 3 | Auto-suggestion of SBOBs from discovery in a live cluster | TBD |
+
 # Software Bill of Behavior SBOB 
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/k8sstormcenter/bob/badge)](https://scorecard.dev/viewer/?uri=github.com/k8sstormcenter/bob) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16510/badge)](https://www.bestpractices.dev/projects/16510)
