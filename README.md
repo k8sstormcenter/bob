@@ -13,7 +13,7 @@ All trademarks are expressly reserved.
 | | Feature | When |
 |---|---|---|
 | 1 | MCP server: produce an SBOB for your own application | soon |
-| 2 | Signature fragment release of node-agent | ~January 2027 |
+| 2 | Signature fragment release of node-agent | ~January 2027 (fork and open PR to upstream) |
 | 3 | Auto-suggestion of SBOBs from discovery in a live cluster | TBD |
 
 # Software Bill of Behavior SBOB 
