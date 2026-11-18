@@ -11,7 +11,7 @@ name: CI - php2shell k3s TWIN (SBoB vs rule, shadow diff)
 # Both get the same image (built once, imported once), the same exploit, the same
 # node-agent. Then we dump BOTH observed/shadow ContainerProfiles and diff them, to
 # answer: do two identical workloads detect the same way, and are their shadows equal?
-# Native k3s on the runner VM + the fallback-informer node-agent (chart duckling124),
+# Native k3s on the runner VM + the fallback-informer node-agent (the promoted chart),
 # because the GitHub Azure-kernel runner's fanotify add-hook is blind (see
 # MEMORY-CORRUPTION... / node-agent fallback).
 
@@ -19,8 +19,8 @@ on:
   workflow_dispatch:
     inputs:
       chart_ver:
-        description: kubescape-operator chart (pins the fallback node-agent)
-        default: 1.41.0-duckling124
+        description: kubescape-operator chart (empty = the promoted latest)
+        default: ""
       command:
         description: command to land via system() (<=14 bytes)
         default: id>/tmp/p2s
@@ -34,6 +34,9 @@ permissions:
 concurrency:
   group: php2shell-k3s-twin-${{ github.ref }}
   cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   twin:
@@ -70,7 +73,7 @@ jobs:
       - name: Install kubescape (fallback node-agent) + alertmanager FIRST
         run: |
           set -euo pipefail
-          make kubescape KUBESCAPE_CHART_VER=${{ github.event.inputs.chart_ver || '1.41.0-duckling124' }}
+          make kubescape ${{ github.event.inputs.chart_ver && format('KUBESCAPE_CHART_VER={0}', github.event.inputs.chart_ver) || '' }}
           make alertmanager
 
       - name: Wait for node-agent FULLY running, pre-load SBoB + rule, settle
