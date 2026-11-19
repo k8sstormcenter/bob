@@ -21,41 +21,41 @@ The evidence that decided each status comes with it. A green run leaves the comp
 
 ## Example: did the nginx upgrade actually close nginx2root?
 
-On 2026-11-18 nginx fixed five HTTP/2 vulnerabilities that allow unauthenticated code execution in the worker process (CVE-2026-123007 and four related CVEs). Rapid7 published a reproduction. This is the requirement the advisory turns into:
+On 2026-11-18 nginx fixed five memory-safety bugs. The headline one, CVE-2026-123007, is an HTTP/2 flow-control overflow that an unauthenticated client can use to crash a worker or, under harder conditions, run code as the worker user. A second bug, CVE-2026-123633, affects HTTP/2 reverse proxies. Fixed in 1.31.9 and 1.30.7.
+
+A crash and code execution are different outcomes for a maintainer: a restarting worker versus an attacker inside the cluster. The requirement keeps them apart, and each line is something observable at runtime:
 
 ```yaml
 - id: CVE-2026-123007
   container: nginx
-  observed:                                   # must all hold, or the result is NOT_OBSERVED
-    - wire:    { proto: http2, tls: true }    # the tests used the vulnerable path
+  applies:                                  # the advisory's preconditions, seen on the live system
+    - spec:    { version: '>=1.9.5 <1.30.7 || >=1.31.0 <1.31.9' }
+    - wire:    { proto: http2, tls: true }  # the tests used the vulnerable path
+  observed:
     - probe:   { reproduce: CVE-2026-123007, reached: decision-point }
-    - profile: { baseline: learned }          # normal behaviour known before the probe
-  violated:                                   # any match is a finding
-    - spec:    { version: '>=1.9.5 <1.30.7 || >=1.31.0 <1.31.9' }  # affected build running
-    - probe:   { reproduce: CVE-2026-123007, succeeded: true }
-    - log:     { message: 'exited on signal' }                    # worker crashed
-    - runtime: { exec: {not: [/usr/sbin/nginx]} }                 # worker started a program
-    - runtime: { write: {not: ['/var/cache/nginx/*', '/var/log/nginx/*']} }
-    - runtime: { egress: {not: [backends]} }                      # talked to anything but its upstreams
-    - runtime: { socket: AF_SCTP }                                # the advisory's step to host root
-  host:                                       # the advisory's mitigations, checked on the node
-    - aslr: full
-    - kernel_module: { sctp: not-loadable }
-    - spec: { run_as: {not: root} }
+  violated:
+    denial-of-service:                      # the worker dies
+      - log:     { message: 'worker process .* exited on signal' }
+      - kernel:  { trap: [segfault, general protection], process: nginx }
+      - runtime: { capability: CAP_SETUID, outside: startup }      # the master respawning a worker
+    code-execution:                         # the worker does what nginx never does
+      - runtime: { exec: {not: [/usr/sbin/nginx]}, parent: nginx }
+      - runtime: { write: {not: ['/var/cache/nginx/*', '/var/log/nginx/*']} }
+      - runtime: { egress: {not: [upstreams, dns]} }
+    host-takeover:                          # the advisory's chain to root
+      - runtime: { socket: AF_SCTP }
+      - runtime: { kernel_module: sctp }
 ```
 
-First lab run: two Argo CD instances, each behind an nginx HTTP/2 reverse proxy, one on 1.31.8 and one on 1.31.9. The same tests and the same published crash trigger ran against both.
+First lab run, crash trigger only (code execution needs AVX-512, which the lab CPUs lack):
 
-| Check | 1.31.8 | 1.31.9 |
+| Impact | 1.31.8 | 1.31.9 |
 |---|---|---|
-| affected version running | **yes** | no |
-| HTTP/2 path exercised | yes | yes |
-| reproduction reached its decision point | yes | yes |
-| reproduction succeeded | **worker crash (signal 11)** | no, connection reset |
-| program started, writes, egress, SCTP | not evaluable: baseline not yet learned | not evaluable: baseline not yet learned |
-| **Status** | **VIOLATED** | **NOT_OBSERVED** until the baseline rerun |
+| denial of service | **VIOLATED**: kernel trap in the worker, `exited on signal 11`, respawn | **COMPLIANT**: connection reset before the overflow, no crash, 2 of 2 |
+| code execution | NOT_OBSERVED: not reached in this run | NOT_OBSERVED |
+| host takeover | NOT_OBSERVED | NOT_OBSERVED |
 
-The fixed build isn't COMPLIANT yet, on purpose. Without a learned baseline, the runtime checks can't tell normal start-up from a compromised worker, so the result says so instead of passing. Code execution itself needs AVX-512 hardware, which the lab doesn't have; that run comes next. Details: [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
+So the maintainer learns two things: the upgrade removed the crash on the exercised path, and code execution hasn't been tested yet. A green result would have hidden that difference. The code-execution run follows on AVX-512 hardware. Evidence, line by line: [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
 
 ## How an advisory becomes a requirement
 
@@ -65,11 +65,10 @@ The fixed build isn't COMPLIANT yet, on purpose. Without a learned baseline, the
    | From the advisory | Becomes |
    |---|---|
    | affected and fixed versions | the version check |
-   | preconditions (here: HTTP/2 on a TLS listener) | `observed`: the tests must exercise exactly that path, or the result is NOT_OBSERVED |
-   | impact (here: code execution as the worker user) | `violated`: what that process must never do (start programs, write outside its directories, connect anywhere new, crash) |
+   | preconditions (here: affected version, HTTP/2 on a TLS listener) | `applies`: checked on the live system; the tests must exercise exactly that path, or the result is NOT_OBSERVED |
+   | impact, split by outcome (here: crash, code execution as the worker user) | `violated`, one group per outcome: what the process does when it happens (dies and is respawned; starts programs, writes outside its directories, connects anywhere new) |
    | known chains (here: SCTP to reach root) | `violated`: the chain's first step |
-   | mitigations (here: ASLR) | `host`: checked on the node |
-   | published reproduction | `probe`: run before and after, with its own success indicator |
+      | published reproduction | `probe`: run before and after, with its own success indicator |
 
 3. **Draft, then review.** The harness drafts the block from these fields. The maintainer reviews it and commits it next to the tests.
 4. **Run before and after the fix.** VIOLATED on the affected build, COMPLIANT on the fixed one, with the evidence for both.
@@ -83,7 +82,7 @@ The fixed build isn't COMPLIANT yet, on purpose. Without a learned baseline, the
 | `wire` | endpoints, methods and status codes inside TLS; WebSockets; PII in bodies; JWT scopes; TLS version and key-exchange group; resets and retries | Pixie |
 | `k8sapi` | which component calls which Kubernetes API verb, read from the traffic, not an audit log | Pixie |
 | `spec` / `rbac` | image digests, security context, granted vs. used permissions | cluster API |
-| `probe` / `log` | the harness's own requests and reproductions; container log lines | harness |
+| `probe` / `log` / `kernel` | the harness's own requests and reproductions; container log lines; kernel traps on the node | harness |
 
 ## How it runs
 
