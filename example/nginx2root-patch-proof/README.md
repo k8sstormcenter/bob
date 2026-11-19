@@ -23,7 +23,7 @@ Worked example for [`docs/proposals/sbob-coverage.md`](../../docs/proposals/sbob
 
 ## Advisory indicators → what we observed
 
-Neither the vendor nor the researchers publish hashes, domains or IPs for this one. Exploitation is protocol-driven, so the indicators are behavioural. Each row is one indicator, the runtime observable it maps to, and what the run produced.
+Neither the vendor nor the researchers publish hashes, domains or IPs for this one. The attack is protocol-driven, so the indicators are behavioural. Each row is one indicator, the runtime observable it maps to, and what the run produced.
 
 | Indicator | Observable | Source | 1.31.8 | 1.31.9 |
 |---|---|---|---|---|
