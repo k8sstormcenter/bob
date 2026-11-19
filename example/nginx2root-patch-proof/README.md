@@ -5,77 +5,52 @@ Licensed under the Apache License, Version 2.0; see LICENSE.
 All trademarks are expressly reserved.
 -->
 
-# Case study: proving an nginx patch with a coverage requirement
+# nginx2root: before/after evidence
 
-This is the worked example for [`docs/proposals/sbob-coverage.md`](../../docs/proposals/sbob-coverage.md). It shows a before/after check: one requirement, evaluated against an affected and a fixed build, gives a maintainer evidence that an upgrade removed the effect of a published vulnerability on the path their tests exercise.
-
-## The advisory
-
-On 2026-11-18 nginx fixed five vulnerabilities in its HTTP/2 implementation that allow unauthenticated remote code execution (CVE-2026-123007 and four related CVEs; fixed in 1.31.9 and 1.30.7). Rapid7 published a reproduction: a crash-level trigger and a full code-execution proof of concept ([sfewer-r7/CVE-2026-123007](https://github.com/sfewer-r7/CVE-2026-123007)).
+Worked example for [`docs/proposals/sbob-coverage.md`](../../docs/proposals/sbob-coverage.md). The requirement is in the proposal; this page has the setup and every piece of evidence behind each status.
 
 ## Setup
 
-| | A (affected) | B (fixed) |
+| | affected | fixed |
 |---|---|---|
-| Namespace | `argocd-nginx-a` | `argocd-nginx-b` |
-| Application | Argo CD v3.6.1 (namespace install) | Argo CD v3.6.1 (namespace install) |
-| Reverse proxy | `nginx:1.31.8@sha256:165ddde8…` | `nginx:1.31.9@sha256:08f354a3…` |
-| nginx config | 4 workers, `listen 443 ssl`, `http2 on`, static root, `location /argocd/` → Argo CD API server | identical |
+| nginx | `1.31.8@sha256:165ddde8…` | `1.31.9@sha256:08f354a3…` |
+| behind it | Argo CD v3.6.1 | Argo CD v3.6.1 |
+| config | 4 workers, `listen 443 ssl`, `http2 on`, `location /argocd/` → Argo CD API server | identical |
 
-- **Cluster:** a three-node k3s lab cluster (AMD EPYC-Rome), with Kubescape for runtime observation and Pixie for protocol tracing.
-- **Reproduction:** Rapid7's published crash trigger, unmodified. It runs from a sidecar container inside the nginx pod and talks to nginx over loopback (`https://127.0.0.1:443/`). A and B use the same method.
-- **Why the crash trigger, not RCE:** the full code-execution path needs AVX-512 on the CPU running nginx, and the lab CPUs don't have it. The success indicator is therefore an nginx worker exiting on a signal.
+- **Cluster:** three-node k3s lab (AMD EPYC-Rome) with Kubescape and Pixie.
+- **Reproduction:** Rapid7's published crash trigger ([sfewer-r7/CVE-2026-123007](https://github.com/sfewer-r7/CVE-2026-123007)), unmodified, run over loopback from a sidecar in the nginx pod. Same method on both builds.
+- **Not covered:** code execution. Rapid7's code-execution path needs AVX-512, which these CPUs lack. That run follows on AVX-512 hardware.
 
-## The requirement
+## Advisory indicators → what we observed
 
-```yaml
-requirements:
-  - id: COV-0101
-    summary: the HTTP/2 path is exercised and the published reproduction has no effect
-    observed:
-      - source: wire
-        dst_workload: nginx
-        proto: http2
-        encrypted: 1
-        what: requests reached nginx over HTTP/2 with TLS
-      - source: probe
-        reproduce: CVE-2026-123007
-        what: the published reproduction ran against this build
-    violated:
-      - source: probe
-        reproduce: CVE-2026-123007
-        succeeded: true
-        broken: the reproduction reached its success indicator
-        fix: upgrade nginx to 1.31.9 or 1.30.7
-      - source: log
-        workload: nginx
-        message: {regex: 'worker process [0-9]+ exited on signal'}
-        broken: an nginx worker died on a signal while the reproduction ran
-        fix: upgrade nginx to 1.31.9 or 1.30.7
-```
+Neither the vendor nor the researchers publish hashes, domains or IPs for this one. Exploitation is protocol-driven, so the indicators are behavioural. Each row is one indicator, the runtime observable it maps to, and what the run produced.
 
-## Results (2026-11-19)
+| Indicator | Observable | Source | 1.31.8 | 1.31.9 |
+|---|---|---|---|---|
+| **denial of service:** worker crash | nginx master logs a worker exit on a signal | `log` | `16:06:18 [alert] worker process 9 exited on signal 11 (core dumped)` | none |
+| | kernel trap in an nginx process | `kernel` | `16:06:18 traps: nginx[371959] general protection fault … in libc.so.6` | none |
+| | master respawns a worker outside start-up (privilege drop) | `runtime` (capability) | `CAP_SETUID` at 16:06:18 | only during pod start-up |
+| reproduction reached its decision point | the reproduction's own success markers | `probe` | "cleanup over-credit confirmed", then "worker crashed", exit 0 | connection reset by nginx after ~17 s, before the overflow; exit 1 (2 of 2) |
+| unusually large single HTTP/2 flow (tens of GB inbound, minutes long) | bytes and duration per connection | `wire` | not evaluable: the loopback connection was seen, its bytes were not | not evaluable |
+| **code execution:** worker starts a program | process launched by an nginx worker | `runtime` | none during the trigger (start-up `sh`/`openssl` only) | same |
+| worker writes outside its directories | file write | `runtime` | none during the trigger | none |
+| worker connects somewhere new | egress | `runtime` / `wire` | none during the trigger (DNS at start-up only) | same |
+| **host takeover:** SCTP use from the worker | SCTP socket, `sctp` module load | `runtime` | not reached | not reached |
 
-| | A, nginx 1.31.8 | B, nginx 1.31.9 |
+| Impact | 1.31.8 | 1.31.9 |
 |---|---|---|
-| HTTP/2 path exercised (`curl --http2`, direct and via `/argocd/`) | yes | yes |
-| Reproduction ran | yes, 1 attempt | yes, 2 attempts |
-| Reproduction's own success markers | both reported | none |
-| nginx error log | `worker process 9 exited on signal 11 (core dumped)` | no worker exit |
-| Client outcome | trigger completed | connection reset after about 17 s, before the faulty accounting is reached |
-| Pod restarts | 0 (nginx respawned the worker) | 0 |
-| **COV-0101** | **VIOLATED** | **COMPLIANT** |
+| denial of service | **VIOLATED** | **COMPLIANT** |
+| code execution | NOT_OBSERVED (not reached) | NOT_OBSERVED |
+| host takeover | NOT_OBSERVED | NOT_OBSERVED |
 
-The requirement draws one statement from both runs: the HTTP/2 path was exercised, the published reproduction worked on the affected build, and it has no effect on the fixed build. Kept in CI, the same requirement is a regression check for every later nginx bump.
+## Reading the evidence
 
-## What this proves, and what it doesn't
+- **Three independent sources agree on the crash:** nginx's log, the kernel, and the runtime sensor's view of the respawn. Any one could have another cause; all three in the same second, during the reproduction, on the affected build only, are a crash caused by the reproduction.
+- **The crash leaves no code-execution traces.** During the trigger no program was launched, no file written and no connection opened. That separates "a worker died" (a restart, a short outage) from "a worker was taken over" (an attacker inside the cluster). It is also why code execution stays NOT_OBSERVED instead of COMPLIANT: it was never reached, so nothing about it is proven.
+- **Start-up noise is separated by time.** Both builds show the same start-up behaviour (`sh`, `openssl`, config reads, DNS, the privilege drop). Only events after start-up count. A profile learned before the reproduction makes that automatic.
 
-- It proves the upgrade removed the crash on the exercised HTTP/2 path, with the same configuration and the same reproduction on both builds.
-- It doesn't prove code execution was possible before the patch. That needs the full proof of concept on AVX-512 hardware, which is the next run.
-- It doesn't replace the vendor advisory. It shows that this deployment, as tested, no longer behaves as the advisory describes.
+## Limits of this run
 
-## Lessons for the harness
-
-1. **The delivery path matters.** Through a NodePort, to a pod IP over the cluster network, and from a client pod, the reproduction stalled in all three cases before reaching nginx's faulty code. Only loopback inside the pod reproduced it. A reproduction that never reaches the code proves nothing either way, so the `observed` predicate on the probe has to check that it ran to its decision point.
-2. **Crash and code execution need different indicators.** A crash leaves a worker exit in nginx's own log and no new process. Code execution leaves a process started by the worker and file writes, which the runtime sensor sees directly. The requirement lists both.
-3. **Learn the baseline before probing.** Runtime detections only separate the two builds once the proxy's normal behaviour is learned. In this run the nginx pods were younger than the sensor's learning window, so their detections reflected start-up and test traffic on both builds alike, and they aren't used as evidence here. The next run learns the baseline first.
+- **Traffic volume wasn't measurable.** The reproduction only reached the bug over loopback inside the pod. Over a NodePort, a pod IP or a client pod it stalled before the faulty code. Loopback traffic was visible as a connection, but its byte counts and HTTP/2 content were not, so the "huge single flow" indicator is not evaluable here.
+- **No core dump was kept**, because the node has no core-dump collector.
+- **No CPU or memory series**: the cluster keeps no metrics history.
