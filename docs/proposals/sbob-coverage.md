@@ -23,21 +23,9 @@ Status: draft · Pilot: Argo CD
 - which hosts it talked to, and whether that traffic was encrypted;
 - which Linux capabilities and Kubernetes API permissions it actually used.
 
-That is the security-relevant part of a component, and the part integration tests are least checked against. Argo CD, for example, already builds its e2e binaries with `-cover` and uploads e2e line coverage. Nothing tells its maintainers whether e2e ever made the repo-server run `helm` against an OCI source, or whether a component read a Secret it never needs.
+That is the security-relevant part of a component. Today's tooling measures it rarely, because it was hard to observe without changing the software under test. A runtime sensor observes it from the outside, with no rebuild and no instrumentation.
 
-**Charts grant more than components use.** We rendered the default Helm charts of 22 CNCF graduated projects (94 workloads):
-
-| Granted by default | Workloads |
-|---|---|
-| ServiceAccount token mounted | 78 |
-| can read Secrets cluster-wide | 27 |
-| can create pods / deployments | 25 |
-| can write webhook configurations | 23 |
-| can write RBAC | 16 |
-| `pods/exec` | 14 |
-| writable root filesystem | 41 |
-
-Some of these are needed; most were never measured. A test run that passes without using a grant is the evidence a maintainer needs to drop it.
+**Grants are decided without measurements.** A Helm chart has to grant whatever its users might need, and maintainers rarely have data on which grants their own tests exercise. A test run that passes without using a grant gives a maintainer that data, so they can decide with evidence whether to keep it.
 
 ## What a maintainer writes
 
@@ -128,8 +116,8 @@ The action can also attach to a k3s the workflow already installed. k3s is insta
 
 ## Pilot: Argo CD
 
-- Argo CD's CI already installs k3s, but runs the Argo CD components as host processes. A container-scoped sensor can't see host processes.
-- Argo CD's own `test/remote` path runs the same e2e suite against an in-cluster install (`ARGOCD_E2E_REMOTE=true`, namespace `argocd-e2e`). The pilot uses that path, starting with the helm, kustomize, git, repository-credential and OCI tests, which drive the repo-server.
+- Argo CD is a good pilot because it has a broad e2e suite, already runs it on k3s, and ships a supported mode for running it against an in-cluster install.
+- The pilot uses that mode (`test/remote`, `ARGOCD_E2E_REMOTE=true`, namespace `argocd-e2e`), so a runtime sensor observes the components as pods. It starts with the helm, kustomize, git, repository-credential and OCI tests, which drive the repo-server.
 - Phase 1 needs no fork: a workflow in this repository checks out an Argo CD release tag and runs everything. A fork is used later only to show maintainers the pull-request experience.
 
 ## Milestones
