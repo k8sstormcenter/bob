@@ -7,55 +7,56 @@ All trademarks are expressly reserved.
 
 # nginx2root: before/after evidence
 
-Worked example for [`docs/proposals/sbob-coverage.md`](../../docs/proposals/sbob-coverage.md). The requirement is in the proposal; this page has the setup and every piece of evidence behind each status.
+Worked example for [`docs/proposals/sbob-coverage.md`](../../docs/proposals/sbob-coverage.md). The requirement is in the proposal; this page has the evidence behind each status.
 
 ## Result
 
+On nginx 1.31.8, an unauthenticated HTTP/2 client made the nginx worker run a program inside a Kubernetes pod, and the runtime sensor saw it. On 1.31.9, nothing of that happened.
+
 | Impact | nginx 1.31.8 | nginx 1.31.9 |
 |---|---|---|
-| denial of service | **VIOLATED**: worker killed in both environments | **COMPLIANT**: the crash reproduction is refused before the overflow |
-| information disclosure | **VIOLATED**: 14,393 bytes of worker memory leaked to an unauthenticated client | not engaged |
-| code execution | **NOT_OBSERVED**: attempted twice on AVX-512 hardware, did not complete | not engaged |
-| host takeover | NOT_OBSERVED | NOT_OBSERVED |
+| code execution | **VIOLATED**: worker started `sh` → `touch`, uid 101; caught by Kubescape | **COMPLIANT**: the published reproduction recognises the fixed build and does not start |
+| information disclosure | **VIOLATED**: worker memory leaked, enough to defeat ASLR | COMPLIANT |
+| denial of service | **VIOLATED**: workers abort or segfault | **COMPLIANT**: the crash reproduction is refused before the overflow |
+| host takeover | NOT_OBSERVED: not attempted | NOT_OBSERVED |
 
-For a maintainer: on the affected build, any client could crash workers and read worker memory. Code execution was not reproduced here, which is not the same as impossible. The upgrade removed the crash.
+## What must not be seen again after the patch
 
-## Two environments
+These are the observations from the affected build. They are what the requirement keeps watching for on every later build.
 
-| | Environment 1 | Environment 2 |
+| Observation on 1.31.8 | Source | Evidence |
 |---|---|---|
-| cluster | three-node k3s, AMD EPYC-Rome (no AVX-512) | kind, Intel Xeon with AVX-512 |
-| nginx | `1.31.8` / `1.31.9`, config with `location /argocd/` → Argo CD API server | Rapid7's reference image digest for 1.31.8 / amd64 1.31.9, Rapid7's config verbatim |
-| reproduction | Rapid7's crash trigger | Rapid7's code-execution PoC, marker command `touch /tmp/sbob-proof-<run>` |
-| baseline | none (pods younger than the learning window) | nginx profile learned before each attempt, then a freshly started pod |
+| **a program started by an nginx worker** | runtime (Kubescape R0001) | `Unexpected process launched: touch`, 22:16:31.804Z, profile `completed` before the attempt. Process tree: `nginx` master (uid 0) → `nginx` worker → `/bin/sh -c -- touch /tmp/sbob-proof-A-plain-1` (uid 101) → `/usr/bin/touch` (uid 101) |
+| **a file created by the worker outside its directories** | runtime (Kubescape R0002) + marker | `touch` opened `/tmp/sbob-proof-A-plain-1` with `O_WRONLY\|O_CREAT` at 22:16:31.806Z; independent `stat`: `101:101 644` |
+| **worker memory sent to the client** | reproduction | 14,393-byte disclosure, from which ASLR was resolved |
+| **heap corruption** | nginx log | `double free or corruption (!prev)` |
+| **a worker dying** | nginx log, kernel | `worker process 15 exited on signal 6 (core dumped)` (22:16:34); other runs: `signal 11`, with a kernel general-protection fault in `libc.so.6` |
+| new egress from the worker | runtime | none: the payload ran a local command only |
 
-Both used the published code unmodified ([sfewer-r7/CVE-2026-123007](https://github.com/sfewer-r7/CVE-2026-123007)), over loopback from a sidecar in the nginx pod. Over a NodePort, a pod IP or a client pod, it stalled before reaching the bug.
+The sensor alert came 1.8 ms before the marker file's timestamp, against a profile learned before the attempt. No other alert on the nginx container came from the attack. Our own `kubectl exec` marker checks raised alerts too (`stat`, `runc` init, `CAP_SETUID`); the requirement discounts processes started by `exec`.
 
-## Indicators → evidence
+## How it was run
 
-Neither the vendor nor the researchers publish hashes, domains or IPs for this one. The attack is protocol-driven, so the indicators are behavioural.
+| | Code-execution run | Crash run |
+|---|---|---|
+| cluster | kind, one node, Intel Xeon with AVX-512 | three-node k3s, AMD EPYC-Rome (no AVX-512) |
+| sensor | Kubescape, chart from `soc` `lts` | Kubescape and Pixie |
+| nginx | Rapid7's reference 1.31.8 image / 1.31.9 amd64; Rapid7's config | 1.31.8 / 1.31.9; config with `location /argocd/` → Argo CD API server |
+| reproduction | Rapid7's code-execution PoC, marker `touch /tmp/sbob-proof-<run>` | Rapid7's crash trigger |
+| attempts | 1.31.8: 1 of 1 succeeded; 1.31.9: refused 2 of 2 | 1.31.8: crash; 1.31.9: reset 2 of 2 |
 
-| Indicator | Observable (source) | 1.31.8 | 1.31.9 |
-|---|---|---|---|
-| **denial of service** | worker exit on a signal (`log`) | env 1: `worker process 9 exited on signal 11 (core dumped)`; env 2: `worker process 17 exited on signal 6 (core dumped)`, twice | none |
-| | heap corruption detected by glibc (`log`) | env 2: `double free or corruption (!prev)`, twice | none |
-| | kernel trap in nginx (`kernel`) | env 1: `nginx[371959] general protection fault … in libc.so.6`. env 2: none, because an abort is not a kernel fault | none |
-| | master respawning a worker outside start-up (`runtime`, capability) | env 1: `CAP_SETUID` at the crash second | none |
-| **information disclosure** | the reproduction reports leaked memory (`probe`) | env 2: `captured 14393-byte memory disclosure`, twice | — |
-| reproduction reached the bug | the reproduction's own markers (`probe`) | env 1: "cleanup over-credit confirmed"; env 2: "vulnerable cleanup observed", twice | env 1: connection reset by nginx after ~17 s, 2 of 2; env 2: the PoC refused to start (its fingerprint doesn't match 1.31.9), 2 of 2 |
-| **code execution** | marker file written by the worker, uid 101 (`probe`, independent `stat`) | absent in both env 2 attempts: the PoC's leak did not match its heap profile ("0 candidates") | — |
-| | program launched by a worker; write outside its directories; new egress (`runtime`) | none from the worker in any run | none |
-| **host takeover** | SCTP use from the worker (`runtime`) | not reached; `sctp` module not loaded on either host | — |
+Both used the published code unmodified ([sfewer-r7/CVE-2026-123007](https://github.com/sfewer-r7/CVE-2026-123007)), over loopback from a sidecar in the nginx pod. The nginx profile was learned before each attempt, and the attempt ran against a freshly started pod.
 
-## What the sensors did and didn't see
+## What it took to reproduce
 
-- **Crash and corruption are visible only in nginx's own log, plus the kernel when the fault is a trap.** In-process heap corruption, and a worker aborting on it, trigger no runtime-sensor rule. That's expected: nothing new is executed, opened or connected. The requirement therefore reads the `log` and `kernel` sources for denial of service.
-- **Every runtime alert on the nginx container in environment 2 came from the harness itself**: the `kubectl exec` used for the marker checks (`stat`, `runc` init, its capability set). The requirement must discount processes started by `exec`, as the evaluator already does for architecture checks.
-- **The memory disclosure is visible only to the reproduction.** No sensor sees bytes leaving in an HTTP/2 response as a leak. That makes `probe` the source for it.
-- **Code-execution indicators were silent in every run, which matches the outcome.** They would be the decisive ones if the final stage had succeeded.
+- **Hardware.** The published code-execution path needs AVX-512 on the CPU running nginx.
+- **Loopback.** Through a NodePort, a pod IP or a client pod the reproduction stalled before the bug.
+- **A pod that looks like the reference container.** Two earlier attempts in Kubernetes reached the memory leak but not code execution: the leak matched none of the PoC's heap-layout candidates. The same host reproduced it in plain Docker on the first try. In Kubernetes it worked once three differences were removed: two requests sent to the fresh worker before the attempt, a long pod hostname (nginx keeps it on its heap), and service-link environment variables.
+
+For a maintainer this also means: a failed reproduction proves little. The requirement reports a reproduction that didn't reach its decision point as NOT_OBSERVED, never as COMPLIANT.
 
 ## Limits
 
-- Code execution was not reproduced. The PoC's final stage depends on a heap profile from its authors' test host, and the leak on our hosts matched no candidate. A different host, or the PoC's standalone Docker recipe, may behave differently.
-- On 1.31.9 the code-execution PoC doesn't engage, so the fixed-build negative comes from the crash reproduction in environment 1.
+- Host takeover through the advisory's SCTP chain was not attempted. `sctp` was not loaded on any lab host.
+- On the fixed build, the code-execution reproduction declines to start, so its negative is "recognised as fixed". The crash reproduction gives the behavioural negative: nginx resets the connection before the overflow.
 - Traffic volume per connection was not measurable over loopback.
