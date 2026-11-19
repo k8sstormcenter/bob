@@ -76,11 +76,13 @@ The report compares the run against the maintainer's declared intent, not agains
 | shared objects loaded (which `.so` files, which versions) | Kubescape application profile |
 | syscalls, Linux capabilities used | Kubescape application profile |
 | network peers, DNS names, ports | Kubescape network neighborhood |
-| Kubernetes API calls per component | k3s audit log |
-| RBAC granted vs. used | rendered chart + audit log |
+| Kubernetes API calls per component (resource, verb, scope, watch, exec) | Pixie protocol tracing of each component's own connection to the API server (HTTP/2 and WebSocket inside TLS) |
+| RBAC granted vs. used | rendered chart + traced API calls |
 | connection is TLS vs. plaintext | handshake classification |
 | HTTP/gRPC endpoints, methods, status codes, inside TLS | Pixie protocol tracing |
 | WebSocket sessions and messages | Pixie protocol tracing |
+
+Kubernetes API calls are read from the traffic itself, not from the API server's audit log. That attributes every call to the exact pod and container that made it, including watch streams and WebSocket `exec`/`port-forward` sessions. It also needs no audit policy on the API server, so it works the same on a runner's k3s and on a managed cluster.
 
 ### Inside the encrypted traffic
 
@@ -100,7 +102,7 @@ Each of these can be written as `expect` or `forbid` lines (for example: "no PII
 
 ```
 GitHub-hosted runner
- ├─ k3s, installed natively, with Kubescape runtime observation and a k3s audit policy
+ ├─ k3s, installed natively, with Kubescape runtime observation and Pixie protocol tracing
  ├─ the project installs itself as pods        ← maintainer step
  ├─ the project runs its tests                 ← maintainer step
  └─ report: job summary, JSON, SBoB, exit code
@@ -166,7 +168,7 @@ Reproductions run only in an isolated lab cluster, never on shared CI runners. T
 |---|---|---|
 | M0 | Argo CD remote e2e on k3s under Kubescape | repo-server profile shows `helm`, `kustomize`, `git` |
 | M1 | `CoverageSpec`; `bobctl coverage init` (draft from a run) and `verify` (report) | Argo CD subset report; 10 identical reruns |
-| M2 | GitHub Action; Kubernetes API assertions from the audit log; granted vs. used | another project adopts it in under 15 minutes, with under 5 minutes added CI time |
+| M2 | GitHub Action; Kubernetes API assertions from traced API traffic; granted vs. used | another project adopts it in under 15 minutes, with under 5 minutes added CI time |
 | M3 | Protocol assertions from Pixie: endpoints inside TLS, WebSockets, PII, JWT scopes, TLS parameters, refusals, instability | Argo CD report lists its endpoints, token scopes and TLS groups per peer |
 | M4 | Fork demo with pull-request reports | a pull request in the fork shows covered / gap / violation |
 | M5 | Patch proof: the nginx example above, run in the lab cluster | the before/after report for the affected and fixed nginx builds |
