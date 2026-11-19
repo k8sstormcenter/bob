@@ -23,41 +23,37 @@ The evidence that decided each status comes with it. A green run leaves the comp
 
 On 2026-11-18 nginx fixed five memory-safety bugs. The headline one, CVE-2026-123007, is an HTTP/2 flow-control overflow that an unauthenticated client can use to crash a worker or, under harder conditions, run code as the worker user. A second bug, CVE-2026-123633, affects HTTP/2 reverse proxies. Fixed in 1.31.9 and 1.30.7.
 
-A crash and code execution are different outcomes for a maintainer: a restarting worker versus an attacker inside the cluster. The requirement keeps them apart, and each line is something observable at runtime:
+The maintainer writes two lines — a CVE and a before/after check:
 
 ```yaml
-- id: CVE-2026-123007
-  container: nginx
-  applies:                                  # the advisory's preconditions, seen on the live system
-    - spec:    { version: '>=1.9.5 <1.30.7 || >=1.31.0 <1.31.9' }
-    - wire:    { proto: http2, tls: true }  # the tests used the vulnerable path
-  observed:
-    - probe:   { reproduce: CVE-2026-123007, reached: decision-point }
-  violated:
-    denial-of-service:                      # the worker dies
-      - log:     { message: 'worker process .* exited on signal' }
-      - log:     { message: 'double free or corruption' }          # glibc caught heap corruption
-      - kernel:  { trap: [segfault, general protection], process: nginx }
-      - runtime: { capability: CAP_SETUID, outside: startup }      # the master respawning a worker
-    information-disclosure:                 # worker memory reaches the client
-      - probe:   { reproduce: CVE-2026-123007, stage: memory-disclosure }
-    code-execution:                         # the worker does what nginx never does
-      - runtime: { exec: {not: [/usr/sbin/nginx]}, ancestor: nginx }  # seen: worker → sh → touch, uid 101
-      - runtime: { open: {flags: O_CREAT}, path: {not: ['/var/cache/nginx/*', '/var/log/nginx/*']} }
-      - runtime: { egress: {not: [upstreams, dns]} }
-    host-takeover:                          # the advisory's chain to root
-      - runtime: { socket: AF_SCTP }
-      - runtime: { kernel_module: sctp }
+verify:
+  - cve: CVE-2026-123007      # the fragment comes from the corpus; you don't write it
+    component: nginx
 ```
 
-In a Kubernetes lab, Rapid7's published code-execution proof of concept ran against both builds, with Kubescape watching and the nginx profile learned beforehand:
+The watch-list is **not hand-written**. It is a *subtract fragment* that we distilled once, from running the published exploit on the vulnerable build. The SBoB already has a broad allow-list learned from the tests (nginx serving traffic); the fragment is subtracted from it, across every tracer an SBoB++ carries — processes and files, plus the L7 tracers for HTTP, HTTPS, WebSocket and DNS:
 
-| Impact | 1.31.8 | 1.31.9 |
+```yaml
+# subtract: behaviours seen while CVE-2026-123007 compromised nginx 1.31.8.
+# Alerts only when one recurs inside the allow envelope — i.e. under compromise.
+subtract:
+  exec:  any                 # a reverse-proxy worker starts no program   (seen: worker → sh → touch)
+  files: creates-outside-own # a write outside nginx's own dirs            (seen: /tmp marker, uid 101)
+  http:  response-leaks-memory | single-flow-oversized   # the ASLR leak; the ~120 GiB one-connection flood
+  dns:   name-not-in-baseline            # a lookup the app never makes    (C2 / exfil)
+  ws:    peer-or-message-not-in-baseline # (none for this CVE; the slot exists)
+  egress: peer-not-upstream              # a connection to anywhere new
+  dies:  worker-exits-on-signal          # the crash / DoS outcome, kept separate from compromise
+```
+
+In a Kubernetes lab, the published exploit ran against both builds, nginx profile learned first:
+
+| Outcome | 1.31.8 | 1.31.9 |
 |---|---|---|
-| code execution | **VIOLATED**: the worker started `sh` → `touch` as uid 101; Kubescape alerted 1.8 ms before the file appeared | **COMPLIANT**: the reproduction recognises the fixed build and doesn't start |
-| information disclosure | **VIOLATED**: worker memory leaked, enough to defeat ASLR | COMPLIANT |
-| denial of service | **VIOLATED**: workers abort or segfault after heap corruption | **COMPLIANT**: the crash reproduction is refused before the overflow |
-| host takeover | NOT_OBSERVED: not attempted | NOT_OBSERVED |
+| code execution | **FIRES**: worker started `sh` → `touch` as uid 101, caught 1.8 ms before the file appeared | silent: the exploit won't engage the fixed build |
+| information disclosure | **FIRES**: worker memory left in a response, enough to defeat ASLR | silent |
+| denial of service | **FIRES**: worker aborts after heap corruption | silent: the connection is reset before the overflow |
+| host reach | **FIRES**: a compromised pod read a canary on the node | not reachable |
 
 That is what the maintainer needs to know: on the old build, any client could run commands inside the pod; after the upgrade, nothing in the list happens. The 1.31.8 observations (a program started by the worker, a file it wrote, heap corruption, a dying worker) are exactly what the requirement keeps watching for on every later build. Evidence, line by line: [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
 
