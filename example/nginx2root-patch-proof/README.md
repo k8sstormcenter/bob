@@ -9,48 +9,53 @@ All trademarks are expressly reserved.
 
 Worked example for [`docs/proposals/sbob-coverage.md`](../../docs/proposals/sbob-coverage.md). The requirement is in the proposal; this page has the setup and every piece of evidence behind each status.
 
-## Setup
+## Result
 
-| | affected | fixed |
+| Impact | nginx 1.31.8 | nginx 1.31.9 |
 |---|---|---|
-| nginx | `1.31.8@sha256:165ddde8…` | `1.31.9@sha256:08f354a3…` |
-| behind it | Argo CD v3.6.1 | Argo CD v3.6.1 |
-| config | 4 workers, `listen 443 ssl`, `http2 on`, `location /argocd/` → Argo CD API server | identical |
-
-- **Cluster:** three-node k3s lab (AMD EPYC-Rome) with Kubescape and Pixie.
-- **Reproduction:** Rapid7's published crash trigger ([sfewer-r7/CVE-2026-123007](https://github.com/sfewer-r7/CVE-2026-123007)), unmodified, run over loopback from a sidecar in the nginx pod. Same method on both builds.
-- **Not covered:** code execution. Rapid7's code-execution path needs AVX-512, which these CPUs lack. That run follows on AVX-512 hardware.
-
-## Advisory indicators → what we observed
-
-Neither the vendor nor the researchers publish hashes, domains or IPs for this one. The attack is protocol-driven, so the indicators are behavioural. Each row is one indicator, the runtime observable it maps to, and what the run produced.
-
-| Indicator | Observable | Source | 1.31.8 | 1.31.9 |
-|---|---|---|---|---|
-| **denial of service:** worker crash | nginx master logs a worker exit on a signal | `log` | `16:06:18 [alert] worker process 9 exited on signal 11 (core dumped)` | none |
-| | kernel trap in an nginx process | `kernel` | `16:06:18 traps: nginx[371959] general protection fault … in libc.so.6` | none |
-| | master respawns a worker outside start-up (privilege drop) | `runtime` (capability) | `CAP_SETUID` at 16:06:18 | only during pod start-up |
-| reproduction reached its decision point | the reproduction's own success markers | `probe` | "cleanup over-credit confirmed", then "worker crashed", exit 0 | connection reset by nginx after ~17 s, before the overflow; exit 1 (2 of 2) |
-| unusually large single HTTP/2 flow (tens of GB inbound, minutes long) | bytes and duration per connection | `wire` | not evaluable: the loopback connection was seen, its bytes were not | not evaluable |
-| **code execution:** worker starts a program | process launched by an nginx worker | `runtime` | none during the trigger (start-up `sh`/`openssl` only) | same |
-| worker writes outside its directories | file write | `runtime` | none during the trigger | none |
-| worker connects somewhere new | egress | `runtime` / `wire` | none during the trigger (DNS at start-up only) | same |
-| **host takeover:** SCTP use from the worker | SCTP socket, `sctp` module load | `runtime` | not reached | not reached |
-
-| Impact | 1.31.8 | 1.31.9 |
-|---|---|---|
-| denial of service | **VIOLATED** | **COMPLIANT** |
-| code execution | NOT_OBSERVED (not reached) | NOT_OBSERVED |
+| denial of service | **VIOLATED**: worker killed in both environments | **COMPLIANT**: the crash reproduction is refused before the overflow |
+| information disclosure | **VIOLATED**: 14,393 bytes of worker memory leaked to an unauthenticated client | not engaged |
+| code execution | **NOT_OBSERVED**: attempted twice on AVX-512 hardware, did not complete | not engaged |
 | host takeover | NOT_OBSERVED | NOT_OBSERVED |
 
-## Reading the evidence
+For a maintainer: on the affected build, any client could crash workers and read worker memory. Code execution was not reproduced here, which is not the same as impossible. The upgrade removed the crash.
 
-- **Three independent sources agree on the crash:** nginx's log, the kernel, and the runtime sensor's view of the respawn. Any one could have another cause; all three in the same second, during the reproduction, on the affected build only, are a crash caused by the reproduction.
-- **The crash leaves no code-execution traces.** During the trigger no program was launched, no file written and no connection opened. That separates "a worker died" (a restart, a short outage) from "a worker was taken over" (an attacker inside the cluster). It is also why code execution stays NOT_OBSERVED instead of COMPLIANT: it was never reached, so nothing about it is proven.
-- **Start-up noise is separated by time.** Both builds show the same start-up behaviour (`sh`, `openssl`, config reads, DNS, the privilege drop). Only events after start-up count. A profile learned before the reproduction makes that automatic.
+## Two environments
 
-## Limits of this run
+| | Environment 1 | Environment 2 |
+|---|---|---|
+| cluster | three-node k3s, AMD EPYC-Rome (no AVX-512) | kind, Intel Xeon with AVX-512 |
+| nginx | `1.31.8` / `1.31.9`, config with `location /argocd/` → Argo CD API server | Rapid7's reference image digest for 1.31.8 / amd64 1.31.9, Rapid7's config verbatim |
+| reproduction | Rapid7's crash trigger | Rapid7's code-execution PoC, marker command `touch /tmp/sbob-proof-<run>` |
+| baseline | none (pods younger than the learning window) | nginx profile learned before each attempt, then a freshly started pod |
 
-- **Traffic volume wasn't measurable.** The reproduction only reached the bug over loopback inside the pod. Over a NodePort, a pod IP or a client pod it stalled before the faulty code. Loopback traffic was visible as a connection, but its byte counts and HTTP/2 content were not, so the "huge single flow" indicator is not evaluable here.
-- **No core dump was kept**, because the node has no core-dump collector.
-- **No CPU or memory series**: the cluster keeps no metrics history.
+Both used the published code unmodified ([sfewer-r7/CVE-2026-123007](https://github.com/sfewer-r7/CVE-2026-123007)), over loopback from a sidecar in the nginx pod. Over a NodePort, a pod IP or a client pod, it stalled before reaching the bug.
+
+## Indicators → evidence
+
+Neither the vendor nor the researchers publish hashes, domains or IPs for this one. The attack is protocol-driven, so the indicators are behavioural.
+
+| Indicator | Observable (source) | 1.31.8 | 1.31.9 |
+|---|---|---|---|
+| **denial of service** | worker exit on a signal (`log`) | env 1: `worker process 9 exited on signal 11 (core dumped)`; env 2: `worker process 17 exited on signal 6 (core dumped)`, twice | none |
+| | heap corruption detected by glibc (`log`) | env 2: `double free or corruption (!prev)`, twice | none |
+| | kernel trap in nginx (`kernel`) | env 1: `nginx[371959] general protection fault … in libc.so.6`. env 2: none, because an abort is not a kernel fault | none |
+| | master respawning a worker outside start-up (`runtime`, capability) | env 1: `CAP_SETUID` at the crash second | none |
+| **information disclosure** | the reproduction reports leaked memory (`probe`) | env 2: `captured 14393-byte memory disclosure`, twice | — |
+| reproduction reached the bug | the reproduction's own markers (`probe`) | env 1: "cleanup over-credit confirmed"; env 2: "vulnerable cleanup observed", twice | env 1: connection reset by nginx after ~17 s, 2 of 2; env 2: the PoC refused to start (its fingerprint doesn't match 1.31.9), 2 of 2 |
+| **code execution** | marker file written by the worker, uid 101 (`probe`, independent `stat`) | absent in both env 2 attempts: the PoC's leak did not match its heap profile ("0 candidates") | — |
+| | program launched by a worker; write outside its directories; new egress (`runtime`) | none from the worker in any run | none |
+| **host takeover** | SCTP use from the worker (`runtime`) | not reached; `sctp` module not loaded on either host | — |
+
+## What the sensors did and didn't see
+
+- **Crash and corruption are visible only in nginx's own log, plus the kernel when the fault is a trap.** In-process heap corruption, and a worker aborting on it, trigger no runtime-sensor rule. That's expected: nothing new is executed, opened or connected. The requirement therefore reads the `log` and `kernel` sources for denial of service.
+- **Every runtime alert on the nginx container in environment 2 came from the harness itself**: the `kubectl exec` used for the marker checks (`stat`, `runc` init, its capability set). The requirement must discount processes started by `exec`, as the evaluator already does for architecture checks.
+- **The memory disclosure is visible only to the reproduction.** No sensor sees bytes leaving in an HTTP/2 response as a leak. That makes `probe` the source for it.
+- **Code-execution indicators were silent in every run, which matches the outcome.** They would be the decisive ones if the final stage had succeeded.
+
+## Limits
+
+- Code execution was not reproduced. The PoC's final stage depends on a heap profile from its authors' test host, and the leak on our hosts matched no candidate. A different host, or the PoC's standalone Docker recipe, may behave differently.
+- On 1.31.9 the code-execution PoC doesn't engage, so the fixed-build negative comes from the crash reproduction in environment 1.
+- Traffic volume per connection was not measurable over loopback.
