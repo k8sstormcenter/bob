@@ -125,6 +125,41 @@ The action can also attach to a k3s the workflow already installed. k3s is insta
 - The pilot uses that mode (`test/remote`, `ARGOCD_E2E_REMOTE=true`, namespace `argocd-e2e`), so a runtime sensor observes the components as pods. It starts with the helm, kustomize, git, repository-credential and OCI tests, which drive the repo-server.
 - Phase 1 needs no fork: a workflow in this repository checks out an Argo CD release tag and runs everything. A fork is used later only to show maintainers the pull-request experience.
 
+## Example: proving a patch
+
+On 2026-11-18 nginx fixed five vulnerabilities that allow unauthenticated remote code execution through HTTP/2 (CVE-2026-123007 and four related CVEs; fixed in 1.31.9 and 1.30.7). Many deployments, Argo CD among them, put nginx in front of their API server as a reverse proxy. A coverage spec can turn "we upgraded nginx" into evidence.
+
+The test topology puts an nginx reverse proxy with HTTP/2 enabled in front of `argocd-server`. The e2e suite talks to Argo CD through it. The same suite runs twice: once with the affected nginx build, once with the fixed one. Each run adds a reproduction of the advisory, gated on its own success indicator.
+
+```yaml
+kind: CoverageSpec
+metadata:
+  name: argocd-ingress-nginx
+target: { namespace: argocd-e2e, container: nginx }
+expect:
+  exec:    [ /usr/sbin/nginx ]
+  network: { ingress: [ { port: 443, protocol: h2 } ] }   # the tests really went through HTTP/2
+forbid:
+  exec:    [ /bin/sh, /usr/bin/curl, /usr/bin/wget ]      # the worker never starts a program
+  files:
+    write: [ /tmp/*, /dev/shm/* ]
+  network: { egress: [ "0.0.0.0/0" ] }                    # the proxy only talks to its backends
+reproduce:
+  - advisory: CVE-2026-123007
+    success: worker-code-execution
+```
+
+| | affected nginx | fixed nginx |
+|---|---|---|
+| tests exercised the HTTP/2 path (`expect`) | covered | covered |
+| reproduction succeeded | **yes** | no |
+| `forbid` lines | **violation** (program started by the worker) | ok |
+| nginx build loaded | the affected version | the fixed version |
+
+The maintainer gets one statement backed by both runs: the tests exercised the vulnerable path, the reproduction worked before the change, and it no longer works after it. That is stronger than a version bump in a changelog, and it stays in CI as a regression check.
+
+Reproductions run only in an isolated lab cluster, never on shared CI runners. They use the advisory's published reproducer where one exists. The coverage report needs the success indicator, not a weaponised payload.
+
 ## Milestones
 
 | | Deliverable | Done when |
@@ -134,6 +169,7 @@ The action can also attach to a k3s the workflow already installed. k3s is insta
 | M2 | GitHub Action; Kubernetes API assertions from the audit log; granted vs. used | another project adopts it in under 15 minutes, with under 5 minutes added CI time |
 | M3 | Protocol assertions from Pixie: endpoints inside TLS, WebSockets, PII, JWT scopes, TLS parameters, refusals, instability | Argo CD report lists its endpoints, token scopes and TLS groups per peer |
 | M4 | Fork demo with pull-request reports | a pull request in the fork shows covered / gap / violation |
+| M5 | Patch proof: the nginx example above, run in the lab cluster | the before/after report for the affected and fixed nginx builds |
 
 ## Non-goals
 
