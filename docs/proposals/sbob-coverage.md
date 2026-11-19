@@ -42,24 +42,24 @@ A crash and code execution are different outcomes for a maintainer: a restarting
     information-disclosure:                 # worker memory reaches the client
       - probe:   { reproduce: CVE-2026-123007, stage: memory-disclosure }
     code-execution:                         # the worker does what nginx never does
-      - runtime: { exec: {not: [/usr/sbin/nginx]}, parent: nginx }
-      - runtime: { write: {not: ['/var/cache/nginx/*', '/var/log/nginx/*']} }
+      - runtime: { exec: {not: [/usr/sbin/nginx]}, ancestor: nginx }  # seen: worker → sh → touch, uid 101
+      - runtime: { open: {flags: O_CREAT}, path: {not: ['/var/cache/nginx/*', '/var/log/nginx/*']} }
       - runtime: { egress: {not: [upstreams, dns]} }
     host-takeover:                          # the advisory's chain to root
       - runtime: { socket: AF_SCTP }
       - runtime: { kernel_module: sctp }
 ```
 
-Two lab environments ran it: a k3s cluster with the published crash trigger, and an AVX-512 host with the published code-execution proof of concept.
+In a Kubernetes lab, Rapid7's published code-execution proof of concept ran against both builds, with Kubescape watching and the nginx profile learned beforehand:
 
 | Impact | 1.31.8 | 1.31.9 |
 |---|---|---|
-| denial of service | **VIOLATED**: workers killed (signal 11, signal 6 after glibc detected heap corruption) | **COMPLIANT**: the crash reproduction is refused before the overflow |
-| information disclosure | **VIOLATED**: 14,393 bytes of worker memory leaked | not engaged |
-| code execution | **NOT_OBSERVED**: attempted twice, the final stage did not complete on our hosts | not engaged |
-| host takeover | NOT_OBSERVED | NOT_OBSERVED |
+| code execution | **VIOLATED**: the worker started `sh` → `touch` as uid 101; Kubescape alerted 1.8 ms before the file appeared | **COMPLIANT**: the reproduction recognises the fixed build and doesn't start |
+| information disclosure | **VIOLATED**: worker memory leaked, enough to defeat ASLR | COMPLIANT |
+| denial of service | **VIOLATED**: workers abort or segfault after heap corruption | **COMPLIANT**: the crash reproduction is refused before the overflow |
+| host takeover | NOT_OBSERVED: not attempted | NOT_OBSERVED |
 
-So the maintainer learns what an attacker would have had on the old build (crash any worker, read worker memory) and what the upgrade removed. Code execution stays NOT_OBSERVED, not COMPLIANT: nothing about it is proven either way. The crash and the leak show up in nginx's log and the reproduction's own report; the code-execution signals (a program started by the worker, writes, new connections) stayed silent, as they should when that stage isn't reached. Evidence, line by line: [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
+That is what the maintainer needs to know: on the old build, any client could run commands inside the pod; after the upgrade, nothing in the list happens. The 1.31.8 observations (a program started by the worker, a file it wrote, heap corruption, a dying worker) are exactly what the requirement keeps watching for on every later build. Evidence, line by line: [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
 
 ## How an advisory becomes a requirement
 
