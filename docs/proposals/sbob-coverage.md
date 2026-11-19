@@ -86,6 +86,22 @@ The report compares the run against the maintainer's declared intent, not agains
 | Kubernetes API calls per component | k3s audit log |
 | RBAC granted vs. used | rendered chart + audit log |
 | connection is TLS vs. plaintext | handshake classification |
+| HTTP/gRPC endpoints, methods, status codes, inside TLS | Pixie protocol tracing |
+| WebSocket sessions and messages | Pixie protocol tracing |
+
+### Inside the encrypted traffic
+
+Pixie traces application protocols with eBPF, including the plaintext of TLS connections, and it is being extended to read TLS in most runtimes, Go included, and to trace WebSockets. That turns the test run into evidence about the traffic itself, not just about which peers were contacted:
+
+| Question the report answers | What is observed |
+|---|---|
+| **Does personal data cross this connection?** | request and response bodies classified for PII (names, emails, phone numbers, identifiers) per endpoint and peer |
+| **What do the tokens it presents allow?** | the claims of JWTs seen on the wire: issuer, audience, scopes and expiry, per caller and per callee |
+| **How is the traffic encrypted?** | TLS version, cipher suite and key-exchange group (for example X25519, P-256, or a post-quantum hybrid) per connection |
+| **What gets refused?** | connections reset or rejected, TLS handshake failures, and 401/403/5xx responses, per peer and endpoint |
+| **Is the test run stable?** | repeated failures before a request finally succeeds, retries, reconnects and timeouts. A green test that only passed on the fifth attempt is reported as such. |
+
+Each of these can be written as `expect` or `forbid` lines (for example: "no PII leaves this namespace", "no token with `*` scope", "no TLS below 1.3 or without a post-quantum group to external peers"). The observed values go into the SBoB, so a release documents what its traffic looks like, not only where it goes.
 
 ## How it runs
 
@@ -123,7 +139,8 @@ The action can also attach to a k3s the workflow already installed. k3s is insta
 | M0 | Argo CD remote e2e on k3s under Kubescape | repo-server profile shows `helm`, `kustomize`, `git` |
 | M1 | `CoverageSpec`; `bobctl coverage init` (draft from a run) and `verify` (report) | Argo CD subset report; 10 identical reruns |
 | M2 | GitHub Action; Kubernetes API assertions from the audit log; granted vs. used | another project adopts it in under 15 minutes, with under 5 minutes added CI time |
-| M3 | Fork demo with pull-request reports; TLS assertion | a pull request in the fork shows covered / gap / violation |
+| M3 | Protocol assertions from Pixie: endpoints inside TLS, WebSockets, PII, JWT scopes, TLS parameters, refusals, instability | Argo CD report lists its endpoints, token scopes and TLS groups per peer |
+| M4 | Fork demo with pull-request reports | a pull request in the fork shows covered / gap / violation |
 
 ## Non-goals
 
