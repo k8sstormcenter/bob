@@ -114,6 +114,7 @@ The evaluator compares the run against the maintainer's declared intent, not aga
 | `k8sapi` | Kubernetes API call: resource, verb, scope, watch, `exec`/`port-forward` | Pixie, from each component's own connection to the API server |
 | `spec` / `rbac` | container spec / ServiceAccount: image digest, security context, granted rules | the cluster API |
 | `probe` | request or reproduction the harness made, with its outcome | the harness |
+| `log` | line a container wrote (e.g. a worker exiting on a signal) | the cluster API |
 
 Kubernetes API calls are read from the traffic itself, not from the API server's audit log. That attributes every call to the exact pod and container, including watch streams and WebSocket sessions. It also needs no audit policy, so it works the same on a runner's k3s and on a managed cluster.
 
@@ -205,6 +206,8 @@ The lab topology puts an nginx reverse proxy with HTTP/2 in front of Argo CD's A
 The maintainer gets one statement backed by both runs: the tests exercised the vulnerable path, the reproduction worked before the change, and it no longer works after it. The requirement stays in CI as a regression check.
 
 Reproductions run only in an isolated lab cluster, never on shared CI runners, and use the advisory's published reproducer.
+
+The first run of this example, with setup, requirement, results and lessons, is in [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
 
 ## Milestones
 
