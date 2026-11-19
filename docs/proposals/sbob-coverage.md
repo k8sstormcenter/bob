@@ -45,9 +45,13 @@ expect:
   egress: [ { host: argocd-e2e-server, ports: [9081] } ]
 forbid:
   exec:   [ /bin/sh, /usr/bin/curl, /usr/bin/wget ]
+  files:
+    load: [ /usr/lib/x86_64-linux-gnu/libxml2.so.2.9.13 ]   # version named in an earlier security advisory
   kubernetesApi:
     - { resource: secrets, verbs: [list], scope: cluster }
 ```
+
+`files.load` checks which shared objects the component actually maps at runtime. A library version flagged in an earlier security advisory can be held as a `forbid` line: the report proves that the fixed build no longer loads it, not just that the image no longer contains it. The same line is evidence when a scanner flags a library that is present in the image but never loaded.
 
 Illustrative; paths are confirmed in the first milestone. Nobody writes this from scratch. The first run drafts it from what was observed plus what the chart grants; the maintainer prunes it and commits it.
 
@@ -69,6 +73,7 @@ The report compares the run against the maintainer's declared intent, not agains
 |---|---|
 | programs executed, with arguments | Kubescape application profile |
 | files opened for read / write | Kubescape application profile |
+| shared objects loaded (which `.so` files, which versions) | Kubescape application profile |
 | syscalls, Linux capabilities used | Kubescape application profile |
 | network peers, DNS names, ports | Kubescape network neighborhood |
 | Kubernetes API calls per component | k3s audit log |
