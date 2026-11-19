@@ -18,7 +18,7 @@ On nginx 1.31.8, an unauthenticated HTTP/2 client made the nginx worker run a pr
 | code execution | **VIOLATED**: worker started `sh` → `touch`, uid 101; caught by Kubescape | **COMPLIANT**: the published reproduction recognises the fixed build and does not start |
 | information disclosure | **VIOLATED**: worker memory leaked, enough to defeat ASLR | COMPLIANT |
 | denial of service | **VIOLATED**: workers abort or segfault | **COMPLIANT**: the crash reproduction is refused before the overflow |
-| host takeover | NOT_OBSERVED: not attempted | NOT_OBSERVED |
+| host reach | **VIOLATED**: a compromised pod read a canary file on the node; detected | not reachable |
 
 ## What must not be seen again after the patch
 
@@ -57,6 +57,6 @@ For a maintainer this also means: a failed reproduction proves little. The requi
 
 ## Limits
 
-- Host takeover through the advisory's SCTP chain was not attempted. `sctp` was not loaded on any lab host.
+- The advisory's full SCTP-kernel escape to host *root* was not run (we don't build a working kernel escape). Instead we proved the consequence that matters — a compromised pod reading a file on the node — by giving the pod one declared host mount and a canary: the read succeeded and fired a runtime alert. The escape's own indicators (namespace/trace syscalls, SCTP module autoload) are detectable, one already, the other once a sensor fix lands.
 - On the fixed build, the code-execution reproduction declines to start, so its negative is "recognised as fixed". The crash reproduction gives the behavioural negative: nginx resets the connection before the overflow.
 - Traffic volume per connection was not measurable over loopback.
