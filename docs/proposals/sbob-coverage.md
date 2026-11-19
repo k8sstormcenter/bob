@@ -31,19 +31,28 @@ verify:
     component: nginx
 ```
 
-The watch-list is **not hand-written**. It is a *subtract fragment* that we distilled once, from running the published exploit on the vulnerable build. The SBoB already has a broad allow-list learned from the tests (nginx serving traffic); the fragment is subtracted from it, across every tracer an SBoB++ carries — processes and files, plus the L7 tracers for HTTP, HTTPS, WebSocket and DNS:
+The watch-list is **not hand-written**. It is a subtract fragment — the same `ContainerProfile` SBoB syntax as an allow profile — that we distilled once from running the published exploit on the vulnerable build. It is subtracted from the broad allow-list the tests learned, and the entries are the real values we observed, across the SBoB++ tracers (processes and files from the kernel; HTTP/HTTPS, WebSocket and DNS from the L7 tracers):
 
 ```yaml
-# subtract: behaviours seen while CVE-2026-123007 compromised nginx 1.31.8.
-# Alerts only when one recurs inside the allow envelope — i.e. under compromise.
-subtract:
-  exec:  any                 # a reverse-proxy worker starts no program   (seen: worker → sh → touch)
-  files: creates-outside-own # a write outside nginx's own dirs            (seen: /tmp marker, uid 101)
-  http:  response-leaks-memory | single-flow-oversized   # the ASLR leak; the ~120 GiB one-connection flood
-  dns:   name-not-in-baseline            # a lookup the app never makes    (C2 / exfil)
-  ws:    peer-or-message-not-in-baseline # (none for this CVE; the slot exists)
-  egress: peer-not-upstream              # a connection to anywhere new
-  dies:  worker-exits-on-signal          # the crash / DoS outcome, kept separate from compromise
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  labels:
+    kubescape.io/profile-fragment: subtract
+    signature.kubescape.io/fragment-class: overlay
+  name: ioc-overlay-cve-2026-123007
+spec:
+  subtract:
+    execs:                     # the worker ran a program — a reverse proxy never does
+      - {args: [/bin/sh, -c, --, touch, /tmp/sbob-proof], path: /usr/bin/dash}
+      - {args: [/usr/bin/touch, /tmp/sbob-proof], path: /usr/bin/touch}
+    opens:                     # and wrote a file outside its own dirs
+      - {flags: [O_CREAT, O_NONBLOCK, O_WRONLY], path: /tmp/sbob-proof}
+    # The same fragment also carries the SBoB++ L7 slots — `endpoints` (HTTP/HTTPS/WebSocket) and
+    # `egress`/`dnsNames` (DNS). nginx2root's payload stayed local, so those are empty here; a CVE with
+    # a network stage (a malicious request path, a C2 lookup, an exfil peer) puts its IOCs there, e.g.
+    #   endpoints: [{direction: inbound, endpoint: ':443/…', methods: [POST], internal: false}]
+    #   egress:    [{dnsNames: [c2.example.invalid]}]
 ```
 
 In a Kubernetes lab, the published exploit ran against both builds, nginx profile learned first:
