@@ -36,8 +36,11 @@ A crash and code execution are different outcomes for a maintainer: a restarting
   violated:
     denial-of-service:                      # the worker dies
       - log:     { message: 'worker process .* exited on signal' }
+      - log:     { message: 'double free or corruption' }          # glibc caught heap corruption
       - kernel:  { trap: [segfault, general protection], process: nginx }
       - runtime: { capability: CAP_SETUID, outside: startup }      # the master respawning a worker
+    information-disclosure:                 # worker memory reaches the client
+      - probe:   { reproduce: CVE-2026-123007, stage: memory-disclosure }
     code-execution:                         # the worker does what nginx never does
       - runtime: { exec: {not: [/usr/sbin/nginx]}, parent: nginx }
       - runtime: { write: {not: ['/var/cache/nginx/*', '/var/log/nginx/*']} }
@@ -47,15 +50,16 @@ A crash and code execution are different outcomes for a maintainer: a restarting
       - runtime: { kernel_module: sctp }
 ```
 
-First lab run, crash trigger only (code execution needs AVX-512, which the lab CPUs lack):
+Two lab environments ran it: a k3s cluster with the published crash trigger, and an AVX-512 host with the published code-execution proof of concept.
 
 | Impact | 1.31.8 | 1.31.9 |
 |---|---|---|
-| denial of service | **VIOLATED**: kernel trap in the worker, `exited on signal 11`, respawn | **COMPLIANT**: connection reset before the overflow, no crash, 2 of 2 |
-| code execution | NOT_OBSERVED: not reached in this run | NOT_OBSERVED |
+| denial of service | **VIOLATED**: workers killed (signal 11, signal 6 after glibc detected heap corruption) | **COMPLIANT**: the crash reproduction is refused before the overflow |
+| information disclosure | **VIOLATED**: 14,393 bytes of worker memory leaked | not engaged |
+| code execution | **NOT_OBSERVED**: attempted twice, the final stage did not complete on our hosts | not engaged |
 | host takeover | NOT_OBSERVED | NOT_OBSERVED |
 
-So the maintainer learns two things: the upgrade removed the crash on the exercised path, and code execution hasn't been tested yet. A green result would have hidden that difference. The code-execution run follows on AVX-512 hardware. Evidence, line by line: [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
+So the maintainer learns what an attacker would have had on the old build (crash any worker, read worker memory) and what the upgrade removed. Code execution stays NOT_OBSERVED, not COMPLIANT: nothing about it is proven either way. The crash and the leak show up in nginx's log and the reproduction's own report; the code-execution signals (a program started by the worker, writes, new connections) stayed silent, as they should when that stage isn't reached. Evidence, line by line: [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
 
 ## How an advisory becomes a requirement
 
@@ -66,7 +70,7 @@ So the maintainer learns two things: the upgrade removed the crash on the exerci
    |---|---|
    | affected and fixed versions | the version check |
    | preconditions (here: affected version, HTTP/2 on a TLS listener) | `applies`: checked on the live system; the tests must exercise exactly that path, or the result is NOT_OBSERVED |
-   | impact, split by outcome (here: crash, code execution as the worker user) | `violated`, one group per outcome: what the process does when it happens (dies and is respawned; starts programs, writes outside its directories, connects anywhere new) |
+   | impact, split by outcome (here: crash, memory disclosure, code execution as the worker user) | `violated`, one group per outcome: what is observable when it happens (worker dies and is respawned; memory reaches the client; worker starts programs, writes outside its directories, connects anywhere new) |
    | known chains (here: SCTP to reach root) | `violated`: the chain's first step |
       | published reproduction | `probe`: run before and after, with its own success indicator |
 
