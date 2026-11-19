@@ -102,8 +102,6 @@ The action installs k3s natively with Kubescape and Pixie, lets the project inst
 
 Argo CD has a broad e2e suite, already runs it on k3s, and ships a supported in-cluster test mode (`test/remote`). In the first lab run, that mode exercised `helm`, `kustomize` and `git` in the repo-server. No fork is needed.
 
-The first run of this example, with setup, requirement, results and lessons, is in [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
-
 ## Milestones
 
 | | Deliverable |
