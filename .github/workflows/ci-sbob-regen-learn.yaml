@@ -1,0 +1,122 @@
+# SPDX-License-Identifier: Apache-2.0
+name: CI - example SBoB regeneration, learning runs
+
+on:
+  push:
+    branches:
+      - regen/sbob-299
+    paths:
+      - 'scripts/regen-learn.sh'
+      - '.github/workflows/ci-sbob-regen-learn.yaml'
+  workflow_dispatch:
+    inputs:
+      chart_ver:
+        description: kubescape-operator chart version
+        default: "1.41.0-duckling183"
+      window:
+        description: seconds of load before profiles are collected
+        default: "420"
+
+permissions:
+  contents: read
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  BOBCTL_VERSION: v0.1.25
+  BOBCTL_SHA256: 8a0d819fa596c5e1ae5801532cacc91bca99a78f45792d2b229d75dcedb451aa
+  BOBCTL_REF: 187582e
+
+jobs:
+  learn:
+    name: learn ${{ matrix.example }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        example: [php2shell, php2shell-wordpress, chain, java-poc, redis-demo, redis-distro-redis, redis-distro-valkey, redis-distro-keydb, redis-distro-dragonfly]
+    env:
+      CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling183' }}
+      WINDOW: ${{ github.event.inputs.window || '420' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Fetch bobctl
+        run: |
+          set -euo pipefail
+          mkdir -p bin
+          curl -fsSL -o bin/bobctl "https://github.com/k8sstormcenter/bob/releases/download/${BOBCTL_VERSION}/bobctl-linux-amd64"
+          echo "${BOBCTL_SHA256}  bin/bobctl" | sha256sum -c -
+          chmod +x bin/bobctl && bin/bobctl version
+
+      - name: Build the example image
+        if: startsWith(matrix.example, 'php2shell')
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.example }}" = "php2shell-wordpress" ]; then
+            docker build -t php2shell-wordpress:demo -f example/php2shell-wordpress/Dockerfile example/php2shell-wordpress
+          else
+            docker build -t php2shell-vulnerable:demo -f example/php2shell/Dockerfile example/php2shell
+          fi
+
+      - name: Set up k3s natively on the runner VM
+        run: |
+          set -euo pipefail
+          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.33.3+k3s1 sh -s - --write-kubeconfig-mode 644
+          mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown "$(id -u):$(id -g)" ~/.kube/config
+          command -v helm >/dev/null 2>&1 || curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          kubectl wait --for=condition=ready node --all --timeout=150s
+
+      - name: Import the example image
+        if: startsWith(matrix.example, 'php2shell')
+        run: |
+          set -euo pipefail
+          docker images --format '{{.Repository}}:{{.Tag}}' | grep ':demo$' | while read -r i; do docker save "$i" | sudo k3s ctr images import -; done
+
+      - name: Log in to the private image registries
+        run: |
+          echo "${{ secrets.DOCKERHUB_PAT }}" | docker login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.ENTLEIN_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Install kubescape
+        run: |
+          set -euo pipefail
+          make kubescape KUBESCAPE_CHART_VER=$CHART_VER
+          kubectl wait --for=condition=ready pod -l app=node-agent -n honey --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=storage    -n honey --timeout=300s
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
+          for i in $(seq 1 120); do
+            L=$(kubectl -n honey logs "$APOD" 2>/dev/null || true)
+            cw=$(printf '%s' "$L" | grep -c 'ContainerWatcher started successfully' || true)
+            tr=$(printf '%s' "$L" | grep -c 'Started tracer' || true)
+            if [ "${cw:-0}" -ge 1 ] && [ "${tr:-0}" -ge 15 ]; then break; fi
+            sleep 5
+          done
+          sleep 60
+
+      - name: Learn and generalize
+        run: |
+          set -uo pipefail
+          case "${{ matrix.example }}" in
+            php2shell) export APP_IMAGE=php2shell-vulnerable:demo ;;
+            php2shell-wordpress) export APP_IMAGE=php2shell-wordpress:demo ;;
+          esac
+          scripts/regen-learn.sh "${{ matrix.example }}" regen-out
+
+      - name: Diagnostics
+        if: always()
+        run: |
+          kubectl get pods -A -o wide | head -80 || true
+          kubectl -n honey logs -l app=node-agent --tail=60 || true
+
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: regen-${{ matrix.example }}
+          path: regen-out
+          if-no-files-found: warn
