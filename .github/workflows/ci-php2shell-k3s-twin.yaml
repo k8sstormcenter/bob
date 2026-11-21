@@ -91,7 +91,8 @@ jobs:
           done
           kubectl create ns php2shell --dry-run=client -o yaml | kubectl apply -f -
           # SBoB for twin #1 (php2shell), named <label>-<container> = php2shell-php2shell
-          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
+          curl -sSfL -o "$RUNNER_TEMP/bobctl" https://github.com/k8sstormcenter/bob/releases/download/v0.1.25/bobctl-linux-amd64 && chmod +x "$RUNNER_TEMP/bobctl"
+          "$RUNNER_TEMP/bobctl" apply -n php2shell -f example/php2shell/sbobs/cp-php2shell.yaml
           # rule (R1505) for twin #2 (php2shellb); bind to app=php2shellb
           sed 's/app: php2shell$/app: php2shellb/; s/name: php2shell-webshell-binding/name: php2shellb-webshell-binding/' \
             example/php2shell/rules/php2shell-rules.yaml | kubectl apply -f -

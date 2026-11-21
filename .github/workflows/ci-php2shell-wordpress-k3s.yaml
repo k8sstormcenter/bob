@@ -94,11 +94,13 @@ jobs:
             sleep 5
           done
           kubectl create namespace wordpress --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f example/php2shell-wordpress/sbobs/cp-wordpress.yaml
+          curl -sSfL -o "$RUNNER_TEMP/bobctl" https://github.com/k8sstormcenter/bob/releases/download/v0.1.25/bobctl-linux-amd64 && chmod +x "$RUNNER_TEMP/bobctl"
+          "$RUNNER_TEMP/bobctl" apply -n wordpress -f example/php2shell-wordpress/sbobs/cp-wordpress.yaml
           kubectl create namespace wordpress-db --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f example/php2shell-wordpress/sbobs/cp-mariadb.yaml
+          "$RUNNER_TEMP/bobctl" apply -n wordpress-db -f example/php2shell-wordpress/sbobs/cp-mariadb.yaml
           kubectl create namespace wordpress-loadgen --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f example/php2shell-wordpress/sbobs/cp-loadgen-wp-setup.yaml -f example/php2shell-wordpress/sbobs/cp-loadgen-loadgen.yaml
+          "$RUNNER_TEMP/bobctl" apply -n wordpress-loadgen -f example/php2shell-wordpress/sbobs/cp-loadgen-wp-setup.yaml
+          "$RUNNER_TEMP/bobctl" apply -n wordpress-loadgen -f example/php2shell-wordpress/sbobs/cp-loadgen-loadgen.yaml
           echo "settling 180s so node-agent is fully enforcing before the target exists"
           sleep 180
 
