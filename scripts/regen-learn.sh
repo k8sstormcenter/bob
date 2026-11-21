@@ -42,6 +42,11 @@ case "$EX" in
   *) echo "unknown example $EX"; exit 2 ;;
 esac
 echo "namespaces: $NS"
+sleep 120
+for n in $NS; do
+  for w in $(kubectl -n "$n" get deploy,statefulset -o name 2>/dev/null); do kubectl -n "$n" rollout restart "$w"; done
+  for w in $(kubectl -n "$n" get deploy,statefulset -o name 2>/dev/null); do kubectl -n "$n" rollout status "$w" --timeout=600s || true; done
+done
 date -u +%FT%TZ > "$OUT/t_deployed"
 if [[ "$EX" == redis-distro-* ]]; then
   F="example/redis/distros/functional/${D/redis/redis-oss}.yaml"
@@ -63,6 +68,8 @@ for n in $NS; do
   kubectl get containerprofiles -n "$n" -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.annotations.kubescape\.io/status}{"\t"}{.metadata.annotations.kubescape\.io/completion}{"\n"}{end}' >> "$OUT/profiles.tsv" 2>/dev/null
   for p in $(kubectl get containerprofiles -n "$n" -o name 2>/dev/null); do
     b="$n--${p##*/}"
+    comp=$(kubectl get "$p" -n "$n" -o jsonpath='{.metadata.annotations.kubescape\.io/completion}')
+    if [ "$comp" != "complete" ]; then mkdir -p "$OUT/partial"; kubectl get "$p" -n "$n" -o yaml > "$OUT/partial/$b.yaml"; continue; fi
     mkdir -p "$OUT/learned/$b"
     kubectl get "$p" -n "$n" -o yaml > "$OUT/learned/$b/$b.yaml"
     for form in regex legacy; do
