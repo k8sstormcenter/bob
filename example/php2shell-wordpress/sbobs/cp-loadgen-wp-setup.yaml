@@ -4,9 +4,10 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
+    kubescape.io/workload-container-name: wp-setup
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 330c839
-    signature.kubescape.io/matcher-version: a6dba81c26bcf0d7
+    signature.kubescape.io/generator-ref: 187582e
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: loadgen-wp-setup
   namespace: wordpress-loadgen
 spec:
@@ -15,28 +16,27 @@ spec:
   capabilities:
     - CAP_DAC_OVERRIDE
   egress:
+    - {dns: "", dnsNames: [mariadb., mariadb.cluster.local., mariadb.svc.cluster.local., mariadb.wordpress-db.svc.cluster.local., wordpress., wordpress.cluster.local., wordpress.svc.cluster.local., wordpress.wordpress.svc.cluster.local.], identifier: c30f70b3efd6db31ed75b794dfd96c791a4e43650867b1d99091158ade2a1713, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
     - {dns: "", dnsNames: null, identifier: 537e4f591525dd1a27d0938906f6b894a2e98ea7edfd8b49dc535fa45ffc9742, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: wordpress-db}}, podSelector: {matchLabels: {app: mariadb}}, ports: [{name: TCP-3306, port: 3306, protocol: TCP}], serviceRefName: mariadb, serviceRefNamespace: wordpress-db, type: internal}
     - {dns: "", dnsNames: null, identifier: bbcb0b604672c1c9234f2d3038d37fdfcaee7926bdc3248cba6b966a3f7e90c4, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: wordpress}}, podSelector: {matchLabels: {app: wordpress}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], serviceRefName: wordpress, serviceRefNamespace: wordpress, type: internal}
-    - {dns: "", dnsNames: null, identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
-  endpoints: null
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+  endpoints:
+    - {direction: outbound, endpoint: ':80/2026/11/21/hello-world', headers: {Accept-Encoding: ['deflate, gzip, br, zstd'], Connection: [close], Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':80/index.php/2026/11/21/hello-world', headers: {Accept-Encoding: ['deflate, gzip, br, zstd'], Connection: [close], Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
   execs:
+    - {args: [/usr/bin/hostname], path: /usr/bin/hostname}
     - {args: [/usr/local/bin/wp, --allow-root, core, install, '--url=http://wordpress.wordpress.svc.cluster.local', --title=Media, --admin_user=admin, --admin_password=wordpress-demo, --admin_email=admin@example.invalid, --skip-email], path: /usr/bin/env}
     - {args: [/usr/local/bin/wp, --allow-root, core, is-installed], path: /usr/bin/env}
     - {args: [/usr/local/bin/wp, --allow-root, plugin, activate, ewww-image-optimizer, backup-backup, updraftplus], path: /usr/bin/env}
-    - {args: [/usr/local/bin/wp, --allow-root, user, application-password, create, admin, ⋯, --porcelain], path: /usr/bin/env}
-    - {args: [/usr/bin/hostname], path: /usr/bin/hostname}
+    - {argsRegex: '/usr/local/bin/wp --allow-root user application-password create admin [^ ]* --porcelain', path: /usr/bin/env}
     - {args: [/usr/local/bin/php, -r, 'exit(@mysqli_connect(getenv("WORDPRESS_DB_HOST"), "wordpress", getenv("WORDPRESS_DB_PASSWORD"), "wordpress") ? 0 : 1);'], path: /usr/local/bin/php}
     - {args: [/usr/local/bin/php, /usr/local/bin/wp, --allow-root, core, install, '--url=http://wordpress.wordpress.svc.cluster.local', --title=Media, --admin_user=admin, --admin_password=wordpress-demo, --admin_email=admin@example.invalid, --skip-email], path: /usr/local/bin/php}
     - {args: [/usr/local/bin/php, /usr/local/bin/wp, --allow-root, core, is-installed], path: /usr/local/bin/php}
     - {args: [/usr/local/bin/php, /usr/local/bin/wp, --allow-root, plugin, activate, ewww-image-optimizer, backup-backup, updraftplus], path: /usr/local/bin/php}
-    - {args: [/usr/local/bin/php, /usr/local/bin/wp, --allow-root, user, application-password, create, admin, ⋯, --porcelain], path: /usr/local/bin/php}
-    - {args: [/usr/local/bin/wp, --allow-root, core, install, '--url=http://wordpress.wordpress.svc.cluster.local', --title=Media, --admin_user=admin, --admin_password=wordpress-demo, --admin_email=admin@example.invalid, --skip-email], path: /usr/local/bin/wp}
-    - {args: [/usr/local/bin/wp, --allow-root, core, is-installed], path: /usr/local/bin/wp}
-    - {args: [/usr/local/bin/wp, --allow-root, plugin, activate, ewww-image-optimizer, backup-backup, updraftplus], path: /usr/local/bin/wp}
-    - {args: [/usr/local/bin/wp, --allow-root, user, application-password, create, admin, ⋯, --porcelain], path: /usr/local/bin/wp}
+    - {argsRegex: '/usr/local/bin/php /usr/local/bin/wp --allow-root user application-password create admin [^ ]* --porcelain', path: /usr/local/bin/php}
   identifiedCallStacks: null
-  imageID: ttl.sh/wp-p2s-f5312fa63ea3@sha256:4f30c8a13a74423192203678ea581667831cd4ddf3ebbcdf6436480d288ff04f
-  imageTag: ttl.sh/wp-p2s-f5312fa63ea3:24h
+  imageID: sha256:27054813891e29922be776bbde66aed2ce07268d575b19b30b10cc8a224e2905
+  imageTag: docker.io/library/php2shell-wordpress:demo
   ingress: null
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf}
@@ -46,9 +46,13 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
     - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf}
     - {flags: [O_RDONLY], path: /proc/⋯/maps}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /shared/ap}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/locale/C.UTF-8/LC_CTYPE}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/locale/C.utf8/LC_CTYPE}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/locale/locale-archive}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/*}
     - {flags: [O_RDONLY], path: /usr/local/bin/php-cli.ini}
     - {flags: [O_RDONLY], path: /usr/local/bin/php.ini}
     - {flags: [O_RDONLY], path: /usr/local/bin/wp}
@@ -65,7 +69,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/php/extensions/⋯/opcache.so}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/php/extensions/⋯/sodium}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/lib/php/extensions/⋯/sodium.so}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/locale/locale.alias}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/Etc/UTC}
     - {flags: [O_RDONLY], path: /var/www/html/wp-admin/css/view-transitions.min.css}
     - {flags: [O_RDONLY], path: /var/www/html/wp-admin/includes/admin-filters.php}
     - {flags: [O_RDONLY], path: /var/www/html/wp-admin/includes/admin.php}
@@ -105,132 +110,7 @@ spec:
     - {flags: [O_RDONLY], path: /var/www/html/wp-admin/includes/upgrade.php}
     - {flags: [O_RDONLY], path: /var/www/html/wp-admin/includes/user.php}
     - {flags: [O_RDONLY], path: /var/www/html/wp-config.php}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/.htaccess}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/backups/.htaccess}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/backups/index.html}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/backups/index.php}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/index.html}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/index.php}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/staging/.htaccess}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/staging/index.html}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/staging/index.php}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/tmp/.htaccess}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/tmp/index.html}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/tmp/index.php}
-    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /var/www/html/wp-content/backup-migration-Z86GUzTVE4/⋯}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/ewww}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/languages}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/languages/plugins}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/languages/themes}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/mu-plugins}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/mu-plugins/cli-media.php}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/plugins}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/plugins/akismet}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/akismet.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/class-akismet-abilities.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/class-akismet-compatible-plugins.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/class-akismet-connector.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/class.akismet-admin.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/class.akismet-cli.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/class.akismet-rest-api.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/class.akismet-widget.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/class.akismet.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/index.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/akismet/wrapper.php}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/analyst/main.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/analyst/sdk_resolver.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/backup-backup.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/activation.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/analyst.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/cli/wp-cli.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/compatibility.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/config.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/config_v2.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/constants.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/cron/bootstrap.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/cron/class-abstract-task.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/cron/class-task-manager.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/cron/tasks/class-schedule-keepalive-task.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/htaccess/.htaccess}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/htaccess/default.json}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/initializer.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/logger.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/includes/offline.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/backup-backup/uninstall.php}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/aux-optimize.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/bulk.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-admin-notices.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-async-key-verify.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-async-request.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-async-scan.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-async-test-optimize.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-async-test-request.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-background-process-attachment-update.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-background-process-flag.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-background-process-image.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-background-process-media.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-background-process-ngg.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-background-process-ngg2.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-background-process.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-backup.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-base.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-ewww-image.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-ewwwio-cli.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-ewwwio-relative-migration.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-hs-beacon.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-html-tag.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-image-detective.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-local.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-page-parser.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-plugin.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/class-tracking.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/classes/trait-page-settings.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/common.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/ewww-image-optimizer.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/functions.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/mwebp.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/uninstall.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/unique.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/vendor/autoload.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/vendor/composer/autoload_real.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/vendor/composer/autoload_static.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/ewww-image-optimizer/vendor/composer/platform_check.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/hello.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/index.php}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/admin.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/backup.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/central/bootstrap.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/central/factory.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/central/host.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/central/listener.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/central/translations-central.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/central/updraftplus.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/class-updraftplus.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/example-decrypt.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-backup-history.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-database-utility.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-filesystem-functions.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-http-error-descriptions.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-job-scheduler.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-manipulation-functions.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-onboarding.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-storage-methods-interface.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-updraftplus-deactivation.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/class-updraftplus-encryption.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/includes/migrator-lite.php}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/languages}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/options.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/restorer.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/uninstall.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/updraftplus.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/vendor/team-updraft/lib-onboarding-wizard/Wizard/Onboarding/Onboarding.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/plugins/updraftplus/vendor/team-updraft/lib-onboarding-wizard/autoload.php}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/themes/twentytwentyfive/functions.php}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-content/themes/twentytwentyfive/languages}
-    - {flags: [O_RDONLY], path: /var/www/html/wp-content/themes/twentytwentyfive/style.css}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NONBLOCK, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/*}
     - {flags: [O_RDONLY], path: /var/www/html/wp-includes/*}
     - {flags: [O_RDONLY], path: /var/www/html/wp-settings.php}
   rulePolicies:
@@ -255,11 +135,11 @@ spec:
   seccompProfile:
     spec:
       defaultAction: ""
+  syscalls: null
   subtract:
     opens:
       - flags: null
         path: /proc/*/environ
       - flags: null
         path: /proc/⋯/environ
-  syscalls: null
 status: {}

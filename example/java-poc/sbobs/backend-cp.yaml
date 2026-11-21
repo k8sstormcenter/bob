@@ -2,77 +2,120 @@
 # SPDX-License-Identifier: Apache-2.0
 # Licensed under the Apache License, Version 2.0; see LICENSE.
 # All trademarks are expressly reserved.
-
 apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
 kind: ContainerProfile
 metadata:
   annotations:
     kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-container-name: backend
+    signature.kubescape.io/generator: bobctl
+    signature.kubescape.io/generator-ref: 187582e
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: backend
   namespace: java-poc
 spec:
   architectures:
     - amd64
-  capabilities: []
+  capabilities: null
   egress:
-    - {dns: "", dnsNames: null, identifier: egress-postgres, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: postgres}}, ports: [{name: TCP-5432, port: 5432, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: egress-kube-dns, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}, {name: TCP-53, port: 53, protocol: TCP}], type: internal}
+    - {dns: postgres.java-poc.svc.cluster.local., dnsNames: [postgres., postgres.cluster.local., postgres.java-poc.svc.cluster.local., postgres.svc.cluster.local.], identifier: b0510d9a325682f5f5e793e1b376cd92b63312aef8902b8849ac9b1b3a0259cd, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
+    - {dns: "", dnsNames: null, identifier: ab9b624ebf82bcaa3115305572fde263b441d319d29f86de446cccb1f8ba8b3c, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: postgres}}, ports: [{name: TCP-5432, port: 5432, protocol: TCP}], serviceRefName: postgres, serviceRefNamespace: java-poc, type: internal}
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints:
-    - {direction: inbound, endpoint: ':8080/api/login', internal: true, methods: [POST]}
-    - {direction: inbound, endpoint: ':8080/api/products', internal: true, methods: [GET]}
-    - {direction: inbound, endpoint: ':8080/healthz', internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':8080/', headers: {Connection: [close], Host: ['backend:8080']}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':8080/api/products', headers: {Connection: [close], Host: ['backend:8080']}, internal: true, methods: [GET]}
   execs:
-    - {args: [/opt/java/openjdk/bin/java, -jar, /app/app.jar], path: /opt/java/openjdk/bin/java}
-    - {args: [/usr/bin/curl], path: /usr/bin/curl}
-    - {args: [/usr/bin/java, -jar, /app/app.jar], path: /usr/bin/java}
-    - {args: [/usr/bin/psql], path: /usr/bin/psql}
+    - {args: [/pause], path: /pause}
+    - {args: [/opt/java/openjdk/bin/java, -Dcom.sun.jndi.ldap.object.trustURLCodebase=true, -jar, /app/app.jar], path: /opt/java/openjdk/bin/java}
+    - {args: [java, -Dcom.sun.jndi.ldap.object.trustURLCodebase=true, -jar, /app/app.jar], path: /opt/java/openjdk/bin/java}
   identifiedCallStacks: null
-  imageID: ghcr.io/k8sstormcenter/log4j-backend-vulnerable@sha256:689e1c1b29083b43845302f59e7f1706b7a0bf1ed825395ae4421fda957afcfd
-  imageTag: ghcr.io/k8sstormcenter/log4j-backend-vulnerable:latest
+  imageID: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable@sha256:689e1c1b29083b43845302f59e7f1706b7a0bf1ed825395ae4421fda957afcfd
+  imageTag: ghcr.io/k8sstormcenter/log4j-chain-backend-vulnerable@sha256:689e1c1b29083b43845302f59e7f1706b7a0bf1ed825395ae4421fda957afcfd
   ingress:
-    - {dns: "", dnsNames: null, identifier: ingress-from-frontend, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: frontend}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: ingress-from-observer, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: observer}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
-  matchLabels:
-    app: backend
+    - {dns: "", dnsNames: null, identifier: 3406f049084b16f5b0234d3140fcf1d3fe5f6e8a1601d90a62456a510c1e0705, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: frontend}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 4702b9897d876d54c069201a10b618ef3e094c7fa3c3c69383a809cbaa74999b, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: observer, role: observer}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
-    - {flags: [O_RDONLY], path: /app/BOOT-INF/lib}
+    - {flags: [O_RDONLY], path: /app}
     - {flags: [O_RDONLY], path: /app/app.jar}
-    - {flags: [O_RDONLY], path: /etc/group}
-    - {flags: [O_RDONLY], path: /etc/host.conf}
-    - {flags: [O_RDONLY], path: /etc/hosts}
-    - {flags: [O_RDONLY], path: /etc/localtime}
-    - {flags: [O_RDONLY], path: /etc/nsswitch.conf}
-    - {flags: [O_RDONLY], path: /etc/passwd}
-    - {flags: [O_RDONLY], path: /etc/resolv.conf}
-    - {flags: [O_RDONLY], path: /opt/java/openjdk/conf}
-    - {flags: [O_RDONLY], path: /opt/java/openjdk/conf/jndi.properties}
-    - {flags: [O_RDONLY], path: /opt/java/openjdk/lib}
-    - {flags: [O_RDONLY], path: /proc/sys/net}
-    - {flags: [O_RDONLY], path: /root/.pgpass}
-    - {flags: [O_CREAT, O_RDWR], path: /tmp}
-    - {flags: [O_RDONLY], path: /usr/lib/jvm}
-    - {flags: [O_RDONLY], path: /usr/lib/x86_64-linux-gnu/perl-base/IPC/Open3.pm}
-    - {flags: [O_RDONLY], path: /usr/lib/x86_64-linux-gnu/perl-base/Symbol.pm}
-    - {flags: [O_RDONLY], path: /usr/lib/x86_64-linux-gnu/perl-base/constant.pm}
-    - {flags: [O_RDONLY], path: /usr/share/coreutils/locales/en-US.ftl}
-    - {flags: [O_RDONLY], path: /usr/share/coreutils/locales/env/en-US.ftl}
-    - {flags: [O_RDONLY], path: /usr/share/coreutils/locales/head/en-US.ftl}
-    - {flags: [O_RDONLY], path: /usr/share/perl5/PgCommon.pm}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
+    - {flags: [O_RDONLY], path: /etc/timezone}
+    - {flags: [O_RDONLY], path: /opt/java/openjdk/conf/logging.properties}
+    - {flags: [O_RDONLY], path: /opt/java/openjdk/conf/net.properties}
+    - {flags: [O_RDONLY], path: /opt/java/openjdk/conf/security/java.security}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/java/openjdk/lib/endorsed}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/java/openjdk/lib/ext}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/jli/libc.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/jli/libdl.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/jli/libjli.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/jli/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/jli/libpthread.so.0}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/jli/librt.so.1}
+    - {flags: [O_RDONLY], path: /opt/java/openjdk/lib/jvm.cfg}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libc.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libdl.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libextnet.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libjava.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libjimage.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libmanagement.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libmanagement_ext.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libnet.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libnio.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libpthread.so.0}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/librt.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libverify.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/libzip.so}
+    - {flags: [O_RDONLY], path: /opt/java/openjdk/lib/modules}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/server/classes.jsa}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/server/libjvm.so}
+    - {flags: [O_RDONLY], path: /opt/java/openjdk/lib/tzdb.dat}
+    - {flags: [O_RDONLY], path: /proc/cgroups}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/meminfo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/vm/overcommit_memory}
+    - {flags: [O_RDONLY], path: /proc/⋯/cgroup}
+    - {flags: [O_RDWR], path: /proc/⋯/coredump_filter}
+    - {flags: [O_RDONLY], path: /proc/⋯/mountinfo}
+    - {flags: [O_RDONLY], path: /proc/⋯/net/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*}
+    - {flags: [O_RDONLY], path: /sys/fs/cgroup/*}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR], path: /tmp/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/locale/locale-archive}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/libc.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/libdl.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/libpthread.so.0}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/librt.so.1}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/Etc/UTC}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/glibc-hwcaps/⋯/libnet.so}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/glibc-hwcaps/⋯/libpthread.so.0}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /opt/java/openjdk/lib/jli/glibc-hwcaps/⋯/libpthread.so.0}
   rulePolicies:
     R0002:
       processAllowed:
         - Attach Listener
         - C1 CompilerThre
         - px_jattach
-        - reservoir CompilerThre
+        - reservoir Compi
         - runc:[1:INIT]
         - runc:[2:INIT]
         - runc:[3:INIT]
+        - runc:[1:CHILD]
     R0004:
       processAllowed:
         - runc:[1:INIT]
         - runc:[2:INIT]
         - runc:[3:INIT]
+        - runc:[1:CHILD]
   seccompProfile:
     spec:
       defaultAction: ""

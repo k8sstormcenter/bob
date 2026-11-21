@@ -1,0 +1,72 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-container-name: busybox
+    signature.kubescape.io/generator: bobctl
+    signature.kubescape.io/generator-ref: 187582e
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
+  name: cleannoise
+  namespace: java-poc
+spec:
+  architectures:
+    - amd64
+  capabilities: null
+  egress:
+    - {dns: frontend.java-poc.svc.cluster.local., dnsNames: [frontend., frontend.cluster.local., frontend.java-poc.svc.cluster.local., frontend.svc.cluster.local.], identifier: 159ab2730d775f676b335a4dfcf43bb315f2afd08cf59eb85a316a68f0da8252, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
+    - {dns: "", dnsNames: null, identifier: c109a9c7197e946c1af4d104f1a0e51d19e268b28ae6e45f45f2a52bc7b7c52f, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: frontend}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], serviceRefName: frontend, serviceRefNamespace: java-poc, type: internal}
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+  endpoints:
+    - {direction: outbound, endpoint: ':8080/', headers: {Connection: [close], Host: ['frontend.java-poc.svc.cluster.local:8080']}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':8080/api/products', headers: {Connection: [close], Host: ['frontend.java-poc.svc.cluster.local:8080']}, internal: true, methods: [GET]}
+  execs:
+    - {args: [/bin/wget, -qO-, ⋯], path: /bin/wget}
+    - {args: [/pause], path: /pause}
+    - {args: [/bin/sh, -c, 'while true; do wget -qO- http://''frontend.java-poc.svc.cluster.local:8080''/api/products?q=noise >/dev/null 2>&1; wget -qO- http://''frontend.java-poc.svc.cluster.local:8080''/ >/dev/null 2>&1; sleep 0.3; done'], path: /bin/sh}
+    - {args: [sh, -c, 'while true; do wget -qO- http://''frontend.java-poc.svc.cluster.local:8080''/api/products?q=noise >/dev/null 2>&1; wget -qO- http://''frontend.java-poc.svc.cluster.local:8080''/ >/dev/null 2>&1; sleep 0.3; done'], path: /bin/sh}
+  identifiedCallStacks: null
+  imageID: docker.io/library/busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+  imageTag: docker.io/library/busybox:1.36
+  ingress: null
+  opens:
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /dev/null}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: '/http:/frontend.java-poc.svc.cluster.local:8080/api'}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/glibc-hwcaps/⋯/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libc.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libresolv.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/x86_64-linux-gnu/glibc-hwcaps/⋯/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/x86_64-linux-gnu/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/glibc-hwcaps/⋯/libm.so.6}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/libm.so.6}
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  syscalls: null
+status: {}

@@ -4,9 +4,10 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
+    kubescape.io/workload-container-name: loadgen
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 330c839
-    signature.kubescape.io/matcher-version: a6dba81c26bcf0d7
+    signature.kubescape.io/generator-ref: 187582e
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: loadgen-loadgen
   namespace: wordpress-loadgen
 spec:
@@ -18,35 +19,37 @@ spec:
     - CAP_SETGID
     - CAP_SETUID
   egress:
+    - {dns: wordpress.wordpress.svc.cluster.local., dnsNames: [wordpress., wordpress.cluster.local., wordpress.svc.cluster.local., wordpress.wordpress.svc.cluster.local.], identifier: 4e6b9d3dc0e3339ae877accc82378e3d080abad519b936d2ba35a0281b6701ee, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
     - {dns: "", dnsNames: null, identifier: bbcb0b604672c1c9234f2d3038d37fdfcaee7926bdc3248cba6b966a3f7e90c4, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: wordpress}}, podSelector: {matchLabels: {app: wordpress}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], serviceRefName: wordpress, serviceRefNamespace: wordpress, type: internal}
-    - {dns: "", dnsNames: null, identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
-  endpoints: null
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+  endpoints:
+    - {direction: outbound, endpoint: ':80/', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET, POST]}
+    - {direction: outbound, endpoint: ':80/wp-admin', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':80/wp-admin/admin-ajax.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [POST]}
+    - {direction: outbound, endpoint: ':80/wp-admin/options-general.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':80/wp-admin/upload.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':80/wp-comments-post.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [POST]}
+    - {direction: outbound, endpoint: ':80/wp-cron.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: outbound, endpoint: ':80/wp-login.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET, POST]}
   execs:
     - {args: [/bin/base64, -d], path: /bin/busybox}
     - {args: [/bin/cat, /shared/ap], path: /bin/busybox}
     - {args: [/bin/hostname], path: /bin/busybox}
-    - {args: [/bin/sed, -n, s/⋯/\1/p], path: /bin/busybox}
-    - {args: [/bin/sleep, ⋯], path: /bin/busybox}
+    - {argsRegex: '/bin/sed -n s/[^/ ]*/\\1/p', path: /bin/busybox}
+    - {argsRegex: '/bin/sleep [^ ]*', path: /bin/busybox}
     - {args: [/usr/bin/head, "-1"], path: /bin/busybox}
-    - {args: [/bin/sh, -n, s/⋯/\1/p], path: /bin/busybox}
-    - {args: [/bin/sh, ⋯], path: /bin/busybox}
     - {args: [/pause], path: /pause}
-    - {args: [/bin/sh, -c, "BASE=http://wordpress.wordpress.svc.cluster.local\nAP=$(cat /shared/⋯///+/⋯/⋯/tmp/img.png\nprintf '%s' '/9j/4AAQS"], path: /bin/busybox}
-    - {args: [/bin/sh, -c, "BASE=http://wordpress.wordpress.svc.cluster.local\nAP=$(cat /shared/⋯///+/⋯/⋯/tmp/img.png\nprintf '%s' '/9j/4AAQSkZJRgABAQAAAQABAAD/⋯/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/⋯/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/⋯/⋯/TD//Z' | base64 -d > /tmp/img.jpg\nupload() { curl -fsS -u \"admin:$AP\" -H \"Content-Disposition: attachment; filename=$1\" -H \"Content-Type: $2\" --data-binary @\"$3\" \"$BASE/?rest_route=/wp/v2/media\" >/dev/null 2>&1 || true; }\nn=0\nwhile true; do\n  n=$((n+1))\n  curl -fsS \"$BASE/\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/⋯/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?s=media+$n\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?feed=rss2\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?rest_route=/wp/v2/posts\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/wp-login.php\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/wp-cron.php\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj -d \"log=admin&pwd=wordpress-demo&wp-submit=Log+In&testcookie=1\" -b \"wordpress_test_cookie=WP%20Cookie%20check\" \"$BASE/wp-login.php\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/upload.php\" >/dev/null 2>&1 || true\n  curl -fsS -d \"comment_post_ID=1&author=reader$n&email=reader$n@example.invalid&comment=nice+post+$n\" \"$BASE/wp-comments-post.php\" >/dev/null 2>&1 || true\n  upload \"photo-$(hostname)-$n.jpg\" \"image/jpeg\" /tmp/img.jpg\n  upload \"shot-$(hostname)-$n.png\" \"image/png\" /tmp/img.png\n  if [ $((n % 20)) -eq 1 ]; then\n    un=$(curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/options-general.php?page=updraftplus\" 2>/dev/null | sed -n \"s/⋯/\\1/p\" | head -1)\n    curl -fsS -c /tmp/cj -b /tmp/cj -H \"X-Requested-With: XMLHttpRequest\" -d \"action=updraft_ajax&subaction=backupnow&nonce=$un&action_data[backupnow_nodb]=0&action_data[backupnow_nofiles]=0&action_data[backupnow_nocloud]=1&action_data[backupnow_label]=\" \"$BASE/wp-admin/admin-ajax.php\" >/dev/null 2>&1 || true\n    bn=$(curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/admin.php?page=backup-migration\" 2>/dev/null | sed -n 's/⋯/\\1/p' | head -1)\n    curl -fsS -c /tmp/cj -b /tmp/cj -H \"X-Requested-With: XMLHttpRequest\" -d \"action=backup_migration&token=bmi&f=create-backup&nonce=$bn\" \"$BASE/wp-admin/admin-ajax.php\" >/dev/null 2>&1 || true\n    echo \"admin round $n updraft_nonce=${un:-none} bmi_nonce=${bn:-none}\"\n  fi\n  sleep 3\ndone\n"], path: /bin/busybox}
-    - {args: [/bin/base64, -d], path: /bin/base64}
-    - {args: [/bin/cat, /shared/ap], path: /bin/cat}
-    - {args: [/bin/hostname], path: /bin/hostname}
-    - {args: [/bin/sed, -n, s/⋯/\1/p], path: /bin/sed}
-    - {args: [/bin/sleep, ⋯], path: /bin/sleep}
-    - {args: [/usr/bin/head, ⋯⋯], path: /usr/bin/head}
-    - {args: [/bin/sh, -c, "BASE=http://wordpress.wordpress.svc.cluster.local\nAP=$(cat /shared/⋯///+/⋯/⋯/tmp/img.png\nprintf '%s' '/9j/4AAQS"], path: /bin/sh}
-    - {args: [/bin/sh, -c, "BASE=http://wordpress.wordpress.svc.cluster.local\nAP=$(cat /shared/⋯///+/⋯/⋯/tmp/img.png\nprintf '%s' '/9j/4AAQSkZJRgABAQAAAQABAAD/⋯/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/⋯/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/⋯/⋯/TD//Z' | base64 -d > /tmp/img.jpg\nupload() { curl -fsS -u \"admin:$AP\" -H \"Content-Disposition: attachment; filename=$1\" -H \"Content-Type: $2\" --data-binary @\"$3\" \"$BASE/?rest_route=/wp/v2/media\" >/dev/null 2>&1 || true; }\nn=0\nwhile true; do\n  n=$((n+1))\n  curl -fsS \"$BASE/\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/⋯/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?s=media+$n\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?feed=rss2\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?rest_route=/wp/v2/posts\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/wp-login.php\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/wp-cron.php\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj -d \"log=admin&pwd=wordpress-demo&wp-submit=Log+In&testcookie=1\" -b \"wordpress_test_cookie=WP%20Cookie%20check\" \"$BASE/wp-login.php\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/upload.php\" >/dev/null 2>&1 || true\n  curl -fsS -d \"comment_post_ID=1&author=reader$n&email=reader$n@example.invalid&comment=nice+post+$n\" \"$BASE/wp-comments-post.php\" >/dev/null 2>&1 || true\n  upload \"photo-$(hostname)-$n.jpg\" \"image/jpeg\" /tmp/img.jpg\n  upload \"shot-$(hostname)-$n.png\" \"image/png\" /tmp/img.png\n  if [ $((n % 20)) -eq 1 ]; then\n    un=$(curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/options-general.php?page=updraftplus\" 2>/dev/null | sed -n \"s/⋯/\\1/p\" | head -1)\n    curl -fsS -c /tmp/cj -b /tmp/cj -H \"X-Requested-With: XMLHttpRequest\" -d \"action=updraft_ajax&subaction=backupnow&nonce=$un&action_data[backupnow_nodb]=0&action_data[backupnow_nofiles]=0&action_data[backupnow_nocloud]=1&action_data[backupnow_label]=\" \"$BASE/wp-admin/admin-ajax.php\" >/dev/null 2>&1 || true\n    bn=$(curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/admin.php?page=backup-migration\" 2>/dev/null | sed -n 's/⋯/\\1/p' | head -1)\n    curl -fsS -c /tmp/cj -b /tmp/cj -H \"X-Requested-With: XMLHttpRequest\" -d \"action=backup_migration&token=bmi&f=create-backup&nonce=$bn\" \"$BASE/wp-admin/admin-ajax.php\" >/dev/null 2>&1 || true\n    echo \"admin round $n updraft_nonce=${un:-none} bmi_nonce=${bn:-none}\"\n  fi\n  sleep 3\ndone\n"], path: /bin/sh}
-    - {args: [/usr/bin/curl, -fsS, ⋯], path: /usr/bin/curl}
-    - {args: [/usr/bin/curl, -fsS, -d, ⋯, ⋯], path: /usr/bin/curl}
-    - {args: [/usr/bin/curl, -fsS, -c, /tmp/cj, -b, /tmp/cj, ⋯], path: /usr/bin/curl}
-    - {args: [/usr/bin/curl, -fsS, -c, /tmp/cj, -b, /tmp/cj, -d, ⋯, -b, ⋯, ⋯], path: /usr/bin/curl}
-    - {args: [/usr/bin/curl, -fsS, -c, /tmp/cj, -b, /tmp/cj, -H, ⋯, -d, ⋯, ⋯], path: /usr/bin/curl}
-    - {args: [/usr/bin/curl, -fsS, -u, ⋯, -H, ⋯, -H, ⋯, --data-binary, ⋯, ⋯], path: /usr/bin/curl}
+    - {argsRegex: '/usr/bin/curl -fsS [^ ]*', path: /usr/bin/curl}
+    - {argsRegex: '/usr/bin/curl -fsS -c /tmp/cj -b /tmp/cj [^ ]*', path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -fsS, -c, /tmp/cj, -b, /tmp/cj, -H, 'X-Requested-With: XMLHttpRequest', -d, action=backup_migration&token=bmi&f=create-backup&nonce=2f59ba3617, 'http://wordpress.wordpress.svc.cluster.local/wp-admin/admin-ajax.php'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -fsS, -c, /tmp/cj, -b, /tmp/cj, -H, 'X-Requested-With: XMLHttpRequest', -d, 'action=updraft_ajax&subaction=backupnow&nonce=c1d3abe73f&action_data[backupnow_nodb]=0&action_data[backupnow_nofiles]=0&action_data[backupnow_nocloud]=1&action_data[backupnow_label]=', 'http://wordpress.wordpress.svc.cluster.local/wp-admin/admin-ajax.php'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -fsS, -c, /tmp/cj, -b, /tmp/cj, -d, log=admin&pwd=wordpress-demo&wp-submit=Log+In&testcookie=1, -b, wordpress_test_cookie=WP%20Cookie%20check, 'http://wordpress.wordpress.svc.cluster.local/wp-login.php'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -fsS, -d, comment_post_ID=1&author=reader1&email=reader1@example.invalid&comment=nice+post+1, 'http://wordpress.wordpress.svc.cluster.local/wp-comments-post.php'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -fsS, -d, comment_post_ID=1&author=reader2&email=reader2@example.invalid&comment=nice+post+2, 'http://wordpress.wordpress.svc.cluster.local/wp-comments-post.php'], path: /usr/bin/curl}
+    - {args: [/usr/bin/curl, -fsS, -d, comment_post_ID=1&author=reader3&email=reader3@example.invalid&comment=nice+post+3, 'http://wordpress.wordpress.svc.cluster.local/wp-comments-post.php'], path: /usr/bin/curl}
+    - {argsRegex: '/usr/bin/curl -fsS -u [^ ]* -H [^ ]* -H Content-Type:\x20image/jpeg --data-binary @/tmp/img\.jpg http://wordpress\.wordpress\.svc\.cluster\.local/\?rest_route=/wp/v2/media', path: /usr/bin/curl}
+    - {argsRegex: '/usr/bin/curl -fsS -u [^ ]* -H [^ ]* -H Content-Type:\x20image/png --data-binary @/tmp/img\.png http://wordpress\.wordpress\.svc\.cluster\.local/\?rest_route=/wp/v2/media', path: /usr/bin/curl}
+    - {args: [/bin/sh, -c, "BASE=http://wordpress.wordpress.svc.cluster.local\nAP=$(cat /shared/ap)\nprintf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=' | base64 -d > /tmp/img.png\nprintf '%s' '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDkKKKK8U/TD//Z' | base64 -d > /tmp/img.jpg\nupload() { curl -fsS -u \"admin:$AP\" -H \"Content-Disposition: attachment; filename=$1\" -H \"Content-Type: $2\" --data-binary @\"$3\" \"$BASE/?rest_route=/wp/v2/media\" >/dev/null 2>&1 || true; }\nn=0\nwhile true; do\n  n=$((n+1))\n  curl -fsS \"$BASE/\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?p=1\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?s=media+$n\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?feed=rss2\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/?rest_route=/wp/v2/posts\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/wp-login.php\" >/dev/null 2>&1 || true\n  curl -fsS \"$BASE/wp-cron.php\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj -d \"log=admin&pwd=wordpress-demo&wp-submit=Log+In&testcookie=1\" -b \"wordpress_test_cookie=WP%20Cookie%20check\" \"$BASE/wp-login.php\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/\" >/dev/null 2>&1 || true\n  curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/upload.php\" >/dev/null 2>&1 || true\n  curl -fsS -d \"comment_post_ID=1&author=reader$n&email=reader$n@example.invalid&comment=nice+post+$n\" \"$BASE/wp-comments-post.php\" >/dev/null 2>&1 || true\n  upload \"photo-$(hostname)-$n.jpg\" \"image/jpeg\" /tmp/img.jpg\n  upload \"shot-$(hostname)-$n.png\" \"image/png\" /tmp/img.png\n  if [ $((n % 20)) -eq 1 ]; then\n    un=$(curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/options-general.php?page=updraftplus\" 2>/dev/null | sed -n \"s/.*updraft_credentialtest_nonce *= *'\\([0-9a-f]\\{10\\}\\)'.*/\\1/p\" | head -1)\n    curl -fsS -c /tmp/cj -b /tmp/cj -H \"X-Requested-With: XMLHttpRequest\" -d \"action=updraft_ajax&subaction=backupnow&nonce=$un&action_data[backupnow_nodb]=0&action_data[backupnow_nofiles]=0&action_data[backupnow_nocloud]=1&action_data[backupnow_label]=\" \"$BASE/wp-admin/admin-ajax.php\" >/dev/null 2>&1 || true\n    bn=$(curl -fsS -c /tmp/cj -b /tmp/cj \"$BASE/wp-admin/admin.php?page=backup-migration\" 2>/dev/null | sed -n 's/.*f: \"refresh\", nonce: \"\\([0-9a-f]\\{10\\}\\)\".*/\\1/p' | head -1)\n    curl -fsS -c /tmp/cj -b /tmp/cj -H \"X-Requested-With: XMLHttpRequest\" -d \"action=backup_migration&token=bmi&f=create-backup&nonce=$bn\" \"$BASE/wp-admin/admin-ajax.php\" >/dev/null 2>&1 || true\n    echo \"admin round $n updraft_nonce=${un:-none} bmi_nonce=${bn:-none}\"\n  fi\n  sleep 3\ndone\n"], path: /bin/busybox}
   identifiedCallStacks: null
   imageID: docker.io/curlimages/curl@sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69
   imageTag: docker.io/curlimages/curl:8.11.1
@@ -78,10 +81,28 @@ spec:
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libunistring.so.5}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libz.so.1}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libzstd.so.1}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /shared/ap}
-    - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /tmp/⋯}
-    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/*}
+    - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /tmp/*}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libbrotlicommon.so.1.1.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libbrotlidec.so.1.1.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libcom_err.so.2.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libcrypto.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libcurl.so.4.8.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libgssapi_krb5.so.2.2}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libidn2.so.0.4.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libk5crypto.so.3.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libkeyutils.so.1.10}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libkrb5.so.3.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libkrb5support.so.0.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libnghttp2.so.14.28.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libpsl.so.5.3.5}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libssh2.so.1.0.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libssl.so.3}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libunistring.so.5.1.0}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libz.so.1.3.1}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/libzstd.so.1.5.6}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/*}
   rulePolicies:
     R0002:
@@ -105,11 +126,11 @@ spec:
   seccompProfile:
     spec:
       defaultAction: ""
+  syscalls: null
   subtract:
     opens:
       - flags: null
         path: /proc/*/environ
       - flags: null
         path: /proc/⋯/environ
-  syscalls: null
 status: {}

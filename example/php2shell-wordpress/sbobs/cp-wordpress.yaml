@@ -4,9 +4,10 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
+    kubescape.io/workload-container-name: wordpress
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 330c839
-    signature.kubescape.io/matcher-version: a6dba81c26bcf0d7
+    signature.kubescape.io/generator-ref: 187582e
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: wordpress-wordpress
   namespace: wordpress
 spec:
@@ -18,73 +19,244 @@ spec:
     - CAP_SETGID
     - CAP_SETUID
   egress:
+    - {dns: "", dnsNames: [api.wordpress.org., authentication.backupbliss.com.], identifier: d6928b69d4cd35ba3a7cce94814dcb1611ec954102e3149dc7baeca0c27db3f3, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: [mariadb., mariadb.cluster.local., mariadb.svc.cluster.local., mariadb.wordpress-db.svc.cluster.local., wordpress., wordpress.cluster.local., wordpress.svc.cluster.local., wordpress.wordpress.svc.cluster.local.], identifier: c30f70b3efd6db31ed75b794dfd96c791a4e43650867b1d99091158ade2a1713, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
     - {dns: "", dnsNames: null, identifier: 537e4f591525dd1a27d0938906f6b894a2e98ea7edfd8b49dc535fa45ffc9742, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: wordpress-db}}, podSelector: {matchLabels: {app: mariadb}}, ports: [{name: TCP-3306, port: 3306, protocol: TCP}], serviceRefName: mariadb, serviceRefNamespace: wordpress-db, type: internal}
     - {dns: "", dnsNames: null, identifier: c816caf21a3925bc7fb423ec5a289742b77f47159a347de4298f071c0ca6134e, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: wordpress}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], serviceRefName: wordpress, serviceRefNamespace: wordpress, type: internal}
-    - {dns: "", dnsNames: null, identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
-    - {dns: "", dnsNames: [api.wordpress.org., authentication.backupbliss.com.], identifier: egress-dns, ipAddress: "", namespaceSelector: null, podSelector: null, ports: null, type: external}
-  endpoints: null
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+  endpoints:
+    - {direction: inbound, endpoint: ':80/', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET, POST]}
+    - {direction: inbound, endpoint: ':80/2026/11/21/hello-world', headers: {Accept-Encoding: ['deflate, gzip, br, zstd'], Connection: [close], Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/index.php/2026/11/21/hello-world', headers: {Accept-Encoding: ['deflate, gzip, br, zstd'], Connection: [close], Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/license.txt', headers: {Connection: [close], Host: ['10.42.0.17:80']}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/wp-admin', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/wp-admin/admin-ajax.php', headers: {Accept-Encoding: ['deflate, gzip, br, zstd'], Connection: [close], Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/wp-admin/admin.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/wp-admin/options-general.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/wp-admin/upload.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/wp-comments-post.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [POST]}
+    - {direction: inbound, endpoint: ':80/wp-cron.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET]}
+    - {direction: inbound, endpoint: ':80/wp-login.php', headers: {Host: [wordpress.wordpress.svc.cluster.local]}, internal: true, methods: [GET, POST]}
   execs:
     - {args: [/pause], path: /pause}
-    - {args: [/usr/bin/cwebp, ⋯⋯], path: /usr/bin/cwebp}
-    - {args: [cwebp, ⋯⋯], path: /usr/bin/cwebp}
-    - {args: [/usr/bin/df, ⋯⋯], path: /usr/bin/df}
-    - {args: [/usr/bin/dirname, ⋯⋯], path: /usr/bin/dirname}
-    - {args: [/usr/bin/du, ⋯⋯], path: /usr/bin/du}
-    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
-    - {args: [/usr/bin/gzip], path: /usr/bin/gzip}
-    - {args: [/usr/bin/jpegoptim, --strip-all, --quiet, /var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /usr/bin/jpegoptim}
-    - {args: [/usr/bin/convert, ⋯⋯], path: /usr/bin/magick-im7.q16}
-    - {args: [/usr/bin/identify, ⋯⋯], path: /usr/bin/magick-im7.q16}
-    - {args: [/usr/bin/mogrify, ⋯⋯], path: /usr/bin/magick-im7.q16}
-    - {args: [convert, ⋯⋯], path: /usr/bin/magick-im7.q16}
-    - {args: [mogrify, ⋯⋯], path: /usr/bin/magick-im7.q16}
-    - {args: [/usr/bin/mysqldump, ⋯, --max_allowed_packet=1M, --quote-names, --add-drop-table, --no-tablespaces, --skip-comments, --skip-set-charset, --allow-keywords, --dump-date, --extended-insert, --where=option_name='siteurl', --user=wordpress, --host=mariadb.wordpress-db.svc.cluster.local, wordpress, wp_options], path: /usr/bin/mariadb-dump}
-    - {args: [/usr/bin/mkdir, ⋯⋯], path: /usr/bin/mkdir}
-    - {args: [/usr/bin/nice, ⋯⋯], path: /usr/bin/nice}
-    - {args: [/usr/bin/optipng, ⋯⋯], path: /usr/bin/optipng}
-    - {args: [optipng, ⋯⋯], path: /usr/bin/optipng}
-    - {args: [/usr/bin/exiftool, -q, -all=, -overwrite_original, /var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /usr/bin/perl}
-    - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/rm}
-    - {args: [/usr/bin/tar, czf, /var/www/html/wp-content/uploads/.export.tgz, -C, /var/www/html/wp-content/uploads, .], path: /usr/bin/tar}
-    - {args: [/bin/zip, ⋯⋯], path: /usr/bin/zip}
-    - {args: [/usr/bin/zip, ⋯⋯], path: /usr/bin/zip}
-    - {args: [/usr/sbin/apache2, ⋯⋯], path: /usr/sbin/apache2}
-    - {args: [apache2, ⋯⋯], path: /usr/sbin/apache2}
-    - {args: [/var/www/html/wp-content/ewww/gifsicle, --version], path: /var/www/html/wp-content/ewww/gifsicle}
-    - {args: [/var/www/html/wp-content/ewww/jpegtran, -copy, none, -optimize, -outfile, /var/www/html/wp-content/uploads/⋯/⋯/⋯, /var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /var/www/html/wp-content/ewww/jpegtran}
-    - {args: [/var/www/html/wp-content/ewww/jpegtran, -v, /var/www/html/wp-content/plugins/ewww-image-optimizer/images/sample.jpg], path: /var/www/html/wp-content/ewww/jpegtran}
-    - {args: [/var/www/html/wp-content/ewww/optipng, -o2, -quiet, -strip, all, /var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /var/www/html/wp-content/ewww/optipng}
-    - {args: [/var/www/html/wp-content/ewww/optipng, -v], path: /var/www/html/wp-content/ewww/optipng}
     - {args: [/usr/local/bin/apache2-foreground], path: /usr/bin/bash}
-    - {args: [/bin/sh, -c, --, ⋯], path: /usr/bin/dash}
+    - {argsRegex: '/usr/bin/cwebp -quiet -q [^ ]* /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]* -o /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]*', path: /usr/bin/cwebp}
+    - {args: [/usr/local/bin/docker-php-entrypoint, apache2-foreground], path: /usr/bin/dash}
+    - {args: [/usr/bin/df, -h, /var/www/html/wp-content/uploads], path: /usr/bin/df}
+    - {args: [/usr/bin/dirname, /var/lock/apache2], path: /usr/bin/dirname}
+    - {args: [/usr/bin/dirname, /var/log/apache2], path: /usr/bin/dirname}
+    - {args: [/usr/bin/dirname, /var/run/apache2], path: /usr/bin/dirname}
+    - {args: [/usr/bin/du, -sh, /var/www/html/wp-content/uploads], path: /usr/bin/du}
+    - {args: [/usr/bin/find, /var/www/html/wp-content/uploads, -type, f, -name, '*.tmp', -mtime, "+0", -delete], path: /usr/bin/find}
+    - {args: [/usr/bin/gzip], path: /usr/bin/gzip}
+    - {argsRegex: '/usr/bin/jpegoptim --strip-all --quiet /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]*', path: /usr/bin/jpegoptim}
+    - {argsRegex: '/usr/bin/convert( [^ ]*)*', path: /usr/bin/magick-im7.q16}
+    - {argsRegex: '/usr/bin/identify( [^ ]*)*', path: /usr/bin/magick-im7.q16}
+    - {argsRegex: '/usr/bin/mogrify( [^ ]*)*', path: /usr/bin/magick-im7.q16}
+    - {argsRegex: '/usr/bin/mysqldump [^ ]* --max_allowed_packet=1M --quote-names --add-drop-table --no-tablespaces --skip-comments --skip-set-charset --allow-keywords --dump-date --extended-insert --where=option_name=''siteurl'' --user=wordpress --host=mariadb\.wordpress-db\.svc\.cluster\.local wordpress wp_options', path: /usr/bin/mariadb-dump}
+    - {args: [/usr/bin/mkdir, -p, /var/lock/apache2], path: /usr/bin/mkdir}
+    - {args: [/usr/bin/mkdir, -p, /var/log/apache2], path: /usr/bin/mkdir}
+    - {args: [/usr/bin/mkdir, -p, /var/run/apache2], path: /usr/bin/mkdir}
+    - {argsRegex: '/usr/bin/optipng -quiet -o2 /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]*', path: /usr/bin/optipng}
+    - {argsRegex: '/usr/bin/exiftool -q -all= -overwrite_original /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]*', path: /usr/bin/perl}
+    - {args: [/usr/bin/rm, -f, /var/run/apache2/apache2.pid], path: /usr/bin/rm}
+    - {args: [/usr/bin/tar, czf, /var/www/html/wp-content/uploads/.export.tgz, -C, /var/www/html/wp-content/uploads, .], path: /usr/bin/tar}
+    - {args: [/bin/zip, -n, '.jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV', -v, -@, binziptest/test.zip], path: /usr/bin/zip}
+    - {args: [/bin/zip, -n, '.jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV', -v, -u, -r, binziptest/test.zip, binziptest/subdir1], path: /usr/bin/zip}
+    - {args: [/usr/bin/zip, -n, '.jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV', -v, -@, binziptest/test.zip], path: /usr/bin/zip}
+    - {args: [/usr/bin/zip, -n, '.jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV', -v, -u, -r, binziptest/test.zip, binziptest/subdir1], path: /usr/bin/zip}
+    - {args: [/usr/sbin/apache2, -DFOREGROUND], path: /usr/sbin/apache2}
+    - {args: [apache2, -DFOREGROUND], path: /usr/sbin/apache2}
+    - {args: [/var/www/html/wp-content/ewww/gifsicle, --version], path: /var/www/html/wp-content/ewww/gifsicle}
+    - {argsRegex: '/var/www/html/wp-content/ewww/jpegtran -copy none -optimize -outfile /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]* /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]*', path: /var/www/html/wp-content/ewww/jpegtran}
+    - {args: [/var/www/html/wp-content/ewww/jpegtran, -v, /var/www/html/wp-content/plugins/ewww-image-optimizer/images/sample.jpg], path: /var/www/html/wp-content/ewww/jpegtran}
+    - {argsRegex: '/var/www/html/wp-content/ewww/optipng -o2 -quiet -strip all /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]*', path: /var/www/html/wp-content/ewww/optipng}
+    - {args: [/var/www/html/wp-content/ewww/optipng, -v], path: /var/www/html/wp-content/ewww/optipng}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/jpegtran -copy none -optimize  -outfile '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1.jpg.prog' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1.jpg'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/jpegtran -copy none -optimize  -outfile '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5.jpg.prog' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5.jpg'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/jpegtran -copy none -optimize  -outfile '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6.jpg.prog' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6.jpg'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/jpegtran -copy none -optimize  -outfile '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7.jpg.prog' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7.jpg'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/jpegtran -copy none -optimize  -outfile '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8.jpg.prog' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8.jpg'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/jpegtran -copy none -optimize  -outfile '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9.jpg.prog' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9.jpg'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/optipng -o2 -quiet -strip all  '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1.png.tmp.png'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/optipng -o2 -quiet -strip all  '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5.png.tmp.png'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/optipng -o2 -quiet -strip all  '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6.png.tmp.png'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/optipng -o2 -quiet -strip all  '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7.png.tmp.png'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice /var/www/html/wp-content/ewww/optipng -o2 -quiet -strip all  '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8.png.tmp.png'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/bin/nice 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /usr/sbin/sendmail -t -i], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /var/www/html/wp-content/ewww/jpegtran -v /var/www/html/wp-content/plugins/ewww-image-optimizer/images/sample.jpg 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /var/www/html/wp-content/ewww/gifsicle --version 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /var/www/html/wp-content/ewww/optipng -v 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, 'cd ''/var/www/html/wp-content/updraft''; /bin/zip -n .jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV -v -u -r binziptest/test.zip binziptest/subdir1'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, 'cd ''/var/www/html/wp-content/updraft''; /usr/bin/zip -n .jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV -v -u -r binziptest/test.zip binziptest/subdir1'], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9.jpg' -resize 768x '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9-768.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9.jpg' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9-150x150.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9.png' -resize 768x '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9-768.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9.png' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, convert '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9.png' -thumbnail 150x150^ -gravity center -extent 150x150 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9-150x150.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9-opt.jpg' -o '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, cwebp -quiet -q 80 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9-opt.png' -o '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9.webp' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, df -h '/var/www/html/wp-content/uploads' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, du -sh '/var/www/html/wp-content/uploads' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, exiftool -q -all= -overwrite_original '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, find '/var/www/html/wp-content/uploads' -type f -name '*.tmp' -mtime +0 -delete 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, identify -format '%wx%h %m' '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, jpegoptim --strip-all --quiet '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-559dd55cc6-swx5l-9-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-1-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-10-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-11-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-12-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-5-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-6-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-7-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-8-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/photo-loadgen-7c58b5cc89-6fvb2-9-opt.jpg' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-559dd55cc6-swx5l-9-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-1-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-10-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-11-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-12-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-5-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-6-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-7-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-8-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/2026/11/shot-loadgen-7c58b5cc89-6fvb2-9-opt.png' 2>&1], path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, tar czf '/var/www/html/wp-content/uploads/.export.tgz' -C '/var/www/html/wp-content/uploads' . 2>&1], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, '/bin/zip -n .jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV -v -@ binziptest/test.zip'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, '/usr/bin/zip -n .jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV -v -@ binziptest/test.zip'], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
-    - {args: [/usr/local/bin/docker-php-entrypoint, apache2-foreground], path: /usr/bin/dash}
-    - {args: [sh, -c, --, convert '/var/www/html/wp-content/uploads/⋯/⋯/photo-loadgen-79967cf844-bmt4b-19.jpg' -strip -resize 1600x1600 -quality 82 '/var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /usr/bin/dash}
-    - {args: [sh, -c, --, ⋯/var/www/html/wp-content/uploads/⋯/⋯/shot-loadgen-79967cf844-bmt4b-13-opt.png' -o '/var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /usr/bin/dash}
-    - {args: [sh, -c, --, mogrify -auto-orient '/var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /usr/bin/dash}
-    - {args: [sh, -c, --, optipng -quiet -o2 '/var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /usr/bin/dash}
-    - {args: [/usr/bin/convert, ⋯⋯], path: /usr/bin/convert}
-    - {args: [/usr/bin/identify, ⋯⋯], path: /usr/bin/identify}
-    - {args: [/usr/bin/mogrify, ⋯⋯], path: /usr/bin/mogrify}
-    - {args: [/usr/bin/mysqldump, ⋯, --max_allowed_packet=1M, --quote-names, --add-drop-table, --no-tablespaces, --skip-comments, --skip-set-charset, --allow-keywords, --dump-date, --extended-insert, --where=option_name='siteurl', --user=wordpress, --host=mariadb.wordpress-db.svc.cluster.local, wordpress, wp_options], path: /usr/bin/mysqldump}
-    - {args: [/usr/bin/exiftool, -q, -all=, -overwrite_original, /var/www/html/wp-content/uploads/⋯/⋯/⋯], path: /usr/bin/exiftool}
-    - {args: [/bin/zip, ⋯⋯], path: /bin/zip}
-    - {args: [/usr/local/bin/apache2-foreground], path: /usr/local/bin/apache2-foreground}
-    - {args: [/bin/sh, -c, --, ⋯], path: /bin/sh}
-    - {args: [/bin/sh, -c, '/bin/zip -n .jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV -v -@ binziptest/test.zip'], path: /bin/sh}
-    - {args: [/bin/sh, -c, '/usr/bin/zip -n .jpg:.JPG:.jpeg:.JPEG:.png:.PNG:.gif:.GIF:.zip:.ZIP:.gz:.GZ:.bz2:.BZ2:.xz:.XZ:.rar:.RAR:.mp3:.MP3:.mp4:.MP4:.mpeg:.MPEG:.avi:.AVI:.mov:.MOV -v -@ binziptest/test.zip'], path: /bin/sh}
-    - {args: [/bin/sh, -c, gzip], path: /bin/sh}
-    - {args: [/usr/local/bin/docker-php-entrypoint, apache2-foreground], path: /usr/local/bin/docker-php-entrypoint}
-    - {args: [sh, -c, --, ⋯], path: /usr/bin/dash}
-    - {args: [/usr/bin/perl, /usr/bin/exiftool, -q, -all=, -overwrite_original, ⋯], path: /usr/bin/perl}
+    - {args: [/usr/bin/nice], path: /usr/bin/nice}
+    - {argsRegex: '/usr/bin/nice /var/www/html/wp-content/ewww/jpegtran -copy none -optimize -outfile /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]* /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]*', path: /usr/bin/nice}
+    - {argsRegex: '/usr/bin/nice /var/www/html/wp-content/ewww/optipng -o2 -quiet -strip all /var/www/html/wp-content/uploads/[^/ ]*/[^/ ]*/[^/ ]*', path: /usr/bin/nice}
   identifiedCallStacks: null
-  imageID: ttl.sh/wp-p2s-f5312fa63ea3@sha256:4f30c8a13a74423192203678ea581667831cd4ddf3ebbcdf6436480d288ff04f
-  imageTag: ttl.sh/wp-p2s-f5312fa63ea3:24h
+  imageID: sha256:27054813891e29922be776bbde66aed2ce07268d575b19b30b10cc8a224e2905
+  imageTag: docker.io/library/php2shell-wordpress:demo
   ingress:
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: d9f75eae8e6462ba9e522154da74223252ae7f3a85ea93787e8685c4210e5931, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: wordpress-loadgen}}, podSelector: {matchLabels: {app: loadgen}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 6b4963e19019e71277ec32e8a18c8046fa3f091a4457c62d0ae2a63778e432d5, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: wordpress}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_NONBLOCK, O_RDWR], path: /dev/tty}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /dev/urandom}
@@ -146,21 +318,27 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services}
     - {flags: [O_RDONLY], path: /etc/ssl/certs/ca-certificates.crt}
     - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/glibc-hwcaps/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/glibc-hwcaps/⋯/libnss_db.so.2}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libnss_db.so.2}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/x86_64-linux-gnu/glibc-hwcaps/⋯/libnss_db.so.2}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/x86_64-linux-gnu/libnss_db.so.2}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/ngroups_max}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/vm/overcommit_memory}
     - {flags: [O_RDONLY], path: /proc/⋯/maps}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mounts}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /proc/⋯/task/*}
-    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /run/apache2/⋯}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /run/apache2/apache2.pid.IXEuCJ}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /run/apache2/apache2.pid.emScJ5}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*}
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/⋯}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/bin/*}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/bin/exiftool}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/apache2/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/glibc-hwcaps/⋯/libnss_db.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/libnss_db.so.2}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/locale/*}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/*}
     - {flags: [O_RDONLY], path: /usr/local/bin/apache2-foreground}
     - {flags: [O_RDONLY], path: /usr/local/bin/docker-php-entrypoint}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/etc/php/conf.d}
@@ -182,7 +360,7 @@ spec:
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/log/apache2/other_vhosts_access.log}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/apache2/apache2.pid}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/www/.htaccess}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/www/html}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/www/html/.htaccess}
     - {flags: [O_RDONLY], path: /var/www/html/index.php}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/www/html/license.txt}
@@ -244,12 +422,11 @@ spec:
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/www/html/wp-content/*}
     - {flags: [O_RDONLY], path: /var/www/html/wp-cron.php}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/www/html/wp-cron.php/.htaccess}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-includes/⋯}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /var/www/html/wp-includes/*}
     - {flags: [O_RDONLY], path: /var/www/html/wp-load.php}
     - {flags: [O_RDONLY], path: /var/www/html/wp-login.php}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/www/html/wp-login.php/.htaccess}
     - {flags: [O_RDONLY], path: /var/www/html/wp-settings.php}
-    - {flags: [O_RDONLY], path: /proc/sys/vm/overcommit_memory}
   rulePolicies:
     R0002:
       processAllowed:
@@ -272,11 +449,11 @@ spec:
   seccompProfile:
     spec:
       defaultAction: ""
+  syscalls: null
   subtract:
     opens:
       - flags: null
         path: /proc/*/environ
       - flags: null
         path: /proc/⋯/environ
-  syscalls: null
 status: {}
