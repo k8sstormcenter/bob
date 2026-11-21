@@ -7,179 +7,115 @@ All trademarks are expressly reserved.
 
 # Proposal: SBoB Coverage
 
-**A GitHub Action that tells maintainers, on every pull request, whether their integration tests exercised the runtime behaviour they care about, and what their Helm chart grants that the tests never used.**
-
-A green run leaves behind the component's SBoB, ready to ship with the release.
-
 Status: draft · Pilot: Argo CD
 
----
+## What this is
 
-## Why
+Maintainers write **requirements** about what their software does at runtime. Their own tests run on a throwaway k3s, observed from the outside by Kubescape and Pixie. Each requirement comes back with one status:
 
-**Line coverage says which code ran. It does not say what the software did to its environment while the tests ran:**
+- **VIOLATED**: something ruled out happened;
+- **NOT_OBSERVED**: the tests never exercised it, so nothing is proven;
+- **COMPLIANT**: exercised, and nothing ruled out happened.
 
-- which programs it executed, and which files it read and wrote;
-- which hosts it talked to, and whether that traffic was encrypted;
-- which Linux capabilities and Kubernetes API permissions it actually used.
+The evidence that decided each status comes with it. A green run leaves the component's SBoB behind.
 
-That is the security-relevant part of a component. Today's tooling measures it rarely, because it was hard to observe without changing the software under test. A runtime sensor observes it from the outside, with no rebuild and no instrumentation.
+## Example: did the nginx upgrade actually close nginx2root?
 
-**Grants are decided without measurements.** A Helm chart has to grant whatever its users might need, and maintainers rarely have data on which grants their own tests exercise. A test run that passes without using a grant gives a maintainer that data, so they can decide with evidence whether to keep it.
+On 2026-11-18 nginx fixed five memory-safety bugs. The headline one, CVE-2026-123007, is an HTTP/2 flow-control overflow that an unauthenticated client can use to crash a worker or, under harder conditions, run code as the worker user. A second bug, CVE-2026-123633, affects HTTP/2 reverse proxies. Fixed in 1.31.9 and 1.30.7.
 
-## What a maintainer writes
-
-A short spec: what the tests are meant to exercise (`expect`) and what must never happen (`forbid`).
+The maintainer writes two lines — a CVE and a before/after check:
 
 ```yaml
-apiVersion: bobctl.k8sstormcenter.io/v1alpha1
-kind: CoverageSpec
-metadata:
-  name: argocd-repo-server
-target:
-  namespace: argocd-e2e
-  container: argocd-repo-server
-expect:
-  exec:   [ /usr/local/bin/helm, /usr/local/bin/kustomize, /usr/bin/git ]
-  files:  { write: [ /tmp/_argocd-repo/* ] }
-  egress: [ { host: argocd-e2e-server, ports: [9081] } ]
-forbid:
-  exec:   [ /bin/sh, /usr/bin/curl, /usr/bin/wget ]
-  files:
-    load: [ /usr/lib/x86_64-linux-gnu/libxml2.so.2.9.13 ]   # version named in an earlier security advisory
-  kubernetesApi:
-    - { resource: secrets, verbs: [list], scope: cluster }
+verify:
+  - cve: CVE-2026-123007      # the fragment comes from the corpus; you don't write it
+    component: nginx
 ```
 
-`files.load` checks which shared objects the component actually maps at runtime. A library version flagged in an earlier security advisory can be held as a `forbid` line: the report proves that the fixed build no longer loads it, not just that the image no longer contains it. The same line is evidence when a scanner flags a library that is present in the image but never loaded.
+The watch-list is **not hand-written**. It is a subtract fragment — the same `ContainerProfile` SBoB syntax as an allow profile — that we distilled once from running the published exploit on the vulnerable build. It is subtracted from the broad allow-list the tests learned, and the entries are the real values we observed, across the SBoB++ tracers (processes and files from the kernel; HTTP/HTTPS, WebSocket and DNS from the L7 tracers):
 
-Illustrative; paths are confirmed in the first milestone. Nobody writes this from scratch. The first run drafts it from what was observed plus what the chart grants; the maintainer prunes it and commits it.
+```yaml
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  labels:
+    kubescape.io/profile-fragment: subtract
+    signature.kubescape.io/fragment-class: overlay
+  name: ioc-overlay-cve-2026-123007
+spec:
+  subtract:
+    execs:                     # the worker ran a program — a reverse proxy never does
+      - {args: [/bin/sh, -c, --, touch, /tmp/sbob-proof], path: /usr/bin/dash}
+      - {args: [/usr/bin/touch, /tmp/sbob-proof], path: /usr/bin/touch}
+    opens:                     # and wrote a file outside its own dirs
+      - {flags: [O_CREAT, O_NONBLOCK, O_WRONLY], path: /tmp/sbob-proof}
+    # The same fragment also carries the SBoB++ L7 slots — `endpoints` (HTTP/HTTPS/WebSocket) and
+    # `egress`/`dnsNames` (DNS). nginx2root's payload stayed local, so those are empty here; a CVE with
+    # a network stage (a malicious request path, a C2 lookup, an exfil peer) puts its IOCs there, e.g.
+    #   endpoints: [{direction: inbound, endpoint: ':443/…', methods: [POST], internal: false}]
+    #   egress:    [{dnsNames: [c2.example.invalid]}]
+```
 
-## What the maintainer gets back
+In a Kubernetes lab, the published exploit ran against both builds, nginx profile learned first:
 
-Every spec line ends in exactly one state:
+| Outcome | 1.31.8 | 1.31.9 |
+|---|---|---|
+| code execution | **FIRES**: worker started `sh` → `touch` as uid 101, caught 1.8 ms before the file appeared | silent: the exploit won't engage the fixed build |
+| information disclosure | **FIRES**: worker memory left in a response, enough to defeat ASLR | silent |
+| denial of service | **FIRES**: worker aborts after heap corruption | silent: the connection is reset before the overflow |
+| host reach | **FIRES**: a compromised pod read a canary on the node | not reachable |
 
-|                 | observed during tests | not observed |
-|-----------------|-----------------------|--------------|
-| `expect`        | **covered**           | **gap**: the tests don't exercise it, so a test is missing |
-| `forbid`        | **violation**         | ok |
-| not in spec     | **unspecified**: proposed as a new spec line | — |
+That is what the maintainer needs to know: on the old build, any client could run commands inside the pod; after the upgrade, nothing in the list happens. The 1.31.8 observations (a program started by the worker, a file it wrote, heap corruption, a dying worker) are exactly what the requirement keeps watching for on every later build. Evidence, line by line: [`example/nginx2root-patch-proof`](../../example/nginx2root-patch-proof/README.md).
 
-Plus a **granted vs. used** table per component (RBAC verbs, capabilities, host access), and the **SBoB** of the run.
+## How an advisory becomes a requirement
 
-The report compares the run against the maintainer's declared intent, not against a previous run. Tests that change or grow don't create noise: they either cover the spec or they don't.
+1. **Match.** The advisory names a component and version range. The project's image digests and loaded libraries show whether it ships that component.
+2. **Extract the facts.**
 
-| Assertion | Source |
-|---|---|
-| programs executed, with arguments | Kubescape application profile |
-| files opened for read / write | Kubescape application profile |
-| shared objects loaded (which `.so` files, which versions) | Kubescape application profile |
-| syscalls, Linux capabilities used | Kubescape application profile |
-| network peers, DNS names, ports | Kubescape network neighborhood |
-| Kubernetes API calls per component (resource, verb, scope, watch, exec) | Pixie protocol tracing of each component's own connection to the API server (HTTP/2 and WebSocket inside TLS) |
-| RBAC granted vs. used | rendered chart + traced API calls |
-| connection is TLS vs. plaintext | handshake classification |
-| HTTP/gRPC endpoints, methods, status codes, inside TLS | Pixie protocol tracing |
-| WebSocket sessions and messages | Pixie protocol tracing |
+   | From the advisory | Becomes |
+   |---|---|
+   | affected and fixed versions | the version check |
+   | preconditions (here: affected version, HTTP/2 on a TLS listener) | `applies`: checked on the live system; the tests must exercise exactly that path, or the result is NOT_OBSERVED |
+   | impact, split by outcome (here: crash, memory disclosure, code execution as the worker user) | `violated`, one group per outcome: what is observable when it happens (worker dies and is respawned; memory reaches the client; worker starts programs, writes outside its directories, connects anywhere new) |
+   | known chains (here: SCTP to reach root) | `violated`: the chain's first step |
+      | published reproduction | `probe`: run before and after, with its own success indicator |
 
-Kubernetes API calls are read from the traffic itself, not from the API server's audit log. That attributes every call to the exact pod and container that made it, including watch streams and WebSocket `exec`/`port-forward` sessions. It also needs no audit policy on the API server, so it works the same on a runner's k3s and on a managed cluster.
+3. **Draft, then review.** The harness drafts the block from these fields. The maintainer reviews it and commits it next to the tests.
+4. **Run before and after the fix.** VIOLATED on the affected build, COMPLIANT on the fixed one, with the evidence for both.
+5. **Keep it.** The requirement stays in CI as a regression check for every later bump.
 
-### Inside the encrypted traffic
+## What else a requirement can check
 
-Pixie traces application protocols with eBPF, including the plaintext of TLS connections, and it is being extended to read TLS in most runtimes, Go included, and to trace WebSockets. That turns the test run into evidence about the traffic itself, not just about which peers were contacted:
-
-| Question the report answers | What is observed |
-|---|---|
-| **Does personal data cross this connection?** | request and response bodies classified for PII (names, emails, phone numbers, identifiers) per endpoint and peer |
-| **What do the tokens it presents allow?** | the claims of JWTs seen on the wire: issuer, audience, scopes and expiry, per caller and per callee |
-| **How is the traffic encrypted?** | TLS version, cipher suite and key-exchange group (for example X25519, P-256, or a post-quantum hybrid) per connection |
-| **What gets refused?** | connections reset or rejected, TLS handshake failures, and 401/403/5xx responses, per peer and endpoint |
-| **Is the test run stable?** | repeated failures before a request finally succeeds, retries, reconnects and timeouts. A green test that only passed on the fifth attempt is reported as such. |
-
-Each of these can be written as `expect` or `forbid` lines (for example: "no PII leaves this namespace", "no token with `*` scope", "no TLS below 1.3 or without a post-quantum group to external peers"). The observed values go into the SBoB, so a release documents what its traffic looks like, not only where it goes.
+| `source` | Examples | Observed by |
+|---|---|---|
+| `profile` / `runtime` | programs started, files and shared libraries opened (e.g. "the affected libxml2 is no longer loaded"), capabilities, network neighbours | Kubescape |
+| `wire` | endpoints, methods and status codes inside TLS; WebSockets; PII in bodies; JWT scopes; TLS version and key-exchange group; resets and retries | Pixie |
+| `k8sapi` | which component calls which Kubernetes API verb, read from the traffic, not an audit log | Pixie |
+| `spec` / `rbac` | image digests, security context, granted vs. used permissions | cluster API |
+| `probe` / `log` / `kernel` | the harness's own requests and reproductions; container log lines; kernel traps on the node | harness |
 
 ## How it runs
-
-```
-GitHub-hosted runner
- ├─ k3s, installed natively, with Kubescape runtime observation and Pixie protocol tracing
- ├─ the project installs itself as pods        ← maintainer step
- ├─ the project runs its tests                 ← maintainer step
- └─ report: job summary, JSON, SBoB, exit code
-```
 
 ```yaml
 - uses: k8sstormcenter/sbob-coverage-action@v0
   with:
-    spec: .sbob/coverage.yaml
+    requirements: .sbob/requirements.yaml
     install: ./hack/install-for-coverage.sh
     test: ./test/remote/run-e2e-remote.sh make test-local
-    fail-on: violation        # gaps are reported, not failed, by default
+    fail-on: VIOLATED
 ```
 
-The action can also attach to a k3s the workflow already installed. k3s is installed natively, not in Docker, because the runtime sensor needs the host's container events.
-
-**Determinism is the first gate.** The same commit run ten times must produce the same report. A coverage tool that shows noise on an unchanged pull request gets uninstalled in a week.
+The action installs k3s natively with Kubescape and Pixie, lets the project install and test itself, learns a baseline before probes run, and reports per requirement. The same commit run ten times must produce the same report. The evaluator is the one already used to check architecture decisions at runtime ([commons-grid-dynamics-manifest `compliance/`](https://github.com/k8sstormcenter/commons-grid-dynamics-manifest/tree/kcna26/compliance)).
 
 ## Pilot: Argo CD
 
-- Argo CD is a good pilot because it has a broad e2e suite, already runs it on k3s, and ships a supported mode for running it against an in-cluster install.
-- The pilot uses that mode (`test/remote`, `ARGOCD_E2E_REMOTE=true`, namespace `argocd-e2e`), so a runtime sensor observes the components as pods. It starts with the helm, kustomize, git, repository-credential and OCI tests, which drive the repo-server.
-- Phase 1 needs no fork: a workflow in this repository checks out an Argo CD release tag and runs everything. A fork is used later only to show maintainers the pull-request experience.
-
-## Example: proving a patch
-
-On 2026-11-18 nginx fixed five vulnerabilities that allow unauthenticated remote code execution through HTTP/2 (CVE-2026-123007 and four related CVEs; fixed in 1.31.9 and 1.30.7). Many deployments, Argo CD among them, put nginx in front of their API server as a reverse proxy. A coverage spec can turn "we upgraded nginx" into evidence.
-
-The test topology puts an nginx reverse proxy with HTTP/2 enabled in front of `argocd-server`. The e2e suite talks to Argo CD through it. The same suite runs twice: once with the affected nginx build, once with the fixed one. Each run adds a reproduction of the advisory, gated on its own success indicator.
-
-```yaml
-kind: CoverageSpec
-metadata:
-  name: argocd-ingress-nginx
-target: { namespace: argocd-e2e, container: nginx }
-expect:
-  exec:    [ /usr/sbin/nginx ]
-  network: { ingress: [ { port: 443, protocol: h2 } ] }   # the tests really went through HTTP/2
-forbid:
-  exec:    [ /bin/sh, /usr/bin/curl, /usr/bin/wget ]      # the worker never starts a program
-  files:
-    write: [ /tmp/*, /dev/shm/* ]
-  network: { egress: [ "0.0.0.0/0" ] }                    # the proxy only talks to its backends
-reproduce:
-  - advisory: CVE-2026-123007
-    success: worker-code-execution
-```
-
-| | affected nginx | fixed nginx |
-|---|---|---|
-| tests exercised the HTTP/2 path (`expect`) | covered | covered |
-| reproduction succeeded | **yes** | no |
-| `forbid` lines | **violation** (program started by the worker) | ok |
-| nginx build loaded | the affected version | the fixed version |
-
-The maintainer gets one statement backed by both runs: the tests exercised the vulnerable path, the reproduction worked before the change, and it no longer works after it. That is stronger than a version bump in a changelog, and it stays in CI as a regression check.
-
-Reproductions run only in an isolated lab cluster, never on shared CI runners. They use the advisory's published reproducer where one exists. The coverage report needs the success indicator, not a weaponised payload.
+Argo CD has a broad e2e suite, already runs it on k3s, and ships a supported in-cluster test mode (`test/remote`). In the first lab run, that mode exercised `helm`, `kustomize` and `git` in the repo-server. No fork is needed.
 
 ## Milestones
 
-| | Deliverable | Done when |
-|---|---|---|
-| M0 | Argo CD remote e2e on k3s under Kubescape | repo-server profile shows `helm`, `kustomize`, `git` |
-| M1 | `CoverageSpec`; `bobctl coverage init` (draft from a run) and `verify` (report) | Argo CD subset report; 10 identical reruns |
-| M2 | GitHub Action; Kubernetes API assertions from traced API traffic; granted vs. used | another project adopts it in under 15 minutes, with under 5 minutes added CI time |
-| M3 | Protocol assertions from Pixie: endpoints inside TLS, WebSockets, PII, JWT scopes, TLS parameters, refusals, instability | Argo CD report lists its endpoints, token scopes and TLS groups per peer |
-| M4 | Fork demo with pull-request reports | a pull request in the fork shows covered / gap / violation |
-| M5 | Patch proof: the nginx example above, run in the lab cluster | the before/after report for the affected and fixed nginx builds |
-
-## Non-goals
-
-- Replacing line coverage or unit tests.
-- Generating tests. The report shows where they are missing.
-- Production enforcement. The SBoB this produces can be enforced, but that is out of scope here.
-
-## Open questions
-
-- Runner size for k3s + project + Kubescape on a standard 4-vCPU runner.
-- Where in a project the spec lives (`.sbob/coverage.yaml` proposed).
+| | Deliverable |
+|---|---|
+| M0 | Argo CD e2e under observation (done) |
+| M1 | Requirements file + evaluator; draft-from-advisory; baseline-before-probe |
+| M2 | nginx example complete: baseline rerun, and code execution on AVX-512 hardware |
+| M3 | GitHub Action; `k8sapi` and `wire` checks |
+| M4 | Pull-request reports on a fork |
