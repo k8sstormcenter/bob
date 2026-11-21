@@ -70,11 +70,20 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/bin"
           go build -tags internal -ldflags "-X github.com/entlein/bob/cmd.GitCommit=$(git rev-parse --short HEAD)" -o "$GITHUB_WORKSPACE/bin/bobctl-pkg" .
 
-      - name: Build php2shell-wordpress image
+      - name: Fetch the php2shell-wordpress image (build only if the registry has none)
         run: |
           set -euo pipefail
-          docker build -t php2shell-wordpress:demo \
-            -f example/php2shell-wordpress/Dockerfile example/php2shell-wordpress
+          echo "${{ secrets.ENTLEIN_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          IMG=ghcr.io/${{ github.repository_owner }}/php2shell-wordpress
+          if docker pull -q "$IMG:${GITHUB_REF_NAME//\//-}" 2>/dev/null; then
+            docker tag "$IMG:${GITHUB_REF_NAME//\//-}" php2shell-wordpress:demo
+          elif docker pull -q "$IMG:latest" 2>/dev/null; then
+            docker tag "$IMG:latest" php2shell-wordpress:demo
+          else
+            echo "::notice::no published image yet; building once on this runner"
+            docker build -t php2shell-wordpress:demo -f example/php2shell-wordpress/Dockerfile example/php2shell-wordpress
+          fi
+          docker image inspect php2shell-wordpress:demo --format '{{.Id}}'
 
       - name: Set up k3s natively on the runner VM
         run: |
