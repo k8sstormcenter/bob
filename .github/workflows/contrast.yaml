@@ -13,7 +13,7 @@ on:
         default: all
       pkg_ref:
         description: commit of the pkg submodule that holds the workloads
-        default: d12a722a7d90ac445170a37ac3320cd85e8e048b
+        default: 91b2e77b4bc39069645333e73de9d2a90162ba56
       bobctl_tag:
         description: tag of the bobctl build to download
         default: internal-cb03c25
@@ -34,11 +34,11 @@ permissions:
   contents: read
 
 env:
-  PKG_REF: ${{ github.event.inputs.pkg_ref || 'd12a722a7d90ac445170a37ac3320cd85e8e048b' }}
+  PKG_REF: ${{ github.event.inputs.pkg_ref || '91b2e77b4bc39069645333e73de9d2a90162ba56' }}
   BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-cb03c25' }}
   BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '8145654ad033530fffe8b4df716b3744caf04c7e5329dc39317cda97a689c96d' }}
   CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling183' }}
-  ALL_APPS: php2shell-wordpress postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new
+  ALL_APPS: php2shell php2shell-wordpress postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new
 
 jobs:
   plan:
