@@ -64,7 +64,7 @@ runs:
         for d in out/*-versions-*.diff; do
           [ -f "$d" ] || continue
           cp "$d" artifacts/
-          { echo "### $(basename "$d" .diff): $(grep -c '^[-+<>]' "$d") differing lines between the old and the new version"; echo '```'; head -80 "$d" | cut -c1-200; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          { echo "### $(basename "$d" .diff): $(grep -cE '^ +[-+~] ' "$d") differing entries between the old and the new version"; echo '```'; head -80 "$d" | cut -c1-200; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
         done
         echo "$ok" > /tmp/contrast-ok
 

@@ -24,5 +24,6 @@ sleep 30
 date -u +%FT%TZ > out/real-to
 sleep 20
 kubectl -n php2shell-loadgen scale deployment/loadgen --replicas=1 || true
-echo "landed=$landed"
-[ "$landed" = 1 ] || { echo "::warning::the real run did not land; the comparison has an empty real window"; }
+mkdir -p out/php2shell
+if [ "$landed" = 1 ]; then echo "landed: $proof" > out/php2shell/real-result.txt; else echo "did not land in ${ATTEMPTS:-8} passes; nothing can be concluded from this run" > out/php2shell/real-result.txt; echo "::warning::the real run did not land"; fi
+cat out/php2shell/real-result.txt

@@ -94,6 +94,7 @@ runs:
       run: |
         set -euo pipefail
         APP="${{ inputs.app }}"
+        mkdir -p out
         for a in ${APP//+/ }; do
           if [ -f ".github/contrast/$a.pre.sh" ]; then bash ".github/contrast/$a.pre.sh"; else echo "no preparation for $a"; fi
         done
