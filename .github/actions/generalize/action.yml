@@ -11,7 +11,13 @@ inputs:
     description: application to run (a row of pkg/workloads/apps.txt)
     required: true
   pkg-ref:
-    description: commit of the pkg submodule to build bobctl from
+    description: commit of the pkg submodule that holds the workloads
+    required: true
+  bobctl-tag:
+    description: tag of the bobctl build to download
+    required: true
+  bobctl-sha256:
+    description: sha256 of that build
     required: true
   chart-ver:
     description: kubescape-operator chart version
@@ -40,25 +46,18 @@ runs:
         git -C pkg fetch -q origin "${{ inputs.pkg-ref }}"
         git -C pkg checkout -q FETCH_HEAD
         git -C pkg rev-parse --short HEAD
-        git config --global url."https://x-access-token:${{ inputs.entlein-pat }}@github.com/k8sstormcenter/storage".insteadOf "https://github.com/k8sstormcenter/storage"
 
-    - name: Set up Go
-      uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
-      with:
-        go-version-file: pkg/go.mod
-        cache-dependency-path: pkg/go.sum
-
-    - name: Build bobctl
+    - name: Fetch bobctl
       shell: bash
-      working-directory: pkg
-      env:
-        GOWORK: 'off'
-        GOPRIVATE: github.com/k8sstormcenter/storage
       run: |
         set -euo pipefail
-        mkdir -p "$GITHUB_WORKSPACE/bin"
-        go build -tags internal -ldflags "-X github.com/entlein/bob/cmd.GitCommit=$(git rev-parse --short HEAD)" -o "$GITHUB_WORKSPACE/bin/bobctl" .
-        "$GITHUB_WORKSPACE/bin/bobctl" version
+        mkdir -p bin
+        API=https://api.github.com/repos/entlein/bob/releases
+        ASSET=$(curl -fsSL -H "Authorization: Bearer ${{ inputs.entlein-pat }}" "$API/tags/${{ inputs.bobctl-tag }}" | jq -r '.assets[] | select(.name=="bobctl-internal-linux-amd64") | .id')
+        curl -fsSL -H "Authorization: Bearer ${{ inputs.entlein-pat }}" -H "Accept: application/octet-stream" -o bin/bobctl "$API/assets/$ASSET"
+        echo "${{ inputs.bobctl-sha256 }}  bin/bobctl" | sha256sum -c -
+        chmod +x bin/bobctl
+        bin/bobctl version
 
     - name: Set up k3s natively on the runner VM
       shell: bash
@@ -94,7 +93,10 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
         set -euo pipefail
-        if [ -f ".github/contrast/${{ inputs.app }}.pre.sh" ]; then bash ".github/contrast/${{ inputs.app }}.pre.sh"; else echo "no preparation for ${{ inputs.app }}"; fi
+        APP="${{ inputs.app }}"
+        for a in ${APP//+/ }; do
+          if [ -f ".github/contrast/$a.pre.sh" ]; then bash ".github/contrast/$a.pre.sh"; else echo "no preparation for $a"; fi
+        done
 
     - name: Learn, generalize, validate, apply, bind
       shell: bash
@@ -102,8 +104,10 @@ runs:
         LEARN: ${{ inputs.learn }}
       run: |
         set -uo pipefail
-        B="$GITHUB_WORKSPACE/bin/bobctl" pkg/workloads/run-live.sh "$GITHUB_WORKSPACE/out" generalize "${{ inputs.app }}" > /tmp/generalize.out 2>&1 || true
+        APP="${{ inputs.app }}"
+        B="$GITHUB_WORKSPACE/bin/bobctl" pkg/workloads/run-live.sh "$GITHUB_WORKSPACE/out" generalize ${APP//+/ } > /tmp/generalize.out 2>&1 || true
         grep -E '^[0-9]{2}:[0-9]{2}:[0-9]{2} ' out/run.log || true
-        A="${{ inputs.app }}"
-        echo "== fragment entries left out"; grep 'not subtracting' "out/$A/generalize.log" 2>/dev/null | cut -c1-200 || true
-        test -f "out/$A/bound-at"
+        for A in ${APP//+/ }; do
+          echo "== $A: fragment entries left out"; grep 'not subtracting' "out/$A/generalize.log" 2>/dev/null | cut -c1-200 || true
+          test -f "out/$A/bound-at"
+        done

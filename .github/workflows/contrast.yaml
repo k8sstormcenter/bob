@@ -12,8 +12,14 @@ on:
         description: space-separated applications, or all
         default: all
       pkg_ref:
-        description: commit of the pkg submodule to build bobctl from
-        default: 1341739cf9639d8406b247c1c865160edffea0c7
+        description: commit of the pkg submodule that holds the workloads
+        default: cb03c25752ddcfa030a3f8c123b168bcd4d97558
+      bobctl_tag:
+        description: tag of the bobctl build to download
+        default: internal-cb03c25
+      bobctl_sha256:
+        description: sha256 of that build
+        default: 8145654ad033530fffe8b4df716b3744caf04c7e5329dc39317cda97a689c96d
       chart_ver:
         description: kubescape-operator chart version
         default: 1.41.0-duckling183
@@ -28,9 +34,11 @@ permissions:
   contents: read
 
 env:
-  PKG_REF: ${{ github.event.inputs.pkg_ref || '1341739cf9639d8406b247c1c865160edffea0c7' }}
+  PKG_REF: ${{ github.event.inputs.pkg_ref || 'cb03c25752ddcfa030a3f8c123b168bcd4d97558' }}
+  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-cb03c25' }}
+  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '8145654ad033530fffe8b4df716b3744caf04c7e5329dc39317cda97a689c96d' }}
   CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling183' }}
-  ALL_APPS: php2shell-wordpress postgres mariadb redis wordpress argo-workflows otel-collector falco
+  ALL_APPS: php2shell-wordpress postgres mariadb redis wordpress nginx envoy zot cert-manager argo-workflows otel-collector falco-old+falco-new
 
 jobs:
   plan:
@@ -104,6 +112,8 @@ jobs:
         with:
           app: ${{ matrix.app }}
           pkg-ref: ${{ env.PKG_REF }}
+          bobctl-tag: ${{ env.BOBCTL_TAG }}
+          bobctl-sha256: ${{ env.BOBCTL_SHA256 }}
           chart-ver: ${{ env.CHART_VER }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           entlein-pat: ${{ secrets.ENTLEIN_PAT }}
@@ -113,7 +123,10 @@ jobs:
       - name: Real run, where the example has one
         run: |
           set -uo pipefail
-          if [ -f ".github/contrast/${{ matrix.app }}.real.sh" ]; then bash ".github/contrast/${{ matrix.app }}.real.sh"; else echo "no real run for ${{ matrix.app }}"; fi
+          APP="${{ matrix.app }}"
+          for a in ${APP//+/ }; do
+            if [ -f ".github/contrast/$a.real.sh" ]; then bash ".github/contrast/$a.real.sh"; else echo "no real run for $a"; fi
+          done
 
       - name: Simulate
         uses: ./.github/actions/simulate
