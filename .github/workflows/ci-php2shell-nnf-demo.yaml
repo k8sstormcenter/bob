@@ -134,7 +134,8 @@ jobs:
           kubectl apply -f example/php2shell/php2shell.yaml
           kubectl -n php2shell set image deployment/php2shell php2shell="$IMAGE"
           kubectl -n php2shell rollout status deployment/php2shell --timeout=180s
-          kubectl apply -f example/php2shell/sbobs/cp-php2shell.yaml
+          curl -sSfL -o "$RUNNER_TEMP/bobctl" https://github.com/k8sstormcenter/bob/releases/download/v0.1.25/bobctl-linux-amd64 && chmod +x "$RUNNER_TEMP/bobctl"
+          "$RUNNER_TEMP/bobctl" apply -n php2shell -f example/php2shell/sbobs/cp-php2shell.yaml
           sleep 20
           kubectl -n php2shell get pods -o wide
 
