@@ -192,7 +192,7 @@ what makes most of it BLIND in practice.
 | `chain-postgres` | `postgres:16` | Upstream image, no customisation |
 
 All images pull anonymously from GHCR (permanent tags, no rot). The two
-custom Go services are published by CI (`.github/workflows/ci-chain-images.yaml`)
+custom Go services are published by CI (`.github/workflows/contrast.yaml (images job)`)
 on every push to `main`; `chain.yaml` references them directly, so
 `kubectl apply -f chain.yaml` just works. ttl.sh is only used by the
 opt-in `--build` dev flow below.
@@ -223,7 +223,7 @@ instead of pulling GHCR:
 ```
 
 The published images (built + pushed by
-`.github/workflows/ci-chain-images.yaml` on every push to `main`) are:
+`.github/workflows/contrast.yaml (images job)` on every push to `main`) are:
 
 | Image | Tag policy |
 |---|---|
@@ -267,7 +267,7 @@ Coverage: 4 / 7 expected detections matched
   doesn't need to be vulnerable for this chain; postgres is the data
   source the chain exfils FROM.
 - **GHCR for the two custom Go images.** Permanent tags, published by CI
-  (`ci-chain-images.yaml`), pulled anonymously — no rot, no rebuild tax.
+  (`contrast.yaml`, images job), pulled anonymously — no rot, no rebuild tax.
   ttl.sh is the opt-in `--build` dev path for local Go-source iteration.
 
 ## TDD discipline

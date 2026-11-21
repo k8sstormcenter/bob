@@ -1,0 +1,129 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: Contrast
+
+on:
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: space-separated applications, or all
+        default: all
+      pkg_ref:
+        description: commit of the pkg submodule to build bobctl from
+        default: 1341739cf9639d8406b247c1c865160edffea0c7
+      chart_ver:
+        description: kubescape-operator chart version
+        default: 1.41.0-duckling183
+  push:
+    branches: [main, ci/one-workflow]
+    paths:
+      - '.github/workflows/contrast.yaml'
+      - '.github/actions/**'
+      - '.github/contrast/**'
+
+permissions:
+  contents: read
+
+env:
+  PKG_REF: ${{ github.event.inputs.pkg_ref || '1341739cf9639d8406b247c1c865160edffea0c7' }}
+  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling183' }}
+  ALL_APPS: php2shell-wordpress postgres mariadb redis wordpress argo-workflows otel-collector falco
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-24.04
+    outputs:
+      apps: ${{ steps.apps.outputs.apps }}
+    steps:
+      - name: Applications of this run
+        id: apps
+        env:
+          WANT: ${{ github.event.inputs.apps || 'all' }}
+        run: |
+          [ "$WANT" = all ] && WANT="$ALL_APPS"
+          echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+
+  images:
+    name: image ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: php2shell-wordpress, context: example/php2shell-wordpress, dockerfile: '', platforms: linux/amd64}
+          - {name: php2shell-vulnerable, context: example/php2shell, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
+          - {name: postgres-vuln, context: example/postgres-vuln, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
+          - {name: redis-vulnerable, context: example/redis, dockerfile: example/redis/Dockerfile.redis-vulnerable, platforms: 'linux/amd64,linux/arm64'}
+          - {name: chain-frontend, context: example/chain/frontend, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
+          - {name: chain-backend, context: example/chain/backend, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
+          - {name: java-poc-backend-vulnerable, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.vulnerable, platforms: linux/amd64}
+          - {name: java-poc-backend-contained, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.contained, platforms: linux/amd64}
+          - {name: java-poc-backend-patched, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.patched, platforms: linux/amd64}
+          - {name: java-poc-pathogen, context: example/java-poc/pathogen, dockerfile: '', platforms: linux/amd64}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Build image
+        uses: ./.github/actions/build-image
+        with:
+          name: ${{ matrix.name }}
+          context: ${{ matrix.context }}
+          dockerfile: ${{ matrix.dockerfile }}
+          platforms: ${{ matrix.platforms }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  contrast:
+    name: ${{ matrix.app }}
+    needs: [plan, images]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 80
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.plan.outputs.apps) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Generalize
+        uses: ./.github/actions/generalize
+        with:
+          app: ${{ matrix.app }}
+          pkg-ref: ${{ env.PKG_REF }}
+          chart-ver: ${{ env.CHART_VER }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          entlein-pat: ${{ secrets.ENTLEIN_PAT }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-pat: ${{ secrets.DOCKERHUB_PAT }}
+
+      - name: Real run, where the example has one
+        run: |
+          set -uo pipefail
+          if [ -f ".github/contrast/${{ matrix.app }}.real.sh" ]; then bash ".github/contrast/${{ matrix.app }}.real.sh"; else echo "no real run for ${{ matrix.app }}"; fi
+
+      - name: Simulate
+        uses: ./.github/actions/simulate
+        with:
+          app: ${{ matrix.app }}
+
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: contrast-${{ matrix.app }}
+          path: artifacts/
+          if-no-files-found: warn

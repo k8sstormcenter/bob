@@ -1,0 +1,57 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: Simulate
+description: Replay the usual traffic under the bound SBoB, run the simulation, and report what was detected.
+
+inputs:
+  app:
+    description: application that the generalize action bound
+    required: true
+  replay:
+    description: seconds of usual traffic before the simulation
+    required: false
+    default: '240'
+  real-from:
+    description: start of a real run on the same pod, to compare the simulation with (RFC 3339)
+    required: false
+    default: ''
+  real-to:
+    description: end of that real run (RFC 3339)
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Replay, simulate, verdict
+      shell: bash
+      env:
+        REPLAY: ${{ inputs.replay }}
+        REAL_FROM: ${{ inputs.real-from }}
+        REAL_TO: ${{ inputs.real-to }}
+      run: |
+        set -uo pipefail
+        [ -n "$REAL_FROM" ] || { [ -f out/real-from ] && REAL_FROM=$(cat out/real-from); }
+        [ -n "$REAL_TO" ] || { [ -f out/real-to ] && REAL_TO=$(cat out/real-to); }
+        export REAL_FROM REAL_TO
+        B="$GITHUB_WORKSPACE/bin/bobctl" pkg/workloads/run-live.sh "$GITHUB_WORKSPACE/out" simulate "${{ inputs.app }}" > /tmp/simulate.out 2>&1 || true
+        grep -E '^[0-9]{2}:[0-9]{2}:[0-9]{2} ' out/run.log | tail -8 || true
+
+    - name: Result
+      shell: bash
+      run: |
+        set -uo pipefail
+        A="${{ inputs.app }}"
+        mkdir -p artifacts
+        for f in verdict-public.txt sim-vs-real.txt offline-before.txt offline-after.txt sbob.yaml before.yaml generalize.log validate.log traffic-learn.log; do
+          [ -f "out/$A/$f" ] && cp "out/$A/$f" "artifacts/$A-$f"
+        done
+        grep -E '^[0-9]{2}:[0-9]{2}:[0-9]{2} ' out/run.log > artifacts/run.log 2>/dev/null || true
+        echo "== live verdict"; cat "artifacts/$A-verdict-public.txt" 2>/dev/null || echo "(no verdict)"
+        echo "== offline, allow list alone"; tail -1 "artifacts/$A-offline-before.txt" 2>/dev/null || true
+        echo "== offline, with fragments"; tail -1 "artifacts/$A-offline-after.txt" 2>/dev/null || true
+        if [ -f "artifacts/$A-sim-vs-real.txt" ]; then echo "== simulation compared with the real run"; cat "artifacts/$A-sim-vs-real.txt"; fi
+        test -f "artifacts/$A-verdict-public.txt"
