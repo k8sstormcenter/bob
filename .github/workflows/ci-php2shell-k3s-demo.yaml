@@ -136,7 +136,7 @@ jobs:
           done
           # CRD exists now — pre-load the SBoB so it is bound before the container is ever created.
           kubectl create namespace php2shell --dry-run=client -o yaml | kubectl apply -f -
-          bin/bobctl apply -f example/php2shell/sbobs/cp-php2shell.yaml
+          bin/bobctl apply -n php2shell -f example/php2shell/sbobs/cp-php2shell.yaml
           echo "settling 180s so node-agent is fully enforcing before the target exists"
           sleep 180
 
