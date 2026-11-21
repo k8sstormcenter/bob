@@ -22,6 +22,10 @@ inputs:
   chart-ver:
     description: kubescape-operator chart version
     required: true
+  enable-rules:
+    description: rule ids switched on in addition to the chart's defaults
+    required: false
+    default: R0002
   learn:
     description: seconds of traffic before profiles are collected
     required: false
@@ -76,6 +80,11 @@ runs:
         echo "${{ inputs.dockerhub-pat }}" | docker login docker.io -u "${{ inputs.dockerhub-username }}" --password-stdin
         echo "${{ inputs.entlein-pat }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
         make kubescape KUBESCAPE_CHART_VER=${{ inputs.chart-ver }} KS_LEARN_PERIOD=8m
+        mkdir -p out
+        if [ -n "${{ inputs.enable-rules }}" ]; then
+          kubectl -n honey get rules default-rules -o json | python3 scripts/enable-rules.py "${{ inputs.enable-rules }}" | kubectl replace -f -
+          echo "${{ inputs.enable-rules }}" > out/enabled-rules.txt
+        fi
         kubectl -n honey rollout status ds/node-agent --timeout=600s
         kubectl -n honey rollout status deploy/storage --timeout=300s
         for i in $(seq 1 120); do

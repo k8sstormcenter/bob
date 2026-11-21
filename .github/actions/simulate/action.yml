@@ -58,6 +58,7 @@ runs:
           [ -f "out/$A/sbob.yaml" ] && cp "out/$A/sbob.yaml" "sbob/$A-sbob.yaml"
           for f in out/$A/previous-*.log; do [ -f "$f" ] && cp "$f" "artifacts/$A-$(basename "$f")"; done
           grep -E "^[0-9:]{8} $A: target container" out/run.log | sed 's/^[0-9:]* /- /' >> "$GITHUB_STEP_SUMMARY" || true
+          [ -s out/enabled-rules.txt ] && echo "- Rules switched on in addition to the chart's defaults: $(cat out/enabled-rules.txt)" >> "$GITHUB_STEP_SUMMARY" || true
           if [ -f "out/$A/metrics.json" ]; then
             ./scripts/render-gif.sh "out/$A/metrics.json" "$PWD/gif/$A.gif" --title "$A: simulated signatures under the bound SBoB" --duration 1200 || echo "GIF render failed for $A"
           fi
