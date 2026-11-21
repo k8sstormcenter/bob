@@ -8,6 +8,8 @@ All trademarks are expressly reserved.
 
 🚨 Newly released: the counterpart [Sovereign-SOC-Chart](https://github.com/k8sstormcenter/soc/blob/main/skaffold.yaml) that contains the (alpha) runtime security stack, for which this tool is built.
 
+The draft spec maybe found [here](https://github.com/k8sstormcenter/sbob-spec/blob/main/spec/sbob-v0.2.1.md) 
+
 ### 🗺️ Roadmap — coming soon
 
 | | Feature | When |
