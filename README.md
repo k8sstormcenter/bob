@@ -102,7 +102,7 @@ Blue is yours, white is bobctl, green is the result.
 | | |
 |---|---|
 | ![MongoDB](docs/contrast/mongodb.gif) | **An application nobody prepared for.** bobctl was told only that MongoDB is a database and found the rest itself. |
-| ![nginx](docs/contrast/nginx2root.gif) | **Checked against a real exploit.** For nginx the same SBoB also faces a published exploit, and the result is compared with the simulation. |
+| ![nginx](docs/contrast/nginx2root.gif) | **A web server written in C.** nginx serving static files over TLS, under the same check. |
 
 The GIF at the top of this page is Flux's helm-controller. In each GIF: left, what was tried and detected; middle, the SBoB (allow list as bars, subtract list below); right, D, N and P.
 
