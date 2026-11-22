@@ -68,6 +68,7 @@ C_BLUE     = "#7aa2f7"
 C_CYAN     = "#7dcfff"
 C_GREY     = "#3b4261"
 C_PURPLE   = "#bb9af7"
+C_WHITE    = "#e9ecf8"
 
 MITRE_PHASES = [
     "Recon", "Init Access", "Execution", "Persistence", "Priv Esc",
@@ -461,16 +462,16 @@ def draw_sbob_panel(fig, cell, view):
     allow = view.get("allow", {})
     names = ["CAPS", "EXECS", "OPENS", "INGRESS", "EGRESS", "RULES"]
     keys = ["caps", "execs", "opens", "ingress", "egress", "rules"]
-    colors = [C_PURPLE, C_CYAN, C_BLUE, C_GREEN, C_GREEN, C_YELLOW]
     vals = [int(allow.get(k) or 0) for k in keys]
-    bars = ax.barh(names[::-1], vals[::-1], color=colors[::-1], height=0.6)
+    bars = ax.barh(names[::-1], vals[::-1], color=C_WHITE, height=0.6)
     top = max(max(vals), 1)
     for bar, val in zip(bars, vals[::-1]):
         ax.text(bar.get_width() + top * 0.02, bar.get_y() + bar.get_height() / 2, str(val),
                 va="center", fontsize=7, color=C_TEXT, fontfamily="monospace")
     ax.set_xlim(0, top * 1.18)
     ax.set_title("ALLOW   what the application may do", fontsize=9, color=C_TEXT, fontfamily="monospace")
-    ax.tick_params(colors=C_DIM, labelsize=7)
+    ax.tick_params(axis="x", colors=C_DIM, labelsize=7)
+    ax.tick_params(axis="y", colors=C_WHITE, labelsize=7)
     for spine in ax.spines.values():
         spine.set_color(C_BORDER)
 
@@ -481,7 +482,7 @@ def draw_sbob_panel(fig, cell, view):
     ax2.set_yticks([])
     for spine in ax2.spines.values():
         spine.set_color(C_BORDER)
-    ax2.set_title("SUBTRACT   what stays denied", fontsize=9, color=C_RED, fontfamily="monospace")
+    ax2.set_title("SUBTRACT   what stays denied", fontsize=9, color=C_BLUE, fontfamily="monospace")
 
     def wrapped(items, width=44):
         text = ", ".join(items) if items else "none"
@@ -503,7 +504,7 @@ def draw_sbob_panel(fig, cell, view):
     step = min(0.16, 0.94 / max(lines, 1))
     y = 0.95
     for label, values in rows:
-        ax2.text(0.03, y, label, transform=ax2.transAxes, fontsize=7, color=C_DIM, va="top", fontfamily="monospace")
+        ax2.text(0.03, y, label, transform=ax2.transAxes, fontsize=7, color=C_BLUE, va="top", fontfamily="monospace")
         for v in values:
             ax2.text(0.27, y, v, transform=ax2.transAxes, fontsize=7, color=C_TEXT, va="top", fontfamily="monospace")
             y -= step
