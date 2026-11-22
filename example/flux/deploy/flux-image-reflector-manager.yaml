@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: dfa68f1
+    signature.kubescape.io/generator-ref: 01581bf
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-image-reflector-manager
   namespace: flux-system
@@ -241,67 +241,49 @@ spec:
       - path: /var/tmp/*
     opens:
       - flags: null
-        path: /*/.aws/*
+        path: /.aws/*
       - flags: null
-        path: /*/.bash_history
+        path: /.bash_history
       - flags: null
-        path: /*/.bash_profile
+        path: /.bash_profile
       - flags: null
-        path: /*/.bashrc
+        path: /.bashrc
       - flags: null
-        path: /*/.config/autostart/*
+        path: /.config/autostart/*
       - flags: null
-        path: /*/.config/gcloud/*
+        path: /.config/gcloud/*
       - flags: null
-        path: /*/.config/systemd/user/*
+        path: /.config/systemd/user/*
       - flags: null
-        path: /*/.docker/config.json
+        path: /.docker/config.json
       - flags: null
-        path: /*/.env
+        path: /.env
       - flags: null
-        path: /*/.git-credentials
+        path: /.git-credentials
       - flags: null
-        path: /*/.git/config
+        path: /.htpasswd
       - flags: null
-        path: /*/.htaccess
+        path: /.kube/*
       - flags: null
-        path: /*/.htpasswd
+        path: /.my.cnf
       - flags: null
-        path: /*/.kube/*
+        path: /.mysql_history
       - flags: null
-        path: /*/.my.cnf
+        path: /.netrc
       - flags: null
-        path: /*/.mysql_history
+        path: /.npmrc
       - flags: null
-        path: /*/.netrc
+        path: /.pgpass
       - flags: null
-        path: /*/.npmrc
+        path: /.profile
       - flags: null
-        path: /*/.pgpass
+        path: /.psql_history
       - flags: null
-        path: /*/.profile
+        path: /.rediscli_history
       - flags: null
-        path: /*/.psql_history
+        path: /.ssh/*
       - flags: null
-        path: /*/.rediscli_history
-      - flags: null
-        path: /*/.ssh/*
-      - flags: null
-        path: /*/env.php
-      - flags: null
-        path: /*/my.cnf
-      - flags: null
-        path: /*/pg_hba.conf
-      - flags: null
-        path: /*/pg_ident.conf
-      - flags: null
-        path: /*/postgresql.auto.conf
-      - flags: null
-        path: /*/redis.conf
-      - flags: null
-        path: /*/terraform.tfstate
-      - flags: null
-        path: /*/wp-config.php
+        path: /env.php
       - flags: null
         path: /etc/cron.d/*
       - flags: null
@@ -321,11 +303,17 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
+        path: /etc/mysql/*
+      - flags: null
         path: /etc/mysql/debian.cnf
+      - flags: null
+        path: /etc/postgresql/*
       - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
+      - flags: null
+        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -335,14 +323,124 @@ spec:
       - flags: null
         path: /etc/systemd/system/*
       - flags: null
+        path: /home/⋯/.aws/*
+      - flags: null
+        path: /home/⋯/.bash_history
+      - flags: null
+        path: /home/⋯/.bash_profile
+      - flags: null
+        path: /home/⋯/.bashrc
+      - flags: null
+        path: /home/⋯/.config/autostart/*
+      - flags: null
+        path: /home/⋯/.config/gcloud/*
+      - flags: null
+        path: /home/⋯/.config/systemd/user/*
+      - flags: null
+        path: /home/⋯/.docker/config.json
+      - flags: null
+        path: /home/⋯/.env
+      - flags: null
+        path: /home/⋯/.git-credentials
+      - flags: null
+        path: /home/⋯/.htpasswd
+      - flags: null
+        path: /home/⋯/.kube/*
+      - flags: null
+        path: /home/⋯/.my.cnf
+      - flags: null
+        path: /home/⋯/.mysql_history
+      - flags: null
+        path: /home/⋯/.netrc
+      - flags: null
+        path: /home/⋯/.npmrc
+      - flags: null
+        path: /home/⋯/.pgpass
+      - flags: null
+        path: /home/⋯/.profile
+      - flags: null
+        path: /home/⋯/.psql_history
+      - flags: null
+        path: /home/⋯/.rediscli_history
+      - flags: null
+        path: /home/⋯/.ssh/*
+      - flags: null
+        path: /home/⋯/env.php
+      - flags: null
+        path: /home/⋯/terraform.tfstate
+      - flags: null
+        path: /home/⋯/wp-config.php
+      - flags: null
         path: /lib/systemd/system/*
       - flags: null
         path: /proc/*/environ
       - flags: null
         path: /proc/*/mem
       - flags: null
+        path: /root/.aws/*
+      - flags: null
+        path: /root/.bash_history
+      - flags: null
+        path: /root/.bash_profile
+      - flags: null
+        path: /root/.bashrc
+      - flags: null
+        path: /root/.config/autostart/*
+      - flags: null
+        path: /root/.config/gcloud/*
+      - flags: null
+        path: /root/.config/systemd/user/*
+      - flags: null
+        path: /root/.docker/config.json
+      - flags: null
+        path: /root/.env
+      - flags: null
+        path: /root/.git-credentials
+      - flags: null
+        path: /root/.htpasswd
+      - flags: null
+        path: /root/.kube/*
+      - flags: null
+        path: /root/.my.cnf
+      - flags: null
+        path: /root/.mysql_history
+      - flags: null
+        path: /root/.netrc
+      - flags: null
+        path: /root/.npmrc
+      - flags: null
+        path: /root/.pgpass
+      - flags: null
+        path: /root/.profile
+      - flags: null
+        path: /root/.psql_history
+      - flags: null
+        path: /root/.rediscli_history
+      - flags: null
+        path: /root/.ssh/*
+      - flags: null
+        path: /root/env.php
+      - flags: null
+        path: /root/terraform.tfstate
+      - flags: null
+        path: /root/wp-config.php
+      - flags: null
+        path: /terraform.tfstate
+      - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
+        path: /usr/local/etc/redis/*
+      - flags: null
+        path: /var/lib/postgresql/*/pg_hba.conf
+      - flags: null
+        path: /var/lib/postgresql/*/pg_ident.conf
+      - flags: null
+        path: /var/lib/postgresql/*/postgresql.auto.conf
+      - flags: null
         path: /var/spool/cron/*
+      - flags: null
+        path: /var/www/*/.htaccess
+      - flags: null
+        path: /wp-config.php
   syscalls: null
 status: {}

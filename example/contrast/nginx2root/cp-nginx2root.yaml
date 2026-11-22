@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: nginx
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: dfa68f1
+    signature.kubescape.io/generator-ref: 01581bf
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-nginx2root-nginx
   namespace: sim-nginx2root
@@ -57,15 +57,15 @@ spec:
     - {flags: [O_CLOEXEC, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/bin/dash]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc, /usr/bin/ls]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/bin/dash]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/sbin/nginx]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/share/nginx/html, processes: [/usr/bin/ls]}
     - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf, processes: [/usr/bin/openssl, /usr/sbin/nginx]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /tmp/*, processes: [/usr/bin/openssl, /usr/sbin/nginx]}
     - {flags: [O_RDONLY], path: /etc/nginx/mime.types, processes: [/usr/sbin/nginx]}
     - {flags: [O_RDONLY], path: /etc/nginx/nginx.conf, processes: [/usr/sbin/nginx]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/ngroups_max, processes: [/usr/sbin/nginx]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/sbin/nginx]}
     - {flags: [O_CREAT, O_RDONLY, O_RDWR], path: /run/nginx.pid, processes: [/usr/sbin/nginx]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/usr/sbin/nginx]}
     - {flags: [O_NONBLOCK, O_RDONLY], path: /usr/share/nginx/html/⋯, processes: [/usr/sbin/nginx]}
@@ -273,10 +273,6 @@ spec:
       - flags: null
         path: /*/.git-credentials
       - flags: null
-        path: /*/.git/config
-      - flags: null
-        path: /*/.htaccess
-      - flags: null
         path: /*/.htpasswd
       - flags: null
         path: /*/.kube/*
@@ -301,16 +297,6 @@ spec:
       - flags: null
         path: /*/env.php
       - flags: null
-        path: /*/my.cnf
-      - flags: null
-        path: /*/pg_hba.conf
-      - flags: null
-        path: /*/pg_ident.conf
-      - flags: null
-        path: /*/postgresql.auto.conf
-      - flags: null
-        path: /*/redis.conf
-      - flags: null
         path: /*/terraform.tfstate
       - flags: null
         path: /*/wp-config.php
@@ -333,11 +319,17 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
+        path: /etc/mysql/*
+      - flags: null
         path: /etc/mysql/debian.cnf
+      - flags: null
+        path: /etc/postgresql/*
       - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
+      - flags: null
+        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -359,10 +351,20 @@ spec:
       - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
+        path: /usr/local/etc/redis/*
+      - flags: null
+        path: /var/lib/postgresql/*/pg_hba.conf
+      - flags: null
+        path: /var/lib/postgresql/*/pg_ident.conf
+      - flags: null
+        path: /var/lib/postgresql/*/postgresql.auto.conf
+      - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/token
       - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
+      - flags: null
+        path: /var/www/*/.htaccess
   syscalls: null
 status: {}

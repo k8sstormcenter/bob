@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: falco
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: dfa68f1
+    signature.kubescape.io/generator-ref: 01581bf
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-falco-new-falco
   namespace: sim-falco-new
@@ -69,11 +69,11 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/falco/plugins/*, processes: [/pause, /usr/bin/dash, /usr/bin/du, /usr/bin/falco, /usr/bin/ls, /usr/bin/wc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/pause, /usr/bin/dash, /usr/bin/du, /usr/bin/falco, /usr/bin/ls, /usr/bin/wc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/bin/falco]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/runc, /usr/bin/falco]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/bin/falco, /usr/bin/ls]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc, /usr/bin/ls]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc, /usr/bin/ls]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/dash]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco/rules.d/⋯, processes: [/usr/bin/du]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco/config.d, processes: [/usr/bin/du, /usr/bin/falco]}
@@ -352,10 +352,6 @@ spec:
       - flags: null
         path: /*/.git-credentials
       - flags: null
-        path: /*/.git/config
-      - flags: null
-        path: /*/.htaccess
-      - flags: null
         path: /*/.htpasswd
       - flags: null
         path: /*/.kube/*
@@ -410,16 +406,6 @@ spec:
       - flags: null
         path: /*/kubernetes/pki/*
       - flags: null
-        path: /*/my.cnf
-      - flags: null
-        path: /*/pg_hba.conf
-      - flags: null
-        path: /*/pg_ident.conf
-      - flags: null
-        path: /*/postgresql.auto.conf
-      - flags: null
-        path: /*/redis.conf
-      - flags: null
         path: /*/terraform.tfstate
       - flags: null
         path: /*/wp-config.php
@@ -442,11 +428,17 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
+        path: /etc/mysql/*
+      - flags: null
         path: /etc/mysql/debian.cnf
+      - flags: null
+        path: /etc/postgresql/*
       - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
+      - flags: null
+        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -470,11 +462,21 @@ spec:
       - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
+        path: /usr/local/etc/redis/*
+      - flags: null
+        path: /var/lib/postgresql/*/pg_hba.conf
+      - flags: null
+        path: /var/lib/postgresql/*/pg_ident.conf
+      - flags: null
+        path: /var/lib/postgresql/*/postgresql.auto.conf
+      - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/token
       - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
+      - flags: null
+        path: /var/www/*/.htaccess
   syscalls:
     - bpf
 status: {}

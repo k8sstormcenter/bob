@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: falco
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: dfa68f1
+    signature.kubescape.io/generator-ref: 01581bf
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-falco-old-falco
   namespace: sim-falco-old
@@ -47,6 +47,7 @@ spec:
   imageID: docker.io/falcosecurity/falco-no-driver@sha256:ba05dfb209cc1c2e912ce116d230b5f59c4542e7286f05b663c499066d5d6a42
   imageTag: docker.io/falcosecurity/falco-no-driver:0.39.2
   ingress:
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-8765, port: 8765, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8765, port: 8765, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8765, port: 8765, protocol: TCP}], type: internal}
   opens:
@@ -338,10 +339,6 @@ spec:
       - flags: null
         path: /*/.git-credentials
       - flags: null
-        path: /*/.git/config
-      - flags: null
-        path: /*/.htaccess
-      - flags: null
         path: /*/.htpasswd
       - flags: null
         path: /*/.kube/*
@@ -396,16 +393,6 @@ spec:
       - flags: null
         path: /*/kubernetes/pki/*
       - flags: null
-        path: /*/my.cnf
-      - flags: null
-        path: /*/pg_hba.conf
-      - flags: null
-        path: /*/pg_ident.conf
-      - flags: null
-        path: /*/postgresql.auto.conf
-      - flags: null
-        path: /*/redis.conf
-      - flags: null
         path: /*/terraform.tfstate
       - flags: null
         path: /*/wp-config.php
@@ -428,11 +415,17 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
+        path: /etc/mysql/*
+      - flags: null
         path: /etc/mysql/debian.cnf
+      - flags: null
+        path: /etc/postgresql/*
       - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
+      - flags: null
+        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -456,11 +449,21 @@ spec:
       - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
+        path: /usr/local/etc/redis/*
+      - flags: null
+        path: /var/lib/postgresql/*/pg_hba.conf
+      - flags: null
+        path: /var/lib/postgresql/*/pg_ident.conf
+      - flags: null
+        path: /var/lib/postgresql/*/postgresql.auto.conf
+      - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/token
       - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
+      - flags: null
+        path: /var/www/*/.htaccess
   syscalls:
     - bpf
 status: {}
