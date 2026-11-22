@@ -6,24 +6,6 @@
 name: CI - bobctl tune
 
 on:
-  # Runs on every PR (no per-branch allowlist — the legacy feat/* push list is
-  # gone) plus pushes to main. To get CI on a new branch, open a PR; you no
-  # longer add the branch here.
-  push:
-    branches:
-      - main
-    paths: &tune-paths
-      - 'pkg'
-      - 'pkg/**'
-      - 'kubescape/**'
-      - 'example/**'
-      - 'example/postgres/**'
-      - 'example/postgres-vuln/**'
-      - 'scripts/**'
-      - '.github/workflows/**'
-      - 'Makefile'
-  pull_request:
-    paths: *tune-paths
   workflow_dispatch:
     inputs:
       run_stress:
