@@ -13,13 +13,13 @@ on:
         default: all
       pkg_ref:
         description: commit of the pkg submodule that holds the workloads
-        default: c3fdc8279aeba10a06565bd6b2df6e3d122ab7a4
+        default: 059256416316258ab6295708203e105a5ff54b46
       bobctl_tag:
         description: tag of the bobctl build to download
-        default: internal-c3fdc82
+        default: internal-0592564
       bobctl_sha256:
         description: sha256 of that build
-        default: 9d1952263b09e5a22a109f5dc95d3b39c7395be41b0233072925c09f63d36765
+        default: 9b31255b9ccc18f7094d0e7080304eec34e525db86c56b5367f8f1490b966ed0
       chart_ver:
         description: kubescape-operator chart version
         default: 1.41.0-duckling190
@@ -34,9 +34,9 @@ permissions:
   contents: read
 
 env:
-  PKG_REF: ${{ github.event.inputs.pkg_ref || 'c3fdc8279aeba10a06565bd6b2df6e3d122ab7a4' }}
-  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-c3fdc82' }}
-  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '9d1952263b09e5a22a109f5dc95d3b39c7395be41b0233072925c09f63d36765' }}
+  PKG_REF: ${{ github.event.inputs.pkg_ref || '059256416316258ab6295708203e105a5ff54b46' }}
+  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-0592564' }}
+  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '9b31255b9ccc18f7094d0e7080304eec34e525db86c56b5367f8f1490b966ed0' }}
   CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling190' }}
   ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation mongodb memcached
 
