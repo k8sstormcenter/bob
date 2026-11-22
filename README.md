@@ -65,93 +65,72 @@ Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.
 Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
 
-## How an SBoB is made and checked
+## Does your application have a good SBoB?
 
+```mermaid
+flowchart LR
+    app(["Your application<br/>as Kubernetes manifests"]):::bring
+    traffic(["Its usual traffic<br/>a client doing what users do"]):::bring
+    learn["Learn<br/>what it executes,<br/>opens, connects to"]:::tool
+    gen["Generalize<br/>allow list + subtract list<br/>for its ecosystem"]:::tool
+    replay["Usual traffic again,<br/>SBoB bound"]:::tool
+    sim["Simulate<br/>common CVE types<br/>of that ecosystem"]:::tool
+    kpi{"D · N · P<br/>all zero?"}:::outcome
+    sbob(["An SBoB to ship<br/>with your release"]):::outcome
+    fix(["Improve the traffic,<br/>run again"]):::bring
+
+    app --> learn
+    traffic --> learn
+    learn --> gen --> replay
+    replay -->|"must stay silent"| sim
+    sim -->|"every step must alert"| kpi
+    kpi -->|yes| sbob
+    kpi -->|no| fix
+
+    classDef bring fill:#e8f1ff,stroke:#3b6fd4,stroke-width:2px,color:#12284c
+    classDef tool fill:#fff4d6,stroke:#c98a00,stroke-width:2px,color:#3d2c00
+    classDef outcome fill:#e3f6e8,stroke:#2e8b57,stroke-width:2px,color:#0f3d24
 ```
-usual traffic ─▶ learn ─▶ bobctl generalize ─▶ SBoB ─▶ bind ─▶ usual traffic again ─▶ bobctl simulate ─▶ gate ─▶ example/
-                                              allow list                0 alerts wanted        every step must alert
-                                              + subtract
-```
 
-**`bobctl generalize`** turns what the node agent recorded into an SBoB that still fits tomorrow:
+Blue is yours, yellow is bobctl, green is the result.
 
-- It folds what differs from run to run (pod names, dates, process ids, temporary files), so the allow list describes behaviour and not one run.
-- It finds the language ecosystem from the behaviour itself (native code, JVM, Node.js, Go, PHP) and opens that ecosystem's read-only trees: shared objects, jars, modules.
-- It keeps the allow list broad and adds a **subtract** list on top: shapes that are known from real compromises and stay denied even where the allow list would admit them. Examples: the server process starting a shell, a download tool, a socket redirect in a shell argument, credential files, a mining-pool port.
-- The pod's own configuration decides which Kubernetes design principles matter for it (a service account that may read `nodes/proxy`, a hostPath mount, a privileged container), and the matching subtract entries are added.
-
-**`bobctl simulate`** runs a suite of steps against the workload while the SBoB is bound, and every alert is matched to the step that caused it. A step reproduces only what a sensor sees (an exec, a file open, a connection attempt), nothing more. The result per step is *detected*, *missed* or *could not run in this image*.
-
-A **gate** then decides whether the SBoB is good enough to be an example: no alert under usual traffic, none caused by a subtract entry, no step missed that a subtract entry could cover, and no additional alert when the same SBoB is bound on a second cluster with other pod and service addresses.
-
-Each GIF shows one application: on the left which kill-chain phases were tried and detected, in the middle the SBoB itself (the allow fragments as bars, and what the subtract list was built from: ecosystem, app type, threat model, deployment conditions), on the right the three KPIs. **D**etectability is the number of simulated steps that ran and were missed, **N**oisiness the number of alert causes under usual traffic, **P**ortability the number of additional alert causes on the second cluster. The GIF at the top of this page is Flux's helm-controller, whose steps follow what Flux's own advisories of the last years describe.
+- **You bring the usual traffic.** Only you know what normal looks like: a client that reads, writes, logs in, runs the backup.
+- **bobctl finds the ecosystem** (native code, JVM, Node.js, Go, PHP) and writes the SBoB: a broad allow list, and a subtract list of what stays denied.
+- **bobctl simulates the common CVE types of that ecosystem**: a shell started by the server, a download tool, a credential file read. Stand-ins only; nothing is exploited.
+- **D, N, P**: steps not detected, alerts under your usual traffic, extra alerts on a second cluster. All zero means the SBoB is good.
 
 | | |
 |---|---|
-| ![MongoDB](docs/contrast/mongodb.gif) | **An application nobody prepared for.** bobctl was told only that MongoDB is a database. It found the ecosystem and the deployment conditions itself; nothing in the suite is written for MongoDB. |
-| ![nginx](docs/contrast/nginx2root.gif) | **Checked against a real exploit.** For nginx the same SBoB is also put under a published exploit, and what the real run triggers is compared with what the simulation triggers. |
+| ![MongoDB](docs/contrast/mongodb.gif) | **An application nobody prepared for.** bobctl was told only that MongoDB is a database and found the rest itself. |
+| ![nginx](docs/contrast/nginx2root.gif) | **Checked against a real exploit.** For nginx the same SBoB also faces a published exploit, and the result is compared with the simulation. |
 
-## TLDR — bobctl
+The GIF at the top of this page is Flux's helm-controller. In each GIF: left, what was tried and detected; middle, the SBoB (allow list as bars, subtract list below); right, D, N and P.
+
+## Using bobctl
 
 ```bash
-curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.14/bobctl-linux-amd64
+curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.29/bobctl-linux-amd64
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/
-make kubescape && make alertmanager
 ```
 Release binaries are cosign-signed (`bobctl-linux-amd64.sigstore.json`).
 
-### Generate an SBoB
+| You want to | Run |
+|---|---|
+| fetch what the agent learned | `bobctl get <profile> -n NS -o yaml > profiles/app.yaml` |
+| turn it into an SBoB | `bobctl generalize -d profiles/ --sbob <label>-<container> -n NS -o sbob.yaml` |
+| check that the agent will accept it | `bobctl validate --file sbob.yaml` |
+| put it on the cluster | `bobctl apply -f sbob.yaml -n NS`, then label the pod template `kubescape.io/user-defined-profile: <label>` |
+| see what changed between two versions | `bobctl diff --file-a old.yaml --file-b new.yaml` |
+| check recorded alerts against it, offline | `bobctl replay -p sbob.yaml -a alerts/` |
+| run a suite of your own against it | `bobctl simulate --suite suite.yaml -n NS` |
 
-```bash
-# N learned profiles → one portable SBoB (CI/CD preset, drop L7 endpoints)
-bobctl generalize -d profiles/ --type cicd --sbob cp-app -n NS --drop-endpoints -o cp-app.yaml
-
-# runner family: base + per-image overlays, rebuilt by the harness
-bobctl harden --file sbobs/runner-family/runner.yaml --ecosystems all --preset-egress cicd --recover-veto --in-place
-bobctl harden --file sbobs/runner-family/runner-overlay-nnf-runner-noble-runner.yaml --fold-toolchain-verbs --in-place
-harness/compose.sh                       # base + overlays + ioc-overlays/*.yaml → deploy/*-runner.yaml
-
-# union IoC subtract fragments (agent evaluates match(allow) && !match(subtract))
-bobctl compose --name cp-app cp-app.yaml ioc-overlays/*.yaml -o cp-app.deploy.yaml
-
-# drop L7 endpoints from a shipped SBoB
-bobctl strip-endpoints --file cp-app.yaml --in-place
-```
-
-### Test an SBoB
-
-```bash
-# contrast a learned profile against its app TYPE envelope
-bobctl contrast --profile cp-app.yaml --type web-app --strict
-
-# run the attack + functional suite against the target
-bobctl simulate --suite example/<app>-attacks.yaml -n NS --service <svc> --service-port <port> --format table
-
-# score a shipped SBoB offline against alerts recorded on another build (<RULE>.jsonl per dir)
-bobctl replay -p cp-app.yaml -a alerts/ --type cicd
-
-# recommend CollapseConfig for noisy paths; --apply writes the cluster-wide CRD
-bobctl collapse --namespaces NS
-bobctl collapse --namespaces NS --apply
-```
-
-### Sign
-
-```bash
-bobctl sign --profile cp-app --key key.hmac -o cp-app.signed.json
-bobctl verify --profile cp-app --key key.hmac
-```
-
-### Verbs
-
-`learn` `install` `reinstall` `suggest` `onboard` · `generalize` `compose` `base` `harden`
-`collapse` `strip-endpoints` `portable` `translate` `seccomp` · `contrast` `simulate` `test`
-`replay` `verify` `report` `diff` · `tune` `exclusions` `portability-probe` `overlay` ·
-`sign` `apply` `deploy` `get` `validate` `version`
+The simulation of common CVE types and the three numbers run in this repository's `Contrast` workflow; its steps are not published. `bobctl --help` lists more verbs. They maintain the examples here, and you do not need them to start.
 
 ### Examples
 
-| path | suite |
+| Path | What |
 |---|---|
-| `example/github-runner` | `../github-runner-attacks.yaml`; `ioc-overlays/` → `spec.subtract` |
-| `example/php2shell` | `contrast` (app `php2shell-wordpress`; the plain php2shell demos were removed with the workflow cleanup) |
+| `example/contrast/` | SBoBs the `Contrast` workflow produced, one directory per application |
+| `example/flux/deploy/` | the Flux controllers' SBoBs |
+| `example/github-runner/` | CI runner profiles |
+| `example/php2shell/`, `example/php2shell-wordpress/` | the two applications that are also tested with a real exploit |
