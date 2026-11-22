@@ -13,13 +13,13 @@ on:
         default: all
       pkg_ref:
         description: commit of the pkg submodule that holds the workloads
-        default: 01581bf47124466902ed56ca3254afdc6b49c2a7
+        default: c3fdc8279aeba10a06565bd6b2df6e3d122ab7a4
       bobctl_tag:
         description: tag of the bobctl build to download
-        default: internal-01581bf
+        default: internal-c3fdc82
       bobctl_sha256:
         description: sha256 of that build
-        default: f8bee0f81bd9a573033943f745919ea5fabd44ac5b9d329f7d3e6cf217b60b94
+        default: 9d1952263b09e5a22a109f5dc95d3b39c7395be41b0233072925c09f63d36765
       chart_ver:
         description: kubescape-operator chart version
         default: 1.41.0-duckling190
@@ -34,11 +34,11 @@ permissions:
   contents: read
 
 env:
-  PKG_REF: ${{ github.event.inputs.pkg_ref || '01581bf47124466902ed56ca3254afdc6b49c2a7' }}
-  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-01581bf' }}
-  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || 'f8bee0f81bd9a573033943f745919ea5fabd44ac5b9d329f7d3e6cf217b60b94' }}
+  PKG_REF: ${{ github.event.inputs.pkg_ref || 'c3fdc8279aeba10a06565bd6b2df6e3d122ab7a4' }}
+  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-c3fdc82' }}
+  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '9d1952263b09e5a22a109f5dc95d3b39c7395be41b0233072925c09f63d36765' }}
   CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling190' }}
-  ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation
+  ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation mongodb memcached
 
 jobs:
   plan:

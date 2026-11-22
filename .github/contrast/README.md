@@ -38,6 +38,11 @@ An SBoB is good enough when all of these hold in the run that produced it:
 
 The job `Example SBoBs` downloads the SBoBs of the run, places those that passed and opens or updates one pull request from the branch `ci/example-sbobs`. The pull request lists every application with its verdict. An SBoB that is held back never overwrites an example.
 
+## Known and unknown applications
+
+- **Known**: the simulation is written with the application's own history in mind (its advisories of the last ten years, its paths, its tools). Most applications here are known.
+- **Unknown**: nothing is written for the application. bobctl is told its type and has to find the language ecosystem and the deployment conditions itself. Their results are the measure of how bobctl does on an application nobody prepared it for; the run page shows them in their own table. An application is marked unknown in the last column of its row in the workloads table.
+
 ## Adding an application
 
 1. Add its row, its deployment and its usual traffic to the workloads directory of the `pkg` submodule.

@@ -43,4 +43,20 @@ while IFS= read -r f; do
   echo "| $app | pass | $dest | $(jq -r '"\(.steps_detected) of \(.steps_ran) simulated steps detected, \(.benign_causes) alert causes under usual traffic"' "$gate") |" >> "$REPORT"
   placed=$((placed + 1))
 done < <(find "$SRC" -type f -name '*-sbob.yaml' | sort)
+{
+  echo
+  echo "**Applications bobctl was not prepared for** (no step, path or trait is written for them; only the type is given)"
+  echo
+  echo "| Application | Ecosystem expected | Found from behaviour | Simulated steps detected | Alert causes under usual traffic | Gate |"
+  echo "|---|---|---|---|---|---|"
+  n=0 ok=0
+  while IFS= read -r g; do
+    [ "$(jq -r '.corpus // "known"' "$g")" = unknown ] || continue
+    n=$((n + 1))
+    [ "$(jq -r .pass "$g")" = true ] && ok=$((ok + 1))
+    jq -r '"| \(.app) | \(.ecosystem_expected) | \(.traits_found | join(", ")) \(if .ecosystem_recognised then "(recognised)" else "(**not recognised**)" end) | \(.steps_detected) of \(.steps_ran) | \(.benign_causes) | \(if .pass then "pass" else "held back" end) |"' "$g"
+  done < <(find "$SRC" -type f -name '*-gate.json' | sort)
+  echo
+  echo "$ok of $n unknown applications pass the gate."
+} >> "$REPORT"
 echo "placed $placed, held back $held" >&2
