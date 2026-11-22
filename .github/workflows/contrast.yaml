@@ -29,15 +29,6 @@ on:
       - '.github/workflows/contrast.yaml'
       - '.github/actions/**'
       - '.github/contrast/**'
-  pull_request:
-    paths:
-      - '.github/workflows/contrast.yaml'
-      - '.github/actions/**'
-      - '.github/contrast/**'
-      - 'scripts/render-metrics-gif.py'
-      - 'scripts/render-gif.sh'
-      - 'scripts/enable-rules.py'
-      - 'scripts/place-example-sbobs.sh'
 
 permissions:
   contents: read
@@ -48,7 +39,6 @@ env:
   BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '2c8d475a95b6795bc0960d0eb9a42e7c2fada21e8247655fafe84322452f2e44' }}
   CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling192' }}
   ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation mongodb memcached
-  PR_APPS: redis memcached
 
 jobs:
   plan:
@@ -63,12 +53,10 @@ jobs:
           WANT: ${{ github.event.inputs.apps || 'all' }}
         run: |
           [ "$WANT" = all ] && WANT="$ALL_APPS"
-          [ "${{ github.event_name }}" = pull_request ] && WANT="$PR_APPS"
           echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
 
   images:
     name: image
-    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -103,7 +91,6 @@ jobs:
   contrast:
     name: ${{ matrix.app }}
     needs: [plan, images]
-    if: ${{ !cancelled() && needs.plan.result == 'success' && (needs.images.result == 'success' || needs.images.result == 'skipped') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-22.04
     timeout-minutes: 110
     permissions:
@@ -155,7 +142,7 @@ jobs:
   examples:
     name: Example SBoBs
     needs: [contrast]
-    if: ${{ always() && github.event_name != 'pull_request' && needs.contrast.result != 'cancelled' && (github.event.inputs.apps || 'all') == 'all' }}
+    if: ${{ always() && needs.contrast.result != 'cancelled' && (github.event.inputs.apps || 'all') == 'all' }}
     runs-on: ubuntu-24.04
     continue-on-error: true
     permissions:

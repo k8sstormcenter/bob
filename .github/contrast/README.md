@@ -49,11 +49,10 @@ The job `Example SBoBs` downloads the SBoBs of the run, places those that passed
 
 ## Checks on a pull request
 
-- **SBoB lint** (required): every profile under `example/` and `kubescape/` must pass `bobctl validate` of the current release.
-- **Contrast, two applications**: a pull request that changes this workflow, its actions, its hooks or the scripts it calls runs the whole loop for one known application (redis) and one unknown one (memcached). It builds no images and places no examples. It needs the repository secrets, so it does not run for forks.
-- The full run happens on main after the merge, and its gate decides what reaches `example/`.
+- **SBoB lint** (required): every profile under `example/` and `kubescape/` must pass `bobctl validate` of the current release. It takes under a minute.
+- The Contrast workflow does not run on pull requests. It runs on main after a merge that touches it, or when started by hand, and its gate decides what reaches `example/`.
 
-The earlier tune matrix (`CI - bobctl tune`) tunes profiles against per-application suites. It no longer runs on pull requests or pushes; it keeps its nightly schedule and can be started by hand.
+The earlier tune matrix (`CI - bobctl tune`) no longer runs on pull requests or pushes; it keeps its nightly schedule and can be started by hand.
 
 ## Adding an application
 
