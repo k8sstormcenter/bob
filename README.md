@@ -88,11 +88,11 @@ flowchart LR
     kpi -->|no| fix
 
     classDef bring fill:#e8f1ff,stroke:#3b6fd4,stroke-width:2px,color:#12284c
-    classDef tool fill:#fff4d6,stroke:#c98a00,stroke-width:2px,color:#3d2c00
+    classDef tool fill:#ffffff,stroke:#57606a,stroke-width:2px,color:#1f2328
     classDef outcome fill:#e3f6e8,stroke:#2e8b57,stroke-width:2px,color:#0f3d24
 ```
 
-Blue is yours, yellow is bobctl, green is the result.
+Blue is yours, white is bobctl, green is the result.
 
 - **You bring the usual traffic.** Only you know what normal looks like: a client that reads, writes, logs in, runs the backup.
 - **bobctl finds the ecosystem** (native code, JVM, Node.js, Go, PHP) and writes the SBoB: a broad allow list, and a subtract list of what stays denied.
