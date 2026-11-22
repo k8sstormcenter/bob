@@ -32,7 +32,7 @@ It's understood to be an abstraction of linux kernel level behavior to express `
 - **to explicitly test for false-negatives**: each attack type can be verified as 'blind' or 'detectable'
 - **for continuous anomaly detection at runtime**: allows end-users to calibrate their Detection/Reponse 
 
- ![Redis: simulated post-exploitation signatures under its bound SBoB, step by step](docs/contrast/redis.gif) 
+ ![Flux helm-controller: simulated post-exploitation signatures under its bound SBoB, step by step](docs/contrast/flux-helm.gif) 
 
  🚨GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
 
@@ -82,11 +82,12 @@ usual traffic ─▶ learn ─▶ bobctl generalize ─▶ SBoB ─▶ bind ─�
 
 **`bobctl simulate`** runs a suite of steps against the workload while the SBoB is bound, and every alert is matched to the step that caused it. A step reproduces only what a sensor sees (an exec, a file open, a connection attempt), nothing more. The result per step is *detected*, *missed* or *could not run in this image*.
 
-A **gate** then decides whether the SBoB is good enough to be an example: no alert under usual traffic, none caused by a subtract entry, and no step missed that a subtract entry could cover.
+A **gate** then decides whether the SBoB is good enough to be an example: no alert under usual traffic, none caused by a subtract entry, no step missed that a subtract entry could cover, and no additional alert when the same SBoB is bound on a second cluster with other pod and service addresses.
+
+Each GIF shows one application: on the left which kill-chain phases were tried and detected, in the middle the SBoB itself (the allow fragments as bars, and what the subtract list was built from: ecosystem, app type, threat model, deployment conditions), on the right the three KPIs. **D**etectability is the number of simulated steps that ran and were missed, **N**oisiness the number of alert causes under usual traffic, **P**ortability the number of additional alert causes on the second cluster. The GIF at the top of this page is Flux's helm-controller, whose steps follow what Flux's own advisories of the last years describe.
 
 | | |
 |---|---|
-| ![Flux helm-controller](docs/contrast/flux-helm.gif) | **A GitOps controller.** Flux's helm-controller while it reconciles Git and Helm sources. The steps follow what Flux's own advisories of the last years describe. |
 | ![MongoDB](docs/contrast/mongodb.gif) | **An application nobody prepared for.** bobctl was told only that MongoDB is a database. It found the ecosystem and the deployment conditions itself; nothing in the suite is written for MongoDB. |
 | ![nginx](docs/contrast/nginx2root.gif) | **Checked against a real exploit.** For nginx the same SBoB is also put under a published exploit, and what the real run triggers is compared with what the simulation triggers. |
 
