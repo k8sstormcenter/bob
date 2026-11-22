@@ -13,16 +13,16 @@ on:
         default: all
       pkg_ref:
         description: commit of the pkg submodule that holds the workloads
-        default: 059256416316258ab6295708203e105a5ff54b46
+        default: c83a6f744355f9c202d39a95bd6ea505cb5ebd03
       bobctl_tag:
         description: tag of the bobctl build to download
-        default: internal-0592564
+        default: internal-c83a6f7
       bobctl_sha256:
         description: sha256 of that build
-        default: 9b31255b9ccc18f7094d0e7080304eec34e525db86c56b5367f8f1490b966ed0
+        default: 2c8d475a95b6795bc0960d0eb9a42e7c2fada21e8247655fafe84322452f2e44
       chart_ver:
         description: kubescape-operator chart version
-        default: 1.41.0-duckling190
+        default: 1.41.0-duckling192
   push:
     branches: [main, ci/one-workflow]
     paths:
@@ -34,10 +34,10 @@ permissions:
   contents: read
 
 env:
-  PKG_REF: ${{ github.event.inputs.pkg_ref || '059256416316258ab6295708203e105a5ff54b46' }}
-  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-0592564' }}
-  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '9b31255b9ccc18f7094d0e7080304eec34e525db86c56b5367f8f1490b966ed0' }}
-  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling190' }}
+  PKG_REF: ${{ github.event.inputs.pkg_ref || 'c83a6f744355f9c202d39a95bd6ea505cb5ebd03' }}
+  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-c83a6f7' }}
+  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '2c8d475a95b6795bc0960d0eb9a42e7c2fada21e8247655fafe84322452f2e44' }}
+  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling192' }}
   ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation mongodb memcached
 
 jobs:
@@ -92,7 +92,7 @@ jobs:
     name: ${{ matrix.app }}
     needs: [plan, images]
     runs-on: ubuntu-22.04
-    timeout-minutes: 80
+    timeout-minutes: 110
     permissions:
       contents: read
       packages: read
@@ -128,6 +128,8 @@ jobs:
         uses: ./.github/actions/simulate
         with:
           app: ${{ matrix.app }}
+          chart-ver: ${{ env.CHART_VER }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload
         if: always()
