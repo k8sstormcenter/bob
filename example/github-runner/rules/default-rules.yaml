@@ -139,7 +139,7 @@ spec:
       message: '''Unexpected access to service account token: '' + event.path + '' with flags: '' + event.flags.join('','')'
       ruleExpression:
       - eventType: open
-        expression: "((event.path.startsWith('/run/secrets/kubernetes.io/serviceaccount') && event.path.endsWith('/token')) || \n (event.path.startsWith('/var/run/secrets/kubernetes.io/serviceaccount') && event.path.endsWith('/token')) ||\n (event.path.startsWith('/run/secrets/eks.amazonaws.com/serviceaccount') && event.path.endsWith('/token')) ||\n (event.path.startsWith('/var/run/secrets/eks.amazonaws.com/serviceaccount') && event.path.endsWith('/token'))) &&\n!cp.was_path_opened_with_suffix(event.containerId, '/token')\n"
+        expression: "((event.path.startsWith('/run/secrets/kubernetes.io/serviceaccount') && event.path.endsWith('/token')) || \n (event.path.startsWith('/var/run/secrets/kubernetes.io/serviceaccount') && event.path.endsWith('/token')) ||\n (event.path.startsWith('/run/secrets/eks.amazonaws.com/serviceaccount') && event.path.endsWith('/token')) ||\n (event.path.startsWith('/var/run/secrets/eks.amazonaws.com/serviceaccount') && event.path.endsWith('/token'))) &&\n!cp.was_path_opened(event.containerId, event.path)\n"
       uniqueId: event.comm + '_' + string(event.pid)
     id: R0006
     isTriggerAlert: true
@@ -182,7 +182,7 @@ spec:
       message: '''Reading environment variables from procfs: '' + event.path + '' by process '' + event.comm'
       ruleExpression:
       - eventType: open
-        expression: 'event.path.startsWith(''/proc/'') &&  event.path.endsWith(''/environ'') && !cp.was_path_opened_with_suffix(event.containerId, ''/environ'')
+        expression: 'event.path.startsWith(''/proc/'') &&  event.path.endsWith(''/environ'') && event.path != ''/proc/'' + string(event.pid) + ''/environ'' && event.path != ''/proc/self/environ''
 
           '
       uniqueId: event.comm + '_' + event.path
