@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: zot
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 01581bf
+    signature.kubescape.io/generator-ref: "0592564"
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-zot-zot
   namespace: sim-zot
@@ -517,5 +517,6 @@ spec:
         path: /var/www/*/.htaccess
       - flags: null
         path: /wp-config.php
-  syscalls: null
+  syscalls:
+    - unshare
 status: {}

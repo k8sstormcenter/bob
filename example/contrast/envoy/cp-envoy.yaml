@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: envoy
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: dfa68f1
+    signature.kubescape.io/generator-ref: "0592564"
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-envoy-envoy
   namespace: sim-envoy
@@ -75,7 +75,7 @@ spec:
   ingress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9902, port: 9902, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9902, port: 9902, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9902, port: 9902, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/pause, /runc, /usr/bin/chown, /usr/bin/dash, /usr/bin/df, /usr/bin/du, /usr/bin/env, /usr/bin/find, /usr/bin/grep, /usr/bin/gzip, /usr/bin/id, /usr/bin/ls, /usr/bin/mawk, /usr/bin/mv, /usr/bin/openssl, /usr/bin/rm, /usr/bin/sha256sum, /usr/bin/sleep, /usr/bin/sort, /usr/bin/tail, /usr/bin/tar, /usr/bin/uniq, /usr/bin/wc, /usr/local/bin/envoy, /usr/local/bin/su-exec]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/pause, /runc, /usr/bin/chown, /usr/bin/dash, /usr/bin/df, /usr/bin/du, /usr/bin/env, /usr/bin/find, /usr/bin/grep, /usr/bin/gzip, /usr/bin/id, /usr/bin/ls, /usr/bin/mawk, /usr/bin/mv, /usr/bin/openssl, /usr/bin/rm, /usr/bin/sha256sum, /usr/bin/sleep, /usr/bin/sort, /usr/bin/tail, /usr/bin/tar, /usr/bin/uniq, /usr/bin/wc, /usr/local/bin/envoy, /usr/local/bin/su-exec]}
@@ -322,10 +322,6 @@ spec:
       - flags: null
         path: /*/.git-credentials
       - flags: null
-        path: /*/.git/config
-      - flags: null
-        path: /*/.htaccess
-      - flags: null
         path: /*/.htpasswd
       - flags: null
         path: /*/.kube/*
@@ -350,16 +346,6 @@ spec:
       - flags: null
         path: /*/env.php
       - flags: null
-        path: /*/my.cnf
-      - flags: null
-        path: /*/pg_hba.conf
-      - flags: null
-        path: /*/pg_ident.conf
-      - flags: null
-        path: /*/postgresql.auto.conf
-      - flags: null
-        path: /*/redis.conf
-      - flags: null
         path: /*/terraform.tfstate
       - flags: null
         path: /*/wp-config.php
@@ -382,11 +368,17 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
+        path: /etc/mysql/*
+      - flags: null
         path: /etc/mysql/debian.cnf
+      - flags: null
+        path: /etc/postgresql/*
       - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
+      - flags: null
+        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -408,10 +400,20 @@ spec:
       - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
+        path: /usr/local/etc/redis/*
+      - flags: null
+        path: /var/lib/postgresql/*/pg_hba.conf
+      - flags: null
+        path: /var/lib/postgresql/*/pg_ident.conf
+      - flags: null
+        path: /var/lib/postgresql/*/postgresql.auto.conf
+      - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/token
       - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
+      - flags: null
+        path: /var/www/*/.htaccess
   syscalls: null
 status: {}

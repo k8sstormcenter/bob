@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: otel-collector
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 01581bf
+    signature.kubescape.io/generator-ref: "0592564"
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-otel-collector-otel-collector
   namespace: sim-otel
@@ -26,7 +26,7 @@ spec:
     - CAP_SYS_ADMIN
   egress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-8888, port: 8888, protocol: TCP}], type: external}
-    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}, {name: TCP-10250, port: 10250, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-10250, port: 10250, protocol: TCP}, {name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
   endpoints: null
   execs:
     - {args: [/otelcol-contrib, --config=/conf/config.yaml], path: /otelcol-contrib}
@@ -40,7 +40,7 @@ spec:
   ingress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-8888, port: 8888, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-13133, port: 13133, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-55679, port: 55679, protocol: TCP}, {name: TCP-4318, port: 4318, protocol: TCP}, {name: TCP-8888, port: 8888, protocol: TCP}, {name: TCP-8889, port: 8889, protocol: TCP}, {name: TCP-13133, port: 13133, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8888, port: 8888, protocol: TCP}, {name: TCP-55679, port: 55679, protocol: TCP}, {name: TCP-13133, port: 13133, protocol: TCP}, {name: TCP-4318, port: 4318, protocol: TCP}, {name: TCP-8889, port: 8889, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY], path: /.cache/snowflake/ocsp_response_cache.json, processes: [/otelcol-contrib]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /conf/⋯/config.yaml, processes: [/otelcol-contrib]}
@@ -238,5 +238,6 @@ spec:
         path: /var/spool/cron/*
       - flags: null
         path: /var/www/*/.htaccess
-  syscalls: null
+  syscalls:
+    - unshare
 status: {}

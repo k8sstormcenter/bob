@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: nginx
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 01581bf
+    signature.kubescape.io/generator-ref: "0592564"
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-nginx-nginx
   namespace: sim-nginx
@@ -80,7 +80,7 @@ spec:
   imageTag: docker.io/library/nginx:1.28.3
   ingress:
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-443, port: 443, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-80, port: 80, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-80, port: 80, protocol: TCP}, {name: TCP-443, port: 443, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/pause, /runc, /usr/bin/basename, /usr/bin/cat, /usr/bin/cp, /usr/bin/cut, /usr/bin/dash, /usr/bin/df, /usr/bin/dpkg-query, /usr/bin/du, /usr/bin/find, /usr/bin/grep, /usr/bin/gzip, /usr/bin/ls, /usr/bin/mawk, /usr/bin/md5sum, /usr/bin/mv, /usr/bin/openssl, /usr/bin/rm, /usr/bin/sed, /usr/bin/sleep, /usr/bin/sort, /usr/bin/tail, /usr/bin/tar, /usr/bin/touch, /usr/bin/uniq, /usr/bin/wc, /usr/sbin/nginx]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/pause, /runc, /usr/bin/basename, /usr/bin/cat, /usr/bin/cp, /usr/bin/cut, /usr/bin/dash, /usr/bin/df, /usr/bin/dpkg-query, /usr/bin/du, /usr/bin/find, /usr/bin/grep, /usr/bin/gzip, /usr/bin/ls, /usr/bin/mawk, /usr/bin/md5sum, /usr/bin/mv, /usr/bin/openssl, /usr/bin/rm, /usr/bin/sed, /usr/bin/sleep, /usr/bin/sort, /usr/bin/tail, /usr/bin/tar, /usr/bin/touch, /usr/bin/uniq, /usr/bin/wc, /usr/sbin/nginx]}
@@ -141,7 +141,7 @@ spec:
     - {flags: [O_RDONLY], path: /etc/ssl/certs/ca-certificates.crt, processes: [/usr/bin/openssl]}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx/tls/tls.crt, processes: [/usr/bin/openssl, /usr/bin/tar, /usr/sbin/nginx]}
     - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf, processes: [/usr/bin/openssl, /usr/sbin/nginx]}
-    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/nginx/conf.d/sedEBMfzq, processes: [/usr/bin/sed]}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/nginx/conf.d/sedqBDEMn, processes: [/usr/bin/sed]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NONBLOCK, O_RDONLY], path: /etc, processes: [/usr/bin/tar]}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx, processes: [/usr/bin/tar]}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx/conf.d, processes: [/usr/bin/tar]}
