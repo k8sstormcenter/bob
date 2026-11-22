@@ -13,16 +13,16 @@ on:
         default: all
       pkg_ref:
         description: commit of the pkg submodule that holds the workloads
-        default: 8ad328a6065a0582828bc8ba952040786078bba5
+        default: d8c153ca851222e0b972fafd57329c5898bcc495
       bobctl_tag:
         description: tag of the bobctl build to download
-        default: internal-8ad328a
+        default: internal-d8c153c
       bobctl_sha256:
         description: sha256 of that build
-        default: 46c272421a12857dcd94c042f9585cbdaa98b40f8f10afb3dd1b172f29e796c6
+        default: 7a1f22c752e6dce385e55ef55e3c697c225f6dce66f3672213c167246e307b75
       chart_ver:
         description: kubescape-operator chart version
-        default: 1.41.0-duckling183
+        default: 1.41.0-duckling187
   push:
     branches: [main, ci/one-workflow]
     paths:
@@ -34,10 +34,10 @@ permissions:
   contents: read
 
 env:
-  PKG_REF: ${{ github.event.inputs.pkg_ref || '8ad328a6065a0582828bc8ba952040786078bba5' }}
-  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-8ad328a' }}
-  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '46c272421a12857dcd94c042f9585cbdaa98b40f8f10afb3dd1b172f29e796c6' }}
-  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling183' }}
+  PKG_REF: ${{ github.event.inputs.pkg_ref || 'd8c153ca851222e0b972fafd57329c5898bcc495' }}
+  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-d8c153c' }}
+  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '7a1f22c752e6dce385e55ef55e3c697c225f6dce66f3672213c167246e307b75' }}
+  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling187' }}
   ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new
 
 jobs:
