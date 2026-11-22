@@ -36,6 +36,7 @@ runs:
         set -uo pipefail
         [ -n "$REAL_FROM" ] || { [ -f out/real-from ] && REAL_FROM=$(cat out/real-from); }
         [ -n "$REAL_TO" ] || { [ -f out/real-to ] && REAL_TO=$(cat out/real-to); }
+        [ -f out/exclude-to ] && export EXCLUDE_TO=$(cat out/exclude-to)
         export REAL_FROM REAL_TO
         APP="${{ inputs.app }}"
         B="$GITHUB_WORKSPACE/bin/bobctl" pkg/workloads/run-live.sh "$GITHUB_WORKSPACE/out" simulate ${APP//+/ } > /tmp/simulate.out 2>&1 || true

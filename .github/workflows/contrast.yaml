@@ -13,7 +13,7 @@ on:
         default: all
       pkg_ref:
         description: commit of the pkg submodule that holds the workloads
-        default: d8c153ca851222e0b972fafd57329c5898bcc495
+        default: 902c55c9671e46bb75c3b3aa244e8617e8f7d8b0
       bobctl_tag:
         description: tag of the bobctl build to download
         default: internal-d8c153c
@@ -34,7 +34,7 @@ permissions:
   contents: read
 
 env:
-  PKG_REF: ${{ github.event.inputs.pkg_ref || 'd8c153ca851222e0b972fafd57329c5898bcc495' }}
+  PKG_REF: ${{ github.event.inputs.pkg_ref || '902c55c9671e46bb75c3b3aa244e8617e8f7d8b0' }}
   BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-d8c153c' }}
   BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '7a1f22c752e6dce385e55ef55e3c697c225f6dce66f3672213c167246e307b75' }}
   CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling187' }}

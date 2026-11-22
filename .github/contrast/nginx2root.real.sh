@@ -26,5 +26,6 @@ sleep 20
 for try in 1 2 3; do
   if kubectl -n $NS exec "$POD" -c nginx -- stat -c '%u:%g %a %n' "/tmp/$MARK-$try" 2>/dev/null; then landed=1; fi
 done
+date -u +%FT%TZ > out/exclude-to
 if [ "$landed" = 1 ]; then echo "landed: the worker created the marker file" | tee "$OUT/real-result.txt"; else echo "did not land in 3 passes; nothing can be concluded from this run" | tee "$OUT/real-result.txt"; echo "::warning::nginx2root real run did not land"; fi
 kubectl -n $NS scale deployment/traffic --replicas=1 || true
