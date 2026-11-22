@@ -67,7 +67,7 @@ jobs:
           echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
 
   images:
-    name: image ${{ matrix.name }}
+    name: image
     if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-24.04
     permissions:
