@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: envoy
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: "0592564"
+    signature.kubescape.io/generator-ref: c83a6f7
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-envoy-envoy
   namespace: sim-envoy
@@ -30,7 +30,7 @@ spec:
   egress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: backend.sim-envoy.svc.cluster.local., dnsNames: [backend., backend.cluster.local., backend.sim-envoy.svc.cluster.local., backend.svc.cluster.local.], identifier: 055d26cb7d45594538f8b3f2981dc372d5fa0f6562b932feda7e42b3179992c0, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
-    - {dns: "", dnsNames: null, identifier: 807be91abb7df87d1434196fec95602d775abc6fc2d2eac7898cb87dd3578eee, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: backend}}, ports: [{name: TCP-8082, port: 8082, protocol: TCP}, {name: TCP-8081, port: 8081, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 807be91abb7df87d1434196fec95602d775abc6fc2d2eac7898cb87dd3578eee, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: backend}}, ports: [{name: TCP-8081, port: 8081, protocol: TCP}, {name: TCP-8082, port: 8082, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
@@ -75,7 +75,7 @@ spec:
   ingress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9902, port: 9902, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9902, port: 9902, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8443, port: 8443, protocol: TCP}, {name: TCP-9902, port: 9902, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/pause, /runc, /usr/bin/chown, /usr/bin/dash, /usr/bin/df, /usr/bin/du, /usr/bin/env, /usr/bin/find, /usr/bin/grep, /usr/bin/gzip, /usr/bin/id, /usr/bin/ls, /usr/bin/mawk, /usr/bin/mv, /usr/bin/openssl, /usr/bin/rm, /usr/bin/sha256sum, /usr/bin/sleep, /usr/bin/sort, /usr/bin/tail, /usr/bin/tar, /usr/bin/uniq, /usr/bin/wc, /usr/local/bin/envoy, /usr/local/bin/su-exec]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/pause, /runc, /usr/bin/chown, /usr/bin/dash, /usr/bin/df, /usr/bin/du, /usr/bin/env, /usr/bin/find, /usr/bin/grep, /usr/bin/gzip, /usr/bin/id, /usr/bin/ls, /usr/bin/mawk, /usr/bin/mv, /usr/bin/openssl, /usr/bin/rm, /usr/bin/sha256sum, /usr/bin/sleep, /usr/bin/sort, /usr/bin/tail, /usr/bin/tar, /usr/bin/uniq, /usr/bin/wc, /usr/local/bin/envoy, /usr/local/bin/su-exec]}
@@ -415,5 +415,6 @@ spec:
         path: /var/spool/cron/*
       - flags: null
         path: /var/www/*/.htaccess
-  syscalls: null
+  syscalls:
+    - unshare
 status: {}

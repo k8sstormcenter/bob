@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: mongo
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: "0592564"
+    signature.kubescape.io/generator-ref: c83a6f7
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-mongodb-mongo
   namespace: sim-mongodb
@@ -23,7 +23,7 @@ spec:
     - CAP_SETGID
     - CAP_SETUID
   egress:
-    - {dns: compass.mongodb.com., dnsNames: [compass.mongodb.com.], identifier: 867e47bd8c6f655be4c4924d27818cb900ff6909053da1a42170e5fbf73c0ca3, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: compass.mongodb.com., dnsNames: [compass.mongodb.com.], identifier: 0b787c64e4f24e68b57d2ac894f37e9f67edd0aeb3840a1a79c61601ba7ee67d, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
