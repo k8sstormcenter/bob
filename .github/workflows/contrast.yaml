@@ -120,13 +120,9 @@ jobs:
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-pat: ${{ secrets.DOCKERHUB_PAT }}
 
-      - name: Real run, where the example has one
-        run: |
-          set -uo pipefail
-          APP="${{ matrix.app }}"
-          for a in ${APP//+/ }; do
-            if [ -f ".github/contrast/$a.real.sh" ]; then bash ".github/contrast/$a.real.sh"; else echo "no real run for $a"; fi
-          done
+      - name: Real exploit run
+        if: hashFiles(format('.github/contrast/{0}.real.sh', matrix.app)) != ''
+        run: bash ".github/contrast/${{ matrix.app }}.real.sh"
 
       - name: Simulate
         uses: ./.github/actions/simulate
