@@ -1,0 +1,206 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+
+name: Contrast
+
+on:
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: space-separated applications, or all
+        default: all
+      pkg_ref:
+        description: commit of the pkg submodule that holds the workloads
+        default: 059256416316258ab6295708203e105a5ff54b46
+      bobctl_tag:
+        description: tag of the bobctl build to download
+        default: internal-0592564
+      bobctl_sha256:
+        description: sha256 of that build
+        default: 9b31255b9ccc18f7094d0e7080304eec34e525db86c56b5367f8f1490b966ed0
+      chart_ver:
+        description: kubescape-operator chart version
+        default: 1.41.0-duckling190
+  push:
+    branches: [main, ci/one-workflow]
+    paths:
+      - '.github/workflows/contrast.yaml'
+      - '.github/actions/**'
+      - '.github/contrast/**'
+
+permissions:
+  contents: read
+
+env:
+  PKG_REF: ${{ github.event.inputs.pkg_ref || '059256416316258ab6295708203e105a5ff54b46' }}
+  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-0592564' }}
+  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '9b31255b9ccc18f7094d0e7080304eec34e525db86c56b5367f8f1490b966ed0' }}
+  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling190' }}
+  ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation mongodb memcached
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-24.04
+    outputs:
+      apps: ${{ steps.apps.outputs.apps }}
+    steps:
+      - name: Applications of this run
+        id: apps
+        env:
+          WANT: ${{ github.event.inputs.apps || 'all' }}
+        run: |
+          [ "$WANT" = all ] && WANT="$ALL_APPS"
+          echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+
+  images:
+    name: image ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: php2shell-wordpress, context: example/php2shell-wordpress, dockerfile: '', platforms: linux/amd64}
+          - {name: php2shell-vulnerable, context: example/php2shell, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
+          - {name: postgres-vuln, context: example/postgres-vuln, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
+          - {name: redis-vulnerable, context: example/redis, dockerfile: example/redis/Dockerfile.redis-vulnerable, platforms: 'linux/amd64,linux/arm64'}
+          - {name: chain-frontend, context: example/chain/frontend, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
+          - {name: chain-backend, context: example/chain/backend, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
+          - {name: java-poc-backend-vulnerable, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.vulnerable, platforms: linux/amd64}
+          - {name: java-poc-backend-contained, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.contained, platforms: linux/amd64}
+          - {name: java-poc-backend-patched, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.patched, platforms: linux/amd64}
+          - {name: java-poc-pathogen, context: example/java-poc/pathogen, dockerfile: '', platforms: linux/amd64}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Build image
+        uses: ./.github/actions/build-image
+        with:
+          name: ${{ matrix.name }}
+          context: ${{ matrix.context }}
+          dockerfile: ${{ matrix.dockerfile }}
+          platforms: ${{ matrix.platforms }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  contrast:
+    name: ${{ matrix.app }}
+    needs: [plan, images]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 80
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.plan.outputs.apps) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Generalize
+        uses: ./.github/actions/generalize
+        with:
+          app: ${{ matrix.app }}
+          pkg-ref: ${{ env.PKG_REF }}
+          bobctl-tag: ${{ env.BOBCTL_TAG }}
+          bobctl-sha256: ${{ env.BOBCTL_SHA256 }}
+          chart-ver: ${{ env.CHART_VER }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          entlein-pat: ${{ secrets.ENTLEIN_PAT }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-pat: ${{ secrets.DOCKERHUB_PAT }}
+
+      - name: Real exploit run
+        if: hashFiles(format('.github/contrast/{0}.real.sh', matrix.app)) != ''
+        run: bash ".github/contrast/${{ matrix.app }}.real.sh"
+
+      - name: Simulate
+        uses: ./.github/actions/simulate
+        with:
+          app: ${{ matrix.app }}
+
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: contrast-${{ matrix.app }}
+          path: artifacts/
+          if-no-files-found: warn
+
+  examples:
+    name: Example SBoBs
+    needs: [contrast]
+    if: ${{ always() && needs.contrast.result != 'cancelled' && (github.event.inputs.apps || 'all') == 'all' }}
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout this revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          path: src
+          persist-credentials: false
+
+      - name: Checkout main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          path: main
+          fetch-depth: 0
+
+      - name: Download the SBoBs of this run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: sbob-*
+          path: dl
+
+      - name: Place them under example/ and open a pull request
+        working-directory: main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          BR=ci/example-sbobs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch -q origin "$BR" 2>/dev/null; then
+            git checkout -q -B "$BR" FETCH_HEAD
+            git merge -q --no-edit origin/main || { git merge --abort; git checkout -q -B "$BR-${{ github.run_number }}" origin/main; BR="$BR-${{ github.run_number }}"; }
+          else
+            git checkout -q -B "$BR" origin/main
+          fi
+          ../src/scripts/place-example-sbobs.sh ../dl ../src/.github/contrast/examples.txt /tmp/placed.md
+          { echo "### Gate: which SBoBs of this run go to the examples"; echo; cat /tmp/placed.md; echo; } >> "$GITHUB_STEP_SUMMARY"
+          git add -A example
+          if git diff --cached --quiet; then echo "No example file changes: the SBoBs that passed are already in example/." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          git commit -q -m "example: SBoBs from Contrast run ${{ github.run_number }}"
+          git push -q origin "HEAD:$BR"
+          {
+            echo "The SBoBs under example/ as the Contrast workflow produced them in $RUN_URL."
+            echo
+            echo "Nothing here is edited by hand: each file is the artifact of that run with the licence header in front. An SBoB is placed only when its gate passed in that run: valid profile, usual traffic ran, sensor up, no alert from the allow list under usual traffic, none caused by a subtract entry, no simulated step missed."
+            echo
+            cat /tmp/placed.md
+            echo
+            echo '```'
+            git diff --stat HEAD~1 | tail -40
+            echo '```'
+          } > /tmp/body.md
+          if [ -z "$(gh pr list --head "$BR" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head "$BR" --title "example: SBoBs from the Contrast workflow" --body-file /tmp/body.md || echo "::warning::the branch $BR is pushed, but the pull request could not be opened"
+          else
+            gh pr comment "$BR" --body-file /tmp/body.md || true
+          fi

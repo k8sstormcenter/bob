@@ -37,9 +37,12 @@ spec:
         - |
           BASE=http://php2shell.php2shell.svc.cluster.local
           echo "artifact-$(date +%s)" > /tmp/art.bin
+          n=0
           while true; do
-            curl -fsS "$BASE/healthz.php" >/dev/null 2>&1 || true
-            curl -fsS "$BASE/index.php"   >/dev/null 2>&1 || true
+            n=$((n+1)); ok=1
+            curl -fsS "$BASE/healthz.php" >/dev/null 2>&1 || ok=0
+            curl -fsS "$BASE/index.php"   >/dev/null 2>&1 || ok=0
+            if [ "$ok" = 1 ]; then echo "workload-cycle-ok $n"; else echo "workload-cycle-FAILED $n"; fi
             curl -fsS -c /tmp/cj -b /tmp/cj \
               -F "PHP_SESSION_UPLOAD_PROGRESS=ci-artifact" \
               -F "artifact=@/tmp/art.bin" \
