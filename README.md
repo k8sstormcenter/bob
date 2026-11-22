@@ -32,7 +32,7 @@ It's understood to be an abstraction of linux kernel level behavior to express `
 - **to explicitly test for false-negatives**: each attack type can be verified as 'blind' or 'detectable'
 - **for continuous anomaly detection at runtime**: allows end-users to calibrate their Detection/Reponse 
 
- ![redis kill-chain — kubescape rule coverage](example/redis/redis-killchain.gif) 
+ ![Redis: simulated post-exploitation signatures under its bound SBoB, step by step](docs/contrast/redis.gif) 
 
  🚨GOAL for 2027: 90 percent of all CNCF projects (that run on linux-k8s) get an SBOB 
 
@@ -64,6 +64,31 @@ Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.
 ## Try it out in a lab with a k3s and a k8s
 Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
+
+## How an SBoB is made and checked
+
+```
+usual traffic ─▶ learn ─▶ bobctl generalize ─▶ SBoB ─▶ bind ─▶ usual traffic again ─▶ bobctl simulate ─▶ gate ─▶ example/
+                                              allow list                0 alerts wanted        every step must alert
+                                              + subtract
+```
+
+**`bobctl generalize`** turns what the node agent recorded into an SBoB that still fits tomorrow:
+
+- It folds what differs from run to run (pod names, dates, process ids, temporary files), so the allow list describes behaviour and not one run.
+- It finds the language ecosystem from the behaviour itself (native code, JVM, Node.js, Go, PHP) and opens that ecosystem's read-only trees: shared objects, jars, modules.
+- It keeps the allow list broad and adds a **subtract** list on top: shapes that are known from real compromises and stay denied even where the allow list would admit them. Examples: the server process starting a shell, a download tool, a socket redirect in a shell argument, credential files, a mining-pool port.
+- The pod's own configuration decides which Kubernetes design principles matter for it (a service account that may read `nodes/proxy`, a hostPath mount, a privileged container), and the matching subtract entries are added.
+
+**`bobctl simulate`** runs a suite of steps against the workload while the SBoB is bound, and every alert is matched to the step that caused it. A step reproduces only what a sensor sees (an exec, a file open, a connection attempt), nothing more. The result per step is *detected*, *missed* or *could not run in this image*.
+
+A **gate** then decides whether the SBoB is good enough to be an example: no alert under usual traffic, none caused by a subtract entry, and no step missed that a subtract entry could cover.
+
+| | |
+|---|---|
+| ![Flux helm-controller](docs/contrast/flux-helm.gif) | **A GitOps controller.** Flux's helm-controller while it reconciles Git and Helm sources. The steps follow what Flux's own advisories of the last years describe. |
+| ![MongoDB](docs/contrast/mongodb.gif) | **An application nobody prepared for.** bobctl was told only that MongoDB is a database. It found the ecosystem and the deployment conditions itself; nothing in the suite is written for MongoDB. |
+| ![nginx](docs/contrast/nginx2root.gif) | **Checked against a real exploit.** For nginx the same SBoB is also put under a published exploit, and what the real run triggers is compared with what the simulation triggers. |
 
 ## TLDR — bobctl
 
