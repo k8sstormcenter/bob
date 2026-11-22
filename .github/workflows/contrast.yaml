@@ -22,7 +22,7 @@ on:
         default: 2c8d475a95b6795bc0960d0eb9a42e7c2fada21e8247655fafe84322452f2e44
       chart_ver:
         description: kubescape-operator chart version
-        default: 1.41.0-duckling190
+        default: 1.41.0-duckling192
   push:
     branches: [main, ci/one-workflow]
     paths:
@@ -37,7 +37,7 @@ env:
   PKG_REF: ${{ github.event.inputs.pkg_ref || 'c83a6f744355f9c202d39a95bd6ea505cb5ebd03' }}
   BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-c83a6f7' }}
   BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '2c8d475a95b6795bc0960d0eb9a42e7c2fada21e8247655fafe84322452f2e44' }}
-  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling190' }}
+  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling192' }}
   ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation mongodb memcached
 
 jobs:
