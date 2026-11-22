@@ -128,4 +128,4 @@ bobctl verify --profile cp-app --key key.hmac
 | path | suite |
 |---|---|
 | `example/github-runner` | `../github-runner-attacks.yaml`; `ioc-overlays/` → `spec.subtract` |
-| `example/php2shell` | `ci-php2shell-k3s-demo` / `-twin` / `-rules` |
+| `example/php2shell` | `contrast` (app `php2shell-wordpress`; the plain php2shell demos were removed with the workflow cleanup) |

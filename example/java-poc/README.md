@@ -71,7 +71,7 @@ now lives here:
 | `kubescape/rules/R1100_rulespec.yaml` | the failed-execve binding scenario B turns on |
 | `RUNBOOK-FOR-AGENTS.md` | step-by-step operation |
 
-Images are built by `.github/workflows/ci-java-poc-images.yaml` and published as
+Images are built by `.github/workflows/contrast.yaml (images job)` and published as
 `ghcr.io/k8sstormcenter/java-poc-<component>`. The digests pinned in
 `30-backend.yaml` and `50-pathogen.yaml` still carry the old repository name:
 they are immutable and resolve, and re-pinning waits on either a registry retag

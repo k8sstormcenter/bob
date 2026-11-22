@@ -176,7 +176,7 @@ if ! $ATTACK_ONLY; then
   if $USE_PUBLISHED; then
     # ── Published-image path ───────────────────────────────────────
     # Skip docker build + push. Pull stable GHCR images that the
-    # CI workflow (.github/workflows/ci-chain-images.yaml) published
+    # CI workflow (.github/workflows/contrast.yaml (images job)) published
     # on the last main/feat/postgres-endpoint-attacks push. Useful
     # when the dev box has no docker daemon, or when the host's
     # docker credstore is broken (pass/gpg pinentry not available).
