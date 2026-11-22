@@ -38,7 +38,7 @@ env:
   BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-f7bdb02' }}
   BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || 'be9a809f96722deafef9b4c89df602ca1a813d47929876c3891728a8be0560d6' }}
   CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling190' }}
-  ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new
+  ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation
 
 jobs:
   plan:
@@ -136,3 +136,71 @@ jobs:
           name: contrast-${{ matrix.app }}
           path: artifacts/
           if-no-files-found: warn
+
+  examples:
+    name: Example SBoBs
+    needs: [contrast]
+    if: ${{ always() && needs.contrast.result != 'cancelled' && (github.event.inputs.apps || 'all') == 'all' }}
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout this revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          path: src
+          persist-credentials: false
+
+      - name: Checkout main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          path: main
+          fetch-depth: 0
+
+      - name: Download the SBoBs of this run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: sbob-*
+          path: dl
+
+      - name: Place them under example/ and open a pull request
+        working-directory: main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          BR=ci/example-sbobs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch -q origin "$BR" 2>/dev/null; then
+            git checkout -q -B "$BR" FETCH_HEAD
+            git merge -q --no-edit origin/main || { git merge --abort; git checkout -q -B "$BR-${{ github.run_number }}" origin/main; BR="$BR-${{ github.run_number }}"; }
+          else
+            git checkout -q -B "$BR" origin/main
+          fi
+          ../src/scripts/place-example-sbobs.sh ../dl ../src/.github/contrast/examples.txt /tmp/placed.md
+          { echo "### Gate: which SBoBs of this run go to the examples"; echo; cat /tmp/placed.md; echo; } >> "$GITHUB_STEP_SUMMARY"
+          git add -A example
+          if git diff --cached --quiet; then echo "No example file changes: the SBoBs that passed are already in example/." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          git commit -q -m "example: SBoBs from Contrast run ${{ github.run_number }}"
+          git push -q origin "HEAD:$BR"
+          {
+            echo "The SBoBs under example/ as the Contrast workflow produced them in $RUN_URL."
+            echo
+            echo "Nothing here is edited by hand: each file is the artifact of that run with the licence header in front. An SBoB is placed only when its gate passed in that run: valid profile, usual traffic ran, sensor up, no alert from the allow list under usual traffic, none caused by a subtract entry, no simulated step missed."
+            echo
+            cat /tmp/placed.md
+            echo
+            echo '```'
+            git diff --stat HEAD~1 | tail -40
+            echo '```'
+          } > /tmp/body.md
+          if [ -z "$(gh pr list --head "$BR" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head "$BR" --title "example: SBoBs from the Contrast workflow" --body-file /tmp/body.md || echo "::warning::the branch $BR is pushed, but the pull request could not be opened"
+          else
+            gh pr comment "$BR" --body-file /tmp/body.md || true
+          fi

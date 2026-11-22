@@ -57,6 +57,7 @@ runs:
             [ -f "out/$A/$f" ] && cp "out/$A/$f" "artifacts/$A-$f"
           done
           [ -f "out/$A/sbob.yaml" ] && cp "out/$A/sbob.yaml" "sbob/$A-sbob.yaml"
+          [ -f "out/$A/gate.json" ] && cp "out/$A/gate.json" "sbob/$A-gate.json" && cp "out/$A/gate.json" "artifacts/$A-gate.json"
           for f in out/$A/previous-*.log; do [ -f "$f" ] && cp "$f" "artifacts/$A-$(basename "$f")"; done
           grep -E "^[0-9:]{8} $A: target container" out/run.log | sed 's/^[0-9:]* /- /' >> "$GITHUB_STEP_SUMMARY" || true
           [ -s out/enabled-rules.txt ] && echo "- Rules switched on in addition to the chart's defaults: $(cat out/enabled-rules.txt)" >> "$GITHUB_STEP_SUMMARY" || true
