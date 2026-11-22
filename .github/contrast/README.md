@@ -20,7 +20,10 @@ change to bobctl or the chart     ─┘                                        
 2. `bobctl conditions` reads the pod's configuration and the rights of its service account; `bobctl generalize` finds the language ecosystem. Together they select the signatures.
 3. `bobctl generalize` writes the SBoB: a broad allow list plus the subtract entries of those signatures.
 4. The SBoB is bound, usual traffic runs again, then `bobctl simulate` runs the inert steps.
-5. The run page gets the summary, the SBoB, a GIF and the gate verdict.
+5. The cluster is rebuilt with other pod and service addresses, the same SBoB is bound and usual traffic runs once more.
+6. The run page gets the summary, the SBoB, a GIF and the gate verdict.
+
+The three KPIs of the GIF come from these steps: **Detectability** is the number of simulated steps that ran and were missed, **Noisiness** the number of alert causes under usual traffic, **Portability** the number of additional alert causes on the second cluster.
 
 ## The gate
 
@@ -35,6 +38,7 @@ An SBoB is good enough when all of these hold in the run that produced it:
 | alert causes from a subtract entry under usual traffic | 0 |
 | simulated steps that ran and were not detected | 0 (`GATE_MAX_MISSED`) |
 | if no step can run in the image: probes the offline check admits | 0 |
+| alert causes on a second cluster with other pod and service addresses, beyond the first cluster's (Portability) | 0 (`GATE_MAX_PORTABILITY`) |
 
 The job `Example SBoBs` downloads the SBoBs of the run, places those that passed and opens or updates one pull request from the branch `ci/example-sbobs`. The pull request lists every application with its verdict. An SBoB that is held back never overwrites an example.
 

@@ -12,7 +12,8 @@ replaces the prior scalar-Score display. AP panel shows NN-rewrite count
 in the upper-right corner (read from kpi.json sidecar if present).
 
   ┌────────────┬───────────────────┬──────────────┐
-  │  Radar     │  Profile Entries  │  KPI         │
+  │  Radar     │  Profile Entries  │  KPI         │   (records that carry "sbob" get ALLOW bars and a
+  │            │                   │              │    SUBTRACT block there instead)
   │  (MITRE    │  (Opens / Execs / │  D: missed   │
   │   12-spoke │   Endpoints /     │  N: local FP │
   │   detected │   Rules)          │  P: probe FP │
@@ -67,6 +68,7 @@ C_BLUE     = "#7aa2f7"
 C_CYAN     = "#7dcfff"
 C_GREY     = "#3b4261"
 C_PURPLE   = "#bb9af7"
+C_WHITE    = "#e9ecf8"
 
 MITRE_PHASES = [
     "Recon", "Init Access", "Execution", "Persistence", "Priv Esc",
@@ -452,6 +454,62 @@ def build_attack_analysis(attacks, detections, not_scored=()):
     return det_by_attack, phase_attacks
 
 
+def draw_sbob_panel(fig, cell, view):
+    """Top-centre panel for an SBoB: the allow fragments as bars, and what the subtract list is built from."""
+    sub = cell.subgridspec(2, 1, height_ratios=[3, 2], hspace=0.42)
+    ax = fig.add_subplot(sub[0])
+    ax.set_facecolor(C_PANEL)
+    allow = view.get("allow", {})
+    names = ["CAPS", "EXECS", "OPENS", "INGRESS", "EGRESS", "RULES"]
+    keys = ["caps", "execs", "opens", "ingress", "egress", "rules"]
+    vals = [int(allow.get(k) or 0) for k in keys]
+    bars = ax.barh(names[::-1], vals[::-1], color=C_WHITE, height=0.6)
+    top = max(max(vals), 1)
+    for bar, val in zip(bars, vals[::-1]):
+        ax.text(bar.get_width() + top * 0.02, bar.get_y() + bar.get_height() / 2, str(val),
+                va="center", fontsize=7, color=C_TEXT, fontfamily="monospace")
+    ax.set_xlim(0, top * 1.18)
+    ax.set_title("ALLOW   what the application may do", fontsize=9, color=C_TEXT, fontfamily="monospace")
+    ax.tick_params(axis="x", colors=C_DIM, labelsize=7)
+    ax.tick_params(axis="y", colors=C_WHITE, labelsize=7)
+    for spine in ax.spines.values():
+        spine.set_color(C_BORDER)
+
+    st = view.get("subtract", {})
+    ax2 = fig.add_subplot(sub[1])
+    ax2.set_facecolor(C_PANEL)
+    ax2.set_xticks([])
+    ax2.set_yticks([])
+    for spine in ax2.spines.values():
+        spine.set_color(C_BORDER)
+    ax2.set_title("SUBTRACT   what stays denied", fontsize=9, color=C_BLUE, fontfamily="monospace")
+
+    def wrapped(items, width=44):
+        text = ", ".join(items) if items else "none"
+        out, line = [], ""
+        for word in text.split(" "):
+            if len(line) + len(word) + 1 > width and line:
+                out.append(line)
+                line = word
+            else:
+                line = (line + " " + word).strip()
+        return out + [line]
+
+    rows = [("entries", [f"{int(st.get('execs') or 0)} execs · {int(st.get('opens') or 0)} opens · {int(st.get('egress') or 0)} egress"]),
+            ("ecosystem", wrapped(st.get("ecosystem") or ["not found"])),
+            ("app type", [st.get("app_type") or "not given"]),
+            ("threat model", wrapped(st.get("threat_model") or [])),
+            ("conditions", wrapped(st.get("conditions") or []))]
+    lines = sum(len(v) for _, v in rows)
+    step = min(0.16, 0.94 / max(lines, 1))
+    y = 0.95
+    for label, values in rows:
+        ax2.text(0.03, y, label, transform=ax2.transAxes, fontsize=7, color=C_BLUE, va="top", fontfamily="monospace")
+        for v in values:
+            ax2.text(0.27, y, v, transform=ax2.transAxes, fontsize=7, color=C_TEXT, va="top", fontfamily="monospace")
+            y -= step
+
+
 def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, best_nn=None, width=1280, height=900):
     fig = plt.figure(figsize=(width / 100, height / 100), dpi=100)
     fig.patch.set_facecolor(C_BG)
@@ -524,101 +582,106 @@ def draw_frame(records, up_to, title, limits, kpi_sidecar=None, nn_report=None, 
     # ══════════════════════════════════════════════════════════════════════
     # TOP-CENTER: Profile Shrinkage (horizontal bars, fixed x-axis)
     # ══════════════════════════════════════════════════════════════════════
-    ax_prof = fig.add_subplot(gs[0, 1])
-    ax_prof.set_facecolor(C_PANEL)
-
-    # Syscalls dropped from the AP panel — they tune separately and their
-    # absolute count crowds the bar layout without adding signal. The
-    # upper-right corner of this panel now shows the NN-rewrite count
-    # (from kpi.json sidecar) — empty before this PR.
-    categories = ["Opens", "Execs", "Endpoints", "Rules"]
-    keys = ["opens", "execs", "endpoints", "policy_rules"]
-    colors = [C_BLUE, C_CYAN, C_GREEN, C_YELLOW]
-    vals = [current[k] for k in keys]
-
-    if up_to > 0:
-        base = [records[0][k] for k in keys]
-        ax_prof.barh(categories, base, color=[C_GREY] * len(keys), height=0.55, alpha=0.25)
-    bars = ax_prof.barh(categories, vals, color=colors, height=0.55)
-
-    for i, (bar, val) in enumerate(zip(bars, vals)):
-        lbl = str(val)
-        if up_to > 0:
-            d = val - records[0][keys[i]]
-            if d < 0:
-                lbl += f" ({d})"
-            elif d > 0:
-                lbl += f" (+{d})"
-        ax_prof.text(bar.get_width() + 1, bar.get_y() + bar.get_height() / 2,
-                     lbl, va="center", fontsize=7, color=C_TEXT, fontfamily="monospace")
-
-    ax_prof.set_xlim(0, limits["max_entries"])
-    ax_prof.set_title("Profile Entries", fontsize=9, color=C_TEXT, fontfamily="monospace")
-    ax_prof.tick_params(colors=C_DIM, labelsize=7)
-    for spine in ax_prof.spines.values():
-        spine.set_color(C_BORDER)
-
-    # NN diagnostics indicator in the AP panel's upper-right corner.
-    #
-    # PRIMARY source is best-nn.yaml (the SELECTED tuned NN): it counts
-    # egress/ingress neighbors by discriminant — selector / dns / ip /
-    # port. That is the real, portable policy. nn-report.json only
-    # tallies IP+DNS *atoms*, so a selector- or port-only
-    # cluster-internal egress rule (kube-dns, a service primary) counts
-    # as 0 there — which is why the old insert showed the cryptic
-    # "NN 0 / 1918 0%" on an NN that actually carries policy.
-    #
-    # Prefer best-nn.yaml; fall back to the legacy atom view only for
-    # historical runs that predate it. nn-report.json still supplies the
-    # NN-object count (distinct from neighbors inside them).
     is_final = up_to == len(records) - 1
-    has_best_nn = bool(best_nn and best_nn.get("present"))
-    has_final_report = bool(nn_report and nn_report.get("present"))
-    has_legacy_badge = (kpi_sidecar or {}).get("nn_rewrites") is not None
-    nn_obj = f" ·{nn_report['nn_count']} obj" if has_final_report else ""
-
-    if has_best_nn:
-        egr, ing = best_nn["egress"], best_nn["ingress"]
-        bt = best_nn["by_type"]
-        total = egr + ing
-        line1 = f"NN  egr {egr}  ing {ing}{nn_obj}"
-        line2 = f"label {bt['selector']}  dns {bt['dns']}  ip {bt['ip']}  prt {bt['port']}"
-        color1 = C_TEXT if total > 0 else C_DIM
-        color2 = C_GREEN if total > 0 else C_DIM
-        ax_prof.text(
-            0.97, 0.97, line1, transform=ax_prof.transAxes,
-            fontsize=7, color=color1, ha="right", va="top",
-            fontfamily="monospace", fontweight="bold",
-        )
-        ax_prof.text(
-            0.97, 0.88, line2, transform=ax_prof.transAxes,
-            fontsize=7, color=color2, ha="right", va="top",
-            fontfamily="monospace", fontweight="bold",
-        )
+    sbob_view = current.get("sbob")
+    if sbob_view:
+        draw_sbob_panel(fig, gs[0, 1], sbob_view)
     else:
-        # Fallback: legacy atom-count view for runs without best-nn.yaml.
-        # Drops the confusing bare "1918" line; labels the count "atoms".
-        nn_buckets_series = [r.get("nn_buckets") for r in records[: up_to + 1]]
-        has_per_iter = any(isinstance(b, dict) and (b.get("total_entries") or 0) > 0
-                           for b in nn_buckets_series)
-        if has_per_iter or has_final_report or has_legacy_badge:
-            entries_series = []
-            for b in nn_buckets_series:
-                entries_series.append(b.get("total_entries") or 0
-                                      if isinstance(b, dict) else None)
-            spark_entries = _sparkline(entries_series)
-            current_total = next((v for v in reversed(entries_series) if v is not None), None)
-            if (not current_total) and is_final and has_final_report:
-                current_total = nn_report.get("total_entries") or 0
-            current_total = current_total or 0
-            nn_count_label = f" ·{nn_report['nn_count']}NN" if has_final_report else ""
-            line1 = f"NN  {spark_entries} {current_total:>4} atoms{nn_count_label}"
-            color1 = C_TEXT if current_total > 0 else C_DIM
+        ax_prof = fig.add_subplot(gs[0, 1])
+        ax_prof.set_facecolor(C_PANEL)
+
+        # Syscalls dropped from the AP panel — they tune separately and their
+        # absolute count crowds the bar layout without adding signal. The
+        # upper-right corner of this panel now shows the NN-rewrite count
+        # (from kpi.json sidecar) — empty before this PR.
+        categories = ["Opens", "Execs", "Endpoints", "Rules"]
+        keys = ["opens", "execs", "endpoints", "policy_rules"]
+        colors = [C_BLUE, C_CYAN, C_GREEN, C_YELLOW]
+        vals = [current[k] for k in keys]
+
+        if up_to > 0:
+            base = [records[0][k] for k in keys]
+            ax_prof.barh(categories, base, color=[C_GREY] * len(keys), height=0.55, alpha=0.25)
+        bars = ax_prof.barh(categories, vals, color=colors, height=0.55)
+
+        for i, (bar, val) in enumerate(zip(bars, vals)):
+            lbl = str(val)
+            if up_to > 0:
+                d = val - records[0][keys[i]]
+                if d < 0:
+                    lbl += f" ({d})"
+                elif d > 0:
+                    lbl += f" (+{d})"
+            ax_prof.text(bar.get_width() + 1, bar.get_y() + bar.get_height() / 2,
+                         lbl, va="center", fontsize=7, color=C_TEXT, fontfamily="monospace")
+
+        ax_prof.set_xlim(0, limits["max_entries"])
+        ax_prof.set_title("Profile Entries", fontsize=9, color=C_TEXT, fontfamily="monospace")
+        ax_prof.tick_params(colors=C_DIM, labelsize=7)
+        for spine in ax_prof.spines.values():
+            spine.set_color(C_BORDER)
+
+        # NN diagnostics indicator in the AP panel's upper-right corner.
+        #
+        # PRIMARY source is best-nn.yaml (the SELECTED tuned NN): it counts
+        # egress/ingress neighbors by discriminant — selector / dns / ip /
+        # port. That is the real, portable policy. nn-report.json only
+        # tallies IP+DNS *atoms*, so a selector- or port-only
+        # cluster-internal egress rule (kube-dns, a service primary) counts
+        # as 0 there — which is why the old insert showed the cryptic
+        # "NN 0 / 1918 0%" on an NN that actually carries policy.
+        #
+        # Prefer best-nn.yaml; fall back to the legacy atom view only for
+        # historical runs that predate it. nn-report.json still supplies the
+        # NN-object count (distinct from neighbors inside them).
+        is_final = up_to == len(records) - 1
+        has_best_nn = bool(best_nn and best_nn.get("present"))
+        has_final_report = bool(nn_report and nn_report.get("present"))
+        has_legacy_badge = (kpi_sidecar or {}).get("nn_rewrites") is not None
+        nn_obj = f" ·{nn_report['nn_count']} obj" if has_final_report else ""
+
+        if has_best_nn:
+            egr, ing = best_nn["egress"], best_nn["ingress"]
+            bt = best_nn["by_type"]
+            total = egr + ing
+            line1 = f"NN  egr {egr}  ing {ing}{nn_obj}"
+            line2 = f"label {bt['selector']}  dns {bt['dns']}  ip {bt['ip']}  prt {bt['port']}"
+            color1 = C_TEXT if total > 0 else C_DIM
+            color2 = C_GREEN if total > 0 else C_DIM
             ax_prof.text(
                 0.97, 0.97, line1, transform=ax_prof.transAxes,
                 fontsize=7, color=color1, ha="right", va="top",
                 fontfamily="monospace", fontweight="bold",
             )
+            ax_prof.text(
+                0.97, 0.88, line2, transform=ax_prof.transAxes,
+                fontsize=7, color=color2, ha="right", va="top",
+                fontfamily="monospace", fontweight="bold",
+            )
+        else:
+            # Fallback: legacy atom-count view for runs without best-nn.yaml.
+            # Drops the confusing bare "1918" line; labels the count "atoms".
+            nn_buckets_series = [r.get("nn_buckets") for r in records[: up_to + 1]]
+            has_per_iter = any(isinstance(b, dict) and (b.get("total_entries") or 0) > 0
+                               for b in nn_buckets_series)
+            if has_per_iter or has_final_report or has_legacy_badge:
+                entries_series = []
+                for b in nn_buckets_series:
+                    entries_series.append(b.get("total_entries") or 0
+                                          if isinstance(b, dict) else None)
+                spark_entries = _sparkline(entries_series)
+                current_total = next((v for v in reversed(entries_series) if v is not None), None)
+                if (not current_total) and is_final and has_final_report:
+                    current_total = nn_report.get("total_entries") or 0
+                current_total = current_total or 0
+                nn_count_label = f" ·{nn_report['nn_count']}NN" if has_final_report else ""
+                line1 = f"NN  {spark_entries} {current_total:>4} atoms{nn_count_label}"
+                color1 = C_TEXT if current_total > 0 else C_DIM
+                ax_prof.text(
+                    0.97, 0.97, line1, transform=ax_prof.transAxes,
+                    fontsize=7, color=color1, ha="right", va="top",
+                    fontfamily="monospace", fontweight="bold",
+                )
 
     # ══════════════════════════════════════════════════════════════════════
     # TOP-RIGHT: KPI (3-axis field equation: D / N / P)
