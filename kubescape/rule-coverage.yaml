@@ -81,13 +81,13 @@ apps:
     title: Argo CD (7 containers)
     out: example/deprecated/argocd/argocd-killchain.gif
     suites:
-      - example/argocd-server-attacks.yaml
-      - example/argocd-repo-server-attacks.yaml
-      - example/argocd-application-controller-attacks.yaml
-      - example/argocd-applicationset-controller-attacks.yaml
-      - example/argocd-notifications-controller-attacks.yaml
-      - example/argocd-dex-server-attacks.yaml
-      - example/argocd-redis-attacks.yaml
+      - example/deprecated/argocd/argocd-server-attacks.yaml
+      - example/deprecated/argocd/argocd-repo-server-attacks.yaml
+      - example/deprecated/argocd/argocd-application-controller-attacks.yaml
+      - example/deprecated/argocd/argocd-applicationset-controller-attacks.yaml
+      - example/deprecated/argocd/argocd-notifications-controller-attacks.yaml
+      - example/deprecated/argocd/argocd-dex-server-attacks.yaml
+      - example/deprecated/argocd/argocd-redis-attacks.yaml
     metrics_glob: results/legs/argocd-*.json
     # R0009: bpf(2) returns EPERM in an unprivileged container, so no program ever
     # loads. R1001: this node-agent build emits zero R1001 cluster-wide — the

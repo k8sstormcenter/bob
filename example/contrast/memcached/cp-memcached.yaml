@@ -1,0 +1,358 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-container-name: memcached
+    signature.kubescape.io/generator: bobctl
+    signature.kubescape.io/generator-ref: c83a6f7
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
+  name: sim-memcached-memcached
+  namespace: sim-memcached
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_SETGID
+    - CAP_SETUID
+  egress: null
+  endpoints: null
+  execs:
+    - {argsRegex: '/usr/local/bin/docker-entrypoint\.sh( [^ ]*)*', path: /bin/busybox}
+    - {args: [/pause], path: /pause}
+    - {argsRegex: '/usr/local/bin/memcached( [^ ]*)*', path: /usr/local/bin/memcached}
+    - {argsRegex: 'memcached( [^ ]*)*', path: /usr/local/bin/memcached}
+  identifiedCallStacks: null
+  imageID: docker.io/library/memcached@sha256:0a27d9d5084fc5781dc614a0223010c65bbab748038603ea04031fbcdcd97185
+  imageTag: docker.io/library/memcached:1.6.32-alpine
+  ingress:
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-11211, port: 11211, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-11211, port: 11211, protocol: TCP}], type: internal}
+  opens:
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/bin/docker-entrypoint.sh, processes: [/bin/busybox]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/localtime, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/*, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/*, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/ld-musl-x86_64.path, processes: [/usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libcrypto.so.3, processes: [/usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libevent-2.1.so.7, processes: [/usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libsasl2.so.3, processes: [/usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libssl.so.3, processes: [/usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY, O_WRONLY], path: /proc/⋯/task/*, processes: [/usr/local/bin/memcached]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/local/bin/memcached]}
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  subtract:
+    egress:
+      - dns: ""
+        dnsNames: null
+        identifier: signature-metadata-egress-ecs
+        ipAddress: 169.254.170.2
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+      - dns: ""
+        dnsNames:
+          - metadata.google.internal.
+        identifier: signature-metadata-egress-name
+        ipAddress: ""
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+      - dns: ""
+        dnsNames: null
+        identifier: signature-metadata-egress-v4
+        ipAddress: 169.254.169.254
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+    execs:
+      - path: /*/apk
+      - path: /*/apt
+      - path: /*/apt-get
+      - path: /*/aria2c
+      - path: /*/arp
+      - path: /*/ash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/ash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/ash
+      - path: /*/auditctl
+      - path: /*/autossh
+      - argsRegex: '[^ ]+( .*)? (-d|-D|--decode)( .*)?'
+        path: /*/base64
+      - path: /*/bash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/bash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/bash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/busybox
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/busybox
+      - path: /*/capsh
+      - path: /*/chattr
+      - path: /*/chisel
+      - argsRegex: '[^ ]+ (.* )?(0?[4-7][0-7]{3}|[ugoa]*u[ugoa]*[+=][rwxXst]*s[rwxXst]*|[+=][rwxXst]*s[rwxXst]*)( .*)?'
+        path: /*/chmod
+      - path: /*/cloudflared
+      - path: /*/cpuminer
+      - path: /*/curl
+      - path: /*/dash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/dash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/dash
+      - path: /*/dbclient
+      - path: /*/depmod
+      - path: /*/dnf
+      - path: /*/doas
+      - path: /*/dpkg
+      - path: /*/dropbear
+      - path: /*/ethminer
+      - path: /*/frpc
+      - path: /*/frps
+      - path: /*/fscan
+      - path: /*/ftpget
+      - path: /*/gost
+      - path: /*/hostname
+      - path: /*/id
+      - path: /*/ifconfig
+      - path: /*/insmod
+      - path: /*/ip6tables
+      - path: /*/iptables
+      - path: /*/kdevtmpfsi
+      - path: /*/kinsing
+      - path: /*/kmod
+      - path: /*/lscpu
+      - path: /*/masscan
+      - path: /*/microdnf
+      - path: /*/minerd
+      - path: /*/modprobe
+      - path: /*/naabu
+      - path: /*/nc
+      - path: /*/nc.openbsd
+      - path: /*/nc.traditional
+      - path: /*/ncat
+      - path: /*/netcat
+      - path: /*/netstat
+      - path: /*/nft
+      - path: /*/ngrok
+      - path: /*/nmap
+      - argsRegex: '[^ ]+( -[A-Za-z-]+)* (-e|-p|--eval|--print) .*'
+        path: /*/node
+      - path: /*/npc
+      - path: /*/nps
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -[eE] .*'
+        path: /*/perl
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -r .*'
+        path: /*/php
+      - path: /*/pip
+      - path: /*/pip3
+      - path: /*/pkexec
+      - path: /*/pnscan
+      - path: /*/printenv
+      - path: /*/proxychains
+      - path: /*/proxychains4
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -c .*'
+        path: /*/python
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -c .*'
+        path: /*/python3
+      - path: /*/rmmod
+      - path: /*/rpm
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -[eE] .*'
+        path: /*/ruby
+      - path: /*/scp
+      - path: /*/setcap
+      - path: /*/setenforce
+      - path: /*/sftp
+      - path: /*/sh
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/sh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/sh
+      - path: /*/shred
+      - path: /*/socat
+      - path: /*/ssh
+      - path: /*/ssh-add
+      - path: /*/ssh-agent
+      - path: /*/ssh-keygen
+      - path: /*/ssh-keyscan
+      - path: /*/sshd
+      - path: /*/sshpass
+      - path: /*/su
+      - path: /*/sudo
+      - path: /*/telnet
+      - path: /*/tftp
+      - path: /*/tmate
+      - path: /*/tor
+      - path: /*/uname
+      - path: /*/wget
+      - path: /*/whoami
+      - path: /*/xmr-stak
+      - path: /*/xmrig
+      - path: /*/yum
+      - path: /*/zgrab
+      - path: /*/zgrab2
+      - path: /*/zmap
+      - path: /*/zsh
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/zsh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/zsh
+      - path: /dev/fd/*
+      - path: /dev/shm/*
+      - path: /proc/*/fd/*
+      - path: /tmp/*
+      - path: /var/tmp/*
+    opens:
+      - flags: null
+        path: /*/.aws/*
+      - flags: null
+        path: /*/.bash_history
+      - flags: null
+        path: /*/.bash_profile
+      - flags: null
+        path: /*/.bashrc
+      - flags: null
+        path: /*/.config/autostart/*
+      - flags: null
+        path: /*/.config/gcloud/*
+      - flags: null
+        path: /*/.config/systemd/user/*
+      - flags: null
+        path: /*/.docker/config.json
+      - flags: null
+        path: /*/.env
+      - flags: null
+        path: /*/.git-credentials
+      - flags: null
+        path: /*/.htpasswd
+      - flags: null
+        path: /*/.kube/*
+      - flags: null
+        path: /*/.my.cnf
+      - flags: null
+        path: /*/.mysql_history
+      - flags: null
+        path: /*/.netrc
+      - flags: null
+        path: /*/.npmrc
+      - flags: null
+        path: /*/.pgpass
+      - flags: null
+        path: /*/.profile
+      - flags: null
+        path: /*/.psql_history
+      - flags: null
+        path: /*/.rediscli_history
+      - flags: null
+        path: /*/.ssh/*
+      - flags: null
+        path: /*/env.php
+      - flags: null
+        path: /*/terraform.tfstate
+      - flags: null
+        path: /*/wp-config.php
+      - flags: null
+        path: /etc/cron.d/*
+      - flags: null
+        path: /etc/cron.daily/*
+      - flags: null
+        path: /etc/cron.hourly/*
+      - flags: null
+        path: /etc/cron.monthly/*
+      - flags: null
+        path: /etc/cron.weekly/*
+      - flags: null
+        path: /etc/crontab
+      - flags: null
+        path: /etc/gshadow
+      - flags: null
+        path: /etc/init.d/*
+      - flags: null
+        path: /etc/ld.so.preload
+      - flags: null
+        path: /etc/mysql/*
+      - flags: null
+        path: /etc/mysql/debian.cnf
+      - flags: null
+        path: /etc/postgresql/*
+      - flags: null
+        path: /etc/profile.d/*
+      - flags: null
+        path: /etc/rc.local
+      - flags: null
+        path: /etc/redis/*
+      - flags: null
+        path: /etc/shadow
+      - flags: null
+        path: /etc/sudoers
+      - flags: null
+        path: /etc/sudoers.d/*
+      - flags: null
+        path: /etc/systemd/system/*
+      - flags: null
+        path: /lib/systemd/system/*
+      - flags: null
+        path: /proc/*/environ
+      - flags: null
+        path: /proc/*/mem
+      - flags: null
+        path: /run/secrets/kubernetes.io/serviceaccount/token
+      - flags: null
+        path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
+      - flags: null
+        path: /usr/lib/systemd/system/*
+      - flags: null
+        path: /usr/local/etc/redis/*
+      - flags: null
+        path: /var/lib/postgresql/*/pg_hba.conf
+      - flags: null
+        path: /var/lib/postgresql/*/pg_ident.conf
+      - flags: null
+        path: /var/lib/postgresql/*/postgresql.auto.conf
+      - flags: null
+        path: /var/run/secrets/kubernetes.io/serviceaccount/token
+      - flags: null
+        path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+      - flags: null
+        path: /var/spool/cron/*
+      - flags: null
+        path: /var/www/*/.htaccess
+  syscalls: null
+status: {}
