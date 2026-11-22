@@ -22,6 +22,14 @@ inputs:
     description: end of that real run (RFC 3339)
     required: false
     default: ''
+  chart-ver:
+    description: kubescape-operator chart version for the second cluster; empty skips the Portability measurement
+    required: false
+    default: ''
+  github-token:
+    description: token for the application's preparation on the second cluster
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -42,6 +50,45 @@ runs:
         B="$GITHUB_WORKSPACE/bin/bobctl" pkg/workloads/run-live.sh "$GITHUB_WORKSPACE/out" simulate ${APP//+/ } > /tmp/simulate.out 2>&1 || true
         grep -E '^[0-9]{2}:[0-9]{2}:[0-9]{2} ' out/run.log | tail -8 || true
 
+    - name: Second cluster with other pod and service addresses (Portability)
+      shell: bash
+      env:
+        REPLAY: ${{ inputs.replay }}
+        CHART_VER: ${{ inputs.chart-ver }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        set -uo pipefail
+        APP="${{ inputs.app }}"
+        if [ -z "$CHART_VER" ]; then echo "no chart version given: Portability is not measured"; exit 0; fi
+        ls out/*/sbob.yaml >/dev/null 2>&1 || { echo "no SBoB from the first cluster: Portability is not measured"; exit 0; }
+        pkill -f drive-gitops-workload 2>/dev/null || true
+        /usr/local/bin/k3s-uninstall.sh > /tmp/k3s-uninstall.log 2>&1 || true
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.33.3+k3s1 sh -s - --write-kubeconfig-mode 644 --cluster-cidr=10.98.0.0/16 --service-cidr=10.99.0.0/16 --cluster-dns=10.99.0.10
+        mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown "$(id -u):$(id -g)" ~/.kube/config
+        for i in $(seq 1 30); do kubectl get nodes --no-headers 2>/dev/null | grep -q . && break; sleep 2; done
+        kubectl wait --for=condition=ready node --all --timeout=150s
+        echo "second cluster: pods $(kubectl get nodes -o jsonpath='{.items[0].spec.podCIDR}')"
+        make kubescape KUBESCAPE_CHART_VER="$CHART_VER" KS_LEARN_PERIOD=8m > /tmp/kubescape-b.log 2>&1 || { tail -5 /tmp/kubescape-b.log; echo "agent install failed on the second cluster: Portability is not measured"; exit 0; }
+        if [ -s out/enabled-rules.txt ]; then
+          kubectl -n honey get rules default-rules -o json | python3 scripts/enable-rules.py "$(cat out/enabled-rules.txt)" | kubectl replace -f -
+        fi
+        kubectl -n honey rollout status ds/node-agent --timeout=600s
+        kubectl -n honey rollout status deploy/storage --timeout=300s
+        for i in $(seq 1 120); do
+          APOD=$(kubectl -n honey get pods -l app=node-agent --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+          L=$(kubectl -n honey logs "$APOD" 2>/dev/null || true)
+          cw=$(printf '%s' "$L" | grep -c 'ContainerWatcher started successfully' || true)
+          tr=$(printf '%s' "$L" | grep -c 'Started tracer' || true)
+          if [ "${cw:-0}" -ge 1 ] && [ "${tr:-0}" -ge 15 ]; then break; fi
+          sleep 5
+        done
+        sleep 30
+        for a in ${APP//+/ }; do
+          if [ -f ".github/contrast/$a.pre.sh" ]; then bash ".github/contrast/$a.pre.sh" || echo "preparation of $a failed on the second cluster"; fi
+        done
+        B="$GITHUB_WORKSPACE/bin/bobctl" pkg/workloads/run-live.sh "$GITHUB_WORKSPACE/out" probe ${APP//+/ } > /tmp/probe.out 2>&1 || true
+        grep -E '^[0-9]{2}:[0-9]{2}:[0-9]{2} .*second cluster' out/run.log || tail -5 /tmp/probe.out
+
     - name: Result
       shell: bash
       run: |
@@ -53,13 +100,14 @@ runs:
         [ -s out/agent-crash.txt ] && cp out/agent-crash.txt artifacts/agent-crash.txt || true
         ok=0
         for A in ${APP//+/ }; do
-          for f in verdict-public.txt sim-vs-real.txt offline-before.txt offline-after.txt sbob.yaml before.yaml generalize.log validate.log traffic-learn.log summary.md metrics.json kpi.json; do
+          for f in verdict-public.txt sim-vs-real.txt offline-before.txt offline-after.txt sbob.yaml before.yaml generalize.log validate.log traffic-learn.log summary.md metrics.json kpi.json portability.json; do
             [ -f "out/$A/$f" ] && cp "out/$A/$f" "artifacts/$A-$f"
           done
           [ -f "out/$A/sbob.yaml" ] && cp "out/$A/sbob.yaml" "sbob/$A-sbob.yaml"
           [ -f "out/$A/gate.json" ] && cp "out/$A/gate.json" "sbob/$A-gate.json" && cp "out/$A/gate.json" "artifacts/$A-gate.json"
           for f in out/$A/previous-*.log; do [ -f "$f" ] && cp "$f" "artifacts/$A-$(basename "$f")"; done
           for f in out/$A/benign/*.jsonl; do [ -f "$f" ] && cp "$f" "artifacts/$A-usual-traffic-$(basename "$f")"; done
+          for f in out/$A/benign-b/*.jsonl; do [ -f "$f" ] && cp "$f" "artifacts/$A-second-cluster-$(basename "$f")"; done
           grep -E "^[0-9:]{8} $A: target container" out/run.log | sed 's/^[0-9:]* /- /' >> "$GITHUB_STEP_SUMMARY" || true
           [ -s out/enabled-rules.txt ] && echo "- Rules switched on in addition to the chart's defaults: $(cat out/enabled-rules.txt)" >> "$GITHUB_STEP_SUMMARY" || true
           if [ -f "out/$A/metrics.json" ]; then
