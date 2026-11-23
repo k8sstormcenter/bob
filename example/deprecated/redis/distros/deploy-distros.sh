@@ -71,7 +71,9 @@ CR
 # node-agent enforces it. StatefulSet pods for redis/valkey/keydb; the operator
 # CR for dragonfly (patching the StatefulSet there is reverted by the operator).
 apply_cp() {  # ns  cp-file
-  sed "0,/^  namespace:/{s/^  namespace: .*/  namespace: $1/}" "sbobs/$2" | kubectl apply -f -
+  sed -e "0,/^  namespace:/{s/^  namespace: .*/  namespace: $1/}" \
+      -e 's#^apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1$#apiVersion: profiles.sbob/v1beta1#' \
+      -e 's#^kind: ContainerProfile$#kind: RuntimeProfile#' "sbobs/$2" | kubectl apply -f -
 }
 label_sts() {  # ns  statefulset  profile
   kubectl -n "$1" patch statefulset "$2" --type merge \
