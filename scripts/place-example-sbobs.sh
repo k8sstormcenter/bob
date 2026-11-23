@@ -19,7 +19,7 @@ placed=0 held=0
 while IFS= read -r f; do
   app=$(basename "$f" -sbob.yaml)
   dest=$(awk -F'|' -v a="$app" '$1 == a {print $2}' "$MAP" | head -1)
-  [ -n "$dest" ] || dest="example/contrast/$app/cp-$app.yaml"
+  [ -n "$dest" ] || dest="example/contrast/cp-$app.yaml"
   gate="$(dirname "$f")/$app-gate.json"
   if [ ! -f "$gate" ]; then
     echo "| $app | no verdict | $dest left as it is | the run produced no gate verdict |" >> "$REPORT"
