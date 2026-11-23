@@ -50,7 +50,7 @@ The job `Example SBoBs` downloads the SBoBs of the run, places those that passed
 ## Checks on a pull request
 
 - **SBoB lint** (required): every profile under `example/` and `kubescape/` must pass `bobctl validate` of the current release. It takes under a minute.
-- The Contrast workflow does not run on pull requests. It runs on main after a merge that touches it, or when started by hand, and its gate decides what reaches `example/`.
+- The Contrast workflow does not run on pull requests. On main it runs only when `.github/contrast/pins.env` changes, that is when the package revision, the bobctl build, the chart or the list of applications changes. A change to the workflow or its actions alone does not start it; start it by hand for that. Its gate decides what reaches `example/`.
 
 The earlier tune matrix (`CI - bobctl tune`) is retired. Its suites and manifests are under `example/deprecated/`, its local runner under `scripts/deprecated/`.
 
@@ -63,4 +63,4 @@ The earlier tune matrix (`CI - bobctl tune`) is retired. Its suites and manifest
 
 ## Adding a simulation method
 
-Simulation steps live in the internal build of bobctl and are not published. A new method changes the pinned build (`BOBCTL_TAG`, `BOBCTL_SHA256`, `PKG_REF`) in the workflow file; that change starts a run, and the gate decides which examples move.
+Simulation steps live in the internal build of bobctl and are not published. A new method changes the pinned build (in `.github/contrast/pins.env`: `BOBCTL_TAG`, `BOBCTL_SHA256`, `PKG_REF`) in the workflow file; that change starts a run, and the gate decides which examples move.
