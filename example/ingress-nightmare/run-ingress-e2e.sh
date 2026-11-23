@@ -23,8 +23,8 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 
 RAN_URL="${RAN_URL:-http://localhost:8080}"
 DEPLOY=1; BENIGN_ONLY=0; FROM=1; TO=22
-SIGN_OBJECT="${SIGN_OBJECT:-$ROOT/example/redis/distros/signed-bundles/sign-object}"
-VENDOR_KEY="${VENDOR_KEY:-$ROOT/example/redis/distros/signed-bundles/keys/vendor.pem}"
+SIGN_OBJECT="${SIGN_OBJECT:-$ROOT/example/deprecated/redis/distros/signed-bundles/sign-object}"
+VENDOR_KEY="${VENDOR_KEY:-$ROOT/example/deprecated/redis/distros/signed-bundles/keys/vendor.pem}"
 NS=ingress-nginx; VER=controller-v1.11.0
 while [ $# -gt 0 ]; do case "$1" in
   --ran-url) RAN_URL="$2"; shift 2;;

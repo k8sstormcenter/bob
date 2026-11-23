@@ -32,7 +32,7 @@ spec:
       containers:
         - name: redis
           # redis-vulnerable (glibc/Debian): a real CVE-carrying redis so the
-          # kill-chain attacks in example/redis-attacks.yaml actually EXECUTE
+          # kill-chain attacks in example/deprecated/redis/redis-attacks.yaml actually EXECUTE
           # (the Lua sandbox escape / RediShell primitives need this image; the
           # stock redis:7-alpine has them patched, so attacks there never land).
           image: ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10

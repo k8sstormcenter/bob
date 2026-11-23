@@ -6,11 +6,8 @@
 
 # Schema-validate every AttackSuite and FunctionalTestSuite under example/.
 #
-# Why this exists: a suite is only exercised if its app is in the CI tune matrix
-# (.github/workflows/ci-bobctl-autotune.yaml). Argo CD is not, so
-# example/argocd/attacks.yaml and example/argocd/functional-tests.yaml drifted
-# out of schema and nobody noticed until an outside user tried to run them and
-# filed bob#171. Every suite is checked here, matrix membership or not.
+# Why this exists: a suite that no workflow runs drifts out of schema unnoticed
+# (bob#171). Every suite under example/ outside example/deprecated/ is checked here.
 #
 # No cluster required. bobctl parses and validates the suite BEFORE it touches
 # kubernetes, so KUBECONFIG is pointed at a nonexistent path and the resulting
@@ -25,7 +22,7 @@
 # rather than skipped — otherwise the one suite carrying a credential would be
 # the one suite nobody checks.
 #
-# Usage: scripts/validate-suites.sh [bobctl-path]
+# Usage: scripts/deprecated/validate-suites.sh [bobctl-path]
 set -uo pipefail
 
 BOBCTL="${1:-bin/bobctl}"

@@ -26,7 +26,7 @@ All keys under `keys/` are published demo material and authenticate nothing — 
 ## 0. Prerequisites
 
 - cluster + `kubectl`, `helm` (3 or 4 — Makefile auto-adds `--force-conflicts` on 4), `python3`
-- `make` targets run from the repo root; everything else from `example/redis/distros/signed-bundles/`
+- `make` targets run from the repo root; everything else from `example/deprecated/redis/distros/signed-bundles/`
 - `bobctl` (§4b), into the repo root:
 
 ```
@@ -36,11 +36,11 @@ curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.
 - `sign-object` (linux; pick your arch), into this directory:
 
 ```
-cd example/redis/distros/signed-bundles
+cd example/deprecated/redis/distros/signed-bundles
 curl -fsSL -o sign-object https://github.com/k8sstormcenter/node-agent/releases/download/sign-object-v0.1.6/sign-object-linux-amd64 && echo "a5d25f05d893f33a47e95a3acda100aaf62654da7a0f3891ad0c59e0ea38b218  sign-object" | sha256sum -c && chmod +x sign-object
 ```
 
-Every block from here on runs from `example/redis/distros/signed-bundles/` — repo-root commands are wrapped in `(cd ../../../.. && …)` subshells so the working directory never moves.
+Every block from here on runs from `example/deprecated/redis/distros/signed-bundles/` — repo-root commands are wrapped in `(cd ../../../../.. && …)` subshells so the working directory never moves.
 
 (or from source: `git clone -b rebase/signature-overlays https://github.com/k8sstormcenter/node-agent && cd node-agent && go build -o sign-object ./cmd/sign-object`)
 
@@ -49,7 +49,7 @@ Every block from here on runs from `example/redis/distros/signed-bundles/` — r
 Chart `1.40.3-node-agent-rc-sofia` (helm-charts `release/node-agent-rc-sofia`); `kubescape/values.yaml` overrides the node-agent image to `ghcr.io/k8sstormcenter/node-agent:rc-sofia-port0fix` (the port-wildcard fix) with `ghcr.io/k8sstormcenter/storage:v0.0.303`.
 
 ```
-(cd ../../../.. && make kubescape && make alertmanager)
+(cd ../../../../.. && make kubescape && make alertmanager)
 ```
 
 `make alertmanager` feeds §4b; everything else reports via the node-agent stdout exporter.
@@ -61,16 +61,16 @@ The trust policy is a root-signed artifact (~2.5KB JSON: certificate + signature
 **A. Inline in values** (`make kubescape` does this). The chart owns the ConfigMap; `helm upgrade` re-asserts the values' policy. To avoid hand-pasting:
 
 ```
-(cd ../../../.. && helm upgrade --install kubescape \
+(cd ../../../../.. && helm upgrade --install kubescape \
   https://github.com/k8sstormcenter/helm-charts/releases/download/kubescape-operator-1.40.3-node-agent-rc-sofia/kubescape-operator-1.40.3-node-agent-rc-sofia.tgz \
   -n honey --create-namespace --values kubescape/values.yaml \
-  --set-file nodeAgent.bundleSigning.trustPolicy=example/redis/distros/signed-bundles/trust-policy.signed.json)
+  --set-file nodeAgent.bundleSigning.trustPolicy=example/deprecated/redis/distros/signed-bundles/trust-policy.signed.json)
 ```
 
 **B. Mounted from a ConfigMap you own.**
 
 ```
-(cd ../../../.. && make kubescape-mounted)
+(cd ../../../../.. && make kubescape-mounted)
 ```
 
 Creates `kubescape-trust-bundle` from `trust-policy.signed.json`, installs with `existingConfigMap`. Rotation = `kubectl apply` on the ConfigMap, no helm.
@@ -129,7 +129,7 @@ Expected: the mode line; `"admitted":1,"rejected":0`; count `0`; `inForceDigest`
 ```
 kubectl -n honey get cm ks-cloud-config -o jsonpath='{.data.clusterData}' > clusterData.json
 ./sign-object sign-config --file clusterData.json --key keys/root.pem --output clusterData.signed.json
-(cd ../../../.. && make kubescape KS_SIGNED_CLUSTERDATA=example/redis/distros/signed-bundles/clusterData.signed.json)
+(cd ../../../../.. && make kubescape KS_SIGNED_CLUSTERDATA=example/deprecated/redis/distros/signed-bundles/clusterData.signed.json)
 kubectl -n honey rollout status ds node-agent --timeout=300s
 NA | grep "loaded root-signed clusterData"
 ```
@@ -284,12 +284,12 @@ Capture `TSTART` BEFORE the suite — anything alerting before it is deployment 
 
 ```
 export TSTART=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ) NS=redis
-(cd .. && ../../../bobctl test --functional-tests functional/redis-oss.yaml -n redis)
+(cd .. && ../../../../bobctl test --functional-tests functional/redis-oss.yaml -n redis)
 ```
 
 ```
 sleep 2; export T0=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
-(cd .. && ../../../bobctl attack --attack-suite attacks/redis-oss.yaml -n redis)
+(cd .. && ../../../../bobctl attack --attack-suite attacks/redis-oss.yaml -n redis)
 ```
 
 Split alerts into pre-suite / functional / attack, with DETAILS on every functional FP — the printed `comm` + `startsAt` decide whether an FP is a missing startup exec in the base fragment, a `runc:[2:INIT]` runtime-init attribution, or a timestamp artifact:
@@ -568,7 +568,7 @@ If the policy in force has no `ruleClasses` at all, rule signing is off and node
 > ```
 > ./sign-object sign-policy --policy trust-policy.json --key keys/root.pem --output trust-policy.signed.json
 > # paste trust-policy.signed.json into nodeAgent.bundleSigning.trustPolicy in kubescape/values.yaml, then:
-> (cd ../../../.. && make kubescape)
+> (cd ../../../../.. && make kubescape)
 > ```
 >
 > No restart — directory mount, reload within a reconcile interval:
@@ -728,7 +728,7 @@ kubectl -n honey logs -l app=node-agent -c node-agent --tail=-1 --since=3m | gre
 Default: unsigned user-defined profiles load (signing opt-in per object). Flip it:
 
 ```
-(cd ../../../.. && { grep -q requireSignedObjects kubescape/values.yaml || sed -i '/^  bundleSigning:/a\    requireSignedObjects: true' kubescape/values.yaml; } && make kubescape)
+(cd ../../../../.. && { grep -q requireSignedObjects kubescape/values.yaml || sed -i '/^  bundleSigning:/a\    requireSignedObjects: true' kubescape/values.yaml; } && make kubescape)
 kubectl -n honey rollout status daemonset node-agent --timeout=300s
 kubectl -n honey get cm node-agent -o jsonpath='{.data.config\.json}' | grep enableSignatureVerification
 ```

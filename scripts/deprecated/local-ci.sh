@@ -4,13 +4,13 @@
 # Licensed under the Apache License, Version 2.0; see LICENSE.
 # All trademarks are expressly reserved.
 
-# local-ci.sh — local mirror of .github/workflows/ci-bobctl-autotune.yaml
+# local-ci.sh — local run of the retired tune matrix (the workflow CI - bobctl tune is gone)
 #
 # Usage:
-#   ./scripts/local-ci.sh                    # full run (setup + install + collapse + tune)
-#   ./scripts/local-ci.sh --tune-only        # skip infra setup, re-run collapse + tune on existing profile
-#   ./scripts/local-ci.sh --setup-only       # only set up infra (kubescape + alertmanager + webapp)
-#   ./scripts/local-ci.sh --app redis        # tune redis instead of webapp (default: webapp)
+#   ./scripts/deprecated/local-ci.sh                    # full run (setup + install + collapse + tune)
+#   ./scripts/deprecated/local-ci.sh --tune-only        # skip infra setup, re-run collapse + tune on existing profile
+#   ./scripts/deprecated/local-ci.sh --setup-only       # only set up infra (kubescape + alertmanager + webapp)
+#   ./scripts/deprecated/local-ci.sh --app redis        # tune redis instead of webapp (default: webapp)
 #
 # Differences from CI:
 #   - learn timeout is 3m (kubescape values.yaml sets maxLearningPeriod: 2m)
@@ -19,7 +19,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 # ── defaults ────────────────────────────────────────────────────────────────
@@ -44,24 +44,24 @@ die()  { log "ERROR: $*"; exit 1; }
 case "$APP" in
   webapp)
     APP_NS=webapp
-    APP_FUNC_TESTS=example/webapp-functional-tests.yaml
-    APP_ATTACKS=example/webapp-attacks.yaml
+    APP_FUNC_TESTS=example/deprecated/webapp/webapp-functional-tests.yaml
+    APP_ATTACKS=example/deprecated/webapp/webapp-attacks.yaml
     APP_SERVICE=webapp-mywebapp
     APP_PORT=8080
     APP_SCORE_THRESHOLD=0
     ;;
   redis)
     APP_NS=redis
-    APP_FUNC_TESTS=example/redis-functional-tests.yaml
-    APP_ATTACKS=example/redis-attacks.yaml
+    APP_FUNC_TESTS=example/deprecated/redis/redis-functional-tests.yaml
+    APP_ATTACKS=example/deprecated/redis/redis-attacks.yaml
     APP_SERVICE=redis
     APP_PORT=6379
     APP_SCORE_THRESHOLD=0
     ;;
   postgres)
     APP_NS=postgres
-    APP_FUNC_TESTS=example/postgres-functional-tests.yaml
-    APP_ATTACKS=example/postgres-attacks.yaml
+    APP_FUNC_TESTS=example/deprecated/postgres/postgres-functional-tests.yaml
+    APP_ATTACKS=example/deprecated/postgres/postgres-attacks.yaml
     APP_SERVICE=pg-client
     APP_PORT=5432
     APP_SCHEME=tcp
@@ -70,8 +70,8 @@ case "$APP" in
     ;;
   postgres-vuln)
     APP_NS=postgres-vuln
-    APP_FUNC_TESTS=example/postgres-vuln-functional-tests.yaml
-    APP_ATTACKS=example/postgres-vuln-attacks.yaml
+    APP_FUNC_TESTS=example/deprecated/postgres-vuln/postgres-vuln-functional-tests.yaml
+    APP_ATTACKS=example/deprecated/postgres-vuln/postgres-vuln-attacks.yaml
     APP_SERVICE=pg-vuln-client
     APP_PORT=5432
     APP_SCHEME=tcp
@@ -80,8 +80,8 @@ case "$APP" in
     ;;
   mariadb)
     APP_NS=mariadb
-    APP_FUNC_TESTS=example/mariadb-functional-tests.yaml
-    APP_ATTACKS=example/mariadb-attacks.yaml
+    APP_FUNC_TESTS=example/deprecated/mariadb/mariadb-functional-tests.yaml
+    APP_ATTACKS=example/deprecated/mariadb/mariadb-attacks.yaml
     # Target service must match what both suites declare (mariadb-client) —
     # otherwise local runs exercise a different exec-resolve path than CI
     # and can mask client-side regressions.
@@ -103,7 +103,7 @@ case "$APP" in
 esac
 
 # Allow override for arm64-only drift or exploratory runs without burying the
-# real threshold: SCORE_THRESHOLD=99 ./scripts/local-ci.sh --app redis
+# real threshold: SCORE_THRESHOLD=99 ./scripts/deprecated/local-ci.sh --app redis
 APP_SCORE_THRESHOLD="${SCORE_THRESHOLD:-$APP_SCORE_THRESHOLD}"
 
 APP_SCHEME="${APP_SCHEME:-http}"
@@ -268,7 +268,7 @@ set -e
 # ── render tune metrics GIF ──────────────────────────────────────────────────
 if [[ -f results/metrics.json ]]; then
   log "=== Render tune metrics GIF ==="
-  "$SCRIPT_DIR/render-gif.sh" results/metrics.json results/tune.gif --title "$APP (local)" || \
+  "$REPO_ROOT/scripts/render-gif.sh" results/metrics.json results/tune.gif --title "$APP (local)" || \
     log "WARNING: GIF rendering failed (non-fatal)"
 fi
 
@@ -406,7 +406,7 @@ if tested:
     log "Best iteration: $BEST_ITER"
     # Produce a clean, kubectl-applyable ContainerProfile.
     # See scripts/clean-profile.py for the full filter logic.
-    if python3 "$SCRIPT_DIR/clean-profile.py" "$BEST_FILE" results/best-profile.yaml 2>/dev/null; then
+    if python3 "$REPO_ROOT/scripts/clean-profile.py" "$BEST_FILE" results/best-profile.yaml 2>/dev/null; then
       log "Best profile: results/best-profile.yaml"
     else
       log "WARNING: clean-profile.py failed, falling back to grep"
