@@ -68,7 +68,7 @@ tetragon:
 	-$(HELM) upgrade --install tetragon cilium/tetragon -n bob --create-namespace --values honeycluster/honeystack/tetragon/values.yaml
 	-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=tetragon -n bob --timeout=5m 
 
-# ── Unified deploy targets (used by CI and local-ci.sh) ─────────────────────
+# ── Unified deploy targets (used by scripts/deprecated/local-ci.sh) ─────────────────────
 # Usage: make deploy-<app>
 # Each target handles its own deploy method (manifest, helm, operator) and waits
 # for readiness. Adding a new app = adding a new deploy-<app> target here.
@@ -76,7 +76,7 @@ tetragon:
 .PHONY: deploy-webapp
 deploy-webapp:
 	@echo "=== Deploying webapp (manifest) ==="
-	kubectl apply -f example/webapp-manifest.yaml
+	kubectl apply -f example/deprecated/webapp/webapp-manifest.yaml
 	kubectl wait --for=condition=available --timeout=120s deployment/webapp-mywebapp -n webapp
 
 .PHONY: deploy-redis
@@ -88,7 +88,7 @@ deploy-redis:
 .PHONY: deploy-mariadb
 deploy-mariadb:
 	@echo "=== Deploying mariadb (manifest, intentionally insecure) ==="
-	kubectl apply -f example/mariadb-vulnerable.yaml
+	kubectl apply -f example/deprecated/mariadb/mariadb-vulnerable.yaml
 	kubectl wait --for=condition=available --timeout=180s deployment/mariadb -n mariadb
 	kubectl wait --for=condition=available --timeout=120s deployment/mariadb-client -n mariadb
 	@echo "=== Pods in mariadb ==="

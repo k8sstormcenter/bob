@@ -48,13 +48,13 @@ apps:
   - name: webapp
     title: webapp
     out: example/rule-coverage/webapp-killchain.gif
-    suites: [example/webapp-attacks.yaml]
+    suites: [example/deprecated/webapp/webapp-attacks.yaml]
     metrics_glob: results/legs/webapp.json
 
   - name: postgres
     title: postgres
     out: example/rule-coverage/postgres-killchain.gif
-    suites: [example/postgres-attacks.yaml]
+    suites: [example/deprecated/postgres/postgres-attacks.yaml]
     metrics_glob: results/legs/postgres.json
     # R1004: a successful exec staged on the only writable mount fires R0001+R1000
     # here, never R1004. R0006: pg-client has no readable SA token on CI (zero
@@ -64,14 +64,14 @@ apps:
   - name: postgres-vuln
     title: postgres-vuln
     out: example/rule-coverage/postgres-vuln-killchain.gif
-    suites: [example/postgres-vuln-attacks.yaml]
+    suites: [example/deprecated/postgres-vuln/postgres-vuln-attacks.yaml]
     metrics_glob: results/legs/postgres-vuln.json
     probe: [R1004]
 
   - name: mariadb
     title: mariadb
     out: example/rule-coverage/mariadb-killchain.gif
-    suites: [example/mariadb-attacks.yaml]
+    suites: [example/deprecated/mariadb/mariadb-attacks.yaml]
     metrics_glob: results/legs/mariadb.json
     probe: [R1004]
 

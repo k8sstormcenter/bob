@@ -200,7 +200,7 @@ opt-in `--build` dev flow below.
 ## Run it
 
 Pre-req: kubescape + alertmanager already installed in the cluster.
-(run `./scripts/local-ci.sh --setup-only` on any existing app if not.)
+(run `make kubescape && make alertmanager` if not.)
 
 ### Default flow (pulls published GHCR images — no docker required)
 

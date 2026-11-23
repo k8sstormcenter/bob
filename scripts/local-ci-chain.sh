@@ -171,7 +171,7 @@ fi
 if ! $ATTACK_ONLY; then
   log "=== Cluster sanity ==="
   kubectl get nodes >/dev/null || die "no cluster"
-  kubectl get ns "$KS_NS" >/dev/null 2>&1 || die "kubescape ns ($KS_NS) missing — run scripts/local-ci.sh --setup-only first"
+  kubectl get ns "$KS_NS" >/dev/null 2>&1 || die "kubescape ns ($KS_NS) missing — run make kubescape and make alertmanager first"
 
   if $USE_PUBLISHED; then
     # ── Published-image path ───────────────────────────────────────

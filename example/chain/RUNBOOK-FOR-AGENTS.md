@@ -61,15 +61,15 @@ kubectl get nodes  # expect a single Ready node
 
 The chain demo requires kubescape's node-agent + storage + alertmanager
 deployed in a namespace called `honey`. Easiest way: clone this repo
-and run the helper script that the rest of the project uses:
+and use its make targets:
 
 ```bash
 git clone -b feat/postgres-endpoint-attacks https://github.com/k8sstormcenter/bob.git
 cd bob
 
-# Bring kubescape + alertmanager up. The webapp app is the smallest;
-# we only need its --setup-only phase to leave kubescape installed.
-./scripts/local-ci.sh --app webapp --setup-only
+# Bring kubescape + alertmanager up.
+make kubescape
+make alertmanager
 ```
 
 Verify:
@@ -371,7 +371,7 @@ sudo /usr/local/bin/k3s-uninstall.sh
 | Profile has `kubescape.io/managed-by: User` but node-agent still seems to learn | pod labels `kubescape.io/user-defined-{profile,network}: chain-<role>` were stripped / misspelled OR the AP/NN was applied AFTER the pod started | re-apply sbobs, then `kubectl rollout restart deployment/chain-<role> -n chain` — node-agent picks up user-supplied profiles only at pod start |
 | `sandbox_blocked` in step 5(c) | wrong redis image | verify `chain.yaml` references `ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10`, not vanilla `redis:7.2` |
 | `frontend never became ready` | rolling-update race in the script | `kubectl wait --for=condition=ready pod -l app=chain-frontend -n chain --timeout=120s` manually, then re-run `--attack-only` |
-| `kubescape ns (honey) missing` | step 2 not done | run `./scripts/local-ci.sh --setup-only --app webapp` |
+| `kubescape ns (honey) missing` | step 2 not done | run `make kubescape && make alertmanager` |
 | `ImagePullBackOff` for chain-frontend/backend with `--use-published` | The published `:latest` tag was deleted/rebuilt | use `:<short-sha>` instead: `CHAIN_PUBLISHED_TAG=af7e67a ./scripts/local-ci-chain.sh --use-published` |
 
 ---
