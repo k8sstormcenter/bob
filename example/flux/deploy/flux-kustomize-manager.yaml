@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: c83a6f7
+    signature.kubescape.io/generator-ref: 757ed7b
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-kustomize-manager
   namespace: flux-system
@@ -37,12 +37,16 @@ spec:
   imageID: ghcr.io/fluxcd/kustomize-controller@sha256:e122808057ef0f6a3cb7fbd8e256b5a528d8a59f41d237f2d6664f54481c26d9
   imageTag: ghcr.io/fluxcd/kustomize-controller:v1.10.2
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9440, port: 9440, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/sbin/tini]}
     - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/sbin/tini]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/usr/local/bin/kustomize-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/usr/local/bin/kustomize-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/httpd/conf/mime.types, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_RDONLY], path: /etc/localtime, processes: [/usr/local/bin/kustomize-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mime.types, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/sops/audit.yaml, processes: [/usr/local/bin/kustomize-controller]}
@@ -57,9 +61,11 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/usr/local/bin/kustomize-controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /tmp, processes: [/usr/local/bin/kustomize-controller]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /tmp, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/kustomize-controller, processes: [/usr/local/bin/kustomize-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/usr/local/bin/kustomize-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/usr/local/bin/kustomize-controller]}
   rulePolicies:
     R0002:
       processAllowed:
@@ -75,8 +81,8 @@ spec:
         - runc:[3:INIT]
     R0006:
       processAllowed:
-        - helm-controller
         - kustomize-contr
+        - helm-controller
         - source-controll
         - notification-co
   seccompProfile:
@@ -250,50 +256,6 @@ spec:
       - path: /var/tmp/*
     opens:
       - flags: null
-        path: /.aws/*
-      - flags: null
-        path: /.bash_history
-      - flags: null
-        path: /.bash_profile
-      - flags: null
-        path: /.bashrc
-      - flags: null
-        path: /.config/autostart/*
-      - flags: null
-        path: /.config/gcloud/*
-      - flags: null
-        path: /.config/systemd/user/*
-      - flags: null
-        path: /.docker/config.json
-      - flags: null
-        path: /.env
-      - flags: null
-        path: /.git-credentials
-      - flags: null
-        path: /.htpasswd
-      - flags: null
-        path: /.kube/*
-      - flags: null
-        path: /.my.cnf
-      - flags: null
-        path: /.mysql_history
-      - flags: null
-        path: /.netrc
-      - flags: null
-        path: /.npmrc
-      - flags: null
-        path: /.pgpass
-      - flags: null
-        path: /.profile
-      - flags: null
-        path: /.psql_history
-      - flags: null
-        path: /.rediscli_history
-      - flags: null
-        path: /.ssh/*
-      - flags: null
-        path: /env.php
-      - flags: null
         path: /etc/cron.d/*
       - flags: null
         path: /etc/cron.daily/*
@@ -312,12 +274,6 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
-        path: /etc/mysql/*
-      - flags: null
-        path: /etc/mysql/debian.cnf
-      - flags: null
-        path: /etc/postgresql/*
-      - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
@@ -332,124 +288,16 @@ spec:
       - flags: null
         path: /etc/systemd/system/*
       - flags: null
-        path: /home/⋯/.aws/*
-      - flags: null
-        path: /home/⋯/.bash_history
-      - flags: null
-        path: /home/⋯/.bash_profile
-      - flags: null
-        path: /home/⋯/.bashrc
-      - flags: null
-        path: /home/⋯/.config/autostart/*
-      - flags: null
-        path: /home/⋯/.config/gcloud/*
-      - flags: null
-        path: /home/⋯/.config/systemd/user/*
-      - flags: null
-        path: /home/⋯/.docker/config.json
-      - flags: null
-        path: /home/⋯/.env
-      - flags: null
-        path: /home/⋯/.git-credentials
-      - flags: null
-        path: /home/⋯/.htpasswd
-      - flags: null
-        path: /home/⋯/.kube/*
-      - flags: null
-        path: /home/⋯/.my.cnf
-      - flags: null
-        path: /home/⋯/.mysql_history
-      - flags: null
-        path: /home/⋯/.netrc
-      - flags: null
-        path: /home/⋯/.npmrc
-      - flags: null
-        path: /home/⋯/.pgpass
-      - flags: null
-        path: /home/⋯/.profile
-      - flags: null
-        path: /home/⋯/.psql_history
-      - flags: null
-        path: /home/⋯/.rediscli_history
-      - flags: null
-        path: /home/⋯/.ssh/*
-      - flags: null
-        path: /home/⋯/env.php
-      - flags: null
-        path: /home/⋯/terraform.tfstate
-      - flags: null
-        path: /home/⋯/wp-config.php
-      - flags: null
         path: /lib/systemd/system/*
       - flags: null
         path: /proc/*/environ
       - flags: null
         path: /proc/*/mem
       - flags: null
-        path: /root/.aws/*
-      - flags: null
-        path: /root/.bash_history
-      - flags: null
-        path: /root/.bash_profile
-      - flags: null
-        path: /root/.bashrc
-      - flags: null
-        path: /root/.config/autostart/*
-      - flags: null
-        path: /root/.config/gcloud/*
-      - flags: null
-        path: /root/.config/systemd/user/*
-      - flags: null
-        path: /root/.docker/config.json
-      - flags: null
-        path: /root/.env
-      - flags: null
-        path: /root/.git-credentials
-      - flags: null
-        path: /root/.htpasswd
-      - flags: null
-        path: /root/.kube/*
-      - flags: null
-        path: /root/.my.cnf
-      - flags: null
-        path: /root/.mysql_history
-      - flags: null
-        path: /root/.netrc
-      - flags: null
-        path: /root/.npmrc
-      - flags: null
-        path: /root/.pgpass
-      - flags: null
-        path: /root/.profile
-      - flags: null
-        path: /root/.psql_history
-      - flags: null
-        path: /root/.rediscli_history
-      - flags: null
-        path: /root/.ssh/*
-      - flags: null
-        path: /root/env.php
-      - flags: null
-        path: /root/terraform.tfstate
-      - flags: null
-        path: /root/wp-config.php
-      - flags: null
-        path: /terraform.tfstate
-      - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
         path: /usr/local/etc/redis/*
       - flags: null
-        path: /var/lib/postgresql/*/pg_hba.conf
-      - flags: null
-        path: /var/lib/postgresql/*/pg_ident.conf
-      - flags: null
-        path: /var/lib/postgresql/*/postgresql.auto.conf
-      - flags: null
         path: /var/spool/cron/*
-      - flags: null
-        path: /var/www/*/.htaccess
-      - flags: null
-        path: /wp-config.php
   syscalls: null
 status: {}

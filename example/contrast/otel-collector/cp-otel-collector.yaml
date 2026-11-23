@@ -8,16 +8,19 @@ metadata:
   annotations:
     kubescape.io/managed-by: User
   labels:
-    kubescape.io/workload-container-name: otel-collector
+    kubescape.io/workload-container-name: opentelemetry-collector
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: c83a6f7
+    signature.kubescape.io/generator-ref: 757ed7b
     signature.kubescape.io/matcher-version: 759ea1ea57079998
-  name: sim-otel-collector-otel-collector
+  name: sim-otel-collector-opentelemetry-collector
   namespace: sim-otel
 spec:
   architectures:
     - amd64
   capabilities:
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
     - CAP_NET_ADMIN
     - CAP_SETGID
     - CAP_SETPCAP
@@ -25,55 +28,74 @@ spec:
     - CAP_SYSLOG
     - CAP_SYS_ADMIN
   egress:
-    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-8888, port: 8888, protocol: TCP}], type: external}
     - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}, {name: TCP-10250, port: 10250, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+    - {dns: "", dnsNames: null, identifier: 903a8265455fc4887352f6592894a629ec69a7fb5905610dbcdba3394c74d510, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: otel-collector, app.kubernetes.io/name: opentelemetry-collector, component: agent-collector}}, ports: [{name: TCP-8888, port: 8888, protocol: TCP}], type: internal}
   endpoints: null
   execs:
-    - {args: [/otelcol-contrib, --config=/conf/config.yaml], path: /otelcol-contrib}
-    - {args: [/otelcol-contrib, --version], path: /otelcol-contrib}
-    - {args: [/otelcol-contrib, components], path: /otelcol-contrib}
-    - {args: [/otelcol-contrib, validate, --config=/conf/config.yaml], path: /otelcol-contrib}
+    - {args: [/otelcol-k8s, --config=/conf/relay.yaml], path: /otelcol-k8s}
+    - {args: [/otelcol-k8s, --version], path: /otelcol-k8s}
+    - {args: [/otelcol-k8s, components], path: /otelcol-k8s}
+    - {args: [/otelcol-k8s, validate, --config=/conf/relay.yaml], path: /otelcol-k8s}
     - {args: [/pause], path: /pause}
   identifiedCallStacks: null
-  imageID: docker.io/otel/opentelemetry-collector-contrib@sha256:d2da12c4336a79758826700be9e21ecf4a9f7d945b7f8a58ba55ee3fa45427c8
-  imageTag: docker.io/otel/opentelemetry-collector-contrib:0.115.1
+  imageID: docker.io/otel/opentelemetry-collector-k8s@sha256:ce55d0a38923c83120e4ba613fbdf446786652d2ce9f29d1cd7879e5d869829f
+  imageTag: docker.io/otel/opentelemetry-collector-k8s:0.165.0
   ingress:
-    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-8888, port: 8888, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-13133, port: 13133, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-13133, port: 13133, protocol: TCP}, {name: TCP-8888, port: 8888, protocol: TCP}, {name: TCP-55679, port: 55679, protocol: TCP}, {name: TCP-8889, port: 8889, protocol: TCP}, {name: TCP-4318, port: 4318, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-4318, port: 4318, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 903a8265455fc4887352f6592894a629ec69a7fb5905610dbcdba3394c74d510, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: otel-collector, app.kubernetes.io/name: opentelemetry-collector, component: agent-collector}}, ports: [{name: TCP-8888, port: 8888, protocol: TCP}], type: internal}
   opens:
-    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY], path: /.cache/snowflake/ocsp_response_cache.json, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /conf/⋯/config.yaml, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /data, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /data/telemetry.jsonl, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/otelcol-contrib]}
-    - {flags: [O_RDONLY], path: /etc/localtime, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/pki/tls/certs, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs/*, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /otelcol-contrib, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/bus/pci/devices, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/modules, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/statm, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/status, processes: [/otelcol-contrib]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/log/pods, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/log/pods/*, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/otelcol-contrib]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/otelcol-contrib, /runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/otelcol-contrib, /runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/otelcol-contrib, /runc]}
-    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/otelcol-contrib, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /conf/⋯/relay.yaml, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/otelcol-k8s]}
+    - {flags: [O_RDONLY], path: /etc/localtime, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/ssl/certs, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs/*, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/fd, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/mountinfo, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/net/dev, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/net/tcp, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/net/tcp6, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/status, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/run/udev/data/⋯, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/hostfs/sys/dev/block/7:0/device/model', processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: '/hostfs/sys/dev/block/7:0/device/serial', processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /otelcol-k8s, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/bus/pci/devices, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/meminfo, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/modules, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/environ, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/statm, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/status, processes: [/otelcol-k8s]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/httpd/conf/mime.types, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mime.types, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/otelcol-k8s, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/otelcol-k8s, /runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
@@ -90,6 +112,9 @@ spec:
         - runc:[1:CHILD]
         - runc:[2:INIT]
         - runc:[3:INIT]
+    R0006:
+      processAllowed:
+        - otelcol-k8s
   seccompProfile:
     spec:
       defaultAction: ""
@@ -121,11 +146,94 @@ spec:
         ports: null
         type: external
     execs:
+      - path: /*/apk
+      - path: /*/apt
+      - path: /*/apt-get
+      - path: /*/aria2c
+      - path: /*/arp
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/ash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/ash
+      - path: /*/auditctl
       - path: /*/autossh
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/bash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/bash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/busybox
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/busybox
+      - path: /*/capsh
+      - path: /*/chattr
+      - path: /*/chisel
+      - argsRegex: '[^ ]+ (.* )?(0?[4-7][0-7]{3}|[ugoa]*u[ugoa]*[+=][rwxXst]*s[rwxXst]*|[+=][rwxXst]*s[rwxXst]*)( .*)?'
+        path: /*/chmod
+      - path: /*/cloudflared
+      - path: /*/cpuminer
+      - path: /*/curl
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/dash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/dash
       - path: /*/dbclient
+      - path: /*/depmod
+      - path: /*/dnf
+      - path: /*/doas
+      - path: /*/dpkg
       - path: /*/dropbear
+      - path: /*/ethminer
+      - path: /*/frpc
+      - path: /*/frps
+      - path: /*/fscan
+      - path: /*/ftpget
+      - path: /*/gost
+      - path: /*/hostname
+      - path: /*/id
+      - path: /*/ifconfig
+      - path: /*/insmod
+      - path: /*/ip6tables
+      - path: /*/iptables
+      - path: /*/kdevtmpfsi
+      - path: /*/kinsing
+      - path: /*/kmod
+      - path: /*/lscpu
+      - path: /*/masscan
+      - path: /*/microdnf
+      - path: /*/minerd
+      - path: /*/modprobe
+      - path: /*/naabu
+      - path: /*/nc
+      - path: /*/nc.openbsd
+      - path: /*/nc.traditional
+      - path: /*/ncat
+      - path: /*/netcat
+      - path: /*/netstat
+      - path: /*/nft
+      - path: /*/ngrok
+      - path: /*/nmap
+      - path: /*/npc
+      - path: /*/nps
+      - path: /*/pip
+      - path: /*/pip3
+      - path: /*/pkexec
+      - path: /*/pnscan
+      - path: /*/printenv
+      - path: /*/proxychains
+      - path: /*/proxychains4
+      - path: /*/rmmod
+      - path: /*/rpm
       - path: /*/scp
+      - path: /*/setcap
+      - path: /*/setenforce
       - path: /*/sftp
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/sh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/sh
+      - path: /*/shred
+      - path: /*/socat
       - path: /*/ssh
       - path: /*/ssh-add
       - path: /*/ssh-agent
@@ -133,6 +241,30 @@ spec:
       - path: /*/ssh-keyscan
       - path: /*/sshd
       - path: /*/sshpass
+      - path: /*/su
+      - path: /*/sudo
+      - path: /*/telnet
+      - path: /*/tftp
+      - path: /*/tmate
+      - path: /*/tor
+      - path: /*/uname
+      - path: /*/wget
+      - path: /*/whoami
+      - path: /*/xmr-stak
+      - path: /*/xmrig
+      - path: /*/yum
+      - path: /*/zgrab
+      - path: /*/zgrab2
+      - path: /*/zmap
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/zsh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/zsh
+      - path: /dev/fd/*
+      - path: /dev/shm/*
+      - path: /proc/*/fd/*
+      - path: /tmp/*
+      - path: /var/tmp/*
     opens:
       - flags: null
         path: /*/.aws/*
@@ -179,6 +311,30 @@ spec:
       - flags: null
         path: /*/env.php
       - flags: null
+        path: /*/k3s/agent/k3scontroller.kubeconfig
+      - flags: null
+        path: /*/k3s/agent/kubelet.kubeconfig
+      - flags: null
+        path: /*/k3s/agent/kubeproxy.kubeconfig
+      - flags: null
+        path: /*/k3s/server/cred/*
+      - flags: null
+        path: /*/k3s/server/node-token
+      - flags: null
+        path: /*/k3s/server/tls/*
+      - flags: null
+        path: /*/k3s/server/token
+      - flags: null
+        path: /*/kubelet/kubeconfig
+      - flags: null
+        path: /*/kubelet/pki/*
+      - flags: null
+        path: /*/kubernetes/admin.conf
+      - flags: null
+        path: /*/kubernetes/kubelet.conf
+      - flags: null
+        path: /*/kubernetes/pki/*
+      - flags: null
         path: /*/terraform.tfstate
       - flags: null
         path: /*/wp-config.php
@@ -201,17 +357,9 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
-        path: /etc/mysql/*
-      - flags: null
-        path: /etc/mysql/debian.cnf
-      - flags: null
-        path: /etc/postgresql/*
-      - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
-      - flags: null
-        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -227,16 +375,6 @@ spec:
       - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
-        path: /usr/local/etc/redis/*
-      - flags: null
-        path: /var/lib/postgresql/*/pg_hba.conf
-      - flags: null
-        path: /var/lib/postgresql/*/pg_ident.conf
-      - flags: null
-        path: /var/lib/postgresql/*/postgresql.auto.conf
-      - flags: null
         path: /var/spool/cron/*
-      - flags: null
-        path: /var/www/*/.htaccess
   syscalls: null
 status: {}
