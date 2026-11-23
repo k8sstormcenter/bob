@@ -52,7 +52,7 @@ The job `Example SBoBs` downloads the SBoBs of the run, places those that passed
 - **SBoB lint** (required): every profile under `example/` and `kubescape/` must pass `bobctl validate` of the current release. It takes under a minute.
 - The Contrast workflow does not run on pull requests. It runs on main after a merge that touches it, or when started by hand, and its gate decides what reaches `example/`.
 
-The earlier tune matrix (`CI - bobctl tune`) no longer runs on pull requests or pushes; it keeps its nightly schedule and can be started by hand.
+The earlier tune matrix (`CI - bobctl tune`) is retired. Its suites and manifests are under `example/deprecated/`, its local runner under `scripts/deprecated/`.
 
 ## Adding an application
 

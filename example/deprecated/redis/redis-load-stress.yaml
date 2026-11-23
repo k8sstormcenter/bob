@@ -7,7 +7,7 @@
 #
 # Purpose: produce massive wire-level RESP traffic for tracing/observability
 # tools (notably Pixie) that parse the Redis protocol on the wire. EVAL-based
-# load tests in example/redis-functional-tests.yaml generate many server-side
+# load tests in example/deprecated/redis/redis-functional-tests.yaml generate many server-side
 # redis.call() operations but appear as a single EVAL packet to on-wire
 # tracers, so they do not exercise RESP-parsing load.
 #

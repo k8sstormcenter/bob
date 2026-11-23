@@ -137,7 +137,7 @@ sudo k3s ctr images ls | grep k8sstormcenter
 cd ~/bob
 export PATH=/usr/local/go/bin:$HOME/go/bin:$PATH
 export KUBECONFIG=~/.kube/config
-./scripts/local-ci.sh --app webapp
+./scripts/deprecated/local-ci.sh --app webapp
 ```
 
 If kubescape was already installed but pods were in ImagePullBackOff, delete and let them restart:

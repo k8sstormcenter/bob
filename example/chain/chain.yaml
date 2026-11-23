@@ -146,7 +146,7 @@ spec:
       containers:
         - name: redis
           # Use the repo's deliberately-vulnerable redis image — same one
-          # example/redis-vulnerable.yaml + redis-attacks.yaml use. It
+          # example/deprecated/redis/redis-vulnerable.yaml + redis-attacks.yaml use. It
           # patches Lua's __newindex protection so package.loadlib + io
           # become reachable from EVAL, reproducing the CVE-2022-0543
           # sandbox escape that vanilla redis:7.2 hardens against. THIS

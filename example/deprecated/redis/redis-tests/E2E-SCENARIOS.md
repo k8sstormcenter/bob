@@ -7,7 +7,7 @@ All trademarks are expressly reserved.
 # Redis End-to-End Breach Scenarios & Load Tests
 
 This doc accompanies the four `e2e-*.yaml` attack suites and the five new
-`load-*` functional tests added to `example/redis-functional-tests.yaml`.
+`load-*` functional tests added to `example/deprecated/redis/redis-functional-tests.yaml`.
 Scope:
 - four realistic, assume-breach attacker chains against the vulnerable
   Redis in the `redis` namespace
@@ -120,7 +120,7 @@ done
 ## New load / functional tests
 
 All five new tests live at the bottom of
-`example/redis-functional-tests.yaml` under the "Load / traffic-shape
+`example/deprecated/redis/redis-functional-tests.yaml` under the "Load / traffic-shape
 tests" heading. They are ordinary `FunctionalTestSuite` entries, so the
 existing runner (`bobctl learn`, `bobctl apply`, local-ci.sh) picks them
 up with no flag changes.
