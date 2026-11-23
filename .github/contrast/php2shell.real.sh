@@ -10,8 +10,13 @@ POD_IP=$(kubectl -n php2shell get pod "$POD" -o jsonpath='{.status.podIP}')
 echo "target pod=$POD ip=$POD_IP"
 WORK=/tmp/php2shell-poc
 mkdir -p "$WORK"
-[ -d "$WORK/src" ] || git clone --depth 1 https://github.com/devploit/php2shell "$WORK/src"
-[ -f "$WORK/src/requirements.txt" ] && python3 -m pip install --user -r "$WORK/src/requirements.txt" || true
+POC_REV=2479e2dd95c64fd9a8bf83f9f482c17e2cbc987b
+if [ ! -d "$WORK/src" ]; then
+  git init -q "$WORK/src"
+  git -C "$WORK/src" fetch -q --depth 1 https://github.com/devploit/php2shell "$POC_REV"
+  git -C "$WORK/src" checkout -q FETCH_HEAD
+fi
+[ "$(git -C "$WORK/src" rev-parse HEAD)" = "$POC_REV" ] || { echo "proof of concept is not at $POC_REV"; exit 1; }
 date -u +%FT%TZ > out/real-from
 landed=0
 for try in $(seq 1 "${ATTEMPTS:-8}"); do

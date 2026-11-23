@@ -52,7 +52,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install PyYAML
-        run: pip install pyyaml
+        run: pip install --require-hashes -r .github/requirements/pyyaml.txt
 
       - name: Install yq (mikefarah) for the helper test suite
         run: |
