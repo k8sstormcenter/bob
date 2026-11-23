@@ -1,0 +1,304 @@
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations: {kubescape.io/managed-by: User}
+  name: tier-backend
+  namespace: CHANGEME
+spec:
+  architectures: [amd64]
+  capabilities: []
+  egress: null
+  endpoints: null
+  execs:
+  - args: [/pause]
+    path: /pause
+  - args: [/usr/bin/sh, ⋯⋯]
+    path: /usr/bin/dash
+  - args: [sh, ⋯⋯]
+    path: /usr/bin/dash
+  - args: [/usr/local/bin/python, ⋯⋯]
+    path: /usr/local/bin/python3.12
+  - args: [python, ⋯⋯]
+    path: /usr/local/bin/python3.12
+  identifiedCallStacks: null
+  imageID: docker.io/library/python@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+  imageTag: docker.io/library/python:3.12-slim
+  ingress: null
+  matchLabels: {app: api-compliant}
+  opens:
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /etc/ld.so.cache
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY]
+    path: /proc/⋯/task/*
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/locale/C.UTF-8/LC_CTYPE
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/locale/C.utf8/LC_CTYPE
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/locale/locale-archive
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libc.so.6
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libcrypto.so.3
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/liblzma.so.5.8.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libm.so.6
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libssl.so.3
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libz.so.1.3.1
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/lib/x86_64-linux-gnu/libzstd.so.1.5.7
+  - flags: [O_RDONLY]
+    path: /usr/local/bin/pybuilddir.txt
+  - flags: [O_RDONLY]
+    path: /usr/local/bin/python._pth
+  - flags: [O_RDONLY]
+    path: /usr/local/bin/python3.12._pth
+  - flags: [O_RDONLY]
+    path: /usr/local/bin/pyvenv.cfg
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/glibc-hwcaps/x86-64-v2/libpython3.12.so.1.0
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/glibc-hwcaps/x86-64-v3/libpython3.12.so.1.0
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/libc.so.6
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/libpython3.12.so.1.0
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_WRONLY]
+    path: /usr/local/lib/python3.12/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/_compression.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/_weakrefset.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/base64.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/bisect.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/bz2.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/calendar.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/collections
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/collections/__init__.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/collections/__pycache__/__init__.cpython-312.pyc
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_WRONLY]
+    path: /usr/local/lib/python3.12/collections/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/collections/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/collections/abc.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/copy.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/copyreg.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/datetime.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/email
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/__init__.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/__pycache__/__init__.cpython-312.pyc
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_WRONLY]
+    path: /usr/local/lib/python3.12/email/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/_encoded_words.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/_parseaddr.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/_policybase.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/base64mime.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/charset.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/encoders.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/errors.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/feedparser.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/header.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/iterators.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/message.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/parser.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/quoprimime.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/email/utils.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/encodings
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/encodings/__init__.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/encodings/__pycache__/__init__.cpython-312.pyc
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_WRONLY]
+    path: /usr/local/lib/python3.12/encodings/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/encodings/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/encodings/aliases.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/encodings/utf_8.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/enum.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/fnmatch.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/functools.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/html
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/html/__init__.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/html/__pycache__/__init__.cpython-312.pyc
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_WRONLY]
+    path: /usr/local/lib/python3.12/html/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/html/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/html/entities.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/http
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/http/__init__.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/http/__pycache__/__init__.cpython-312.pyc
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_WRONLY]
+    path: /usr/local/lib/python3.12/http/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/http/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/http/client.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/http/server.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/ipaddress.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/keyword.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_bisect.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_bz2.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_datetime.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_lzma.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_random.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_sha2.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_socket.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_ssl.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/_struct.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/array.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/binascii.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/math.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/select.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lib-dynload/zlib.cpython-312-x86_64-linux-gnu.so
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/locale.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/lzma.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/mimetypes.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/operator.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/quopri.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/random.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/re
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/re/__init__.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/re/__pycache__/__init__.cpython-312.pyc
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_WRONLY]
+    path: /usr/local/lib/python3.12/re/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/re/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/re/_casefix.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/re/_compiler.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/re/_constants.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/re/_parser.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/reprlib.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/selectors.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/shutil.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/site-packages
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/socket.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/socketserver.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/ssl.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/string.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/struct.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/threading.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/types.py
+  - flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY]
+    path: /usr/local/lib/python3.12/urllib
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/urllib/__init__.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/urllib/__pycache__/__init__.cpython-312.pyc
+  - flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_WRONLY]
+    path: /usr/local/lib/python3.12/urllib/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/urllib/__pycache__/⋯
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/urllib/parse.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/warnings.py
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/local/lib/python3.12/weakref.py
+  - flags: [O_RDONLY]
+    path: /usr/local/pyvenv.cfg
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/share/locale/locale.alias
+  - flags: [O_CLOEXEC, O_RDONLY]
+    path: /usr/share/zoneinfo/Etc/UTC
+  rulePolicies: {}
+  seccompProfile:
+    spec: {defaultAction: ''}
+  syscalls: null
