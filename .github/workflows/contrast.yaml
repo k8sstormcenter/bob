@@ -44,8 +44,12 @@ jobs:
   plan:
     name: Plan
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     outputs:
       apps: ${{ steps.apps.outputs.apps }}
+      images: ${{ steps.images.outputs.missing }}
     steps:
       - name: Applications of this run
         id: apps
@@ -55,8 +59,43 @@ jobs:
           [ "$WANT" = all ] && WANT="$ALL_APPS"
           echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Images whose content the registry does not hold yet
+        id: images
+        env:
+          IMAGES: |
+            {"name": "php2shell-wordpress", "context": "example/php2shell-wordpress", "dockerfile": "", "platforms": "linux/amd64"}
+            {"name": "php2shell-vulnerable", "context": "example/php2shell", "dockerfile": "", "platforms": "linux/amd64,linux/arm64"}
+            {"name": "postgres-vuln", "context": "example/postgres-vuln", "dockerfile": "", "platforms": "linux/amd64,linux/arm64"}
+            {"name": "redis-vulnerable", "context": "example/redis", "dockerfile": "example/redis/Dockerfile.redis-vulnerable", "platforms": "linux/amd64,linux/arm64"}
+            {"name": "chain-frontend", "context": "example/chain/frontend", "dockerfile": "", "platforms": "linux/amd64,linux/arm64"}
+            {"name": "chain-backend", "context": "example/chain/backend", "dockerfile": "", "platforms": "linux/amd64,linux/arm64"}
+            {"name": "java-poc-backend-vulnerable", "context": "example/java-poc/backend", "dockerfile": "example/java-poc/backend/Dockerfile.vulnerable", "platforms": "linux/amd64"}
+            {"name": "java-poc-backend-contained", "context": "example/java-poc/backend", "dockerfile": "example/java-poc/backend/Dockerfile.contained", "platforms": "linux/amd64"}
+            {"name": "java-poc-backend-patched", "context": "example/java-poc/backend", "dockerfile": "example/java-poc/backend/Dockerfile.patched", "platforms": "linux/amd64"}
+            {"name": "java-poc-pathogen", "context": "example/java-poc/pathogen", "dockerfile": "", "platforms": "linux/amd64"}
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          missing='[]'
+          while IFS= read -r row; do
+            [ -n "$row" ] || continue
+            name=$(jq -r .name <<<"$row"); ctx=$(jq -r .context <<<"$row"); df=$(jq -r .dockerfile <<<"$row"); [ -n "$df" ] || df="$ctx/Dockerfile"
+            tag="$(git rev-parse "HEAD:$ctx" | cut -c1-12)-$(git hash-object "$df" | cut -c1-6)"
+            if docker manifest inspect "ghcr.io/${{ github.repository_owner }}/$name:$tag" >/dev/null 2>&1; then
+              echo "$name:$tag is in the registry"
+            else
+              echo "$name:$tag has to be built"; missing=$(jq -c --argjson r "$row" '. + [$r]' <<<"$missing")
+            fi
+          done <<<"$IMAGES"
+          echo "missing=$missing" >> "$GITHUB_OUTPUT"
+
   images:
-    name: image
+    name: image ${{ matrix.name }}
+    needs: [plan]
+    if: ${{ needs.plan.outputs.images != '[]' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -65,17 +104,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - {name: php2shell-wordpress, context: example/php2shell-wordpress, dockerfile: '', platforms: linux/amd64}
-          - {name: php2shell-vulnerable, context: example/php2shell, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
-          - {name: postgres-vuln, context: example/postgres-vuln, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
-          - {name: redis-vulnerable, context: example/redis, dockerfile: example/redis/Dockerfile.redis-vulnerable, platforms: 'linux/amd64,linux/arm64'}
-          - {name: chain-frontend, context: example/chain/frontend, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
-          - {name: chain-backend, context: example/chain/backend, dockerfile: '', platforms: 'linux/amd64,linux/arm64'}
-          - {name: java-poc-backend-vulnerable, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.vulnerable, platforms: linux/amd64}
-          - {name: java-poc-backend-contained, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.contained, platforms: linux/amd64}
-          - {name: java-poc-backend-patched, context: example/java-poc/backend, dockerfile: example/java-poc/backend/Dockerfile.patched, platforms: linux/amd64}
-          - {name: java-poc-pathogen, context: example/java-poc/pathogen, dockerfile: '', platforms: linux/amd64}
+        include: ${{ fromJson(needs.plan.outputs.images) }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -91,6 +120,7 @@ jobs:
   contrast:
     name: ${{ matrix.app }}
     needs: [plan, images]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && (needs.images.result == 'success' || needs.images.result == 'skipped') }}
     runs-on: ubuntu-22.04
     timeout-minutes: 110
     permissions:
