@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: mongo
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 757ed7b
+    signature.kubescape.io/generator-ref: e86117d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-mongodb-mongo
   namespace: sim-mongodb
@@ -19,11 +19,13 @@ spec:
     - amd64
   capabilities:
     - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
     - CAP_NET_ADMIN
     - CAP_SETGID
     - CAP_SETUID
   egress:
-    - {dns: compass.mongodb.com., dnsNames: [compass.mongodb.com.], identifier: 95546183b30241f80d1ee052948438995036d3438f1f7a3d2ec1fd123a8bf0fa, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: compass.mongodb.com., dnsNames: [compass.mongodb.com.], identifier: 91a9d03f942d638e98ea5c05840776cf8aa1a6c4a3e0d03791666f90c859a984, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
@@ -66,10 +68,10 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/pause, /usr/bin/bash, /usr/bin/chown, /usr/bin/dpkg, /usr/bin/find, /usr/bin/grep, /usr/bin/id, /usr/bin/jq, /usr/bin/mongod, /usr/bin/mongosh, /usr/bin/numactl, /usr/bin/ps, /usr/bin/rm, /usr/bin/stat, /usr/bin/true, /usr/local/bin/gosu]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /docker-entrypoint-initdb.d, processes: [/usr/bin/bash]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/bash]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/usr/bin/bash]}
     - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/bin/bash]}
     - {flags: [O_RDONLY], path: /usr/local/bin/docker-entrypoint.sh, processes: [/usr/bin/bash]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/bash, /usr/bin/chown, /usr/bin/dpkg, /usr/bin/find, /usr/bin/grep, /usr/bin/id, /usr/bin/jq, /usr/bin/mongod, /usr/bin/mongosh, /usr/bin/numactl, /usr/bin/ps, /usr/bin/rm, /usr/bin/stat, /usr/bin/true]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/usr/bin/bash, /usr/bin/mongod]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /tmp/⋯, processes: [/usr/bin/bash, /usr/bin/mongod]}
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/bash, /usr/bin/mongod, /usr/bin/mongosh]}
     - {flags: [O_NOCTTY, O_NONBLOCK, O_RDONLY, O_RDWR], path: /dev/tty, processes: [/usr/bin/bash, /usr/bin/ps]}
@@ -83,13 +85,14 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /data/*, processes: [/usr/bin/find]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /data/*, processes: [/usr/bin/find, /usr/bin/mongod]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /data/*, processes: [/usr/bin/find, /usr/bin/mongosh]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/grep]}
     - {flags: [O_NOCTTY, O_RDONLY], path: /proc/cpuinfo, processes: [/usr/bin/grep, /usr/bin/mongod]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/maps, processes: [/usr/bin/grep, /usr/bin/mongosh]}
     - {flags: [O_RDONLY], path: /data/*, processes: [/usr/bin/jq]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/jq]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/jq, /usr/bin/mongod, /usr/bin/mongosh]}
-    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOATIME, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /data/*, processes: [/usr/bin/mongod]}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOATIME, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /data/*, processes: [/usr/bin/mongod]}
     - {flags: [O_RDONLY], path: /etc/lsb-release, processes: [/usr/bin/mongod]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/mongod]}
     - {flags: [O_RDONLY], path: /proc/diskstats, processes: [/usr/bin/mongod]}
@@ -108,6 +111,7 @@ spec:
     - {flags: [O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/bin/mongod]}
     - {flags: [O_RDONLY], path: /proc/⋯/net/*, processes: [/usr/bin/mongod]}
     - {flags: [O_RDONLY], path: /proc/⋯/task/*, processes: [/usr/bin/mongod]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/bin/mongod]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/block, processes: [/usr/bin/mongod]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/defrag, processes: [/usr/bin/mongod]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled, processes: [/usr/bin/mongod]}
@@ -120,7 +124,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/mongod, /usr/bin/ps]}
     - {flags: [O_RDONLY], path: /proc/⋯/stat, processes: [/usr/bin/mongod, /usr/bin/ps]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/usr/bin/mongod, /usr/bin/ps]}
-    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /data/*, processes: [/usr/bin/mongosh]}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /data/*, processes: [/usr/bin/mongosh]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mongosh.conf, processes: [/usr/bin/mongosh]}
     - {flags: [O_RDONLY], path: /etc/netsvc.conf, processes: [/usr/bin/mongosh]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem, processes: [/usr/bin/mongosh]}
