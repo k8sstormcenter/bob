@@ -59,7 +59,7 @@ The earlier tune matrix (`CI - bobctl tune`) is retired. Its suites and manifest
 1. Add its row, its deployment and its usual traffic to the workloads directory of the `pkg` submodule.
 2. Add its name to `ALL_APPS` in `.github/workflows/contrast.yaml`. Containers that must run in one cluster are joined with `+`.
 3. If it needs preparation, add `.github/contrast/<application>.pre.sh`.
-4. If its SBoB replaces an existing example file, add a line to `examples.txt`. Otherwise it goes to `example/contrast/<application>/`.
+4. If it belongs to a CNCF project, add a line to `examples.txt` that puts its SBoB into the folder of that project, `example/<project>/`. Otherwise it goes to `example/contrast/cp-<application>.yaml`.
 
 ## Adding a simulation method
 
