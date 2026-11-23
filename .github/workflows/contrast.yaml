@@ -12,33 +12,24 @@ on:
         description: space-separated applications, or all
         default: all
       pkg_ref:
-        description: commit of the pkg submodule that holds the workloads
-        default: bdddc63929ceee4524c8d4b9e76b3ef325ccce13
+        description: commit of the pkg submodule that holds the workloads (empty = the pinned one)
+        default: ''
       bobctl_tag:
-        description: tag of the bobctl build to download, or "build" to build it in each job from pkg_ref
-        default: internal-bdddc63
+        description: tag of the bobctl build to download, or "build" to build it in each job from pkg_ref (empty = the pinned one)
+        default: ''
       bobctl_sha256:
-        description: sha256 of that build
-        default: 04aae64a90d45e2760d83973b1f31654d8728d26612bc6302c0bb782976614f7
+        description: sha256 of that build (empty = the pinned one)
+        default: ''
       chart_ver:
-        description: kubescape-operator chart version
-        default: 1.41.0-duckling193
+        description: kubescape-operator chart version (empty = the pinned one)
+        default: ''
   push:
     branches: [main]
     paths:
-      - '.github/workflows/contrast.yaml'
-      - '.github/actions/**'
-      - '.github/contrast/**'
+      - '.github/contrast/pins.env'
 
 permissions:
   contents: read
-
-env:
-  PKG_REF: ${{ github.event.inputs.pkg_ref || 'bdddc63929ceee4524c8d4b9e76b3ef325ccce13' }}
-  BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag || 'internal-bdddc63' }}
-  BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 || '04aae64a90d45e2760d83973b1f31654d8728d26612bc6302c0bb782976614f7' }}
-  CHART_VER: ${{ github.event.inputs.chart_ver || '1.41.0-duckling193' }}
-  ALL_APPS: php2shell php2shell-wordpress nginx2root postgres mariadb redis wordpress nginx envoy zot cert-manager keycloak kafka argo-workflows otel-collector falco-old+falco-new flux-source+flux-kustomize+flux-helm+flux-notification+flux-image-reflector+flux-image-automation mongodb memcached
 
 jobs:
   plan:
@@ -48,19 +39,35 @@ jobs:
       contents: read
       packages: read
     outputs:
-      apps: ${{ steps.apps.outputs.apps }}
+      apps: ${{ steps.pins.outputs.apps }}
+      pkg_ref: ${{ steps.pins.outputs.pkg_ref }}
+      bobctl_tag: ${{ steps.pins.outputs.bobctl_tag }}
+      bobctl_sha256: ${{ steps.pins.outputs.bobctl_sha256 }}
+      chart_ver: ${{ steps.pins.outputs.chart_ver }}
       images: ${{ steps.images.outputs.missing }}
     steps:
-      - name: Applications of this run
-        id: apps
-        env:
-          WANT: ${{ github.event.inputs.apps || 'all' }}
-        run: |
-          [ "$WANT" = all ] && WANT="$ALL_APPS"
-          echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
-
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Pins and applications of this run
+        id: pins
+        env:
+          WANT: ${{ github.event.inputs.apps || 'all' }}
+          IN_PKG_REF: ${{ github.event.inputs.pkg_ref }}
+          IN_BOBCTL_TAG: ${{ github.event.inputs.bobctl_tag }}
+          IN_BOBCTL_SHA256: ${{ github.event.inputs.bobctl_sha256 }}
+          IN_CHART_VER: ${{ github.event.inputs.chart_ver }}
+        run: |
+          set -euo pipefail
+          . .github/contrast/pins.env
+          [ "$WANT" = all ] && WANT="$ALL_APPS"
+          {
+            echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)"
+            echo "pkg_ref=${IN_PKG_REF:-$PKG_REF}"
+            echo "bobctl_tag=${IN_BOBCTL_TAG:-$BOBCTL_TAG}"
+            echo "bobctl_sha256=${IN_BOBCTL_SHA256:-$BOBCTL_SHA256}"
+            echo "chart_ver=${IN_CHART_VER:-$CHART_VER}"
+          } | tee -a "$GITHUB_OUTPUT"
 
       - name: Images whose content the registry does not hold yet
         id: images
@@ -141,10 +148,10 @@ jobs:
         uses: ./.github/actions/generalize
         with:
           app: ${{ matrix.app }}
-          pkg-ref: ${{ env.PKG_REF }}
-          bobctl-tag: ${{ env.BOBCTL_TAG }}
-          bobctl-sha256: ${{ env.BOBCTL_SHA256 }}
-          chart-ver: ${{ env.CHART_VER }}
+          pkg-ref: ${{ needs.plan.outputs.pkg_ref }}
+          bobctl-tag: ${{ needs.plan.outputs.bobctl_tag }}
+          bobctl-sha256: ${{ needs.plan.outputs.bobctl_sha256 }}
+          chart-ver: ${{ needs.plan.outputs.chart_ver }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           entlein-pat: ${{ secrets.ENTLEIN_PAT }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -158,7 +165,7 @@ jobs:
         uses: ./.github/actions/simulate
         with:
           app: ${{ matrix.app }}
-          chart-ver: ${{ env.CHART_VER }}
+          chart-ver: ${{ needs.plan.outputs.chart_ver }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload
@@ -171,10 +178,14 @@ jobs:
 
   summary:
     name: Run summary
-    needs: [contrast]
-    if: ${{ always() && needs.contrast.result != 'cancelled' }}
+    needs: [plan, contrast]
+    if: ${{ always() && needs.contrast.result != 'cancelled' && needs.contrast.result != 'skipped' }}
     runs-on: ubuntu-24.04
     continue-on-error: true
+    env:
+      PKG_REF: ${{ needs.plan.outputs.pkg_ref }}
+      BOBCTL_TAG: ${{ needs.plan.outputs.bobctl_tag }}
+      CHART_VER: ${{ needs.plan.outputs.chart_ver }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
