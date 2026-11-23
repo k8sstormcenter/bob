@@ -24,7 +24,7 @@ on:
         description: kubescape-operator chart version
         default: 1.41.0-duckling192
   push:
-    branches: [main, ci/one-workflow]
+    branches: [main]
     paths:
       - '.github/workflows/contrast.yaml'
       - '.github/actions/**'
@@ -56,7 +56,7 @@ jobs:
           echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
 
   images:
-    name: image ${{ matrix.name }}
+    name: image
     runs-on: ubuntu-24.04
     permissions:
       contents: read

@@ -47,6 +47,13 @@ The job `Example SBoBs` downloads the SBoBs of the run, places those that passed
 - **Known**: the simulation is written with the application's own history in mind (its advisories of the last ten years, its paths, its tools). Most applications here are known.
 - **Unknown**: nothing is written for the application. bobctl is told its type and has to find the language ecosystem and the deployment conditions itself. Their results are the measure of how bobctl does on an application nobody prepared it for; the run page shows them in their own table. An application is marked unknown in the last column of its row in the workloads table.
 
+## Checks on a pull request
+
+- **SBoB lint** (required): every profile under `example/` and `kubescape/` must pass `bobctl validate` of the current release. It takes under a minute.
+- The Contrast workflow does not run on pull requests. It runs on main after a merge that touches it, or when started by hand, and its gate decides what reaches `example/`.
+
+The earlier tune matrix (`CI - bobctl tune`) no longer runs on pull requests or pushes; it keeps its nightly schedule and can be started by hand.
+
 ## Adding an application
 
 1. Add its row, its deployment and its usual traffic to the workloads directory of the `pkg` submodule.
