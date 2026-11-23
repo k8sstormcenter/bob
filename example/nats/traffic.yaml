@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: traffic, namespace: nats}
+data:
+  run.sh: |
+    export NATS_URL=nats://nats:4222
+    n=0
+    while true; do
+      until nats rtt >/dev/null 2>&1; do sleep 2; done
+      n=$((n+1)); fail=""
+      run() { name=$1; shift; timeout 60 "$@" >/tmp/out 2>&1 || fail="$fail $name"; }
+      run publish sh -c 'for i in 1 2 3 4 5 6 7 8 9 10; do nats pub orders.new "order $i" || exit 1; done'
+      run request-reply sh -c 'nats reply svc.echo pong --count 5 & sleep 1; for i in 1 2 3 4 5; do nats request svc.echo ping --timeout 3s || exit 1; done; wait'
+      run fan-out sh -c 'nats sub "orders.>" --count 20 & sleep 1; for i in $(seq 1 20); do nats pub orders.paid "paid $i" || exit 1; done; wait'
+      run bench-pub nats bench pub bench.load --msgs 20000 --size 256 --no-progress
+      run bench-sub sh -c 'nats bench sub bench.fan --msgs 5000 --no-progress & sleep 1; nats bench pub bench.fan --msgs 5000 --size 128 --no-progress; wait'
+      run server-check nats server check connection
+      run monitoring sh -c 'wget -qO- http://nats-headless:8222/varz | grep -q server_id && wget -qO- http://nats-headless:8222/connz >/dev/null && wget -qO- http://nats-headless:8222/healthz | grep -q ok'
+      if [ -z "$fail" ]; then echo "workload-cycle-ok $n"; else echo "workload-cycle-FAILED $n:$fail"; head -c 200 /tmp/out; fi
+      sleep 5
+    done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: traffic, namespace: nats}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: traffic}}
+  template:
+    metadata: {labels: {app: traffic}}
+    spec:
+      enableServiceLinks: false
+      containers:
+      - name: traffic
+        image: docker.io/natsio/nats-box:0.20.2
+        command: [sh, /work/run.sh]
+        resources: {requests: {cpu: 50m, memory: 32Mi}, limits: {cpu: "1", memory: 128Mi}}
+        volumeMounts: [{name: work, mountPath: /work}]
+      volumes:
+      - {name: work, configMap: {name: traffic}}

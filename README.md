@@ -130,4 +130,5 @@ The simulation of common CVE types and the three numbers run in this repository'
 |---|---|
 | `example/argo/`, `example/cert-manager/`, `example/cloudnative-pg/`, `example/distribution/`, `example/envoy/`, `example/falco/`, `example/flux/`, `example/keycloak/`, `example/opentelemetry/`, `example/strimzi/`, `example/zot/` | SBoBs the `Contrast` workflow produced, one directory per CNCF project |
 | `example/contrast/` | SBoBs the `Contrast` workflow produced for all other software, one file per application |
+| `example/nats/` | a walkthrough for an application nobody prepared: from an empty cluster to a bound SBoB for NATS, with the public bobctl only |
 | `example/php2shell/`, `example/php2shell-wordpress/` | the two applications that are also tested with a real exploit as shown at [KubeConNA](https://www.youtube.com/watch?v=FMKW3oa5g5g) |
