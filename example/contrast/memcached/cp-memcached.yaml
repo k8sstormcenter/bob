@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: memcached
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: c83a6f7
+    signature.kubescape.io/generator-ref: 757ed7b
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-memcached-memcached
   namespace: sim-memcached
@@ -51,6 +51,7 @@ spec:
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/*, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/*, processes: [/bin/busybox, /pause, /usr/local/bin/memcached]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/ld-musl-x86_64.path, processes: [/usr/local/bin/memcached]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/*, processes: [/usr/local/bin/memcached]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libcrypto.so.3, processes: [/usr/local/bin/memcached]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libevent-2.1.so.7, processes: [/usr/local/bin/memcached]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libsasl2.so.3, processes: [/usr/local/bin/memcached]}
@@ -307,17 +308,9 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
-        path: /etc/mysql/*
-      - flags: null
-        path: /etc/mysql/debian.cnf
-      - flags: null
-        path: /etc/postgresql/*
-      - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
-      - flags: null
-        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -339,20 +332,10 @@ spec:
       - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
-        path: /usr/local/etc/redis/*
-      - flags: null
-        path: /var/lib/postgresql/*/pg_hba.conf
-      - flags: null
-        path: /var/lib/postgresql/*/pg_ident.conf
-      - flags: null
-        path: /var/lib/postgresql/*/postgresql.auto.conf
-      - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/token
       - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
-      - flags: null
-        path: /var/www/*/.htaccess
   syscalls: null
 status: {}

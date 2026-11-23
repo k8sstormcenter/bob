@@ -1,0 +1,377 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-container-name: zot
+    signature.kubescape.io/generator: bobctl
+    signature.kubescape.io/generator-ref: 757ed7b
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
+  name: sim-zot-zot
+  namespace: sim-zot
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_NET_ADMIN
+    - CAP_SETGID
+    - CAP_SETPCAP
+    - CAP_SETUID
+    - CAP_SYS_ADMIN
+    - CAP_SYS_RESOURCE
+  egress:
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-5000, port: 5000, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: [ghcr.io., pkg-containers.githubusercontent.com.], identifier: 5a48b8aae360464bbdf89373723f61a61257c7f6a9314551b31cfc40417af582, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+  endpoints: null
+  execs:
+    - {args: [/pause], path: /pause}
+    - {argsRegex: '/usr/local/bin/zot-linux-amd64( [^ ]*)*', path: /usr/local/bin/zot-linux-amd64}
+  identifiedCallStacks: null
+  imageID: ghcr.io/project-zot/zot@sha256:9d3de83ac2099e6f4843045b4c9b65b7e8baf40f92d28f54906dee9d4d390fd7
+  imageTag: ghcr.io/project-zot/zot:v2.1.23
+  ingress:
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-5000, port: 5000, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-5000, port: 5000, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-5000, port: 5000, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 2fb2bddf78791fa028319f0de6b8b59e06c65363ff2e8e5ab764b382a0c21475, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: upstream}}, ports: [{name: TCP-5000, port: 5000, protocol: TCP}], type: internal}
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/httpd/conf/mime.types, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mime.types, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/runc, /usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /dev/tty, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_RDONLY], path: /etc/localtime, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/pki/tls/certs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /etc/ssl/certs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ssl/certs/*, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/zot/config.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /github.com/aquasecurity/⋯/pkg/metadata/metadata.go, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/user/max_inotify_watches, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /tmp, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC], path: /tmp/*, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/zot-linux-amd64, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/_trivy, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/_trivy/db, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /var/lib/registry/_trivy/db/metadata.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR, O_TRUNC], path: /var/lib/registry/_trivy/db/trivy.db, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /var/lib/registry/_trivy/java-db/metadata.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR, O_TRUNC], path: /var/lib/registry/_trivy/java-db/trivy-java.db, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /var/lib/registry/cache.db, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/conformance, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/conformance/main, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/conformance/main/.sync, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/conformance/main/.uploads, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/conformance/main/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/conformance/main/blobs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/conformance/main/blobs/sha256, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/conformance/main/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/conformance/main/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/conformance/main/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/conformance/other, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/conformance/other/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/conformance/other/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/conformance/other/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/conformance/other/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_TRUNC, O_WRONLY], path: /var/lib/registry/hardlinkcheck.txt, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDWR], path: /var/lib/registry/meta.db, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/sim, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/sim/app/.sync, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/app/.uploads, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/app/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/app/blobs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/app/blobs/sha256, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/app/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/app/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/app/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/sim/base/.sync, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/sim/base/.uploads, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/base/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/sim/base/blobs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/sim/base/blobs/sha256, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/base/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/base/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/base/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/blobs/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/blobs/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/blobs/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/blobs/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/config/.uploads, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/config/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/config/blobs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/config/blobs/sha256, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/config/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/config/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/config/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/sim/mirror/app, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/sim/mirror/app/.sync, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/mirror/app/.uploads, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/mirror/app/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/mirror/app/blobs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/mirror/app/blobs/sha256, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/mirror/app/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/mirror/app/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/mirror/app/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/sim/mirror/base, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/sim/mirror/base/.sync, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/mirror/base/.uploads, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/mirror/base/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/mirror/base/blobs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/sim/mirror/base/blobs/sha256, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/mirror/base/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/mirror/base/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/mirror/base/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/mirror/blobs/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/mirror/blobs/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /var/lib/registry/sim/models/.sync, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/sim/models/.uploads, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/models/.uploads/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/sim/models/blobs, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/sim/models/blobs/sha256, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/models/blobs/sha256/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/sim/models/index.json, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/sim/models/oci-layout, processes: [/usr/local/bin/zot-linux-amd64]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_RDONLY], path: /var/lib/registry/sim/⋯, processes: [/usr/local/bin/zot-linux-amd64]}
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  subtract:
+    egress:
+      - dns: ""
+        dnsNames: null
+        identifier: signature-metadata-egress-ecs
+        ipAddress: 169.254.170.2
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+      - dns: ""
+        dnsNames:
+          - metadata.google.internal.
+        identifier: signature-metadata-egress-name
+        ipAddress: ""
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+      - dns: ""
+        dnsNames: null
+        identifier: signature-metadata-egress-v4
+        ipAddress: 169.254.169.254
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+    execs:
+      - path: /*/apk
+      - path: /*/apt
+      - path: /*/apt-get
+      - path: /*/aria2c
+      - path: /*/arp
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/ash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/ash
+      - path: /*/auditctl
+      - path: /*/autossh
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/bash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/bash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/busybox
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/busybox
+      - path: /*/capsh
+      - path: /*/chattr
+      - path: /*/chisel
+      - argsRegex: '[^ ]+ (.* )?(0?[4-7][0-7]{3}|[ugoa]*u[ugoa]*[+=][rwxXst]*s[rwxXst]*|[+=][rwxXst]*s[rwxXst]*)( .*)?'
+        path: /*/chmod
+      - path: /*/cloudflared
+      - path: /*/cpuminer
+      - path: /*/curl
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/dash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/dash
+      - path: /*/dbclient
+      - path: /*/depmod
+      - path: /*/dnf
+      - path: /*/doas
+      - path: /*/dpkg
+      - path: /*/dropbear
+      - path: /*/ethminer
+      - path: /*/frpc
+      - path: /*/frps
+      - path: /*/fscan
+      - path: /*/ftpget
+      - path: /*/gost
+      - path: /*/hostname
+      - path: /*/id
+      - path: /*/ifconfig
+      - path: /*/insmod
+      - path: /*/ip6tables
+      - path: /*/iptables
+      - path: /*/kdevtmpfsi
+      - path: /*/kinsing
+      - path: /*/kmod
+      - path: /*/lscpu
+      - path: /*/masscan
+      - path: /*/microdnf
+      - path: /*/minerd
+      - path: /*/modprobe
+      - path: /*/naabu
+      - path: /*/nc
+      - path: /*/nc.openbsd
+      - path: /*/nc.traditional
+      - path: /*/ncat
+      - path: /*/netcat
+      - path: /*/netstat
+      - path: /*/nft
+      - path: /*/ngrok
+      - path: /*/nmap
+      - path: /*/npc
+      - path: /*/nps
+      - path: /*/pip
+      - path: /*/pip3
+      - path: /*/pkexec
+      - path: /*/pnscan
+      - path: /*/printenv
+      - path: /*/proxychains
+      - path: /*/proxychains4
+      - path: /*/rmmod
+      - path: /*/rpm
+      - path: /*/scp
+      - path: /*/setcap
+      - path: /*/setenforce
+      - path: /*/sftp
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/sh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/sh
+      - path: /*/shred
+      - path: /*/socat
+      - path: /*/ssh
+      - path: /*/ssh-add
+      - path: /*/ssh-agent
+      - path: /*/ssh-keygen
+      - path: /*/ssh-keyscan
+      - path: /*/sshd
+      - path: /*/sshpass
+      - path: /*/su
+      - path: /*/sudo
+      - path: /*/telnet
+      - path: /*/tftp
+      - path: /*/tmate
+      - path: /*/tor
+      - path: /*/uname
+      - path: /*/wget
+      - path: /*/whoami
+      - path: /*/xmr-stak
+      - path: /*/xmrig
+      - path: /*/yum
+      - path: /*/zgrab
+      - path: /*/zgrab2
+      - path: /*/zmap
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/zsh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/zsh
+      - path: /dev/fd/*
+      - path: /dev/shm/*
+      - path: /proc/*/fd/*
+      - path: /tmp/*
+      - path: /var/tmp/*
+    opens:
+      - flags: null
+        path: /etc/cron.d/*
+      - flags: null
+        path: /etc/cron.daily/*
+      - flags: null
+        path: /etc/cron.hourly/*
+      - flags: null
+        path: /etc/cron.monthly/*
+      - flags: null
+        path: /etc/cron.weekly/*
+      - flags: null
+        path: /etc/crontab
+      - flags: null
+        path: /etc/gshadow
+      - flags: null
+        path: /etc/init.d/*
+      - flags: null
+        path: /etc/ld.so.preload
+      - flags: null
+        path: /etc/profile.d/*
+      - flags: null
+        path: /etc/rc.local
+      - flags: null
+        path: /etc/shadow
+      - flags: null
+        path: /etc/sudoers
+      - flags: null
+        path: /etc/sudoers.d/*
+      - flags: null
+        path: /etc/systemd/system/*
+      - flags: null
+        path: /lib/systemd/system/*
+      - flags: null
+        path: /proc/*/environ
+      - flags: null
+        path: /proc/*/mem
+      - flags: null
+        path: /run/secrets/kubernetes.io/serviceaccount/token
+      - flags: null
+        path: /run/secrets/kubernetes.io/serviceaccount/⋯/token
+      - flags: null
+        path: /usr/lib/systemd/system/*
+      - flags: null
+        path: /var/run/secrets/kubernetes.io/serviceaccount/token
+      - flags: null
+        path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
+      - flags: null
+        path: /var/spool/cron/*
+  syscalls: null
+status: {}
