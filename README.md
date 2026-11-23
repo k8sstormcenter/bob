@@ -61,8 +61,6 @@ Subscribe to the newsletter [https://billofbehavior.com](https://fusioncore.kit.
 
 
 
-## Try it out in a lab with a k3s and a k8s
-Public again on [Iximiuz Labs](https://labs.iximiuz.com/courses/bill-of-behaviour-c070da3a/1vendor/lesson-1) 
 
 
 ## Does your application have a good SBoB?
@@ -112,7 +110,7 @@ The GIF at the top of this page is Flux's helm-controller. In each GIF: left, wh
 curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.29/bobctl-linux-amd64
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/
 ```
-Release binaries are cosign-signed (`bobctl-linux-amd64.sigstore.json`).
+Release binaries are cosign-signed (`bobctl-linux-amd64.sigstore.json`). Versions are currently being published in rapid succession, verbs and functionality are changing.
 
 | You want to | Run |
 |---|---|
@@ -131,6 +129,4 @@ The simulation of common CVE types and the three numbers run in this repository'
 | Path | What |
 |---|---|
 | `example/contrast/` | SBoBs the `Contrast` workflow produced, one directory per application |
-| `example/flux/deploy/` | the Flux controllers' SBoBs |
-| `example/github-runner/` | CI runner profiles |
-| `example/php2shell/`, `example/php2shell-wordpress/` | the two applications that are also tested with a real exploit |
+| `example/php2shell/`, `example/php2shell-wordpress/` | the two applications that are also tested with a real exploit as shown at [KubeConNA](https://www.youtube.com/watch?v=FMKW3oa5g5g) |
