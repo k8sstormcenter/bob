@@ -188,7 +188,7 @@ what makes most of it BLIND in practice.
 |---|---|---|
 | `chain-frontend` | `ghcr.io/k8sstormcenter/chain-frontend:latest` | ~180-LOC Go service: HTML + /api/products proxy + **/api/cache/eval RESP proxy** (legitimate atomic-counter feature, untrusted script content) |
 | `chain-backend` | `ghcr.io/k8sstormcenter/chain-backend:latest` | ~180-LOC Go service: serves /api/products from postgres |
-| `chain-redis` | `ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10` | Same patched-Lua image used by `example/redis-vulnerable.yaml` — CVE-2022-0543 reproduced (io reachable from EVAL) |
+| `chain-redis` | `ghcr.io/k8sstormcenter/redis-vulnerable:7.2.10` | Same patched-Lua image used by `example/deprecated/redis/redis-vulnerable.yaml` — CVE-2022-0543 reproduced (io reachable from EVAL) |
 | `chain-postgres` | `postgres:16` | Upstream image, no customisation |
 
 All images pull anonymously from GHCR (permanent tags, no rot). The two

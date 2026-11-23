@@ -82,7 +82,7 @@ deploy-webapp:
 .PHONY: deploy-redis
 deploy-redis:
 	@echo "=== Deploying redis (manifest) ==="
-	kubectl apply -f example/redis/redis-vulnerable.yaml
+	kubectl apply -f example/deprecated/redis/redis-vulnerable.yaml
 	kubectl wait --for=condition=available --timeout=120s deployment/redis -n redis
 
 .PHONY: deploy-mariadb
@@ -496,7 +496,7 @@ nothing:
 # rules are an OVERLAY; the default `kubescape` target stays pure-chart) ---
 KS_HELM_V4_FLAGS := $(shell $(HELM) version --short 2>/dev/null | grep -q "^v4" && echo "--server-side=true --force-conflicts")
 KS_CD_FLAGS := $(if $(KS_SIGNED_CLUSTERDATA),--set-file nodeAgent.bundleSigning.signedClusterData=$(KS_SIGNED_CLUSTERDATA))
-SIGNED_BUNDLES_DIR ?= example/redis/distros/signed-bundles
+SIGNED_BUNDLES_DIR ?= example/deprecated/redis/distros/signed-bundles
 KUBESCAPE_TRUST_CM ?= kubescape-trust-bundle
 
 .PHONY: trust-bundle

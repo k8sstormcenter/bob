@@ -52,8 +52,8 @@ case "$APP" in
     ;;
   redis)
     APP_NS=redis
-    APP_FUNC_TESTS=example/redis-functional-tests.yaml
-    APP_ATTACKS=example/redis-attacks.yaml
+    APP_FUNC_TESTS=example/deprecated/redis/redis-functional-tests.yaml
+    APP_ATTACKS=example/deprecated/redis/redis-attacks.yaml
     APP_SERVICE=redis
     APP_PORT=6379
     APP_SCORE_THRESHOLD=0
