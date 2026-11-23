@@ -8,7 +8,7 @@ All trademarks are expressly reserved.
 
 🚨 Newly released: the counterpart [Sovereign-SOC-Chart](https://github.com/k8sstormcenter/soc/blob/main/skaffold.yaml) that contains the (alpha) runtime security stack, for which this tool is built.
 
-The draft spec maybe found [here](https://github.com/k8sstormcenter/sbob-spec/blob/main/spec/sbob-v0.2.1.md) , this repo is using `simulated attacks only`, so if you see a CNCF application getting a detection, that means we could detect the `weakness`, not that it `has` a weakness. This is not a pen-test-tool!
+The draft spec maybe found [here](https://github.com/k8sstormcenter/sbob-spec/blob/main/spec/sbob-v0.3.1.md) , this repo is using `simulated attacks only`, so if you see a CNCF application getting a detection, that means we could detect the `weakness`, not that it `has` a weakness. This is not a pen-test-tool!
 
 ### 🗺️ Roadmap — coming soon
 
