@@ -35,7 +35,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install PyYAML
-        run: pip install pyyaml
+        run: pip install --require-hashes -r .github/requirements/pyyaml.txt
 
       - name: Profiles
         run: python3 example/github-runner/harness/check_deploy.py example/github-runner/deploy --workload arc-runner=runner,dind
