@@ -15,7 +15,7 @@ on:
         description: commit of the pkg submodule that holds the workloads
         default: bdddc63929ceee4524c8d4b9e76b3ef325ccce13
       bobctl_tag:
-        description: tag of the bobctl build to download
+        description: tag of the bobctl build to download, or "build" to build it in each job from pkg_ref
         default: internal-bdddc63
       bobctl_sha256:
         description: sha256 of that build
@@ -138,6 +138,53 @@ jobs:
           name: contrast-${{ matrix.app }}
           path: artifacts/
           if-no-files-found: warn
+
+  summary:
+    name: Run summary
+    needs: [contrast]
+    if: ${{ always() && needs.contrast.result != 'cancelled' }}
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ENTLEIN_PAT }}
+
+      - name: Download what the applications produced
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: contrast-*
+          path: dl
+
+      - name: One record of the run
+        run: |
+          set -euo pipefail
+          git -C pkg fetch -q origin "$PKG_REF"
+          git -C pkg checkout -q FETCH_HEAD
+          [ -f pkg/corpus/collect.py ] || { echo "this pkg revision has no corpus/collect.py" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          python3 -I pkg/corpus/collect.py dl "${{ github.run_id }}" "$CHART_VER" "$BOBCTL_TAG@$(git -C pkg rev-parse --short HEAD)" > run.json
+          python3 -I - run.json >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json, sys
+          r = json.load(open(sys.argv[1]))
+          print("| application | type | known | ecosystem traits | gate | detected | missed | not landed | D | N | P |")
+          print("|---|---|---|---|---|---|---|---|---|---|---|")
+          for app, a in sorted(r["apps"].items()):
+              n = {}
+              for v in a["signatures"].values():
+                  n[v["verdict"]] = n.get(v["verdict"], 0) + 1
+              g = a.get("gate") or {}
+              k = g.get("kpi") or {}
+              print("| %s | %s | %s | %s | %s | %d | %d | %d | %s | %s | %s |" % (app, g.get("type", ""), g.get("corpus", ""), ", ".join(g.get("traits") or []), "pass" if g.get("pass") else "held", n.get("detected", 0), n.get("missed", 0), n.get("not-landed", 0), k.get("detectability"), k.get("noisiness"), k.get("portability")))
+          PY
+
+      - name: Upload the record
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: run-record
+          path: run.json
+          if-no-files-found: ignore
 
   examples:
     name: Example SBoBs
