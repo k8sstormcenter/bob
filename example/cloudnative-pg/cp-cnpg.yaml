@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: postgres
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e86117d
+    signature.kubescape.io/generator-ref: 404a916
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-cnpg-postgres
   namespace: sim-cnpg
@@ -29,13 +29,14 @@ spec:
     - {args: [/controller/manager, instance, run, --status-port-tls, --log-level=info], path: /controller/manager}
     - {argsRegex: '/controller/manager wal-archive --log-destination /controller/log/postgres\.json pg_wal/[^/ ]*', path: /controller/manager}
     - {args: [/pause], path: /pause}
-    - {argsRegex: '/bin/sh -c -- /controller/manager\x20wal-archive\x20--log-destination\x20/controller/log/postgres\.json\x20pg_wal/[A-Za-z0-9][A-Za-z0-9._-]*', path: /usr/bin/dash}
     - {argsRegex: '/usr/bin/pg_isready( [^ ]*)*', path: /usr/bin/perl}
     - {argsRegex: '/usr/lib/postgresql/[^/ ]*/bin/pg_controldata( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/pg_controldata}
     - {argsRegex: '/usr/lib/postgresql/[^/ ]*/bin/pg_ctl( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/pg_ctl}
     - {argsRegex: '/usr/lib/postgresql/[^/ ]*/bin/pg_isready( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/pg_isready}
     - {argsRegex: '/usr/lib/postgresql/[^/ ]*/bin/postgres( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/postgres}
     - {argsRegex: 'postgres( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/postgres}
+    - {path: /usr/bin/dash}
+    - {argsRegex: '/bin/sh -c -- /controller/manager\x20wal-archive\x20--log-destination\x20/controller/log/postgres\.json\x20pg_wal/[0-9A-Fa-f-]+', path: /usr/bin/dash}
   identifiedCallStacks: null
   imageID: ghcr.io/cloudnative-pg/postgresql@sha256:c437b7c6c00aa7e66f5d6de1dd83602391fdebd4ff776ffb1ab7aaba5e7351ad
   imageTag: ghcr.io/cloudnative-pg/postgresql:18.7-system-trixie
