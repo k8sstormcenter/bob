@@ -24,11 +24,17 @@ cd "$(dirname "$0")"
 SBOB="${2:-}"
 
 deploy_redis() {
+  local bind=()
+  if [ "$SBOB" = sbob ]; then
+    kubectl create namespace redis --dry-run=client -o yaml | kubectl apply -f -
+    apply_cp redis cp-redis.yaml
+    bind=(--set-string 'master.podLabels.kubescape\.io/user-defined-profile=redis')
+  fi
   helm install redis oci://registry-1.docker.io/bitnamicharts/redis --version 27.0.18 \
     --set architecture=standalone --set auth.enabled=false \
     --set image.repository=bitnami/redis \
     --set image.digest=sha256:08863c2c3f4e051fb6139b38fa223e9c13be5033326a59bead182860d899bf98 \
-    -n redis --create-namespace
+    "${bind[@]}" -n redis --create-namespace
 }
 
 deploy_valkey() {
@@ -80,7 +86,7 @@ label_sts() {  # ns  statefulset  profile
     -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"kubescape.io/user-defined-profile\":\"$3\"}}}}}"
 }
 
-bind_redis()  { apply_cp redis  cp-redis.yaml;  label_sts redis  redis-master   redis; }
+bind_redis()  { kubectl -n redis get runtimeprofile redis >/dev/null; }
 bind_valkey() { apply_cp valkey cp-valkey.yaml; label_sts valkey valkey-primary valkey; }
 bind_keydb()  { apply_cp keydb  cp-keydb.yaml;  label_sts keydb  keydb          keydb; }
 bind_dragonfly() {
