@@ -11,7 +11,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: redis
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: bobctl-0.1.30
+    signature.kubescape.io/generator-ref: bobctl-0.1.31
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: redis
   namespace: redis
@@ -31,8 +31,7 @@ spec:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-6379, port: 6379, protocol: TCP}], type: external}
   endpoints: null
   execs:
-    - {argsRegex: '/opt/bitnami/redis/bin/redis-cli -h localhost -p [^ ]* ping', path: /opt/bitnami/redis/bin/redis-cli}
-    - {argsRegex: '/opt/bitnami/redis/bin/redis-cli -p [^ ]* ping', path: /opt/bitnami/redis/bin/redis-cli}
+    - {argsRegex: '/opt/bitnami/redis/bin/redis-cli( [^ ]*)*', path: /opt/bitnami/redis/bin/redis-cli}
     - {argsRegex: '/opt/bitnami/redis/bin/redis-server( [^ ]*)*', path: /opt/bitnami/redis/bin/redis-server}
     - {argsRegex: 'redis-server\x20\*:6379( [^ ]*)*', path: /opt/bitnami/redis/bin/redis-server}
     - {args: [/pause], path: /pause}
@@ -49,7 +48,7 @@ spec:
     - {argsRegex: '/usr/bin/timeout -s [^ ]* [^ ]* redis-cli -p [^ ]* ping', path: /usr/bin/timeout}
     - {argsRegex: '/usr/bin/timeout -s [^ ]* [^ ]* redis-cli -h localhost -p [^ ]* ping', path: /usr/bin/timeout}
   identifiedCallStacks: null
-  imageID: registry-1.docker.io/bitnami/redis@sha256:08863c2c3f4e051fb6139b38fa223e9c13be5033326a59bead182860d899bf98
+  imageID: docker.io/bitnami/redis@sha256:08863c2c3f4e051fb6139b38fa223e9c13be5033326a59bead182860d899bf98
   imageTag: registry-1.docker.io/bitnami/redis@sha256:08863c2c3f4e051fb6139b38fa223e9c13be5033326a59bead182860d899bf98
   ingress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-6379, port: 6379, protocol: TCP}], type: external}
@@ -73,18 +72,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/libm.so.6, processes: [/opt/bitnami/redis/bin/redis-cli, /opt/bitnami/redis/bin/redis-server, /usr/bin/gawk]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/opt/bitnami/redis/bin/redis-cli, /usr/bin/bash]}
     - {flags: [O_RDONLY], path: /data, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_RDONLY], path: /data/appendonlydir, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /data/appendonlydir/appendonly.aof.1.incr.aof, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /data/appendonlydir/temp-appendonly.aof.incr, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /data/appendonlydir/temp-appendonly.aof.manifest, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /data/temp-249.rdb, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /data/temp-433.rdb, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /data/temp-57.rdb, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /data/temp-638.rdb, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /data/temp-822.rdb, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /data/temp-rewriteaof-1.aof, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_CREAT, O_NONBLOCK, O_RDONLY, O_TRUNC, O_WRONLY], path: /data/temp-rewriteaof-434.aof, processes: [/opt/bitnami/redis/bin/redis-server]}
-    - {flags: [O_NONBLOCK, O_RDONLY], path: /data/temp-rewriteaof-bg-434.aof, processes: [/opt/bitnami/redis/bin/redis-server]}
+    - {flags: [O_APPEND, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /data/*, processes: [/opt/bitnami/redis/bin/redis-server]}
     - {flags: [O_RDONLY], path: /dev/urandom, processes: [/opt/bitnami/redis/bin/redis-server]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/localtime, processes: [/opt/bitnami/redis/bin/redis-server]}
     - {flags: [O_RDONLY], path: /etc/ssl/distro.cnf, processes: [/opt/bitnami/redis/bin/redis-server]}

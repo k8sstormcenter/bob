@@ -16,21 +16,21 @@ target:
   service: valkey-primary
   namespace: valkey
   port: 6379
-  protocol: redis
+  protocol: tcp
 
 attacks:
   - name: recon-info-server
     type: custom
-    redis: { command: ["INFO", "server"] }
+    exec: { command: ["valkey-cli", "INFO", "server"] }
     successIndicators: [{ responseContains: "redis_version" }]
     expectedDetections: []
   - name: recon-config-dump
     type: custom
-    redis: { command: ["CONFIG", "GET", "*"] }
+    exec: { command: ["valkey-cli", "CONFIG", "GET", "*"] }
     expectedDetections: []
   - name: recon-client-list
     type: custom
-    redis: { command: ["CLIENT", "LIST"] }
+    exec: { command: ["valkey-cli", "CLIENT", "LIST"] }
     expectedDetections: []
   - name: exec-whoami
     type: cmdinject
