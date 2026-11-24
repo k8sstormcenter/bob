@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: falco
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: c83a6f7
+    signature.kubescape.io/generator-ref: e86117d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-falco-new-falco
   namespace: sim-falco-new
@@ -27,6 +27,7 @@ spec:
     - CAP_SYSLOG
     - CAP_SYS_ADMIN
     - CAP_SYS_PTRACE
+    - CAP_SYS_RESOURCE
   egress:
     - {dns: kubernetes.default.svc.cluster.local., dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: c0ac06813c18ce6e198226d3402f2c0a6254325defa0d66db23a1f53aaa0b3db, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
@@ -46,6 +47,7 @@ spec:
   imageID: docker.io/falcosecurity/falco@sha256:c21fc08035d67a0ea98b2c211f20fcef7fa8a764073e7415d4ac3039531eba86
   imageTag: docker.io/falcosecurity/falco:0.45.2-debian
   ingress:
+    - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-8765, port: 8765, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8765, port: 8765, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8765, port: 8765, protocol: TCP}], type: internal}
   opens:
@@ -68,15 +70,17 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/pause, /usr/bin/dash, /usr/bin/du, /usr/bin/falco, /usr/bin/ls, /usr/bin/wc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/bin/falco]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/runc, /usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc, /usr/bin/ls]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/dash]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/dash, /usr/bin/du, /usr/bin/falco, /usr/bin/ls, /usr/bin/wc]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco/rules.d/⋯, processes: [/usr/bin/du]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco/config.d, processes: [/usr/bin/du, /usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco/rules.d, processes: [/usr/bin/du, /usr/bin/falco, /usr/bin/ls]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco, processes: [/usr/bin/du, /usr/bin/ls]}
+    - {flags: [O_RDONLY], path: /dev/urandom, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /etc/falco/falco.yaml, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /etc/falco/falco_rules.yaml, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /etc/falco/rules.d/⋯/custom.yaml, processes: [/usr/bin/falco]}
@@ -113,6 +117,7 @@ spec:
     - {flags: [O_RDONLY], path: /host/proc/⋯/task/⋯/loginuid, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /host/proc/⋯/task/⋯/stat, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /host/proc/⋯/task/⋯/status, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/glibc-hwcaps/⋯/libtbbmalloc.so.2, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libtbbmalloc.so.2, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libtcm.so.1, processes: [/usr/bin/falco]}
@@ -123,10 +128,12 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /proc/⋯/cmdline, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /proc/⋯/fd, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/maps, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /proc/⋯/smaps_rollup, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /proc/⋯/stat, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /proc/⋯/status, processes: [/usr/bin/falco]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/kernel/btf/vmlinux, processes: [/usr/bin/falco]}
@@ -137,6 +144,10 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/kernel/debug/tracing/events/syscalls/sys_enter_openat2/id, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/bin/falco, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tls/*, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/*, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64/*, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/ls]}
   rulePolicies:
     R0002:
       processAllowed:
@@ -423,17 +434,9 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
-        path: /etc/mysql/*
-      - flags: null
-        path: /etc/mysql/debian.cnf
-      - flags: null
-        path: /etc/postgresql/*
-      - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
-      - flags: null
-        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -457,21 +460,11 @@ spec:
       - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
-        path: /usr/local/etc/redis/*
-      - flags: null
-        path: /var/lib/postgresql/*/pg_hba.conf
-      - flags: null
-        path: /var/lib/postgresql/*/pg_ident.conf
-      - flags: null
-        path: /var/lib/postgresql/*/postgresql.auto.conf
-      - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/token
       - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
-      - flags: null
-        path: /var/www/*/.htaccess
   syscalls:
     - bpf
 status: {}

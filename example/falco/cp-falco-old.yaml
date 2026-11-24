@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: falco
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: c83a6f7
+    signature.kubescape.io/generator-ref: e86117d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-falco-old-falco
   namespace: sim-falco-old
@@ -69,11 +69,12 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/pause, /usr/bin/dash, /usr/bin/du, /usr/bin/falco, /usr/bin/ls, /usr/bin/wc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc, /usr/bin/ls]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/dash]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/dash, /usr/bin/du, /usr/bin/falco, /usr/bin/ls, /usr/bin/wc]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco/rules.d/⋯, processes: [/usr/bin/du]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco/rules.d, processes: [/usr/bin/du, /usr/bin/falco, /usr/bin/ls]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/falco, processes: [/usr/bin/du, /usr/bin/ls]}
@@ -117,6 +118,7 @@ spec:
     - {flags: [O_RDONLY], path: /host/proc/⋯/task/⋯/stat, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /host/proc/⋯/task/⋯/status, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /host/run/user, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/glibc-hwcaps/⋯/libtbbmalloc.so.2, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/libtbbmalloc.so.2, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /proc/sys/kernel/bpf_stats_enabled, processes: [/usr/bin/falco]}
@@ -125,10 +127,13 @@ spec:
     - {flags: [O_RDONLY], path: /proc/⋯/smaps_rollup, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /proc/⋯/stat, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /proc/⋯/status, processes: [/usr/bin/falco]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/kernel/btf/vmlinux, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/tls/*, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64-linux-gnu/*, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/x86_64/*, processes: [/usr/bin/falco]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/ls]}
   rulePolicies:
     R0002:
       processAllowed:
@@ -415,17 +420,9 @@ spec:
       - flags: null
         path: /etc/ld.so.preload
       - flags: null
-        path: /etc/mysql/*
-      - flags: null
-        path: /etc/mysql/debian.cnf
-      - flags: null
-        path: /etc/postgresql/*
-      - flags: null
         path: /etc/profile.d/*
       - flags: null
         path: /etc/rc.local
-      - flags: null
-        path: /etc/redis/*
       - flags: null
         path: /etc/shadow
       - flags: null
@@ -449,21 +446,11 @@ spec:
       - flags: null
         path: /usr/lib/systemd/system/*
       - flags: null
-        path: /usr/local/etc/redis/*
-      - flags: null
-        path: /var/lib/postgresql/*/pg_hba.conf
-      - flags: null
-        path: /var/lib/postgresql/*/pg_ident.conf
-      - flags: null
-        path: /var/lib/postgresql/*/postgresql.auto.conf
-      - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/token
       - flags: null
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
-      - flags: null
-        path: /var/www/*/.htaccess
   syscalls:
     - bpf
 status: {}
