@@ -31,7 +31,7 @@ should match the reason comments in the suite.
 Usage:
   render-rule-coverage-gif.py --out redis-killchain.gif \
       --ruleset kubescape/.rules-from-chart.yaml   # make rules-from-chart \
-      --suite example/deprecated/redis/redis-attacks.yaml \
+      --suite example/deprecated/redis/distros/attacks/redis-oss.yaml \
       --metrics results/metrics.json \
       --title "redis" \
       --probe R0004,R0040,R1002 --exclude R0003,R1007
