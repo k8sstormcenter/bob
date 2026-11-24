@@ -56,8 +56,8 @@ attacks:
       - { ruleID: R0006, ruleName: Unexpected service account token access, containerName: redis, command: cat }
   - name: k8s-api-unexpected-call
     type: cmdinject
-    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(443,inet_aton('10.43.0.1'))); close($s); print qq{k8s_api_probe_done}"] }
-    successIndicators: [{ responseContains: "k8s_api_probe_done" }]
+    exec: { command: ["bash", "-c", "timeout 5 bash -c 'exec 3<>/dev/tcp/$KUBERNETES_SERVICE_HOST/$KUBERNETES_SERVICE_PORT' && echo k8s_api_probe_done || echo k8s_api_probe_attempted"] }
+    successIndicators: [{ responseContains: "k8s_api_probe_" }]
     expectedDetections:
       - { ruleID: R0007, ruleName: Workload uses Kubernetes API unexpectedly, containerName: redis }
   - name: exec-proc-environ
@@ -73,14 +73,14 @@ attacks:
       - { ruleID: R0010, ruleName: Unexpected Sensitive File Access, containerName: redis, command: cat }
   - name: egress-external-c2
     type: cmdinject
-    exec: { command: ["perl", "-e", "use Socket; socket(my $s,PF_INET,SOCK_STREAM,getprotobyname('tcp')); connect($s,sockaddr_in(80,inet_aton('1.1.1.1'))); close($s); print qq{egress_attempted}"] }
-    successIndicators: [{ responseContains: "egress_attempted" }]
+    exec: { command: ["bash", "-c", "timeout 5 bash -c 'exec 3<>/dev/tcp/1.1.1.1/80' && echo egress_done || echo egress_attempted"] }
+    successIndicators: [{ responseContains: "egress_" }]
     expectedDetections:
       - { ruleID: R0011, ruleName: Unexpected Egress Network Traffic, containerName: redis }
-  - name: drifted-binary-exec
+  - name: exec-from-devshm
     type: cmdinject
-    exec: { command: ["sh", "-c", "cp /bin/ls /data/drifted_bob && printf '\\n#bob-drift' >> /data/drifted_bob && chmod +x /data/drifted_bob && /data/drifted_bob / >/dev/null 2>&1 && echo drift_exec_done; rm -f /data/drifted_bob"] }
-    successIndicators: [{ responseContains: "drift_exec_done" }]
+    exec: { command: ["sh", "-c", "cp /bin/ls /dev/shm/bob_shm && chmod +x /dev/shm/bob_shm && /dev/shm/bob_shm / >/dev/null 2>&1 && echo shm_exec_done; rm -f /dev/shm/bob_shm"] }
+    successIndicators: [{ responseContains: "shm_exec_done" }]
     expectedDetections:
       - { ruleID: R1000, ruleName: Process executed from malicious source, containerName: redis }
   - name: exec-from-volume-mount
@@ -91,7 +91,7 @@ attacks:
       - { ruleID: R1004, ruleName: Process executed from mount, containerName: redis }
   - name: fileless-memfd-exec
     type: fileless
-    exec: { command: ["perl", "-e", "my $n=\"bobfl\\0\"; my $fd=syscall(319,$n,0); die if $fd<0; open(my $m,'>&='.$fd) or die; open(my $s,'<','/bin/echo') or die; binmode $s; binmode $m; local $/; my $d=<$s>; print $m $d; exec(\"/proc/$$/fd/$fd\",\"memfd_exec_done\");"] }
+    exec: { command: ["sh", "-c", "echo H4sIAAAAAAACA+1YTWsTQRiefGwTtLCaXjyVHCLEQnezaZEiors2sVOIgjQ5aSn52FihSUqygRakRSSQKfgDFH9Ej/ErTf1ok5Nai4hC8WAxNFAFDxUPxpnd2TYuVqV4cx6YeT/mfd55eI/vfDhy3m6zARN2cAaQSLbJeizT/GLPbgnODQEnvl2gS6914eOlLbyUZ9rjHiPvp9ZLezjp2Y9n1pnWTe3YppY6CO8S5nWBv8eRDp3E5/AZuRjD8wE1knPQ9y987zclJtWktbC0pkTDUm2pr0cGEL2OjUEU8n0lV71yFsuFqyFfUyaP2PkcwA7PjaJlWKrNdldO415LuDnOhUkv3LDqxSUVm85cvdtut3kOomeknDfKiQb8Ec898GNPuU+U6kyI3kTQc4i2MaNUm9+8UGpo7oWQb11qtFyLgXtkdmUcVg9hJ4LquGjuKLwNd77ffBwoR7vXYXu5tQWTLyF6Uappx+SF685XEK3Adh3ubMjlh8FtjwxaH1DD1Lpyg2RA9b3HKnkUPe2Q7DQlS++UR0S/0SCCmrrgDYje8hyOIPrEc0qFjB7eivqaEXzVI+hjNUxmcs62NyejL6f3NeiXx5UryvgTwMDAwMDAwMDAwMDAwMDA8J9AnM7nkmJBnUqL6ZR4AH7iWlZUk5M5kMgl0lMgo2bSqQl1Rk1OpHJZFehPI8PDp7z+WKKY1YpeaUAYEAL9J4t6GJwLDgqBQUE6QR8AEAqTBS2vxRNAyOY0VbiaLQpY5bSa12aBoKkzGhBScS0OhEShAIRkLpNRs9o/msdhYOzr7DTe25/R2FLvtsS9+JBSc5e2uyek/Du2n+stIfDRnLk/Iwsjwxqxaqm36umjmkw+2QcZ1ogd4Pf/izQXsORNfv8+/E7r+MVc85Q/9If/fwDCLOhVcBUAAA== | base64 -d | gunzip > /tmp/.bobfl && chmod +x /tmp/.bobfl && /tmp/.bobfl; rc=$?; rm -f /tmp/.bobfl; exit $rc"] }
     successIndicators: [{ responseContains: "memfd_exec_done" }]
     expectedDetections:
       - { ruleID: R1005, ruleName: Fileless execution detected, containerName: redis }
