@@ -423,6 +423,18 @@ kubescape: check-registry-auth
 wait-node-agent:
 	@echo "Waiting for node-agent DaemonSet to become ready (no restart)..."
 	kubectl rollout status -n honey ds node-agent --timeout=300s
+	@for p in $$(kubectl -n honey get pods -l app.kubernetes.io/component=node-agent -o name); do \
+	  for i in $$(seq 1 90); do \
+	    L=$$(kubectl -n honey logs $$p 2>/dev/null | grep 'Started tracer'); \
+	    echo "$$L" | grep -q trace_open && echo "$$L" | grep -q trace_exec && break; \
+	    sleep 5; \
+	  done; \
+	  prev=-1; for i in $$(seq 1 30); do \
+	    n=$$(kubectl -n honey logs $$p 2>/dev/null | grep -c 'Started tracer'); \
+	    [ "$$n" = "$$prev" ] && break; prev=$$n; sleep 10; \
+	  done; \
+	  echo "$$p: $$prev tracers started"; \
+	done
 	@echo "=== node-agent pods ==="
 	kubectl get pods -n honey -l app.kubernetes.io/component=node-agent -o wide
 
