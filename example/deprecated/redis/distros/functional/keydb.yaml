@@ -20,97 +20,97 @@ target:
   service: keydb
   namespace: keydb
   port: 6379
-  scheme: redis
+  scheme: tcp
 tests:
   # ── Connection / server / introspection ───────────────────────────────────
-  - {name: ping,          redis: {command: ["PING"], expectedReply: "PONG"}}
-  - {name: echo,          redis: {command: ["ECHO", "bob"], expectedReply: "bob"}}
-  - {name: select0,       redis: {command: ["SELECT", "0"], expectedReply: "OK"}}
-  - {name: client-setname, redis: {command: ["CLIENT", "SETNAME", "bobclient"]}}
-  - {name: client-id,     redis: {command: ["CLIENT", "ID"]}}
-  - {name: client-info,   redis: {command: ["CLIENT", "INFO"]}}
-  - {name: command-count, redis: {command: ["COMMAND", "COUNT"]}}
-  - {name: config-maxmem, redis: {command: ["CONFIG", "GET", "maxmemory"]}}
-  - {name: info-server,   redis: {command: ["INFO", "server"], expectedReply: "redis_version"}}
-  - {name: info-persist,  redis: {command: ["INFO", "persistence"]}}
-  - {name: info-stats,    redis: {command: ["INFO", "stats"]}}
-  - {name: info-cpu,      redis: {command: ["INFO", "cpu"]}}
-  - {name: time,          redis: {command: ["TIME"]}}
-  - {name: dbsize,        redis: {command: ["DBSIZE"]}}
-  - {name: slowlog-get,   redis: {command: ["SLOWLOG", "GET", "10"]}}
-  - {name: memory-doctor, redis: {command: ["MEMORY", "DOCTOR"]}}
+  - {name: ping,          exec: {command: ["keydb-cli", "-e", "PING"], expectedExitCode: 0}}
+  - {name: echo,          exec: {command: ["keydb-cli", "-e", "ECHO", "bob"], expectedExitCode: 0}}
+  - {name: select0,       exec: {command: ["keydb-cli", "-e", "SELECT", "0"], expectedExitCode: 0}}
+  - {name: client-setname, exec: {command: ["keydb-cli", "-e", "CLIENT", "SETNAME", "bobclient"], expectedExitCode: 0}}
+  - {name: client-id,     exec: {command: ["keydb-cli", "-e", "CLIENT", "ID"], expectedExitCode: 0}}
+  - {name: client-info,   exec: {command: ["keydb-cli", "-e", "CLIENT", "INFO"], expectedExitCode: 0}}
+  - {name: command-count, exec: {command: ["keydb-cli", "-e", "COMMAND", "COUNT"], expectedExitCode: 0}}
+  - {name: config-maxmem, exec: {command: ["keydb-cli", "-e", "CONFIG", "GET", "maxmemory"], expectedExitCode: 0}}
+  - {name: info-server,   exec: {command: ["keydb-cli", "-e", "INFO", "server"], expectedExitCode: 0}}
+  - {name: info-persist,  exec: {command: ["keydb-cli", "-e", "INFO", "persistence"], expectedExitCode: 0}}
+  - {name: info-stats,    exec: {command: ["keydb-cli", "-e", "INFO", "stats"], expectedExitCode: 0}}
+  - {name: info-cpu,      exec: {command: ["keydb-cli", "-e", "INFO", "cpu"], expectedExitCode: 0}}
+  - {name: time,          exec: {command: ["keydb-cli", "-e", "TIME"], expectedExitCode: 0}}
+  - {name: dbsize,        exec: {command: ["keydb-cli", "-e", "DBSIZE"], expectedExitCode: 0}}
+  - {name: slowlog-get,   exec: {command: ["keydb-cli", "-e", "SLOWLOG", "GET", "10"], expectedExitCode: 0}}
+  - {name: memory-doctor, exec: {command: ["keydb-cli", "-e", "MEMORY", "DOCTOR"], expectedExitCode: 0}}
 
   # ── Strings + expiry variants ─────────────────────────────────────────────
-  - {name: set,           redis: {command: ["SET", "s:k", "hello"], expectedReply: "OK"}}
-  - {name: set-ex,        redis: {command: ["SET", "s:ttl", "v", "EX", "100"]}}
-  - {name: set-nx,        redis: {command: ["SET", "s:k", "no", "NX"]}}
-  - {name: append,        redis: {command: ["APPEND", "s:k", "-world"]}}
-  - {name: strlen,        redis: {command: ["STRLEN", "s:k"]}}
-  - {name: getrange,      redis: {command: ["GETRANGE", "s:k", "0", "4"]}}
-  - {name: setrange,      redis: {command: ["SETRANGE", "s:k", "0", "J"]}}
-  - {name: getdel,        redis: {command: ["GETDEL", "s:ttl"]}}
-  - {name: mset,          redis: {command: ["MSET", "s:a", "1", "s:b", "2", "s:c", "3"]}}
-  - {name: mget,          redis: {command: ["MGET", "s:a", "s:b", "s:c"]}}
-  - {name: incr,          redis: {command: ["INCR", "n:ctr"]}}
-  - {name: incrby,        redis: {command: ["INCRBY", "n:ctr", "10"]}}
-  - {name: incrbyfloat,   redis: {command: ["INCRBYFLOAT", "n:f", "3.14"]}}
+  - {name: set,           exec: {command: ["keydb-cli", "-e", "SET", "s:k", "hello"], expectedExitCode: 0}}
+  - {name: set-ex,        exec: {command: ["keydb-cli", "-e", "SET", "s:ttl", "v", "EX", "100"], expectedExitCode: 0}}
+  - {name: set-nx,        exec: {command: ["keydb-cli", "-e", "SET", "s:k", "no", "NX"], expectedExitCode: 0}}
+  - {name: append,        exec: {command: ["keydb-cli", "-e", "APPEND", "s:k", "-world"], expectedExitCode: 0}}
+  - {name: strlen,        exec: {command: ["keydb-cli", "-e", "STRLEN", "s:k"], expectedExitCode: 0}}
+  - {name: getrange,      exec: {command: ["keydb-cli", "-e", "GETRANGE", "s:k", "0", "4"], expectedExitCode: 0}}
+  - {name: setrange,      exec: {command: ["keydb-cli", "-e", "SETRANGE", "s:k", "0", "J"], expectedExitCode: 0}}
+  - {name: getdel,        exec: {command: ["keydb-cli", "-e", "GETDEL", "s:ttl"], expectedExitCode: 0}}
+  - {name: mset,          exec: {command: ["keydb-cli", "-e", "MSET", "s:a", "1", "s:b", "2", "s:c", "3"], expectedExitCode: 0}}
+  - {name: mget,          exec: {command: ["keydb-cli", "-e", "MGET", "s:a", "s:b", "s:c"], expectedExitCode: 0}}
+  - {name: incr,          exec: {command: ["keydb-cli", "-e", "INCR", "n:ctr"], expectedExitCode: 0}}
+  - {name: incrby,        exec: {command: ["keydb-cli", "-e", "INCRBY", "n:ctr", "10"], expectedExitCode: 0}}
+  - {name: incrbyfloat,   exec: {command: ["keydb-cli", "-e", "INCRBYFLOAT", "n:f", "3.14"], expectedExitCode: 0}}
 
   # ── Bitmaps ───────────────────────────────────────────────────────────────
-  - {name: setbit,        redis: {command: ["SETBIT", "bm:k", "7", "1"]}}
-  - {name: getbit,        redis: {command: ["GETBIT", "bm:k", "7"]}}
-  - {name: bitcount,      redis: {command: ["BITCOUNT", "bm:k"]}}
-  - {name: bitfield,      redis: {command: ["BITFIELD", "bm:f", "SET", "u8", "0", "255", "GET", "u8", "0"]}}
+  - {name: setbit,        exec: {command: ["keydb-cli", "-e", "SETBIT", "bm:k", "7", "1"], expectedExitCode: 0}}
+  - {name: getbit,        exec: {command: ["keydb-cli", "-e", "GETBIT", "bm:k", "7"], expectedExitCode: 0}}
+  - {name: bitcount,      exec: {command: ["keydb-cli", "-e", "BITCOUNT", "bm:k"], expectedExitCode: 0}}
+  - {name: bitfield,      exec: {command: ["keydb-cli", "-e", "BITFIELD", "bm:f", "SET", "u8", "0", "255", "GET", "u8", "0"], expectedExitCode: 0}}
 
   # ── Hashes ────────────────────────────────────────────────────────────────
-  - {name: hset,          redis: {command: ["HSET", "h:u", "name", "bob", "age", "5"]}}
-  - {name: hget,          redis: {command: ["HGET", "h:u", "name"], expectedReply: "bob"}}
-  - {name: hgetall,       redis: {command: ["HGETALL", "h:u"]}}
-  - {name: hincrby,       redis: {command: ["HINCRBY", "h:u", "age", "1"]}}
-  - {name: hrandfield,    redis: {command: ["HRANDFIELD", "h:u", "2"]}}
-  - {name: hscan,         redis: {command: ["HSCAN", "h:u", "0"]}}
+  - {name: hset,          exec: {command: ["keydb-cli", "-e", "HSET", "h:u", "name", "bob", "age", "5"], expectedExitCode: 0}}
+  - {name: hget,          exec: {command: ["keydb-cli", "-e", "HGET", "h:u", "name"], expectedExitCode: 0}}
+  - {name: hgetall,       exec: {command: ["keydb-cli", "-e", "HGETALL", "h:u"], expectedExitCode: 0}}
+  - {name: hincrby,       exec: {command: ["keydb-cli", "-e", "HINCRBY", "h:u", "age", "1"], expectedExitCode: 0}}
+  - {name: hrandfield,    exec: {command: ["keydb-cli", "-e", "HRANDFIELD", "h:u", "2"], expectedExitCode: 0}}
+  - {name: hscan,         exec: {command: ["keydb-cli", "-e", "HSCAN", "h:u", "0"], expectedExitCode: 0}}
 
   # ── Lists ─────────────────────────────────────────────────────────────────
-  - {name: rpush,         redis: {command: ["RPUSH", "l:q", "a", "b", "c", "d"]}}
-  - {name: lrange,        redis: {command: ["LRANGE", "l:q", "0", "-1"]}}
-  - {name: lpop,          redis: {command: ["LPOP", "l:q"]}}
-  - {name: linsert,       redis: {command: ["LINSERT", "l:q", "BEFORE", "c", "b2"]}}
-  - {name: lmove,         redis: {command: ["LMOVE", "l:q", "l:q2", "LEFT", "RIGHT"]}}
-  - {name: llen,          redis: {command: ["LLEN", "l:q"]}}
+  - {name: rpush,         exec: {command: ["keydb-cli", "-e", "RPUSH", "l:q", "a", "b", "c", "d"], expectedExitCode: 0}}
+  - {name: lrange,        exec: {command: ["keydb-cli", "-e", "LRANGE", "l:q", "0", "-1"], expectedExitCode: 0}}
+  - {name: lpop,          exec: {command: ["keydb-cli", "-e", "LPOP", "l:q"], expectedExitCode: 0}}
+  - {name: linsert,       exec: {command: ["keydb-cli", "-e", "LINSERT", "l:q", "BEFORE", "c", "b2"], expectedExitCode: 0}}
+  - {name: lmove,         exec: {command: ["keydb-cli", "-e", "LMOVE", "l:q", "l:q2", "LEFT", "RIGHT"], expectedExitCode: 0}}
+  - {name: llen,          exec: {command: ["keydb-cli", "-e", "LLEN", "l:q"], expectedExitCode: 0}}
 
   # ── Sets ──────────────────────────────────────────────────────────────────
-  - {name: sadd,          redis: {command: ["SADD", "set:a", "x", "y", "z"]}}
-  - {name: sadd2,         redis: {command: ["SADD", "set:b", "y", "z", "w"]}}
-  - {name: sinter,        redis: {command: ["SINTER", "set:a", "set:b"]}}
-  - {name: sunionstore,   redis: {command: ["SUNIONSTORE", "set:u", "set:a", "set:b"]}}
-  - {name: sscan,         redis: {command: ["SSCAN", "set:a", "0"]}}
+  - {name: sadd,          exec: {command: ["keydb-cli", "-e", "SADD", "set:a", "x", "y", "z"], expectedExitCode: 0}}
+  - {name: sadd2,         exec: {command: ["keydb-cli", "-e", "SADD", "set:b", "y", "z", "w"], expectedExitCode: 0}}
+  - {name: sinter,        exec: {command: ["keydb-cli", "-e", "SINTER", "set:a", "set:b"], expectedExitCode: 0}}
+  - {name: sunionstore,   exec: {command: ["keydb-cli", "-e", "SUNIONSTORE", "set:u", "set:a", "set:b"], expectedExitCode: 0}}
+  - {name: sscan,         exec: {command: ["keydb-cli", "-e", "SSCAN", "set:a", "0"], expectedExitCode: 0}}
 
   # ── Sorted sets ───────────────────────────────────────────────────────────
-  - {name: zadd,          redis: {command: ["ZADD", "z:lb", "1", "a", "2", "b", "3", "c"]}}
-  - {name: zrangebyscore, redis: {command: ["ZRANGEBYSCORE", "z:lb", "-inf", "+inf"]}}
-  - {name: zincrby,       redis: {command: ["ZINCRBY", "z:lb", "5", "a"]}}
-  - {name: zpopmax,       redis: {command: ["ZPOPMAX", "z:lb"]}}
-  - {name: zrangestore,   redis: {command: ["ZRANGESTORE", "z:dst", "z:lb", "0", "-1"]}}
+  - {name: zadd,          exec: {command: ["keydb-cli", "-e", "ZADD", "z:lb", "1", "a", "2", "b", "3", "c"], expectedExitCode: 0}}
+  - {name: zrangebyscore, exec: {command: ["keydb-cli", "-e", "ZRANGEBYSCORE", "z:lb", "-inf", "+inf"], expectedExitCode: 0}}
+  - {name: zincrby,       exec: {command: ["keydb-cli", "-e", "ZINCRBY", "z:lb", "5", "a"], expectedExitCode: 0}}
+  - {name: zpopmax,       exec: {command: ["keydb-cli", "-e", "ZPOPMAX", "z:lb"], expectedExitCode: 0}}
+  - {name: zrangestore,   exec: {command: ["keydb-cli", "-e", "ZRANGESTORE", "z:dst", "z:lb", "0", "-1"], expectedExitCode: 0}}
 
   # ── HyperLogLog / Geo ─────────────────────────────────────────────────────
-  - {name: pfadd,         redis: {command: ["PFADD", "hll:v", "a", "b", "c"]}}
-  - {name: pfcount,       redis: {command: ["PFCOUNT", "hll:v"]}}
-  - {name: geoadd,        redis: {command: ["GEOADD", "geo:p", "13.361", "38.115", "palermo"]}}
-  - {name: geosearch,     redis: {command: ["GEOSEARCH", "geo:p", "FROMMEMBER", "palermo", "BYRADIUS", "200", "km", "ASC"]}}
+  - {name: pfadd,         exec: {command: ["keydb-cli", "-e", "PFADD", "hll:v", "a", "b", "c"], expectedExitCode: 0}}
+  - {name: pfcount,       exec: {command: ["keydb-cli", "-e", "PFCOUNT", "hll:v"], expectedExitCode: 0}}
+  - {name: geoadd,        exec: {command: ["keydb-cli", "-e", "GEOADD", "geo:p", "13.361", "38.115", "palermo"], expectedExitCode: 0}}
+  - {name: geosearch,     exec: {command: ["keydb-cli", "-e", "GEOSEARCH", "geo:p", "FROMMEMBER", "palermo", "BYRADIUS", "200", "km", "ASC"], expectedExitCode: 0}}
 
   # ── Streams ───────────────────────────────────────────────────────────────
-  - {name: xadd1,         redis: {command: ["XADD", "st:s", "*", "f", "1"]}}
-  - {name: xadd2,         redis: {command: ["XADD", "st:s", "*", "f", "2"]}}
-  - {name: xlen,          redis: {command: ["XLEN", "st:s"]}}
-  - {name: xrange,        redis: {command: ["XRANGE", "st:s", "-", "+"]}}
-  - {name: xinfo,         redis: {command: ["XINFO", "STREAM", "st:s"]}}
-  - {name: xtrim,         redis: {command: ["XTRIM", "st:s", "MAXLEN", "100"]}}
+  - {name: xadd1,         exec: {command: ["keydb-cli", "-e", "XADD", "st:s", "*", "f", "1"], expectedExitCode: 0}}
+  - {name: xadd2,         exec: {command: ["keydb-cli", "-e", "XADD", "st:s", "*", "f", "2"], expectedExitCode: 0}}
+  - {name: xlen,          exec: {command: ["keydb-cli", "-e", "XLEN", "st:s"], expectedExitCode: 0}}
+  - {name: xrange,        exec: {command: ["keydb-cli", "-e", "XRANGE", "st:s", "-", "+"], expectedExitCode: 0}}
+  - {name: xinfo,         exec: {command: ["keydb-cli", "-e", "XINFO", "STREAM", "st:s"], expectedExitCode: 0}}
+  - {name: xtrim,         exec: {command: ["keydb-cli", "-e", "XTRIM", "st:s", "MAXLEN", "100"], expectedExitCode: 0}}
 
   # ── Scripting (Lua) ─────────────────────────────────────────────────────────
   # keydb 6.x is Redis-6-based: FUNCTION (Redis 7.0 server-side functions) is not
   # implemented, so only EVAL/SCRIPT are exercised here.
-  - {name: eval,          redis: {command: ["EVAL", "return redis.call('SET', KEYS[1], ARGV[1])", "1", "lua:k", "luaval"]}}
-  - {name: eval-compute,  redis: {command: ["EVAL", "local t=0 for i=1,100 do t=t+i end return t", "0"]}}
-  - {name: script-load,   redis: {command: ["SCRIPT", "LOAD", "return 1"]}}
+  - {name: eval,          exec: {command: ["keydb-cli", "-e", "EVAL", "return redis.call('SET', KEYS[1], ARGV[1])", "1", "lua:k", "luaval"], expectedExitCode: 0}}
+  - {name: eval-compute,  exec: {command: ["keydb-cli", "-e", "EVAL", "local t=0 for i=1,100 do t=t+i end return t", "0"], expectedExitCode: 0}}
+  - {name: script-load,   exec: {command: ["keydb-cli", "-e", "SCRIPT", "LOAD", "return 1"], expectedExitCode: 0}}
 
   # NOTE: MULTI/EXEC transactions and SUBSCRIBE/MONITOR/blocking ops are omitted —
   # bobctl's RESP client opens a fresh RESP2 connection per test, so multi-command
@@ -119,25 +119,25 @@ tests:
   # profile needs the transaction/replication-buffer code paths.
 
   # ── Pub/Sub publish (fire-and-forget) ─────────────────────────────────────
-  - {name: publish,       redis: {command: ["PUBLISH", "ch:events", "hello-subscribers"]}}
-  - {name: pubsub-chan,   redis: {command: ["PUBSUB", "CHANNELS"]}}
+  - {name: publish,       exec: {command: ["keydb-cli", "-e", "PUBLISH", "ch:events", "hello-subscribers"], expectedExitCode: 0}}
+  - {name: pubsub-chan,   exec: {command: ["keydb-cli", "-e", "PUBSUB", "CHANNELS"], expectedExitCode: 0}}
 
   # ── Generic keyspace / expiry / object introspection ──────────────────────
-  - {name: expire,        redis: {command: ["EXPIRE", "s:k", "300"]}}
-  - {name: ttl,           redis: {command: ["TTL", "s:k"]}}
-  - {name: persist,       redis: {command: ["PERSIST", "s:k"]}}
-  - {name: type,          redis: {command: ["TYPE", "z:lb"]}}
-  - {name: object-encoding, redis: {command: ["OBJECT", "ENCODING", "z:lb"]}}
-  - {name: copy,          redis: {command: ["COPY", "s:k", "s:kcopy"]}}
-  - {name: scan,          redis: {command: ["SCAN", "0", "COUNT", "100"]}}
-  - {name: randomkey,     redis: {command: ["RANDOMKEY"]}}
-  - {name: touch,         redis: {command: ["TOUCH", "s:a", "s:b"]}}
+  - {name: expire,        exec: {command: ["keydb-cli", "-e", "EXPIRE", "s:k", "300"], expectedExitCode: 0}}
+  - {name: ttl,           exec: {command: ["keydb-cli", "-e", "TTL", "s:k"], expectedExitCode: 0}}
+  - {name: persist,       exec: {command: ["keydb-cli", "-e", "PERSIST", "s:k"], expectedExitCode: 0}}
+  - {name: type,          exec: {command: ["keydb-cli", "-e", "TYPE", "z:lb"], expectedExitCode: 0}}
+  - {name: object-encoding, exec: {command: ["keydb-cli", "-e", "OBJECT", "ENCODING", "z:lb"], expectedExitCode: 0}}
+  - {name: copy,          exec: {command: ["keydb-cli", "-e", "COPY", "s:k", "s:kcopy"], expectedExitCode: 0}}
+  - {name: scan,          exec: {command: ["keydb-cli", "-e", "SCAN", "0", "COUNT", "100"], expectedExitCode: 0}}
+  - {name: randomkey,     exec: {command: ["keydb-cli", "-e", "RANDOMKEY"], expectedExitCode: 0}}
+  - {name: touch,         exec: {command: ["keydb-cli", "-e", "TOUCH", "s:a", "s:b"], expectedExitCode: 0}}
 
   # ── Persistence — the fork-triggering paths (key for a realistic profile) ──
-  - {name: bgsave,        redis: {command: ["BGSAVE", "SCHEDULE"]}}
-  - {name: lastsave,      redis: {command: ["LASTSAVE"]}}
-  - {name: config-aof-on, redis: {command: ["CONFIG", "SET", "appendonly", "yes"], expectedReply: "OK"}}
-  - {name: config-aof-off, redis: {command: ["CONFIG", "SET", "appendonly", "no"]}}
+  - {name: bgsave,        exec: {command: ["keydb-cli", "-e", "BGSAVE", "SCHEDULE"], expectedExitCode: 0}}
+  - {name: lastsave,      exec: {command: ["keydb-cli", "-e", "LASTSAVE"], expectedExitCode: 0}}
+  - {name: config-aof-on, exec: {command: ["keydb-cli", "-e", "CONFIG", "SET", "appendonly", "yes"], expectedExitCode: 0}}
+  - {name: config-aof-off, exec: {command: ["keydb-cli", "-e", "CONFIG", "SET", "appendonly", "no"], expectedExitCode: 0}}
 
   # ── Cleanup ───────────────────────────────────────────────────────────────
-  - {name: unlink,        redis: {command: ["UNLINK", "s:kcopy", "l:q2", "set:u", "z:dst"]}}
+  - {name: unlink,        exec: {command: ["keydb-cli", "-e", "UNLINK", "s:kcopy", "l:q2", "set:u", "z:dst"], expectedExitCode: 0}}

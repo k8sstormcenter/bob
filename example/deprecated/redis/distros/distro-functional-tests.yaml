@@ -14,21 +14,21 @@ target:
   service: redis
   namespace: redis-oss
   port: 6379
-  scheme: redis
+  scheme: tcp
 tests:
   - name: ping
-    redis: { command: ["PING"] }
+    exec: {command: ["redis-cli", "-e", "PING"], expectedExitCode: 0}
   - name: info-server
-    redis: { command: ["INFO", "server"] }
+    exec: {command: ["redis-cli", "-e", "INFO", "server"], expectedExitCode: 0}
   - name: set-key
-    redis: { command: ["SET", "bob:probe", "v1"] }
+    exec: {command: ["redis-cli", "-e", "SET", "bob:probe", "v1"], expectedExitCode: 0}
   - name: get-key
-    redis: { command: ["GET", "bob:probe"] }
+    exec: {command: ["redis-cli", "-e", "GET", "bob:probe"], expectedExitCode: 0}
   - name: dbsize
-    redis: { command: ["DBSIZE"] }
+    exec: {command: ["redis-cli", "-e", "DBSIZE"], expectedExitCode: 0}
   - name: client-list
-    redis: { command: ["CLIENT", "LIST"] }
+    exec: {command: ["redis-cli", "-e", "CLIENT", "LIST"], expectedExitCode: 0}
   - name: command-count
-    redis: { command: ["COMMAND", "COUNT"] }
+    exec: {command: ["redis-cli", "-e", "COMMAND", "COUNT"], expectedExitCode: 0}
   - name: del-key
-    redis: { command: ["DEL", "bob:probe"] }
+    exec: {command: ["redis-cli", "-e", "DEL", "bob:probe"], expectedExitCode: 0}
