@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 757ed7b
+    signature.kubescape.io/generator-ref: e86117d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-notification-manager
   namespace: flux-system
@@ -33,7 +33,7 @@ spec:
   imageID: ghcr.io/fluxcd/notification-controller@sha256:229b0685768aec0adf7f0d9536890c93bcffc06b17336e1c1fdd4372c4c27dca
   imageTag: ghcr.io/fluxcd/notification-controller:v1.10.1
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9090, port: 9090, protocol: TCP}, {name: TCP-9440, port: 9440, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 422a2565cebefb7d5baf64f1d905867eb038a3420679d91f83324e164077ab66, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: helm-controller, app.kubernetes.io/component: helm-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 2ab45f2f6a1a31d5f8d69091dd6ce97ca3da1d64c09b2d24814d1a1e7e09c970, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: kustomize-controller, app.kubernetes.io/component: kustomize-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: ce9ed7b2847c2dcbad8c178071676c2e1704ca4c800315b30a26d0636695d557, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: source-controller, app.kubernetes.io/component: source-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
