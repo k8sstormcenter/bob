@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: kafka
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e86117d
+    signature.kubescape.io/generator-ref: 404a916
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-kafka-kafka
   namespace: sim-kafka
@@ -126,20 +126,26 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /opt/java/*, processes: [/bin/bash, /bin/busybox, /bin/coreutils, /opt/java/openjdk/bin/java, /pause, /usr/bin/env]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/*, processes: [/bin/bash, /bin/busybox, /bin/coreutils, /opt/java/openjdk/bin/java, /pause, /usr/bin/env]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/*, processes: [/bin/bash, /bin/busybox, /bin/coreutils, /opt/java/openjdk/bin/java, /pause, /usr/bin/env]}
+    - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/kafka/config/tools-log4j2.yaml, processes: [/bin/bash, /bin/busybox, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/ld-musl-x86_64.path, processes: [/bin/bash, /bin/coreutils, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/bin/bash, /bin/coreutils, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /dev/random, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /dev/urandom, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /opt/kafka/*, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/cgroups, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/cpuinfo, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/meminfo, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/stat, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/⋯/cgroup, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDWR], path: /proc/⋯/coredump_filter, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/⋯/net/*, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /sys/devices/*, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /sys/kernel/mm/hugepages, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_NOFOLLOW, O_RDONLY], path: /tmp/*, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_LARGEFILE, O_NOFOLLOW, O_RDONLY, O_RDWR], path: /tmp/*, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /var/lib/kafka/data/orders-0/⋯, processes: [/bin/bash, /opt/java/openjdk/bin/java]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/bin/bash, /opt/java/openjdk/bin/java, /runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/bin/bash, /runc]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /__cacert_entrypoint.sh, processes: [/bin/busybox]}
@@ -150,7 +156,6 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/kafka/data/orders-0, processes: [/bin/busybox, /bin/coreutils, /opt/java/openjdk/bin/java]}
     - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/kafka/config/log4j2.yaml, processes: [/bin/busybox, /opt/java/openjdk/bin/java]}
     - {flags: [O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/kafka/config/server.properties, processes: [/bin/busybox, /opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/kafka/config/tools-log4j2.yaml, processes: [/bin/busybox, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/*, processes: [/bin/coreutils]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libacl.so.1, processes: [/bin/coreutils]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libattr.so.1, processes: [/bin/coreutils]}
@@ -158,8 +163,6 @@ spec:
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libutmps.so.0.1, processes: [/bin/coreutils]}
     - {flags: [O_APPEND, O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_RDWR, O_WRONLY], path: /opt/kafka/logs/server.log, processes: [/bin/coreutils, /opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_LARGEFILE, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/kafka/data/⋯, processes: [/bin/coreutils, /opt/java/openjdk/bin/java]}
-    - {flags: [O_LARGEFILE, O_RDONLY], path: /dev/random, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_LARGEFILE, O_RDONLY], path: /dev/urandom, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /etc/kafka/docker/log4j2.yaml, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /etc/kafka/docker/tools-log4j2.yaml, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/ld-linux-x86-64.so.2, processes: [/opt/java/openjdk/bin/java]}
@@ -170,13 +173,11 @@ spec:
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_LARGEFILE, O_WRONLY], path: /opt/kafka/logs/kafkaServer-gc.log, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_APPEND, O_CREAT, O_EXCL, O_LARGEFILE, O_RDWR, O_WRONLY], path: /opt/kafka/logs/log-cleaner.log, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_APPEND, O_CREAT, O_EXCL, O_LARGEFILE, O_RDWR, O_WRONLY], path: /opt/kafka/logs/state-change.log, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/cgroups, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/⋯/io, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/⋯/mounts, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_LARGEFILE, O_RDONLY], path: /proc/⋯/net/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /tmp, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_LARGEFILE, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/kafka/data/*, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_EXCL, O_LARGEFILE, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/kafka/data/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}

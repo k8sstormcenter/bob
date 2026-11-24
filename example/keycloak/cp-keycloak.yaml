@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: keycloak
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e86117d
+    signature.kubescape.io/generator-ref: 404a916
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-keycloak-keycloak
   namespace: sim-keycloak
@@ -99,11 +99,10 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib/*, processes: [/pause, /usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib64/*, processes: [/pause, /usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/locale/*, processes: [/pause, /usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
-    - {flags: [O_CLOEXEC, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/bin/bash]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc, /usr/bin/bash]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc, /usr/bin/bash]}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc, /usr/bin/bash]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc, /usr/bin/bash]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc, /usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/runc, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_NONBLOCK, O_RDWR], path: /dev/tty, processes: [/usr/bin/bash]}
@@ -111,7 +110,6 @@ spec:
     - {flags: [O_RDONLY], path: /opt/keycloak/*, processes: [/usr/bin/bash]}
     - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/bin/bash]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /tmp/shop-realm-export.json, processes: [/usr/bin/bash]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
@@ -120,10 +118,12 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib64/tls/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib64/x86_64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/bash, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/bash, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/*, processes: [/usr/bin/coreutils]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /opt/keycloak/*, processes: [/usr/bin/coreutils]}
     - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /tmp/*, processes: [/usr/bin/coreutils]}
     - {flags: [O_RDONLY], path: /usr/share/*, processes: [/usr/bin/coreutils]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/*, processes: [/usr/bin/coreutils, /usr/bin/sed]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /opt/keycloak/*, processes: [/usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /proc/⋯/fd, processes: [/usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
@@ -144,8 +144,8 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/keycloak/*, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_WRONLY], path: /opt/keycloak/.keycloak/kcadm.config, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/keycloak/data/keycloak-truststore.p12, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
-    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/keycloak/lib/lib/boot/.permissions-probe15562861821869227733.tmp, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
-    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/keycloak/lib/lib/boot/.permissions-probe15922815441932480744.tmp, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/keycloak/lib/lib/boot/.permissions-probe11850630151419712285.tmp, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/keycloak/lib/lib/boot/.permissions-probe4276881063487175289.tmp, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/keycloak/lib/quarkus/build-system.properties, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/keycloak/lib/quarkus/generated-bytecode.jar, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/keycloak/lib/quarkus/quarkus-application.dat, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
