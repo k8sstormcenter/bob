@@ -23,6 +23,9 @@ on:
       chart_ver:
         description: kubescape-operator chart version (empty = the pinned one)
         default: ''
+      ks_extra:
+        description: extra helm arguments for the agent chart, e.g. to try another agent image on a chart (empty = none)
+        default: ''
   push:
     branches: [main]
     paths:
@@ -133,6 +136,8 @@ jobs:
     permissions:
       contents: read
       packages: read
+    env:
+      KS_EXTRA: ${{ github.event.inputs.ks_extra }}
     strategy:
       fail-fast: false
       matrix:
