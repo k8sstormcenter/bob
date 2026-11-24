@@ -16,21 +16,21 @@ target:
   service: keydb
   namespace: keydb
   port: 6379
-  protocol: redis
+  protocol: tcp
 
 attacks:
   - name: recon-info-server
     type: custom
-    redis: { command: ["INFO", "server"] }
+    exec: { command: ["keydb-cli", "INFO", "server"] }
     successIndicators: [{ responseContains: "redis_version" }]
     expectedDetections: []
   - name: recon-config-dump
     type: custom
-    redis: { command: ["CONFIG", "GET", "*"] }
+    exec: { command: ["keydb-cli", "CONFIG", "GET", "*"] }
     expectedDetections: []
   - name: recon-client-list
     type: custom
-    redis: { command: ["CLIENT", "LIST"] }
+    exec: { command: ["keydb-cli", "CLIENT", "LIST"] }
     expectedDetections: []
   - name: exec-whoami
     type: cmdinject
