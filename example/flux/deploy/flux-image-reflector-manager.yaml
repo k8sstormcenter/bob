@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 74f1386
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-image-reflector-manager
   namespace: flux-system
@@ -25,13 +25,15 @@ spec:
     - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
   endpoints: null
   execs:
+    - {args: [/usr/local/bin/image-reflector-controller, ⋯⋯], path: /usr/local/bin/image-reflector-controller}
     - {argsRegex: '/usr/local/bin/image-reflector-controller( [^ ]*)*', path: /usr/local/bin/image-reflector-controller}
+    - {args: [image-reflector-controller, ⋯⋯], path: /usr/local/bin/image-reflector-controller}
     - {argsRegex: 'image-reflector-controller( [^ ]*)*', path: /usr/local/bin/image-reflector-controller}
   identifiedCallStacks: null
   imageID: ghcr.io/fluxcd/image-reflector-controller@sha256:2b9bc474a0f806353e2367fad5cb1e05962c8c8f697979201446aa612b4cc532
   imageTag: ghcr.io/fluxcd/image-reflector-controller:v1.3.1
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9440, port: 9440, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
     - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}

@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: pypiserver
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 74f1386
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-pypiserver-pypiserver
   namespace: sim-pypiserver
@@ -25,14 +25,21 @@ spec:
   egress: null
   endpoints: null
   execs:
+    - {args: [/bin/chown, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/bin/chown( [^ ]*)*', path: /bin/busybox}
     - {args: [/entrypoint.sh], path: /bin/busybox}
+    - {args: [/sbin/ldconfig, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/sbin/ldconfig( [^ ]*)*', path: /bin/busybox}
+    - {args: [/usr/bin/id, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/usr/bin/id( [^ ]*)*', path: /bin/busybox}
+    - {args: [/usr/bin/test, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/usr/bin/test( [^ ]*)*', path: /bin/busybox}
+    - {args: [/usr/local/bin/gosu, ⋯⋯], path: /usr/local/bin/gosu}
     - {argsRegex: '/usr/local/bin/gosu( [^ ]*)*', path: /usr/local/bin/gosu}
+    - {args: [/usr/local/bin/pypi-server, ⋯⋯], path: /usr/local/bin/python3.10}
     - {argsRegex: '/usr/local/bin/pypi-server( [^ ]*)*', path: /usr/local/bin/python3.10}
     - {args: [/bin/bash, /entrypoint.sh], path: /bin/bash}
+    - {args: [/usr/local/bin/python, /usr/local/bin/pypi-server, ⋯⋯], path: /usr/local/bin/python3.10}
     - {argsRegex: '/usr/local/bin/python /usr/local/bin/pypi-server( [^ ]*)*', path: /usr/local/bin/python3.10}
   identifiedCallStacks: null
   imageID: docker.io/pypiserver/pypiserver@sha256:286ce50e4a53b3fbc880d944d6a5e010ca6ccb1fe2ecad669b9f00a349107b20

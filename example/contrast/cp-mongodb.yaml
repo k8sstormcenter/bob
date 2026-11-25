@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: mongo
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 74f1386
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-mongodb-mongo
   namespace: sim-mongodb
@@ -29,21 +29,36 @@ spec:
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
+    - {args: [/usr/local/bin/docker-entrypoint.sh, ⋯⋯], path: /usr/bin/bash}
     - {argsRegex: '/usr/local/bin/docker-entrypoint\.sh( [^ ]*)*', path: /usr/bin/bash}
+    - {args: [/usr/bin/chown, ⋯⋯], path: /usr/bin/chown}
     - {argsRegex: '/usr/bin/chown( [^ ]*)*', path: /usr/bin/chown}
     - {args: [/usr/bin/dpkg, --print-architecture], path: /usr/bin/dpkg}
+    - {args: [/usr/bin/grep, ⋯⋯], path: /usr/bin/grep}
     - {argsRegex: '/usr/bin/grep( [^ ]*)*', path: /usr/bin/grep}
+    - {args: [/usr/bin/id, ⋯⋯], path: /usr/bin/id}
     - {argsRegex: '/usr/bin/id( [^ ]*)*', path: /usr/bin/id}
+    - {args: [/usr/bin/jq, ⋯⋯], path: /usr/bin/jq}
     - {argsRegex: '/usr/bin/jq( [^ ]*)*', path: /usr/bin/jq}
+    - {args: [/usr/bin/mongod, ⋯⋯], path: /usr/bin/mongod}
     - {argsRegex: '/usr/bin/mongod( [^ ]*)*', path: /usr/bin/mongod}
+    - {args: [mongod, ⋯⋯], path: /usr/bin/mongod}
     - {argsRegex: 'mongod( [^ ]*)*', path: /usr/bin/mongod}
+    - {args: [/usr/bin/mongosh, ⋯⋯], path: /usr/bin/mongosh}
     - {argsRegex: '/usr/bin/mongosh( [^ ]*)*', path: /usr/bin/mongosh}
+    - {args: [/usr/bin/numactl, ⋯⋯], path: /usr/bin/numactl}
     - {argsRegex: '/usr/bin/numactl( [^ ]*)*', path: /usr/bin/numactl}
+    - {args: [/usr/bin/ps, ⋯⋯], path: /usr/bin/ps}
     - {argsRegex: '/usr/bin/ps( [^ ]*)*', path: /usr/bin/ps}
+    - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/rm}
     - {argsRegex: '/usr/bin/rm( [^ ]*)*', path: /usr/bin/rm}
+    - {args: [/usr/bin/stat, ⋯⋯], path: /usr/bin/stat}
     - {argsRegex: '/usr/bin/stat( [^ ]*)*', path: /usr/bin/stat}
+    - {args: [/usr/bin/true, ⋯⋯], path: /usr/bin/true}
     - {argsRegex: '/usr/bin/true( [^ ]*)*', path: /usr/bin/true}
+    - {args: [/usr/local/bin/gosu, ⋯⋯], path: /usr/local/bin/gosu}
     - {argsRegex: '/usr/local/bin/gosu( [^ ]*)*', path: /usr/local/bin/gosu}
+    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
     - {argsRegex: '/usr/bin/find( [^ ]*)*', path: /usr/bin/find}
   identifiedCallStacks: null
   imageID: docker.io/library/mongo@sha256:0032d2ca20db5fa34926f196c8a43b74e34ed239a7f2453ff1505b6f12ba8ea6

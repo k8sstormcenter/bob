@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: envoy
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 74f1386
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-envoy-gateway-envoy
   namespace: envoy-gateway-system
@@ -32,14 +32,16 @@ spec:
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
+    - {args: [/usr/local/bin/envoy, ⋯⋯], path: /usr/local/bin/envoy}
     - {argsRegex: '/usr/local/bin/envoy( [^ ]*)*', path: /usr/local/bin/envoy}
+    - {args: [envoy, ⋯⋯], path: /usr/local/bin/envoy}
     - {argsRegex: 'envoy( [^ ]*)*', path: /usr/local/bin/envoy}
   identifiedCallStacks: null
   imageID: docker.io/envoyproxy/envoy@sha256:09ca6f2140a61ad8df11779a4a30d52b48433d444466328494f9188c9c35eded
   imageTag: docker.io/envoyproxy/envoy@sha256:09ca6f2140a61ad8df11779a4a30d52b48433d444466328494f9188c9c35eded
   ingress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-19000, port: 19000, protocol: TCP}], type: external}
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-19003, port: 19003, protocol: TCP}, {name: TCP-19002, port: 19002, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-19002, port: 19002, protocol: TCP}, {name: TCP-19003, port: 19003, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 550105f93323e2608da8fcfb823867d0fcd5d55f1729285ce4165e7f5e1eb512, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: sim-envoy-gateway}}, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-10080, port: 10080, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc]}

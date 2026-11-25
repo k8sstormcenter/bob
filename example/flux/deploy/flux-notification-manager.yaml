@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 74f1386
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-notification-manager
   namespace: flux-system
@@ -26,7 +26,9 @@ spec:
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
+    - {args: [/usr/local/bin/notification-controller, ⋯⋯], path: /usr/local/bin/notification-controller}
     - {argsRegex: '/usr/local/bin/notification-controller( [^ ]*)*', path: /usr/local/bin/notification-controller}
+    - {args: [notification-controller, ⋯⋯], path: /usr/local/bin/notification-controller}
     - {argsRegex: 'notification-controller( [^ ]*)*', path: /usr/local/bin/notification-controller}
   identifiedCallStacks: null
   imageID: ghcr.io/fluxcd/notification-controller@sha256:229b0685768aec0adf7f0d9536890c93bcffc06b17336e1c1fdd4372c4c27dca

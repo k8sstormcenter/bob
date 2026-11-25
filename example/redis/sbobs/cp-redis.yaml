@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: redis
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 74f1386
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-redis-redis
   namespace: sim-redis
@@ -29,26 +29,42 @@ spec:
   egress: null
   endpoints: null
   execs:
+    - {args: [/usr/bin/chown, ⋯⋯], path: /usr/bin/chown}
     - {argsRegex: '/usr/bin/chown( [^ ]*)*', path: /usr/bin/chown}
+    - {args: [/usr/bin/cp, ⋯⋯], path: /usr/bin/cp}
     - {argsRegex: '/usr/bin/cp( [^ ]*)*', path: /usr/bin/cp}
+    - {args: [/usr/local/bin/docker-entrypoint.sh, ⋯⋯], path: /usr/bin/dash}
     - {argsRegex: '/usr/local/bin/docker-entrypoint\.sh( [^ ]*)*', path: /usr/bin/dash}
+    - {args: [/usr/bin/du, ⋯⋯], path: /usr/bin/du}
     - {argsRegex: '/usr/bin/du( [^ ]*)*', path: /usr/bin/du}
+    - {args: [/usr/bin/id, ⋯⋯], path: /usr/bin/id}
     - {argsRegex: '/usr/bin/id( [^ ]*)*', path: /usr/bin/id}
+    - {args: [/usr/bin/ls, ⋯⋯], path: /usr/bin/ls}
     - {argsRegex: '/usr/bin/ls( [^ ]*)*', path: /usr/bin/ls}
+    - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/rm}
     - {argsRegex: '/usr/bin/rm( [^ ]*)*', path: /usr/bin/rm}
+    - {args: [/usr/bin/setpriv, ⋯⋯], path: /usr/bin/setpriv}
     - {argsRegex: '/usr/bin/setpriv( [^ ]*)*', path: /usr/bin/setpriv}
+    - {args: [/usr/bin/sleep, ⋯⋯], path: /usr/bin/sleep}
     - {argsRegex: '/usr/bin/sleep( [^ ]*)*', path: /usr/bin/sleep}
+    - {args: [/usr/local/bin/redis-benchmark, ⋯⋯], path: /usr/local/bin/redis-benchmark}
     - {argsRegex: '/usr/local/bin/redis-benchmark( [^ ]*)*', path: /usr/local/bin/redis-benchmark}
+    - {args: [/usr/local/bin/redis-cli, ⋯⋯], path: /usr/local/bin/redis-cli}
     - {argsRegex: '/usr/local/bin/redis-cli( [^ ]*)*', path: /usr/local/bin/redis-cli}
+    - {args: [/usr/local/bin/redis-check-aof, ⋯⋯], path: /usr/local/bin/redis-server}
     - {argsRegex: '/usr/local/bin/redis-check-aof( [^ ]*)*', path: /usr/local/bin/redis-server}
+    - {args: [/usr/local/bin/redis-check-rdb, ⋯⋯], path: /usr/local/bin/redis-server}
     - {argsRegex: '/usr/local/bin/redis-check-rdb( [^ ]*)*', path: /usr/local/bin/redis-server}
+    - {args: [/usr/local/bin/redis-server, ⋯⋯], path: /usr/local/bin/redis-server}
     - {argsRegex: '/usr/local/bin/redis-server( [^ ]*)*', path: /usr/local/bin/redis-server}
+    - {args: ['redis-server *:6379', ⋯⋯], path: /usr/local/bin/redis-server}
     - {argsRegex: 'redis-server\x20\*:6379( [^ ]*)*', path: /usr/local/bin/redis-server}
     - {args: [/usr/bin/sh, -c, ls -la /data /data/appendonlydir], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, 'printf ''SET bulk:1 a\r\nSET bulk:2 b\r\nDEL bulk:1 bulk:2\r\n'' | redis-cli --pipe > /dev/null'], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, redis-check-aof /data/appendonlydir/appendonly.aof.manifest > /dev/null], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, 'redis-cli --rdb /tmp/hook.rdb > /dev/null && redis-check-rdb /tmp/hook.rdb > /dev/null; rc=$?; rm -f /tmp/hook.rdb; exit $rc'], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, redis-cli bgsave > /dev/null; sleep 2; cp /data/dump.rdb /data/backup.rdb && rm -f /data/backup.rdb], path: /usr/bin/dash}
+    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
     - {argsRegex: '/usr/bin/find( [^ ]*)*', path: /usr/bin/find}
   identifiedCallStacks: null
   imageID: docker.io/library/redis@sha256:6b645a37f49b0546582468706b32e71a8b7fbb5ba4583d0f9e27a8004716b738
