@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: nginx
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 74f1386
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-nginx-nginx
   namespace: sim-nginx
@@ -153,7 +153,7 @@ spec:
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx/tls/tls.crt, processes: [/usr/bin/openssl, /usr/bin/tar, /usr/sbin/nginx]}
     - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf, processes: [/usr/bin/openssl, /usr/sbin/nginx]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/openssl, /usr/sbin/nginx]}
-    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/nginx/conf.d/sedtjxpTu, processes: [/usr/bin/sed]}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/nginx/conf.d/sedWOCqsV, processes: [/usr/bin/sed]}
     - {flags: [MAPPED], path: /usr/bin/sleep, processes: [/usr/bin/sleep]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NONBLOCK, O_RDONLY], path: /etc, processes: [/usr/bin/tar]}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx, processes: [/usr/bin/tar]}
@@ -452,6 +452,5 @@ spec:
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
-  syscalls:
-    - unshare
+  syscalls: null
 status: {}

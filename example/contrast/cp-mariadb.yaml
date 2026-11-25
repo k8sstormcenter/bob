@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: mariadb
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 74f1386
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-mariadb-mariadb
   namespace: sim-mariadb
@@ -123,6 +123,7 @@ spec:
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /tmp/⋯, processes: [/usr/bin/dash, /usr/bin/mariadb-import]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/find, /usr/bin/mariadb-backup]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/find, /usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/mariadb-backup, /usr/bin/mkdir, /usr/bin/sed, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/mkdir, /usr/bin/sed]}
