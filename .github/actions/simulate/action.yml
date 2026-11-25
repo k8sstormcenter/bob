@@ -63,11 +63,14 @@ runs:
         ls out/*/sbob.yaml >/dev/null 2>&1 || { echo "no SBoB from the first cluster: Portability is not measured"; exit 0; }
         pkill -f drive-gitops-workload 2>/dev/null || true
         /usr/local/bin/k3s-uninstall.sh > /tmp/k3s-uninstall.log 2>&1 || true
-        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.33.3+k3s1 sh -s - --write-kubeconfig-mode 644 --cluster-cidr=10.98.0.0/16 --service-cidr=10.99.0.0/16 --cluster-dns=10.99.0.10
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.33.3+k3s1 sh -s - --write-kubeconfig-mode 644 --cluster-cidr=10.98.0.0/16 --service-cidr=10.99.0.0/16 --cluster-dns=10.99.0.10 --flannel-backend=none --disable-network-policy
         mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown "$(id -u):$(id -g)" ~/.kube/config
         for i in $(seq 1 30); do kubectl get nodes --no-headers 2>/dev/null | grep -q . && break; sleep 2; done
+        helm repo add cilium https://helm.cilium.io > /dev/null
+        helm install cilium cilium/cilium --version 1.20.5 -n kube-system --set operator.replicas=1 --set ipam.mode=cluster-pool --set ipam.operator.clusterPoolIPv4PodCIDRList=10.98.0.0/16 > /tmp/cilium-install.log 2>&1 || { tail -5 /tmp/cilium-install.log; echo "Cilium install failed on the second cluster: Portability is not measured"; exit 0; }
+        kubectl -n kube-system rollout status ds/cilium --timeout=300s || { echo "Cilium not ready on the second cluster: Portability is not measured"; exit 0; }
         kubectl wait --for=condition=ready node --all --timeout=150s
-        echo "second cluster: pods $(kubectl get nodes -o jsonpath='{.items[0].spec.podCIDR}')"
+        echo "second cluster: Cilium 1.20.5 (the first cluster runs k3s's Flannel), pods $(kubectl get nodes -o jsonpath='{.items[0].spec.podCIDR}')"
         make kubescape KUBESCAPE_CHART_VER="$CHART_VER" KS_LEARN_PERIOD=8m > /tmp/kubescape-b.log 2>&1 || { tail -5 /tmp/kubescape-b.log; echo "agent install failed on the second cluster: Portability is not measured"; exit 0; }
         if [ -s out/enabled-rules.txt ]; then
           kubectl -n honey get rules default-rules -o json | python3 scripts/enable-rules.py "$(cat out/enabled-rules.txt)" | kubectl replace -f -
