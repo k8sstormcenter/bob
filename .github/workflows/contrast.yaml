@@ -15,7 +15,7 @@ on:
         description: commit of the pkg submodule that holds the workloads (empty = the pinned one)
         default: ''
       bobctl_tag:
-        description: tag of the bobctl build to download, or "build" to build it in each job from pkg_ref (empty = the pinned one)
+        description: released internal bobctl build, internal-<sha> (empty = the pinned one); bobctl is never built in a job
         default: ''
       bobctl_sha256:
         description: sha256 of that build (empty = the pinned one)
@@ -67,6 +67,7 @@ jobs:
           {
             echo "apps=$(printf '%s\n' $WANT | jq -R . | jq -sc .)"
             echo "pkg_ref=${IN_PKG_REF:-$PKG_REF}"
+            case "${IN_BOBCTL_TAG:-$BOBCTL_TAG}" in internal-*) ;; *) echo "bobctl_tag must name a released internal build (internal-<sha>): release it first with scripts/release-internal.sh in the package repository" >&2; exit 1;; esac
             echo "bobctl_tag=${IN_BOBCTL_TAG:-$BOBCTL_TAG}"
             echo "bobctl_sha256=${IN_BOBCTL_SHA256:-$BOBCTL_SHA256}"
             echo "chart_ver=${IN_CHART_VER:-$CHART_VER}"

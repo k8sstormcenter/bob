@@ -51,18 +51,7 @@ runs:
         git -C pkg checkout -q FETCH_HEAD
         git -C pkg rev-parse --short HEAD
 
-    - name: Build bobctl from the pkg revision
-      if: inputs.bobctl-tag == 'build'
-      shell: bash
-      run: |
-        set -euo pipefail
-        mkdir -p bin
-        REV=$(git -C pkg rev-parse --short HEAD)
-        (cd pkg && CGO_ENABLED=0 go build -tags internal -trimpath -ldflags "-s -w -X github.com/entlein/bob/cmd.Version=internal-$REV -X github.com/entlein/bob/cmd.GitCommit=$REV -X github.com/entlein/bob/cmd.BuildDate=$(date -u +%F)" -o ../bin/bobctl .)
-        bin/bobctl version
-
     - name: Fetch bobctl
-      if: inputs.bobctl-tag != 'build'
       shell: bash
       run: |
         set -euo pipefail
