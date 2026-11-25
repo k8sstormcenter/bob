@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: envoy
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: 2b27204
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-envoy-envoy
   namespace: sim-envoy
@@ -30,53 +30,45 @@ spec:
   egress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: backend.sim-envoy.svc.cluster.local., dnsNames: [backend., backend.cluster.local., backend.sim-envoy.svc.cluster.local., backend.svc.cluster.local.], identifier: 055d26cb7d45594538f8b3f2981dc372d5fa0f6562b932feda7e42b3179992c0, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
-    - {dns: "", dnsNames: null, identifier: 807be91abb7df87d1434196fec95602d775abc6fc2d2eac7898cb87dd3578eee, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: backend}}, ports: [{name: TCP-8081, port: 8081, protocol: TCP}, {name: TCP-8082, port: 8082, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 807be91abb7df87d1434196fec95602d775abc6fc2d2eac7898cb87dd3578eee, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: backend}}, ports: [{name: TCP-8082, port: 8082, protocol: TCP}, {name: TCP-8081, port: 8081, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
-    - {args: [/usr/bin/chown, ⋯⋯], path: /usr/bin/chown}
-    - {argsRegex: '/usr/bin/chown( [^ ]*)*', path: /usr/bin/chown}
-    - {args: [/usr/bin/df, ⋯⋯], path: /usr/bin/df}
-    - {argsRegex: '/usr/bin/df( [^ ]*)*', path: /usr/bin/df}
-    - {args: [/usr/bin/du, ⋯⋯], path: /usr/bin/du}
-    - {argsRegex: '/usr/bin/du( [^ ]*)*', path: /usr/bin/du}
-    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
-    - {argsRegex: '/usr/bin/find( [^ ]*)*', path: /usr/bin/find}
-    - {args: [/usr/bin/grep, ⋯⋯], path: /usr/bin/grep}
-    - {argsRegex: '/usr/bin/grep( [^ ]*)*', path: /usr/bin/grep}
+    - {args: [/usr/bin/chown, 'envoy:envoy', /dev/stdout, /dev/stderr], path: /usr/bin/chown}
+    - {args: [/usr/bin/df, -h, /var/log/envoy], path: /usr/bin/df}
+    - {args: [/usr/bin/du, -sh, /var/log/envoy], path: /usr/bin/du}
+    - {args: [/usr/bin/find, /var/log/envoy, -name, '*.gz', -mtime, "+7", -delete], path: /usr/bin/find}
+    - {args: [/usr/bin/grep, -n, 'cluster:', /etc/envoy/envoy.yaml], path: /usr/bin/grep}
     - {args: [/usr/bin/gzip], path: /usr/bin/gzip}
     - {args: [/usr/bin/gzip, -d], path: /usr/bin/gzip}
     - {args: [/usr/bin/gzip, -f, access-errors.log.1], path: /usr/bin/gzip}
-    - {args: [/usr/bin/id, ⋯⋯], path: /usr/bin/id}
-    - {argsRegex: '/usr/bin/id( [^ ]*)*', path: /usr/bin/id}
-    - {args: [/usr/bin/ls, ⋯⋯], path: /usr/bin/ls}
-    - {argsRegex: '/usr/bin/ls( [^ ]*)*', path: /usr/bin/ls}
-    - {args: [/usr/bin/mv, ⋯⋯], path: /usr/bin/mv}
-    - {argsRegex: '/usr/bin/mv( [^ ]*)*', path: /usr/bin/mv}
-    - {args: [/usr/bin/openssl, ⋯⋯], path: /usr/bin/openssl}
-    - {argsRegex: '/usr/bin/openssl( [^ ]*)*', path: /usr/bin/openssl}
-    - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/rm}
-    - {argsRegex: '/usr/bin/rm( [^ ]*)*', path: /usr/bin/rm}
-    - {args: [/usr/bin/sha256sum, ⋯⋯], path: /usr/bin/sha256sum}
-    - {argsRegex: '/usr/bin/sha256sum( [^ ]*)*', path: /usr/bin/sha256sum}
-    - {args: [/usr/bin/sleep, ⋯⋯], path: /usr/bin/sleep}
-    - {argsRegex: '/usr/bin/sleep( [^ ]*)*', path: /usr/bin/sleep}
-    - {args: [/usr/bin/sort, ⋯⋯], path: /usr/bin/sort}
-    - {argsRegex: '/usr/bin/sort( [^ ]*)*', path: /usr/bin/sort}
-    - {args: [/usr/bin/tail, ⋯⋯], path: /usr/bin/tail}
-    - {argsRegex: '/usr/bin/tail( [^ ]*)*', path: /usr/bin/tail}
+    - {args: [/usr/bin/id, -u], path: /usr/bin/id}
+    - {args: [/usr/bin/ls, -la, /etc/envoy-tls], path: /usr/bin/ls}
+    - {args: [/usr/bin/ls, -la, /var/log/envoy], path: /usr/bin/ls}
+    - {args: [/usr/bin/ls, -laL, /etc/envoy], path: /usr/bin/ls}
+    - {args: [/usr/bin/mv, access-errors.log, access-errors.log.1], path: /usr/bin/mv}
+    - {args: [/usr/bin/openssl, x509, -noout, -subject, -enddate, -checkend, ⋯, -in, /etc/envoy-tls/tls.crt], path: /usr/bin/openssl}
+    - {argsRegex: '/usr/bin/openssl x509 -noout -subject -enddate -checkend [^ ]* -in /etc/envoy-tls/tls\.crt', path: /usr/bin/openssl}
+    - {args: [/usr/bin/rm, -f, /var/log/envoy/config-backup.tgz], path: /usr/bin/rm}
+    - {args: [/usr/bin/rm, -f, access-errors.log.1.gz], path: /usr/bin/rm}
+    - {args: [/usr/bin/sha256sum, /etc/envoy/envoy.yaml], path: /usr/bin/sha256sum}
+    - {args: [/usr/bin/sleep, ⋯], path: /usr/bin/sleep}
+    - {argsRegex: '/usr/bin/sleep [^ ]*', path: /usr/bin/sleep}
+    - {args: [/usr/bin/sort], path: /usr/bin/sort}
+    - {args: [/usr/bin/sort, -u], path: /usr/bin/sort}
+    - {args: [/usr/bin/tail, -n, ⋯, /var/log/envoy/access-errors.log], path: /usr/bin/tail}
+    - {argsRegex: '/usr/bin/tail -n [^ ]* /var/log/envoy/access-errors\.log', path: /usr/bin/tail}
     - {args: [/usr/bin/tar, czhf, /var/log/envoy/config-backup.tgz, -C, /etc, envoy], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, tzf, /var/log/envoy/config-backup.tgz], path: /usr/bin/tar}
-    - {args: [/usr/bin/uniq, ⋯⋯], path: /usr/bin/uniq}
-    - {argsRegex: '/usr/bin/uniq( [^ ]*)*', path: /usr/bin/uniq}
-    - {args: [/usr/bin/wc, ⋯⋯], path: /usr/bin/wc}
-    - {argsRegex: '/usr/bin/wc( [^ ]*)*', path: /usr/bin/wc}
+    - {args: [/usr/bin/uniq, -c], path: /usr/bin/uniq}
+    - {args: [/usr/bin/wc, -l], path: /usr/bin/wc}
     - {args: [/usr/local/bin/envoy, ⋯⋯], path: /usr/local/bin/envoy}
     - {argsRegex: '/usr/local/bin/envoy( [^ ]*)*', path: /usr/local/bin/envoy}
     - {args: [envoy, ⋯⋯], path: /usr/local/bin/envoy}
     - {argsRegex: 'envoy( [^ ]*)*', path: /usr/local/bin/envoy}
-    - {args: [/usr/local/bin/su-exec, ⋯⋯], path: /usr/local/bin/su-exec}
-    - {argsRegex: '/usr/local/bin/su-exec( [^ ]*)*', path: /usr/local/bin/su-exec}
+    - {args: [/usr/local/bin/su-exec, envoy, envoy, --mode, validate, -c, /etc/envoy/envoy.yaml, --log-level, error], path: /usr/local/bin/su-exec}
+    - {args: [/usr/local/bin/su-exec, envoy, envoy, -c, /etc/envoy/envoy.yaml, --concurrency, ⋯, --service-cluster, sim-envoy, --service-node, envoy], path: /usr/local/bin/su-exec}
+    - {argsRegex: '/usr/local/bin/su-exec envoy envoy -c /etc/envoy/envoy\.yaml --concurrency [^ ]* --service-cluster sim-envoy --service-node envoy', path: /usr/local/bin/su-exec}
     - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, 'awk ''{print $5}'' /var/log/envoy/access-errors.log | sort | uniq -c'], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, cd /var/log/envoy && mv access-errors.log access-errors.log.1 && kill -USR1 1 && sleep 2 && test -f access-errors.log && gzip -f access-errors.log.1 && rm -f access-errors.log.1.gz], path: /usr/bin/dash}
@@ -95,7 +87,7 @@ spec:
   ingress:
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9902, port: 9902, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9902, port: 9902, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9902, port: 9902, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}

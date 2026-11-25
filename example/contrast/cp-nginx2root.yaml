@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: nginx
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: 2b27204
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-nginx2root-nginx
   namespace: sim-nginx2root
@@ -27,10 +27,9 @@ spec:
   egress: null
   endpoints: null
   execs:
-    - {args: [/usr/bin/ls, ⋯⋯], path: /usr/bin/ls}
-    - {argsRegex: '/usr/bin/ls( [^ ]*)*', path: /usr/bin/ls}
-    - {args: [/usr/bin/openssl, ⋯⋯], path: /usr/bin/openssl}
-    - {argsRegex: '/usr/bin/openssl( [^ ]*)*', path: /usr/bin/openssl}
+    - {args: [/usr/bin/ls, -la, /usr/share/nginx/html], path: /usr/bin/ls}
+    - {args: [/usr/bin/openssl, req, -x509, -newkey, 'rsa:2048', -nodes, -days, ⋯, -keyout, /tmp/nginx-h2.key, -out, /tmp/nginx-h2.crt, -subj, /CN=localhost, -addext, 'subjectAltName=DNS:localhost,IP:127.0.0.1'], path: /usr/bin/openssl}
+    - {argsRegex: '/usr/bin/openssl req -x509 -newkey rsa:2048 -nodes -days [^ ]* -keyout /tmp/nginx-h2\.key -out /tmp/nginx-h2\.crt -subj /CN=localhost -addext subjectAltName=DNS:localhost,IP:127\.0\.0\.1', path: /usr/bin/openssl}
     - {args: [/usr/sbin/nginx, ⋯⋯], path: /usr/sbin/nginx}
     - {argsRegex: '/usr/sbin/nginx( [^ ]*)*', path: /usr/sbin/nginx}
     - {args: [/usr/bin/sh, -c, 'openssl req -x509 -newkey rsa:2048 -nodes -days 30 -keyout /tmp/nginx-h2.key -out /tmp/nginx-h2.crt -subj /CN=localhost -addext subjectAltName=DNS:localhost,IP:127.0.0.1 && exec nginx -g "daemon off;"'], path: /usr/bin/dash}

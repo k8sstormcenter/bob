@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: pypiserver
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: 2b27204
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-pypiserver-pypiserver
   namespace: sim-pypiserver
@@ -34,8 +34,10 @@ spec:
     - {argsRegex: '/usr/bin/id( [^ ]*)*', path: /bin/busybox}
     - {args: [/usr/bin/test, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/usr/bin/test( [^ ]*)*', path: /bin/busybox}
-    - {args: [/usr/local/bin/gosu, ⋯⋯], path: /usr/local/bin/gosu}
-    - {argsRegex: '/usr/local/bin/gosu( [^ ]*)*', path: /usr/local/bin/gosu}
+    - {args: [/usr/local/bin/gosu, pypiserver, pypi-server, run, -p, ⋯, --server, gunicorn], path: /usr/local/bin/gosu}
+    - {argsRegex: '/usr/local/bin/gosu pypiserver pypi-server run -p [^ ]* --server gunicorn', path: /usr/local/bin/gosu}
+    - {args: [/usr/local/bin/gosu, pypiserver, test, -r, /data, -a, -x, /data], path: /usr/local/bin/gosu}
+    - {args: [/usr/local/bin/gosu, pypiserver, test, -w, /data/packages, -a, -r, /data/packages, -a, -x, /data/packages], path: /usr/local/bin/gosu}
     - {args: [/usr/local/bin/pypi-server, ⋯⋯], path: /usr/local/bin/python3.10}
     - {argsRegex: '/usr/local/bin/pypi-server( [^ ]*)*', path: /usr/local/bin/python3.10}
     - {args: [/bin/bash, /entrypoint.sh], path: /bin/bash}

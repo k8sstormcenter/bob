@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: tomcat
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: 2b27204
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-tomcat-tomcat
   namespace: sim-tomcat
@@ -23,12 +23,9 @@ spec:
   execs:
     - {args: [/usr/bin/cp, ⋯⋯], path: /usr/bin/gnucp}
     - {argsRegex: '/usr/bin/cp( [^ ]*)*', path: /usr/bin/gnucp}
-    - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/gnurm}
-    - {argsRegex: '/usr/bin/rm( [^ ]*)*', path: /usr/bin/gnurm}
-    - {args: [/usr/bin/dirname, ⋯⋯], path: /usr/lib/cargo/bin/coreutils/dirname}
-    - {argsRegex: '/usr/bin/dirname( [^ ]*)*', path: /usr/lib/cargo/bin/coreutils/dirname}
-    - {args: [/usr/bin/uname, ⋯⋯], path: /usr/lib/cargo/bin/coreutils/uname}
-    - {argsRegex: '/usr/bin/uname( [^ ]*)*', path: /usr/lib/cargo/bin/coreutils/uname}
+    - {args: [/usr/bin/rm, -f, /usr/local/tomcat/webapps/docs/META-INF/context.xml, /usr/local/tomcat/webapps/examples/META-INF/context.xml], path: /usr/bin/gnurm}
+    - {args: [/usr/bin/dirname, /usr/local/tomcat/bin/catalina.sh], path: /usr/lib/cargo/bin/coreutils/dirname}
+    - {args: [/usr/bin/uname], path: /usr/lib/cargo/bin/coreutils/uname}
     - {args: [/opt/java/openjdk/bin/java, -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties, -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager, -Djdk.tls.ephemeralDHKeySize=2048, -Djava.protocol.handler.pkgs=org.apache.catalina.webresources, -Dsun.io.useCanonCaches=false, -Dorg.apache.catalina.security.SecurityListener.UMASK=0027, --add-opens=java.base/java.lang=ALL-UNNAMED, --add-opens=java.base/java.lang.reflect=ALL-UNNAMED, --add-opens=java.base/java.io=ALL-UNNAMED, --add-opens=java.base/java.util=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent=ALL-UNNAMED, --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED, -classpath, '/usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar', -Dcatalina.base=/usr/local/tomcat, -Dcatalina.home=/usr/local/tomcat, -Djava.io.tmpdir=/usr/local/tomcat/temp, org.apache.catalina.startup.Bootstrap, start], path: /opt/java/openjdk/bin/java}
     - {args: [/usr/bin/bash, /usr/local/tomcat/bin/catalina.sh, ⋯⋯], path: /usr/bin/bash}
     - {argsRegex: '/usr/bin/bash /usr/local/tomcat/bin/catalina\.sh( [^ ]*)*', path: /usr/bin/bash}

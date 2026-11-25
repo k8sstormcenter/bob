@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: nginx
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 74f1386
+    signature.kubescape.io/generator-ref: 2b27204
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-nginx-nginx
   namespace: sim-nginx
@@ -27,40 +27,67 @@ spec:
   egress: null
   endpoints: null
   execs:
-    - {argsRegex: '/usr/bin/basename( [^ ]*)*', path: /usr/bin/basename}
-    - {argsRegex: '/usr/bin/cat( [^ ]*)*', path: /usr/bin/cat}
-    - {argsRegex: '/usr/bin/cp( [^ ]*)*', path: /usr/bin/cp}
-    - {argsRegex: '/usr/bin/cut( [^ ]*)*', path: /usr/bin/cut}
+    - {args: [/usr/bin/basename, /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh], path: /usr/bin/basename}
+    - {args: [/usr/bin/basename, /docker-entrypoint.d/20-envsubst-on-templates.sh], path: /usr/bin/basename}
+    - {args: [/usr/bin/basename, /docker-entrypoint.d/30-tune-worker-processes.sh], path: /usr/bin/basename}
+    - {args: [/usr/bin/cat, /run/nginx.pid], path: /usr/bin/cat}
+    - {args: [/usr/bin/cp, access.log, access.log.ops], path: /usr/bin/cp}
+    - {args: [/usr/bin/cut, '-d ', -f, ⋯], path: /usr/bin/cut}
+    - {argsRegex: '/usr/bin/cut -d\x20 -f [^ ]*', path: /usr/bin/cut}
     - {args: [/docker-entrypoint.d/10-listen-on-ipv6-by-default.sh], path: /usr/bin/dash}
     - {args: [/docker-entrypoint.d/20-envsubst-on-templates.sh], path: /usr/bin/dash}
     - {args: [/docker-entrypoint.d/30-tune-worker-processes.sh], path: /usr/bin/dash}
     - {args: [/docker-entrypoint.d/40-logrotate.sh], path: /usr/bin/dash}
+    - {args: [/docker-entrypoint.sh, ⋯⋯], path: /usr/bin/dash}
     - {argsRegex: '/docker-entrypoint\.sh( [^ ]*)*', path: /usr/bin/dash}
-    - {argsRegex: '/usr/bin/df( [^ ]*)*', path: /usr/bin/df}
+    - {args: [/usr/bin/df, -h, /usr/share/nginx/html, /var/log/nginx], path: /usr/bin/df}
     - {args: [/usr/bin/dpkg-query, --show, '--showformat=${Conffiles}\n', nginx], path: /usr/bin/dpkg-query}
-    - {argsRegex: '/usr/bin/du( [^ ]*)*', path: /usr/bin/du}
-    - {argsRegex: '/usr/bin/find( [^ ]*)*', path: /usr/bin/find}
-    - {argsRegex: '/usr/bin/grep( [^ ]*)*', path: /usr/bin/grep}
+    - {args: [/usr/bin/du, -sh, /usr/share/nginx/html], path: /usr/bin/du}
+    - {args: [/usr/bin/du, -sh, /var/log/nginx], path: /usr/bin/du}
+    - {args: [/usr/bin/find, /docker-entrypoint.d/, -follow, -type, f, -print], path: /usr/bin/find}
+    - {args: [/usr/bin/find, /docker-entrypoint.d/, -mindepth, ⋯, -maxdepth, ⋯, -type, f, -print, -quit], path: /usr/bin/find}
+    - {argsRegex: '/usr/bin/find /docker-entrypoint\.d/ -mindepth [^ ]* -maxdepth [^ ]* -type f -print -quit', path: /usr/bin/find}
+    - {args: [/usr/bin/find, /usr/share/nginx/html, -type, f], path: /usr/bin/find}
+    - {args: [/usr/bin/find, /usr/share/nginx/html/upload, -type, f, -mmin, "+60", -delete], path: /usr/bin/find}
+    - {args: [/usr/bin/find, /var/log/nginx, -name, '*.gz', -mtime, "+7", -delete], path: /usr/bin/find}
+    - {args: [/usr/bin/grep, -c, '\[error\]', /var/log/nginx/error.log], path: /usr/bin/grep}
+    - {args: [/usr/bin/grep, -q, 'listen  \[::\]:80;', /etc/nginx/conf.d/default.conf], path: /usr/bin/grep}
+    - {args: [/usr/bin/grep, etc/nginx/conf.d/default.conf], path: /usr/bin/grep}
     - {args: [/usr/bin/gzip], path: /usr/bin/gzip}
     - {args: [/usr/bin/gzip, -d], path: /usr/bin/gzip}
     - {args: [/usr/bin/gzip, -f, access.log.1, error.log.1], path: /usr/bin/gzip}
     - {args: [/usr/bin/gzip, -f, access.log.ops], path: /usr/bin/gzip}
-    - {argsRegex: '/usr/bin/ls( [^ ]*)*', path: /usr/bin/ls}
-    - {argsRegex: '/usr/bin/md5sum( [^ ]*)*', path: /usr/bin/md5sum}
-    - {argsRegex: '/usr/bin/mv( [^ ]*)*', path: /usr/bin/mv}
-    - {argsRegex: '/usr/bin/openssl( [^ ]*)*', path: /usr/bin/openssl}
-    - {argsRegex: '/usr/bin/rm( [^ ]*)*', path: /usr/bin/rm}
-    - {argsRegex: '/usr/bin/sed( [^ ]*)*', path: /usr/bin/sed}
-    - {argsRegex: '/usr/bin/sleep( [^ ]*)*', path: /usr/bin/sleep}
-    - {argsRegex: 'sleep( [^ ]*)*', path: /usr/bin/sleep}
-    - {argsRegex: '/usr/bin/sort( [^ ]*)*', path: /usr/bin/sort}
-    - {argsRegex: '/usr/bin/tail( [^ ]*)*', path: /usr/bin/tail}
+    - {args: [/usr/bin/ls, -la, /usr/lib/nginx/modules], path: /usr/bin/ls}
+    - {args: [/usr/bin/ls, -la, /usr/share/nginx/html, /usr/share/nginx/html/files], path: /usr/bin/ls}
+    - {args: [/usr/bin/ls, -la, /var/log/nginx], path: /usr/bin/ls}
+    - {args: [/usr/bin/md5sum, -c, '-'], path: /usr/bin/md5sum}
+    - {args: [/usr/bin/mv, -f, access.log, access.log.1], path: /usr/bin/mv}
+    - {args: [/usr/bin/mv, -f, access.log.1.gz, access.log.2.gz], path: /usr/bin/mv}
+    - {args: [/usr/bin/mv, -f, access.log.2.gz, access.log.3.gz], path: /usr/bin/mv}
+    - {args: [/usr/bin/mv, -f, error.log, error.log.1], path: /usr/bin/mv}
+    - {args: [/usr/bin/mv, -f, error.log.1.gz, error.log.2.gz], path: /usr/bin/mv}
+    - {args: [/usr/bin/mv, -f, error.log.2.gz, error.log.3.gz], path: /usr/bin/mv}
+    - {args: [/usr/bin/openssl, x509, -noout, -subject, -enddate, -checkend, ⋯, -in, /etc/nginx/tls/tls.crt], path: /usr/bin/openssl}
+    - {argsRegex: '/usr/bin/openssl x509 -noout -subject -enddate -checkend [^ ]* -in /etc/nginx/tls/tls\.crt', path: /usr/bin/openssl}
+    - {args: [/usr/bin/rm, -f, /var/cache/nginx/conf-backup.tgz], path: /usr/bin/rm}
+    - {args: [/usr/bin/rm, -f, access.log.ops.gz], path: /usr/bin/rm}
+    - {args: [/usr/bin/sed, -i, -E, 's,listen       80;,listen       80;\n    listen  [::]:80;,', /etc/nginx/conf.d/default.conf], path: /usr/bin/sed}
+    - {args: [/usr/bin/sleep, ⋯], path: /usr/bin/sleep}
+    - {argsRegex: '/usr/bin/sleep [^ ]*', path: /usr/bin/sleep}
+    - {args: [sleep, ⋯], path: /usr/bin/sleep}
+    - {argsRegex: 'sleep [^ ]*', path: /usr/bin/sleep}
+    - {args: [/usr/bin/sort], path: /usr/bin/sort}
+    - {args: [/usr/bin/sort, -V], path: /usr/bin/sort}
+    - {args: [/usr/bin/tail, -n, ⋯, ⋯], path: /usr/bin/tail}
+    - {argsRegex: '/usr/bin/tail -n [^ ]* [^ ]*', path: /usr/bin/tail}
     - {args: [/usr/bin/tar, czf, '-', -C, /usr/share/nginx/html, --exclude=./files, .], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, czf, /var/cache/nginx/conf-backup.tgz, -C, /etc, nginx], path: /usr/bin/tar}
     - {args: [/usr/bin/tar, tzf, /var/cache/nginx/conf-backup.tgz], path: /usr/bin/tar}
-    - {argsRegex: '/usr/bin/touch( [^ ]*)*', path: /usr/bin/touch}
-    - {argsRegex: '/usr/bin/uniq( [^ ]*)*', path: /usr/bin/uniq}
-    - {argsRegex: '/usr/bin/wc( [^ ]*)*', path: /usr/bin/wc}
+    - {args: [/usr/bin/touch, /etc/nginx/conf.d/default.conf], path: /usr/bin/touch}
+    - {args: [/usr/bin/uniq, -c], path: /usr/bin/uniq}
+    - {args: [/usr/bin/wc, -c], path: /usr/bin/wc}
+    - {args: [/usr/bin/wc, -l], path: /usr/bin/wc}
+    - {args: [/usr/sbin/nginx, ⋯⋯], path: /usr/sbin/nginx}
     - {argsRegex: '/usr/sbin/nginx( [^ ]*)*', path: /usr/sbin/nginx}
     - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
     - {args: [/bin/sh, /docker-entrypoint.d/40-logrotate.sh], path: /usr/bin/dash}
@@ -153,7 +180,7 @@ spec:
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx/tls/tls.crt, processes: [/usr/bin/openssl, /usr/bin/tar, /usr/sbin/nginx]}
     - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf, processes: [/usr/bin/openssl, /usr/sbin/nginx]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/openssl, /usr/sbin/nginx]}
-    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/nginx/conf.d/sedevZsNg, processes: [/usr/bin/sed]}
+    - {flags: [O_CREAT, O_EXCL, O_RDWR], path: /etc/nginx/conf.d/sednKVIsU, processes: [/usr/bin/sed]}
     - {flags: [MAPPED], path: /usr/bin/sleep, processes: [/usr/bin/sleep]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NONBLOCK, O_RDONLY], path: /etc, processes: [/usr/bin/tar]}
     - {flags: [O_CLOEXEC, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /etc/nginx, processes: [/usr/bin/tar]}
@@ -452,6 +479,5 @@ spec:
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
-  syscalls:
-    - unshare
+  syscalls: null
 status: {}

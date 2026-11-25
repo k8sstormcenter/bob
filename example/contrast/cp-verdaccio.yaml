@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: verdaccio
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: 2b27204
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-verdaccio-verdaccio
   namespace: sim-verdaccio
@@ -24,7 +24,7 @@ spec:
     - CAP_SETGID
     - CAP_SETUID
   egress:
-    - {dns: registry.npmjs.org., dnsNames: [registry.npmjs.org.], identifier: dbe4ca465f72a110faae41cf34b0c55537bc2a4d5673560e0d114db785fc9aab, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry.npmjs.org., dnsNames: [registry.npmjs.org.], identifier: c9f6c07d4bd3c18d2e9df47be86de05a139de7f7734e2ef60ff4734a7c5c37b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
@@ -33,8 +33,7 @@ spec:
     - {args: [/usr/bin/whoami], path: /bin/busybox}
     - {args: [/usr/local/bin/verdaccio, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/usr/local/bin/verdaccio( [^ ]*)*', path: /bin/busybox}
-    - {args: [/usr/bin/dumb-init, ⋯⋯], path: /usr/bin/dumb-init}
-    - {argsRegex: '/usr/bin/dumb-init( [^ ]*)*', path: /usr/bin/dumb-init}
+    - {args: [/usr/bin/dumb-init, --, /bin/sh, -c, 'verdaccio --config /verdaccio/conf/config.yaml --listen $VERDACCIO_PROTOCOL://$VERDACCIO_ADDRESS:$VERDACCIO_PORT'], path: /usr/bin/dumb-init}
     - {args: [Verdaccio], path: /usr/local/bin/node}
     - {args: [/bin/sh, -c, 'verdaccio --config /verdaccio/conf/config.yaml --listen $VERDACCIO_PROTOCOL://$VERDACCIO_ADDRESS:$VERDACCIO_PORT'], path: /bin/busybox}
     - {args: [/usr/local/bin/node, /usr/local/bin/verdaccio, ⋯⋯], path: /usr/local/bin/node}
