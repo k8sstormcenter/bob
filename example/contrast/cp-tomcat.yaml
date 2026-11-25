@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: tomcat
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 404a916
+    signature.kubescape.io/generator-ref: f3f0285
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-tomcat-tomcat
   namespace: sim-tomcat
@@ -21,7 +21,6 @@ spec:
   egress: null
   endpoints: null
   execs:
-    - {args: [/pause], path: /pause}
     - {argsRegex: '/usr/bin/cp( [^ ]*)*', path: /usr/bin/gnucp}
     - {argsRegex: '/usr/bin/rm( [^ ]*)*', path: /usr/bin/gnurm}
     - {argsRegex: '/usr/bin/dirname( [^ ]*)*', path: /usr/lib/cargo/bin/coreutils/dirname}
@@ -41,7 +40,7 @@ spec:
     - {flags: [O_RDONLY], path: /dev/urandom, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /etc/ubuntu-fips, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /proc/cgroups, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/meminfo, processes: [/opt/java/openjdk/bin/java]}
@@ -52,16 +51,14 @@ spec:
     - {flags: [O_CLOEXEC, O_RDWR], path: /proc/⋯/coredump_filter, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /proc/⋯/net/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/kernel/mm/hugepages, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR], path: /tmp/*, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [MAPPED, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR], path: /tmp/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /usr/local/tomcat, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [MAPPED, O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /usr/local/tomcat/logs/⋯, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.class, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.classtmp, processes: [/opt/java/openjdk/bin/java]}
@@ -74,24 +71,24 @@ spec:
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/jsp2/el/basic_002darithmetic_jsp.java, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en/LC_MESSAGES/libc.mo, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en_US/LC_MESSAGES/libc.mo, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/localtime, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/java/openjdk/*, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib/*, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/locale/*, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/opt/java/openjdk/bin/java, /pause, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/localtime, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [MAPPED, O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/java/openjdk/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/gnucp, /usr/bin/gnurm]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/locale/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/gnucp, /usr/bin/gnurm]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/index.jsp, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
@@ -197,8 +194,10 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/manager/META-INF/context.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/manager/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_NONBLOCK, O_RDWR], path: /dev/tty, processes: [/usr/bin/bash]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/bash]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/bin/bash]}

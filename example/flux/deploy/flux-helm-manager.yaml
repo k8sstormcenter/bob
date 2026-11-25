@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 404a916
+    signature.kubescape.io/generator-ref: f3f0285
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-helm-manager
   namespace: flux-system
@@ -29,15 +29,16 @@ spec:
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
-    - {args: [/pause], path: /pause}
     - {argsRegex: '/usr/local/bin/helm-controller( [^ ]*)*', path: /usr/local/bin/helm-controller}
     - {argsRegex: 'helm-controller( [^ ]*)*', path: /usr/local/bin/helm-controller}
   identifiedCallStacks: null
   imageID: ghcr.io/fluxcd/helm-controller@sha256:cc944eff709767f9a4d22de6b52dfa330f872962465868ed7787320b056b84f8
   imageTag: ghcr.io/fluxcd/helm-controller:v1.7.2
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9440, port: 9440, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/config, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/usr/local/bin/helm-controller]}
@@ -53,15 +54,13 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/net/*, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat, processes: [/usr/local/bin/helm-controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/usr/local/bin/helm-controller]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /sys/kernel/mm/hugepages, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/usr/local/bin/helm-controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/helm-controller, processes: [/usr/local/bin/helm-controller]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/local/bin/helm-controller, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/usr/local/bin/helm-controller]}
   rulePolicies:
