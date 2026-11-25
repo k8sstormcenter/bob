@@ -107,7 +107,7 @@ The GIF at the top of this page is Flux's helm-controller. In each GIF: left, wh
 ## Using bobctl
 
 ```bash
-curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.30/bobctl-linux-amd64
+curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.31/bobctl-linux-amd64
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/
 ```
 Release binaries are cosign-signed (`bobctl-linux-amd64.sigstore.json`). Versions are currently being published in rapid succession, verbs and functionality are changing.
