@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: workflow-controller
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 404a916
+    signature.kubescape.io/generator-ref: f3f0285
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-argo-workflows-workflow-controller
   namespace: sim-argo
@@ -27,7 +27,6 @@ spec:
   execs:
     - {args: [/bin/workflow-controller, --namespaced], path: /bin/workflow-controller}
     - {args: [workflow-controller, --namespaced], path: /bin/workflow-controller}
-    - {args: [/pause], path: /pause}
   identifiedCallStacks: null
   imageID: quay.io/argoproj/workflow-controller@sha256:be8bd63ad545442a216a951d4ab568afea1d873e78fd0a596b56d886e3424725
   imageTag: quay.io/argoproj/workflow-controller:v3.6.2
@@ -35,7 +34,7 @@ spec:
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-6060, port: 6060, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/config, processes: [/bin/workflow-controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /bin/workflow-controller, processes: [/bin/workflow-controller]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /bin/workflow-controller, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/bin/workflow-controller]}
@@ -45,8 +44,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/bin/workflow-controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/bin/workflow-controller]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/bin/workflow-controller]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/bin/workflow-controller]}
     - {flags: [O_RDONLY], path: /usr/local/go/lib/time/*, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/bin/workflow-controller]}
@@ -54,6 +51,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/namespace, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/bin/workflow-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
   rulePolicies:
     R0002:
       processAllowed:

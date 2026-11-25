@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: opentelemetry-collector
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 404a916
+    signature.kubescape.io/generator-ref: f3f0285
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-otel-collector-opentelemetry-collector
   namespace: sim-otel
@@ -36,7 +36,6 @@ spec:
     - {args: [/otelcol-k8s, --version], path: /otelcol-k8s}
     - {args: [/otelcol-k8s, components], path: /otelcol-k8s}
     - {args: [/otelcol-k8s, validate, --config=/conf/relay.yaml], path: /otelcol-k8s}
-    - {args: [/pause], path: /pause}
   identifiedCallStacks: null
   imageID: docker.io/otel/opentelemetry-collector-k8s@sha256:ce55d0a38923c83120e4ba613fbdf446786652d2ce9f29d1cd7879e5d869829f
   imageTag: docker.io/otel/opentelemetry-collector-k8s:0.165.0
@@ -64,7 +63,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/run/udev/data/⋯, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: '/hostfs/sys/dev/block/7:0/device/model', processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: '/hostfs/sys/dev/block/7:0/device/serial', processes: [/otelcol-k8s]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /otelcol-k8s, processes: [/otelcol-k8s]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /otelcol-k8s, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/bus/pci/devices, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/meminfo, processes: [/otelcol-k8s]}
@@ -77,7 +76,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/statm, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/status, processes: [/otelcol-k8s]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/otelcol-k8s]}
@@ -88,7 +86,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mime.types, processes: [/otelcol-k8s, /runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/otelcol-k8s, /runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/otelcol-k8s, /runc]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/otelcol-k8s, /runc]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/otelcol-k8s, /runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/otelcol-k8s, /runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/otelcol-k8s, /runc]}
@@ -97,7 +94,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
-    - {flags: [O_CLOEXEC, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
   rulePolicies:
     R0002:

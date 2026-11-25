@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 404a916
+    signature.kubescape.io/generator-ref: f3f0285
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-notification-manager
   namespace: flux-system
@@ -26,7 +26,6 @@ spec:
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
-    - {args: [/pause], path: /pause}
     - {argsRegex: '/usr/local/bin/notification-controller( [^ ]*)*', path: /usr/local/bin/notification-controller}
     - {argsRegex: 'notification-controller( [^ ]*)*', path: /usr/local/bin/notification-controller}
   identifiedCallStacks: null
@@ -38,6 +37,8 @@ spec:
     - {dns: "", dnsNames: null, identifier: 2ab45f2f6a1a31d5f8d69091dd6ce97ca3da1d64c09b2d24814d1a1e7e09c970, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: kustomize-controller, app.kubernetes.io/component: kustomize-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: ce9ed7b2847c2dcbad8c178071676c2e1704ca4c800315b30a26d0636695d557, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: source-controller, app.kubernetes.io/component: source-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
   opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/usr/local/bin/notification-controller]}
@@ -49,14 +50,12 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/local/bin/notification-controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/usr/local/bin/notification-controller]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/usr/local/bin/notification-controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/bin/notification-controller, processes: [/usr/local/bin/notification-controller]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/local/bin/notification-controller, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/usr/local/bin/notification-controller]}
   rulePolicies:
