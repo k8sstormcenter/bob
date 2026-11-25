@@ -6,12 +6,14 @@
 #
 # Copies the SBoBs of a Contrast run into example/, but only those whose gate passed in that run.
 # A file is the run's artifact with the licence header in front; nothing else is changed.
+# An example is not replaced when the run's SBoB says the same and only the generator version differs.
 # usage: place-example-sbobs.sh <directory with the downloaded sbob-* artifacts> [mapping file] [report file]
 set -euo pipefail
 SRC=${1:?directory with the downloaded sbob-* artifacts}
 MAP=${2:-.github/contrast/examples.txt}
 REPORT=${3:-/dev/stdout}
-placed=0 held=0
+placed=0 held=0 same=0
+content() { grep -v -e '^#' -e 'signature.kubescape.io/generator-ref:' "$1"; }
 {
   echo "| Application | Gate | Example file | Why |"
   echo "|---|---|---|---|"
@@ -30,6 +32,11 @@ while IFS= read -r f; do
     why=$(jq -r '[.checks[] | select(.pass == false) | .name + ": " + .value] | join("; ")' "$gate")
     echo "| $app | held back | $dest left as it is | ${why//|/ } |" >> "$REPORT"
     held=$((held + 1))
+    continue
+  fi
+  if [ -f "$dest" ] && cmp -s <(content "$dest") <(content "$f"); then
+    echo "| $app | pass | $dest left as it is | the run's SBoB says the same as the example; only the generator version differs |" >> "$REPORT"
+    same=$((same + 1))
     continue
   fi
   mkdir -p "$(dirname "$dest")"
@@ -59,4 +66,4 @@ done < <(find "$SRC" -type f -name '*-sbob.yaml' | sort)
   echo
   echo "$ok of $n unknown applications pass the gate."
 } >> "$REPORT"
-echo "placed $placed, held back $held" >&2
+echo "placed $placed, unchanged $same, held back $held" >&2
