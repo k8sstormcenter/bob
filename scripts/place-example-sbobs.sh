@@ -6,6 +6,7 @@
 #
 # Copies the SBoBs of a Contrast run into example/, but only those whose gate passed in that run.
 # A file is the run's artifact with the licence header in front; nothing else is changed.
+# Each SBoB is placed in both exec forms: the regex form at its place, the legacy args grammar in legacy/ beside it.
 # usage: place-example-sbobs.sh <directory with the downloaded sbob-* artifacts> [mapping file] [report file]
 set -euo pipefail
 SRC=${1:?directory with the downloaded sbob-* artifacts}
@@ -32,14 +33,22 @@ while IFS= read -r f; do
     held=$((held + 1))
     continue
   fi
-  mkdir -p "$(dirname "$dest")"
-  {
-    echo '# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>'
-    echo '# SPDX-License-Identifier: Apache-2.0'
-    echo '# Licensed under the Apache License, Version 2.0; see LICENSE.'
-    echo '# All trademarks are expressly reserved.'
-    cat "$f"
-  } > "$dest"
+  legacy="$(dirname "$f")/$app-legacy.yaml"
+  if [ ! -f "$legacy" ] || grep -q 'argsRegex' "$legacy"; then
+    echo "| $app | held back | $dest left as it is | the run did not write the legacy exec form beside the regex form |" >> "$REPORT"
+    held=$((held + 1))
+    continue
+  fi
+  mkdir -p "$(dirname "$dest")/legacy"
+  for pair in "$f|$dest" "$legacy|$(dirname "$dest")/legacy/$(basename "$dest")"; do
+    {
+      echo '# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>'
+      echo '# SPDX-License-Identifier: Apache-2.0'
+      echo '# Licensed under the Apache License, Version 2.0; see LICENSE.'
+      echo '# All trademarks are expressly reserved.'
+      cat "${pair%%|*}"
+    } > "${pair##*|}"
+  done
   echo "| $app | pass | $dest | $(jq -r '"\(.steps_detected) of \(.steps_ran) simulated steps detected, \(.benign_causes) alert causes under usual traffic"' "$gate") |" >> "$REPORT"
   placed=$((placed + 1))
 done < <(find "$SRC" -type f -name '*-sbob.yaml' | sort)
