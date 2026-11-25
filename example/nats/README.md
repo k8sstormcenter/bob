@@ -17,7 +17,7 @@ What you do not get: the simulation of common CVE types and the D, N, P numbers.
 
 ```bash
 git clone https://github.com/k8sstormcenter/bob && cd bob
-curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.30/bobctl-linux-amd64
+curl -fsSL -o bobctl https://github.com/k8sstormcenter/bob/releases/download/v0.1.31/bobctl-linux-amd64
 chmod +x bobctl && sudo mv bobctl /usr/local/bin/
 ```
 
