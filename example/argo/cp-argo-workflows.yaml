@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: workflow-controller
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: 6897c21
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-argo-workflows-workflow-controller
   namespace: sim-argo
@@ -22,16 +22,18 @@ spec:
     - CAP_DAC_READ_SEARCH
     - CAP_NET_ADMIN
   egress:
-    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 'service:default/kubernetes', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
   endpoints: null
   execs:
     - {args: [/bin/workflow-controller, --namespaced], path: /bin/workflow-controller}
+    - {argsRegex: /bin/workflow-controller --namespaced, path: /bin/workflow-controller}
     - {args: [workflow-controller, --namespaced], path: /bin/workflow-controller}
+    - {argsRegex: workflow-controller --namespaced, path: /bin/workflow-controller}
   identifiedCallStacks: null
   imageID: quay.io/argoproj/workflow-controller@sha256:be8bd63ad545442a216a951d4ab568afea1d873e78fd0a596b56d886e3424725
   imageTag: quay.io/argoproj/workflow-controller:v3.6.2
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-6060, port: 6060, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-6060, port: 6060, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/config, processes: [/bin/workflow-controller]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /bin/workflow-controller, processes: [/bin/workflow-controller]}
@@ -44,6 +46,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/bin/workflow-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/bin/workflow-controller]}
     - {flags: [O_RDONLY], path: /usr/local/go/lib/time/*, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/bin/workflow-controller]}
@@ -51,8 +55,6 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/namespace, processes: [/bin/workflow-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/bin/workflow-controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
   rulePolicies:
     R0002:
       processAllowed:

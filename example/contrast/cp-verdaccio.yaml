@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: verdaccio
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: 6897c21
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-verdaccio-verdaccio
   namespace: sim-verdaccio
@@ -24,62 +24,65 @@ spec:
     - CAP_SETGID
     - CAP_SETUID
   egress:
-    - {dns: registry.npmjs.org., dnsNames: [registry.npmjs.org.], identifier: dbe4ca465f72a110faae41cf34b0c55537bc2a4d5673560e0d114db785fc9aab, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
-    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+    - {dns: registry.npmjs.org., dnsNames: [registry.npmjs.org.], identifier: 'dns:registry.npmjs.org', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: 'service:kube-system/kube-dns', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
+    - {args: [/bin/sh, -c, 'verdaccio --config /verdaccio/conf/config.yaml --listen $VERDACCIO_PROTOCOL://$VERDACCIO_ADDRESS:$VERDACCIO_PORT'], path: /bin/busybox}
+    - {argsRegex: '/bin/sh -c verdaccio\x20--config\x20/verdaccio/conf/config\.yaml\x20--listen\x20\$VERDACCIO_PROTOCOL://\$VERDACCIO_ADDRESS:\$VERDACCIO_PORT', path: /bin/busybox}
     - {args: [/opt/verdaccio/docker-bin/uid_entrypoint, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/opt/verdaccio/docker-bin/uid_entrypoint( [^ ]*)*', path: /bin/busybox}
     - {args: [/usr/bin/whoami], path: /bin/busybox}
-    - {args: [/usr/local/bin/verdaccio, ⋯⋯], path: /bin/busybox}
-    - {argsRegex: '/usr/local/bin/verdaccio( [^ ]*)*', path: /bin/busybox}
-    - {args: [/usr/bin/dumb-init, ⋯⋯], path: /usr/bin/dumb-init}
-    - {argsRegex: '/usr/bin/dumb-init( [^ ]*)*', path: /usr/bin/dumb-init}
+    - {argsRegex: /usr/bin/whoami, path: /bin/busybox}
+    - {args: [/usr/local/bin/verdaccio, --config, /verdaccio/conf/config.yaml, --listen, 'http://⋯'], path: /bin/busybox}
+    - {argsRegex: '/usr/local/bin/verdaccio --config /verdaccio/conf/config\.yaml --listen http://[^/ ]*', path: /bin/busybox}
+    - {args: [/usr/bin/dumb-init, --, /bin/sh, -c, 'verdaccio --config /verdaccio/conf/config.yaml --listen $VERDACCIO_PROTOCOL://$VERDACCIO_ADDRESS:$VERDACCIO_PORT'], path: /usr/bin/dumb-init}
+    - {argsRegex: '/usr/bin/dumb-init -- /bin/sh -c verdaccio\x20--config\x20/verdaccio/conf/config\.yaml\x20--listen\x20\$VERDACCIO_PROTOCOL://\$VERDACCIO_ADDRESS:\$VERDACCIO_PORT', path: /usr/bin/dumb-init}
+    - {args: [/usr/local/bin/node, /usr/local/bin/verdaccio, --config, /verdaccio/conf/config.yaml, --listen, 'http://⋯'], path: /usr/local/bin/node}
+    - {argsRegex: '/usr/local/bin/node /usr/local/bin/verdaccio --config /verdaccio/conf/config\.yaml --listen http://[^/ ]*', path: /usr/local/bin/node}
     - {args: [Verdaccio], path: /usr/local/bin/node}
-    - {args: [/bin/sh, -c, 'verdaccio --config /verdaccio/conf/config.yaml --listen $VERDACCIO_PROTOCOL://$VERDACCIO_ADDRESS:$VERDACCIO_PORT'], path: /bin/busybox}
-    - {args: [/usr/local/bin/node, /usr/local/bin/verdaccio, ⋯⋯], path: /usr/local/bin/node}
-    - {argsRegex: '/usr/local/bin/node /usr/local/bin/verdaccio( [^ ]*)*', path: /usr/local/bin/node}
+    - {argsRegex: Verdaccio, path: /usr/local/bin/node}
   identifiedCallStacks: null
   imageID: docker.io/verdaccio/verdaccio@sha256:8c9cd40d28ef134140f4f6c4cef2032ac58bd554cce56757048f81b72717c09c
   imageTag: docker.io/verdaccio/verdaccio@sha256:8c9cd40d28ef134140f4f6c4cef2032ac58bd554cce56757048f81b72717c09c
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-4873, port: 4873, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-4873, port: 4873, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-4873, port: 4873, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-4873, port: 4873, protocol: TCP}], type: internal}
   opens:
-    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /opt/verdaccio/docker-bin/uid_entrypoint, processes: [/bin/busybox]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/bin/busybox, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/hosts, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/ld-musl-x86_64.path, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_NONBLOCK, O_RDONLY], path: /etc/localtime, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
+    - {flags: [O_LARGEFILE, O_RDONLY], path: /etc/netsvc.conf, processes: [/usr/local/bin/node]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /etc/nsswitch.conf, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/passwd, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/resolv.conf, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
-    - {flags: [MAPPED, O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/*, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
-    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/*, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_LARGEFILE, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/bin/busybox, /usr/local/bin/node]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
-    - {flags: [MAPPED], path: /usr/bin/dumb-init, processes: [/usr/bin/dumb-init]}
-    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /etc/ld-musl-x86_64.path, processes: [/usr/local/bin/node]}
-    - {flags: [O_LARGEFILE, O_RDONLY], path: /etc/netsvc.conf, processes: [/usr/local/bin/node]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /etc/ssl/openssl.cnf, processes: [/usr/local/bin/node]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /etc/svc.conf, processes: [/usr/local/bin/node]}
     - {flags: [MAPPED, O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/*, processes: [/usr/local/bin/node]}
     - {flags: [MAPPED], path: /lib/ld-musl-x86_64.so.1, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libgcc_s.so.1, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /lib/libstdc++.so.6, processes: [/usr/local/bin/node]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /opt/verdaccio/docker-bin/uid_entrypoint, processes: [/bin/busybox]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/cpuinfo, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/meminfo, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/stat, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/version_signature, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /proc/⋯/cgroup, processes: [/usr/local/bin/node]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /sys/devices/*, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/local/bin/node]}
+    - {flags: [MAPPED], path: /usr/bin/dumb-init, processes: [/usr/bin/dumb-init]}
+    - {flags: [MAPPED, O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/*, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [MAPPED], path: /usr/local/bin/node, processes: [/usr/local/bin/node]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/local/lib/*, processes: [/bin/busybox, /usr/bin/dumb-init, /usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /usr/share/zoneinfo, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /verdaccio/conf/config.yaml, processes: [/usr/local/bin/node]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /verdaccio/storage/data, processes: [/usr/local/bin/node]}

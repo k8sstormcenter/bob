@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: tomcat
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: 6897c21
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-tomcat-tomcat
   namespace: sim-tomcat
@@ -21,62 +21,32 @@ spec:
   egress: null
   endpoints: null
   execs:
-    - {args: [/usr/bin/cp, ⋯⋯], path: /usr/bin/gnucp}
-    - {argsRegex: '/usr/bin/cp( [^ ]*)*', path: /usr/bin/gnucp}
-    - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/gnurm}
-    - {argsRegex: '/usr/bin/rm( [^ ]*)*', path: /usr/bin/gnurm}
-    - {args: [/usr/bin/dirname, ⋯⋯], path: /usr/lib/cargo/bin/coreutils/dirname}
-    - {argsRegex: '/usr/bin/dirname( [^ ]*)*', path: /usr/lib/cargo/bin/coreutils/dirname}
-    - {args: [/usr/bin/uname, ⋯⋯], path: /usr/lib/cargo/bin/coreutils/uname}
-    - {argsRegex: '/usr/bin/uname( [^ ]*)*', path: /usr/lib/cargo/bin/coreutils/uname}
     - {args: [/opt/java/openjdk/bin/java, -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties, -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager, -Djdk.tls.ephemeralDHKeySize=2048, -Djava.protocol.handler.pkgs=org.apache.catalina.webresources, -Dsun.io.useCanonCaches=false, -Dorg.apache.catalina.security.SecurityListener.UMASK=0027, --add-opens=java.base/java.lang=ALL-UNNAMED, --add-opens=java.base/java.lang.reflect=ALL-UNNAMED, --add-opens=java.base/java.io=ALL-UNNAMED, --add-opens=java.base/java.util=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent=ALL-UNNAMED, --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED, -classpath, '/usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar', -Dcatalina.base=/usr/local/tomcat, -Dcatalina.home=/usr/local/tomcat, -Djava.io.tmpdir=/usr/local/tomcat/temp, org.apache.catalina.startup.Bootstrap, start], path: /opt/java/openjdk/bin/java}
-    - {args: [/usr/bin/bash, /usr/local/tomcat/bin/catalina.sh, ⋯⋯], path: /usr/bin/bash}
-    - {argsRegex: '/usr/bin/bash /usr/local/tomcat/bin/catalina\.sh( [^ ]*)*', path: /usr/bin/bash}
+    - {argsRegex: '/opt/java/openjdk/bin/java -Djava\.util\.logging\.config\.file=/usr/local/tomcat/conf/logging\.properties -Djava\.util\.logging\.manager=org\.apache\.juli\.ClassLoaderLogManager -Djdk\.tls\.ephemeralDHKeySize=2048 -Djava\.protocol\.handler\.pkgs=org\.apache\.catalina\.webresources -Dsun\.io\.useCanonCaches=false -Dorg\.apache\.catalina\.security\.SecurityListener\.UMASK=0027 --add-opens=java\.base/java\.lang=ALL-UNNAMED --add-opens=java\.base/java\.lang\.reflect=ALL-UNNAMED --add-opens=java\.base/java\.io=ALL-UNNAMED --add-opens=java\.base/java\.util=ALL-UNNAMED --add-opens=java\.base/java\.util\.concurrent=ALL-UNNAMED --add-opens=java\.rmi/sun\.rmi\.transport=ALL-UNNAMED -classpath /usr/local/tomcat/bin/bootstrap\.jar:/usr/local/tomcat/bin/tomcat-juli\.jar -Dcatalina\.base=/usr/local/tomcat -Dcatalina\.home=/usr/local/tomcat -Djava\.io\.tmpdir=/usr/local/tomcat/temp org\.apache\.catalina\.startup\.Bootstrap start', path: /opt/java/openjdk/bin/java}
+    - {args: [/usr/bin/bash, /usr/local/tomcat/bin/catalina.sh, run], path: /usr/bin/bash}
+    - {argsRegex: /usr/bin/bash /usr/local/tomcat/bin/catalina\.sh run, path: /usr/bin/bash}
     - {args: [/usr/bin/sh, -c, cp -r /usr/local/tomcat/webapps.dist/. /usr/local/tomcat/webapps/ && rm -f /usr/local/tomcat/webapps/docs/META-INF/context.xml /usr/local/tomcat/webapps/examples/META-INF/context.xml && exec catalina.sh run], path: /usr/bin/dash}
-    - {args: [/usr/local/tomcat/bin/catalina.sh, ⋯⋯], path: /usr/lib/cargo/bin/coreutils/env}
-    - {argsRegex: '/usr/local/tomcat/bin/catalina\.sh( [^ ]*)*', path: /usr/lib/cargo/bin/coreutils/env}
+    - {argsRegex: /usr/bin/sh -c cp\x20-r\x20/usr/local/tomcat/webapps\.dist/\.\x20/usr/local/tomcat/webapps/\x20&&\x20rm\x20-f\x20/usr/local/tomcat/webapps/docs/META-INF/context\.xml\x20/usr/local/tomcat/webapps/examples/META-INF/context\.xml\x20&&\x20exec\x20catalina\.sh\x20run, path: /usr/bin/dash}
+    - {args: [/usr/bin/cp, -r, /usr/local/tomcat/webapps.dist/., /usr/local/tomcat/webapps/], path: /usr/bin/gnucp}
+    - {argsRegex: /usr/bin/cp -r /usr/local/tomcat/webapps\.dist/\. /usr/local/tomcat/webapps/, path: /usr/bin/gnucp}
+    - {args: [/usr/bin/rm, -f, /usr/local/tomcat/webapps/docs/META-INF/context.xml, /usr/local/tomcat/webapps/examples/META-INF/context.xml], path: /usr/bin/gnurm}
+    - {argsRegex: /usr/bin/rm -f /usr/local/tomcat/webapps/docs/META-INF/context\.xml /usr/local/tomcat/webapps/examples/META-INF/context\.xml, path: /usr/bin/gnurm}
+    - {args: [/usr/bin/dirname, /usr/local/tomcat/bin/catalina.sh], path: /usr/lib/cargo/bin/coreutils/dirname}
+    - {argsRegex: /usr/bin/dirname /usr/local/tomcat/bin/catalina\.sh, path: /usr/lib/cargo/bin/coreutils/dirname}
+    - {args: [/usr/local/tomcat/bin/catalina.sh, run], path: /usr/lib/cargo/bin/coreutils/env}
+    - {argsRegex: /usr/local/tomcat/bin/catalina\.sh run, path: /usr/lib/cargo/bin/coreutils/env}
+    - {args: [/usr/bin/uname], path: /usr/lib/cargo/bin/coreutils/uname}
+    - {argsRegex: /usr/bin/uname, path: /usr/lib/cargo/bin/coreutils/uname}
   identifiedCallStacks: null
   imageID: docker.io/library/tomcat@sha256:465ea45da84a7414252f3b85b1aeda06e3cc09d506a9fc9f79c890dbb9d81acc
   imageTag: docker.io/library/tomcat@sha256:465ea45da84a7414252f3b85b1aeda06e3cc09d506a9fc9f79c890dbb9d81acc
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_RDONLY], path: /dev/random, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_NONBLOCK, O_RDWR], path: /dev/tty, processes: [/usr/bin/bash]}
     - {flags: [O_RDONLY], path: /dev/urandom, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /etc/ubuntu-fips, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /proc/cgroups, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/meminfo, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /proc/sys/crypto/fips_enabled, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/vm/overcommit_memory, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDWR], path: /proc/⋯/coredump_filter, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /proc/⋯/net/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/kernel/mm/hugepages, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [MAPPED, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR], path: /tmp/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /usr/local/tomcat, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [MAPPED, O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /usr/local/tomcat/logs/⋯, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.class, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.classtmp, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.java, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/dates/date_jsp.class, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/dates/date_jsp.classtmp, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/dates/date_jsp.java, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/jsp2/el/basic_002darithmetic_jsp.class, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/jsp2/el/basic_002darithmetic_jsp.classtmp, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/jsp2/el/basic_002darithmetic_jsp.java, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en/LC_MESSAGES/libc.mo, processes: [/opt/java/openjdk/bin/java]}
-    - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en_US/LC_MESSAGES/libc.mo, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
@@ -88,211 +58,228 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_RDONLY], path: /etc/ssl/openssl.cnf, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_RDONLY], path: /etc/ubuntu-fips, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [MAPPED, O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/java/openjdk/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/locale/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/gnucp, /usr/bin/gnurm]}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/index.jsp, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/docs/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/docs/index.html, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async0$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async0.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async1$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async2$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async2.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async3.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/AsyncStockContextListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/AsyncStockServlet.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ByteCounter$CounterListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ByteCounter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CheckTest.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ColorGameBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionFilter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionFilterTestServlet.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionResponseStream.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionServletResponseWrapper.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ContextListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CookieFilter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/DebugValidator.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/DummyCart.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExampleFilter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExampleTagBase.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExamplesConfig.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/FooTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/FooTagExtraInfo.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/HTMLFilter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Item.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/JspCalendar.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/LogTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/NumberGuessBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/NumberWriter$NumberWriterListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/NumberWriter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ResponseTrailers$TrailerFieldSupplier.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ResponseTrailers.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/SessionListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/SimpleImagePush.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Smart.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Stockticker$Stock.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Stockticker$TickListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Stockticker.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ValuesTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/chat/ChatAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Client$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Client.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawMessage$ParseException.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardContextListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint$2.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint$3$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint$3.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$1$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$2.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$MessageType.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$Player.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/AbstractWebsocketMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/BinaryWebsocketMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/CloseWebsocketMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/StringWebsocketMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoAsyncAnnotation$CompletedFuture.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoAsyncAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoEndpoint$EchoMessageHandlerBinary.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoEndpoint$EchoMessageHandlerText.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoEndpoint.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoStreamAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/BookBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/FooBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/ValuesBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/el/Functions.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/EchoAttributesTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/FindBookSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/HelloWorldSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/RepeatSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/ShuffleSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/TileSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Direction.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Location$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Location.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Snake.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/SnakeAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/SnakeTimer$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/SnakeTimer.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/jsp/debug-taglib.tld, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/jsp/example-taglib.tld, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/jsp/jsp2-example-taglib.tld, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/lib/taglibs-standard-impl-1.2.5-migrated-0.0.1.jar, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/lib/taglibs-standard-spec-1.2.5-migrated-0.0.1.jar, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/dates/date.jsp, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/jsp2/el/basic-arithmetic.jsp, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/META-INF/context.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/manager/META-INF/context.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
-    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/manager/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/opt/java/openjdk/bin/java, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/bash]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/gnucp, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [MAPPED, O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/java/openjdk/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_RDONLY], path: /proc/cgroups, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/cpuinfo, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/usr/bin/gnucp, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/meminfo, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_RDONLY], path: /proc/sys/crypto/fips_enabled, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/vm/overcommit_memory, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDWR], path: /proc/⋯/coredump_filter, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/maps, processes: [/usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_RDONLY], path: /proc/⋯/net/*, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
     - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
-    - {flags: [O_NONBLOCK, O_RDWR], path: /dev/tty, processes: [/usr/bin/bash]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/bash]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/kernel/mm/hugepages, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [MAPPED, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR], path: /tmp/*, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/lib/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_RDONLY], path: /usr/local/tomcat, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [MAPPED, O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/opt/java/openjdk/bin/java, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/bin/bash]}
-    - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en/LC_MESSAGES/bash.mo, processes: [/usr/bin/bash]}
-    - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en_US/LC_MESSAGES/bash.mo, processes: [/usr/bin/bash]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/bin/bash, /usr/lib/cargo/bin/coreutils/env]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/bin/dash, /usr/bin/gnurm]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/gnucp]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/bin/gnucp, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_APPEND, O_CREAT, O_WRONLY], path: /usr/local/tomcat/logs/⋯, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/RELEASE-NOTES.txt, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/asf-logo-wide.svg, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/bg-button.png, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/bg-middle.png, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/bg-nav.png, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/bg-upper.png, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/favicon.ico, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/index.jsp, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/tomcat.css, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/ROOT/tomcat.svg, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/docs/*, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/docs/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/docs/index.html, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/META-INF/context.xml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async0$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async0.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async0.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async1$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async1.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async2$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async2.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async2.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async3.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Async3.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/AsyncStockContextListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/AsyncStockContextListener.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/AsyncStockServlet.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/AsyncStockServlet.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ByteCounter$CounterListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ByteCounter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ByteCounter.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CheckTest.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CheckTest.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ColorGameBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ColorGameBean.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionFilter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionFilter.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionFilterTestServlet.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionFilterTestServlet.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionResponseStream.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionResponseStream.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionServletResponseWrapper.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CompressionServletResponseWrapper.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ContextListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ContextListener.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CookieFilter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/CookieFilter.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/DebugValidator.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/DebugValidator.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/DummyCart.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/DummyCart.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExampleFilter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExampleFilter.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExampleTagBase.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExampleTagBase.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExamplesConfig.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ExamplesConfig.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/FooTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/FooTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/FooTagExtraInfo.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/FooTagExtraInfo.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/HTMLFilter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/HTMLFilter.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Item.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Item.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/JspCalendar.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/JspCalendar.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/LogTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/LogTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/NumberGuessBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/NumberGuessBean.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/NumberWriter$NumberWriterListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/NumberWriter.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/NumberWriter.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ResponseTrailers$TrailerFieldSupplier.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ResponseTrailers.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ResponseTrailers.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/SessionListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/SessionListener.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/SimpleImagePush.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/SimpleImagePush.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Smart.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Smart.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Stockticker$Stock.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Stockticker$TickListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Stockticker.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/Stockticker.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ValuesTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/ValuesTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/chat/ChatAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/chat/ChatAnnotation.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Client$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Client.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Client.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawMessage$ParseException.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawMessage.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardContextListener.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardContextListener.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint$2.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint$3$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint$3.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/DrawboardEndpoint.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$1$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$2.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$MessageType.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room$Player.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/Room.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/AbstractWebsocketMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/AbstractWebsocketMessage.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/BinaryWebsocketMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/BinaryWebsocketMessage.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/CloseWebsocketMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/CloseWebsocketMessage.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/StringWebsocketMessage.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/drawboard/wsmessages/StringWebsocketMessage.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoAnnotation.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoAsyncAnnotation$CompletedFuture.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoAsyncAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoAsyncAnnotation.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoEndpoint$EchoMessageHandlerBinary.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoEndpoint$EchoMessageHandlerText.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoEndpoint.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoEndpoint.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoStreamAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/EchoStreamAnnotation.java, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/echo/servers.json, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/BookBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/BookBean.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/FooBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/FooBean.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/ValuesBean.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/ValuesBean.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/el/Functions.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/el/Functions.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/EchoAttributesTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/EchoAttributesTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/FindBookSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/FindBookSimpleTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/HelloWorldSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/HelloWorldSimpleTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/RepeatSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/RepeatSimpleTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/ShuffleSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/ShuffleSimpleTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/TileSimpleTag.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/examples/simpletag/TileSimpleTag.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Direction.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Direction.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Location$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Location.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Location.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Snake.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/Snake.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/SnakeAnnotation.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/SnakeAnnotation.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/SnakeTimer$1.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/SnakeTimer.class, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/classes/⋯/snake/SnakeTimer.java, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/jsp/debug-taglib.tld, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/jsp/example-taglib.tld, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/jsp/jsp2-example-taglib.tld, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/jsp/⋯, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/lib/taglibs-standard-impl-1.2.5-migrated-0.0.1.jar, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/lib/taglibs-standard-spec-1.2.5-migrated-0.0.1.jar, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/tags/displayProducts.tag, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/tags/helloWorld.tag, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/tags/panel.tag, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/index.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/async/async1.jsp, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/async/async1.jsp.html, processes: [/usr/bin/gnucp]}
@@ -311,6 +298,7 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/colors/colrs.jsp, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/colors/colrs.jsp.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/dates/date.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/dates/date.jsp, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/dates/date.jsp.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/error/er.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/error/err.jsp, processes: [/usr/bin/gnucp]}
@@ -338,6 +326,7 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/jsp2/el/ValuesBean.java.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/jsp2/el/ValuesTag.java.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/jsp2/el/basic-arithmetic.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/jsp2/el/basic-arithmetic.jsp, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/jsp2/el/basic-arithmetic.jsp.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/jsp2/el/basic-comparisons.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/jsp2/el/basic-comparisons.jsp, processes: [/usr/bin/gnucp]}
@@ -463,14 +452,18 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/websocket/echo.xhtml, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/websocket/index.xhtml, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/websocket/snake.xhtml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/META-INF/context.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/WEB-INF/jsp/⋯, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/WEB-INF/manager.xml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/css/manager.css, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/images/asf-logo.svg, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/images/favicon.ico, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/images/tomcat.svg, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/index.jsp, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/manager/META-INF/context.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/WEB-INF/jsp/⋯, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/manager/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/css/manager.css, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/images/asf-logo.svg, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/images/favicon.ico, processes: [/usr/bin/gnucp]}
@@ -478,16 +471,25 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/index.jsp, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/status.xsd, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/xform.xsl, processes: [/usr/bin/gnucp]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/gnucp, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/usr/bin/gnucp, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/bin/gnucp, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.class, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.classtmp, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.java, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/dates/date_jsp.class, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/dates/date_jsp.classtmp, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/dates/date_jsp.java, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/jsp2/el/basic_002darithmetic_jsp.class, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/jsp2/el/basic_002darithmetic_jsp.classtmp, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/examples/org/apache/jsp/jsp/jsp2/el/basic_002darithmetic_jsp.java, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/coreutils/locales/dirname/en-US.ftl, processes: [/usr/lib/cargo/bin/coreutils/dirname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/maps, processes: [/usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/tomcat/*, processes: [/usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/coreutils/locales/uucore/en-US.ftl, processes: [/usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/coreutils/locales/env/en-US.ftl, processes: [/usr/lib/cargo/bin/coreutils/env]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/coreutils/locales/uname/en-US.ftl, processes: [/usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/coreutils/locales/uucore/en-US.ftl, processes: [/usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en/LC_MESSAGES/bash.mo, processes: [/usr/bin/bash]}
+    - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en/LC_MESSAGES/libc.mo, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en_US/LC_MESSAGES/bash.mo, processes: [/usr/bin/bash]}
+    - {flags: [O_RDONLY], path: /usr/share/locale-langpack/en_US/LC_MESSAGES/libc.mo, processes: [/opt/java/openjdk/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/locale/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/opt/java/openjdk/bin/java, /usr/bin/bash, /usr/bin/dash, /usr/bin/gnucp, /usr/bin/gnurm, /usr/lib/cargo/bin/coreutils/dirname, /usr/lib/cargo/bin/coreutils/env, /usr/lib/cargo/bin/coreutils/uname]}
   rulePolicies:
     R0002:
       processAllowed:
