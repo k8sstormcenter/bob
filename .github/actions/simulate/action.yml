@@ -103,11 +103,10 @@ runs:
         [ -s out/agent-crash.txt ] && cp out/agent-crash.txt artifacts/agent-crash.txt || true
         ok=0
         for A in ${APP//+/ }; do
-          for f in verdict-public.txt sim-vs-real.txt offline-before.txt offline-after.txt sbob.yaml sbob-legacy.yaml exec-forms.log before.yaml generalize.log validate.log traffic-learn.log summary.md metrics.json kpi.json portability.json; do
+          for f in verdict-public.txt sim-vs-real.txt offline-before.txt offline-after.txt sbob.yaml exec-forms.log before.yaml generalize.log validate.log traffic-learn.log summary.md metrics.json kpi.json portability.json; do
             [ -f "out/$A/$f" ] && cp "out/$A/$f" "artifacts/$A-$f"
           done
           [ -f "out/$A/sbob.yaml" ] && cp "out/$A/sbob.yaml" "sbob/$A-sbob.yaml"
-          [ -f "out/$A/sbob-legacy.yaml" ] && cp "out/$A/sbob-legacy.yaml" "sbob/$A-legacy.yaml"
           [ -f "out/$A/gate.json" ] && cp "out/$A/gate.json" "sbob/$A-gate.json" && cp "out/$A/gate.json" "artifacts/$A-gate.json"
           for f in out/$A/previous-*.log; do [ -f "$f" ] && cp "$f" "artifacts/$A-$(basename "$f")"; done
           for f in out/$A/benign/*.jsonl; do [ -f "$f" ] && cp "$f" "artifacts/$A-usual-traffic-$(basename "$f")"; done
