@@ -123,7 +123,6 @@ spec:
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /tmp/⋯, processes: [/usr/bin/dash, /usr/bin/mariadb-import]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/find, /usr/bin/mariadb-backup]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/find, /usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
-    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/mariadb-backup, /usr/bin/mkdir, /usr/bin/sed, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/mkdir, /usr/bin/sed]}
@@ -153,7 +152,7 @@ spec:
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/mariadb, /usr/bin/mariadb-backup, /usr/bin/mariadb-binlog, /usr/bin/mariadb-dump, /usr/sbin/mariadbd]}
     - {flags: [O_RDONLY], path: /sys/dev/block/⋯/physical_block_size, processes: [/usr/bin/mariadb-backup]}
     - {flags: [O_RDONLY], path: /sys/dev/block/⋯/queue/physical_block_size, processes: [/usr/bin/mariadb-backup]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*, processes: [/usr/bin/mariadb-backup]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECT, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*, processes: [/usr/bin/mariadb-backup]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/mariadb-backup, /usr/bin/mariadb-binlog, /usr/bin/mariadb-dump, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /tmp/*, processes: [/usr/bin/mariadb-backup, /usr/bin/rm]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
@@ -161,7 +160,7 @@ spec:
     - {flags: [O_RDONLY], path: /sys/dev/block/⋯/queue/physical_block_size, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC], path: /tmp, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
-    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/mysql/*, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECT, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/mysql/*, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/mariadb-binlog]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/share/*, processes: [/usr/bin/mariadb-tzinfo-to-sql]}
     - {flags: [O_RDONLY], path: /dev/urandom, processes: [/usr/bin/pwgen]}

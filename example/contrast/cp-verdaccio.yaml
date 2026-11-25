@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: verdaccio
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 74f1386
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-verdaccio-verdaccio
   namespace: sim-verdaccio
@@ -24,7 +24,7 @@ spec:
     - CAP_SETGID
     - CAP_SETUID
   egress:
-    - {dns: registry.npmjs.org., dnsNames: [registry.npmjs.org.], identifier: 7c449fd2f363fcedb0fa22fa4dd382df0404d89b7f01b1a4da254502bbcd87b4, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: registry.npmjs.org., dnsNames: [registry.npmjs.org.], identifier: 884907248e9ef9c446809e8e11c4dac6e5c80ac62e41543ed16b111275b39e8c, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:

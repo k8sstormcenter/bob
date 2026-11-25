@@ -29,7 +29,7 @@ spec:
   egress:
     - {dns: "", dnsNames: null, identifier: c35c338c34f945f1ae7ef2250fb77b2c7c2b6da39f0cceb49ef9541a2fb2c4f6, ipAddress: 104.20.24.227, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, identifier: 885f7adb677d797058e7ed4da2ea1d9b306649deb88021b7676e8c9c8a106614, ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: external}
-    - {dns: "", dnsNames: null, identifier: 2e0278fdb8bd9cd3aeaab187a104a0a968a88827412f6d4241ec08ef2db57752, ipAddress: 52.33.86.107, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, identifier: e4485f941a438afcb65eaf8bbe92e1b92c5e1f4e9a91f6a3bb21a06125130445, ipAddress: 54.244.195.224, namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], type: external}
     - {dns: "", dnsNames: [config-endpoint.liquibase.com., config.liquibase.com., postgres-db., postgres-db.cluster.local., postgres-db.sim-keycloak.svc.cluster.local., postgres-db.svc.cluster.local.], identifier: f3d876dae46b5524b123c817485a031f0b0365066521f3d529dfce491ed44618, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
     - {dns: "", dnsNames: null, identifier: a2de481104b4a208d0783c7c7cd3d7bbb193ae2d368c2ef93125eb42ed1d92d2, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: postgresql-db}}, ports: [{name: TCP-5432, port: 5432, protocol: TCP}], serviceRefName: postgres-db, serviceRefNamespace: sim-keycloak, type: internal}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
@@ -107,10 +107,16 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/tls/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/x86_64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [MAPPED, O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/lib/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/lib64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/locale/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/bin/sed, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/glibc-hwcaps/⋯/libnss_sss.so.2, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/libnss_sss.so.2, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib64/tls/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/lib64/x86_64/*, processes: [/usr/bin/bash, /usr/bin/coreutils, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/bash, /usr/bin/xargs, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [MAPPED], path: /lib64/*, processes: [/usr/bin/bash, /usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib64/*, processes: [/usr/bin/coreutils]}
@@ -138,8 +144,8 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /opt/keycloak/*, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_RDWR, O_WRONLY], path: /opt/keycloak/.keycloak/kcadm.config, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/keycloak/data/keycloak-truststore.p12, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
-    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/keycloak/lib/lib/boot/.permissions-probe5181381866295923865.tmp, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
-    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/keycloak/lib/lib/boot/.permissions-probe6796914192220348128.tmp, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/keycloak/lib/lib/boot/.permissions-probe13157598063388673686.tmp, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /opt/keycloak/lib/lib/boot/.permissions-probe2928665300189145787.tmp, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/keycloak/lib/quarkus/build-system.properties, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/keycloak/lib/quarkus/generated-bytecode.jar, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /opt/keycloak/lib/quarkus/quarkus-application.dat, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
