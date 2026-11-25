@@ -103,7 +103,7 @@ runs:
         [ -s out/agent-crash.txt ] && cp out/agent-crash.txt artifacts/agent-crash.txt || true
         ok=0
         for A in ${APP//+/ }; do
-          for f in verdict-public.txt sim-vs-real.txt offline-before.txt offline-after.txt sbob.yaml before.yaml generalize.log validate.log traffic-learn.log summary.md metrics.json kpi.json portability.json; do
+          for f in verdict-public.txt sim-vs-real.txt offline-before.txt offline-after.txt sbob.yaml exec-forms.log before.yaml generalize.log validate.log traffic-learn.log summary.md metrics.json kpi.json portability.json; do
             [ -f "out/$A/$f" ] && cp "out/$A/$f" "artifacts/$A-$f"
           done
           [ -f "out/$A/sbob.yaml" ] && cp "out/$A/sbob.yaml" "sbob/$A-sbob.yaml"
