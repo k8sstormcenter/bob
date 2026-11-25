@@ -104,6 +104,31 @@ Blue is yours, white is bobctl, green is the result.
 
 The GIF at the top of this page is Flux's helm-controller. In each GIF: left, what was tried and detected; middle, the SBoB (allow list as bars, subtract list below); right, D, N and P.
 
+## Seven stories this is built for
+
+The people are invented. Each story ends with what works today and what does not yet.
+
+**1. Release day.** Ada maintains a message broker. Before she tags a release she wants to know whether the new version does anything the last one did not: a program it starts, a file it opens, a peer it contacts. She learns an SBoB for the release candidate and compares it with the one she shipped: `bobctl diff --file-a v1.yaml --file-b v2.yaml`. Every new line is either a feature she can name or something to look at before the tag. The diff answers "did the behaviour change", not "is this release safe": between PHP 8.4.26 and 8.4.27, which fixed a remote code execution, it is empty.
+*Works today, by hand. Not yet: a ready-made check for her own CI.*
+
+**2. A new advisory lands.** Ben maintains a web server written in C. A memory-corruption report comes in. He cannot try the bug in every deployment, but he can ask what an intruder would do next and whether an SBoB would notice. The Contrast summary lists his project's own advisories by kind, the simulated steps that stand in for what follows each kind, and how many were detected. It also says which kinds nothing stands in for: an authentication bug or a denial of service leaves nothing in the container to see.
+*Arrives in the run summary with the next update of the Contrast workflow.*
+
+**3. What should I change?** Chen ships a container image and its manifest. The summary lists which Kubernetes design conditions hold for her pod, read from its configuration: it runs as root, the root filesystem is writable, the service account token is mounted, no NetworkPolicy limits egress, secrets are passed in the environment. Next to each it names the simulated steps that relate to it and whether they were detected. It does not claim that changing a setting would have stopped a step; that has not been tested.
+*Works today in every run summary.*
+
+**4. The backup job.** Dara operates a database. Her SBoB should describe the database, not the benchmark someone ran while it was learned. Her nightly dump must not alert either. So an SBoB comes in two parts: a base with the application's own behaviour, and an overlay with what backup, dump and check commands add. Dara composes the overlay in (`bobctl compose base.yaml operations.yaml --name …`) because she runs those jobs. A team that does not run them leaves it out, and gets an alert when someone starts a dump.
+*In progress: bobctl can split a profile this way; the examples here are still one file each.*
+
+**5. A controller without a shell.** Emil maintains a Kubernetes controller written in Go, in an image that holds nothing but the binary. Most simulated steps need a shell, so they cannot run there, and his summary says "offline only": the SBoB was checked against recorded events, not by a step in the container. What matters for him is the controller's own reach: what it can be made to connect to, and what its service account may do.
+*Planned: steps performed through the controller's own resources.*
+
+**6. I already have tests.** Finn has an end-to-end suite and does not want to write traffic twice. The usual traffic is any client that does what users do and prints one line per round. His suite can be that client.
+*Works today, by hand: [`example/nats/traffic.yaml`](example/nats/traffic.yaml) shows the shape.*
+
+**7. Software nobody prepared.** Greta runs a CNCF project this repository has no simulation, no path list and no traffic for. She follows the [NATS walkthrough](example/nats/README.md): install, learn for eight minutes, generalize, bind, and check that her usual traffic stays silent while something foreign alerts. bobctl recognises the language from the binary and writes the allow list and the subtract list for it.
+*Works today with bobctl v0.1.30. Not included: the simulation of common CVE types, which runs only in this repository's `Contrast` workflow.*
+
 ## Using bobctl
 
 ```bash
