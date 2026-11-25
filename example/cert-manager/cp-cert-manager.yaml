@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: cert-manager-controller
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-cert-manager-cert-manager-controller
   namespace: sim-cert-manager
@@ -25,6 +25,7 @@ spec:
     - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
   endpoints: null
   execs:
+    - {args: [/app/cmd/controller/controller, ⋯⋯], path: /app/cmd/controller/controller}
     - {argsRegex: '/app/cmd/controller/controller( [^ ]*)*', path: /app/cmd/controller/controller}
   identifiedCallStacks: null
   imageID: quay.io/jetstack/cert-manager-controller@sha256:9f4f96a33c7774cef24466fcd85031997531a03a8d117f151126baa8d1290dcc

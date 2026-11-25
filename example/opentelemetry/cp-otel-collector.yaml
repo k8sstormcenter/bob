@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: opentelemetry-collector
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-otel-collector-opentelemetry-collector
   namespace: sim-otel
@@ -28,7 +28,7 @@ spec:
     - CAP_SYSLOG
     - CAP_SYS_ADMIN
   egress:
-    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}, {name: TCP-10250, port: 10250, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-10250, port: 10250, protocol: TCP}, {name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
     - {dns: "", dnsNames: null, identifier: 903a8265455fc4887352f6592894a629ec69a7fb5905610dbcdba3394c74d510, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: otel-collector, app.kubernetes.io/name: opentelemetry-collector, component: agent-collector}}, ports: [{name: TCP-8888, port: 8888, protocol: TCP}], type: internal}
   endpoints: null
   execs:

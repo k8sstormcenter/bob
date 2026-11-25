@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-helm-manager
   namespace: flux-system
@@ -29,7 +29,9 @@ spec:
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
+    - {args: [/usr/local/bin/helm-controller, ⋯⋯], path: /usr/local/bin/helm-controller}
     - {argsRegex: '/usr/local/bin/helm-controller( [^ ]*)*', path: /usr/local/bin/helm-controller}
+    - {args: [helm-controller, ⋯⋯], path: /usr/local/bin/helm-controller}
     - {argsRegex: 'helm-controller( [^ ]*)*', path: /usr/local/bin/helm-controller}
   identifiedCallStacks: null
   imageID: ghcr.io/fluxcd/helm-controller@sha256:cc944eff709767f9a4d22de6b52dfa330f872962465868ed7787320b056b84f8

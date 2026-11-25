@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: adminer
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-adminer-adminer
   namespace: sim-adminer
@@ -23,6 +23,7 @@ spec:
   egress: null
   endpoints: null
   execs:
+    - {args: [/usr/local/bin/entrypoint.sh, ⋯⋯], path: /bin/dash}
     - {argsRegex: '/usr/local/bin/entrypoint\.sh( [^ ]*)*', path: /bin/dash}
     - {args: [/usr/bin/touch, .adminer-init], path: /bin/touch}
     - {args: [/usr/bin/php, -S, '[::]:8080', -t, /var/www/html], path: /usr/bin/php7.4}

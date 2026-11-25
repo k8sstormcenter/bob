@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: registry
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-registry-registry
   namespace: sim-registry
@@ -22,6 +22,7 @@ spec:
   egress: null
   endpoints: null
   execs:
+    - {args: [/entrypoint.sh, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/entrypoint\.sh( [^ ]*)*', path: /bin/busybox}
     - {args: [/bin/registry, serve, /etc/docker/registry/config.yml], path: /bin/registry}
     - {args: [registry, serve, /etc/docker/registry/config.yml], path: /bin/registry}

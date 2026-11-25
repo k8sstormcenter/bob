@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-kustomize-manager
   namespace: flux-system
@@ -30,13 +30,15 @@ spec:
   endpoints: null
   execs:
     - {args: [/sbin/tini, --, kustomize-controller, '--events-addr=http://notification-controller.flux-system.svc.cluster.local./', --watch-all-namespaces=true, --log-level=info, --log-encoding=json, --enable-leader-election], path: /sbin/tini}
+    - {args: [/usr/local/bin/kustomize-controller, ⋯⋯], path: /usr/local/bin/kustomize-controller}
     - {argsRegex: '/usr/local/bin/kustomize-controller( [^ ]*)*', path: /usr/local/bin/kustomize-controller}
+    - {args: [kustomize-controller, ⋯⋯], path: /usr/local/bin/kustomize-controller}
     - {argsRegex: 'kustomize-controller( [^ ]*)*', path: /usr/local/bin/kustomize-controller}
   identifiedCallStacks: null
   imageID: ghcr.io/fluxcd/kustomize-controller@sha256:e122808057ef0f6a3cb7fbd8e256b5a528d8a59f41d237f2d6664f54481c26d9
   imageTag: ghcr.io/fluxcd/kustomize-controller:v1.10.2
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9440, port: 9440, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
     - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}

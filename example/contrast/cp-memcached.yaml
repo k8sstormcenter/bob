@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: memcached
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-memcached-memcached
   namespace: sim-memcached
@@ -25,8 +25,11 @@ spec:
   egress: null
   endpoints: null
   execs:
+    - {args: [/usr/local/bin/docker-entrypoint.sh, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/usr/local/bin/docker-entrypoint\.sh( [^ ]*)*', path: /bin/busybox}
+    - {args: [/usr/local/bin/memcached, ⋯⋯], path: /usr/local/bin/memcached}
     - {argsRegex: '/usr/local/bin/memcached( [^ ]*)*', path: /usr/local/bin/memcached}
+    - {args: [memcached, ⋯⋯], path: /usr/local/bin/memcached}
     - {argsRegex: 'memcached( [^ ]*)*', path: /usr/local/bin/memcached}
   identifiedCallStacks: null
   imageID: docker.io/library/memcached@sha256:0a27d9d5084fc5781dc614a0223010c65bbab748038603ea04031fbcdcd97185

@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: postgres
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-cnpg-postgres
   namespace: sim-cnpg
@@ -27,21 +27,31 @@ spec:
   endpoints: null
   execs:
     - {args: [/controller/manager, instance, run, --status-port-tls, --log-level=info], path: /controller/manager}
+    - {args: [/controller/manager, wal-archive, --log-destination, /controller/log/postgres.json, pg_wal/⋯], path: /controller/manager}
     - {argsRegex: '/controller/manager wal-archive --log-destination /controller/log/postgres\.json pg_wal/[^/ ]*', path: /controller/manager}
+    - {argsRegex: '/bin/sh -c -- /controller/manager\x20wal-archive\x20--log-destination\x20/controller/log/postgres\.json\x20pg_wal/[A-Za-z0-9][A-Za-z0-9._-]*', path: /usr/bin/dash}
+    - {args: [/usr/bin/pg_isready, ⋯⋯], path: /usr/bin/perl}
     - {argsRegex: '/usr/bin/pg_isready( [^ ]*)*', path: /usr/bin/perl}
+    - {args: [/usr/lib/postgresql/⋯/bin/pg_controldata, ⋯⋯], path: /usr/lib/postgresql/⋯/bin/pg_controldata}
     - {argsRegex: '/usr/lib/postgresql/[^/ ]*/bin/pg_controldata( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/pg_controldata}
+    - {args: [/usr/lib/postgresql/⋯/bin/pg_ctl, ⋯⋯], path: /usr/lib/postgresql/⋯/bin/pg_ctl}
     - {argsRegex: '/usr/lib/postgresql/[^/ ]*/bin/pg_ctl( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/pg_ctl}
+    - {args: [/usr/lib/postgresql/⋯/bin/pg_isready, ⋯⋯], path: /usr/lib/postgresql/⋯/bin/pg_isready}
     - {argsRegex: '/usr/lib/postgresql/[^/ ]*/bin/pg_isready( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/pg_isready}
+    - {args: [/usr/lib/postgresql/⋯/bin/postgres, ⋯⋯], path: /usr/lib/postgresql/⋯/bin/postgres}
     - {argsRegex: '/usr/lib/postgresql/[^/ ]*/bin/postgres( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/postgres}
+    - {args: [postgres, ⋯⋯], path: /usr/lib/postgresql/⋯/bin/postgres}
     - {argsRegex: 'postgres( [^ ]*)*', path: /usr/lib/postgresql/⋯/bin/postgres}
-    - {path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /controller/manager wal-archive --log-destination /controller/log/postgres.json pg_wal/000000010000000000000001], path: /usr/bin/dash}
     - {argsRegex: '/bin/sh -c -- /controller/manager\x20wal-archive\x20--log-destination\x20/controller/log/postgres\.json\x20pg_wal/[0-9A-Fa-f-]+', path: /usr/bin/dash}
+    - {args: [/bin/sh, -c, --, /controller/manager wal-archive --log-destination /controller/log/postgres.json pg_wal/000000010000000000000002], path: /usr/bin/dash}
   identifiedCallStacks: null
   imageID: ghcr.io/cloudnative-pg/postgresql@sha256:c437b7c6c00aa7e66f5d6de1dd83602391fdebd4ff776ffb1ab7aaba5e7351ad
   imageTag: ghcr.io/cloudnative-pg/postgresql:18.7-system-trixie
   ingress:
     - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8000, port: 8000, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-5432, port: 5432, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 3b9f90f3781ce37c47f957e34d010273931ff3132b87953d65151a1774fe68ec, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: cnpg-system}}, podSelector: {matchLabels: {app.kubernetes.io/name: cloudnative-pg}}, ports: [{name: TCP-8000, port: 8000, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /controller/certificates, processes: [/controller/manager]}
     - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /controller/certificates/⋯, processes: [/controller/manager]}

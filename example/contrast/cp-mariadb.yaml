@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: mariadb
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: f3f0285
+    signature.kubescape.io/generator-ref: 5fdfcb0
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-mariadb-mariadb
   namespace: sim-mariadb
@@ -29,36 +29,67 @@ spec:
   egress: null
   endpoints: null
   execs:
+    - {args: [/usr/local/bin/docker-entrypoint.sh, ⋯⋯], path: /usr/bin/bash}
     - {argsRegex: '/usr/local/bin/docker-entrypoint\.sh( [^ ]*)*', path: /usr/bin/bash}
+    - {args: [/usr/local/bin/healthcheck.sh, ⋯⋯], path: /usr/bin/bash}
     - {argsRegex: '/usr/local/bin/healthcheck\.sh( [^ ]*)*', path: /usr/bin/bash}
+    - {args: [/usr/bin/cat, ⋯⋯], path: /usr/bin/cat}
     - {argsRegex: '/usr/bin/cat( [^ ]*)*', path: /usr/bin/cat}
+    - {args: [/usr/bin/chown, ⋯⋯], path: /usr/bin/chown}
     - {argsRegex: '/usr/bin/chown( [^ ]*)*', path: /usr/bin/chown}
+    - {args: [/usr/bin/mariadb-install-db, ⋯⋯], path: /usr/bin/dash}
     - {argsRegex: '/usr/bin/mariadb-install-db( [^ ]*)*', path: /usr/bin/dash}
+    - {args: [/usr/bin/date, ⋯⋯], path: /usr/bin/date}
     - {argsRegex: '/usr/bin/date( [^ ]*)*', path: /usr/bin/date}
+    - {args: [/usr/bin/dirname, ⋯⋯], path: /usr/bin/dirname}
     - {argsRegex: '/usr/bin/dirname( [^ ]*)*', path: /usr/bin/dirname}
+    - {args: [/usr/bin/du, ⋯⋯], path: /usr/bin/du}
     - {argsRegex: '/usr/bin/du( [^ ]*)*', path: /usr/bin/du}
+    - {args: [/usr/bin/head, ⋯⋯], path: /usr/bin/head}
     - {argsRegex: '/usr/bin/head( [^ ]*)*', path: /usr/bin/head}
+    - {args: [/usr/bin/id, ⋯⋯], path: /usr/bin/id}
     - {argsRegex: '/usr/bin/id( [^ ]*)*', path: /usr/bin/id}
+    - {args: [/usr/bin/ls, ⋯⋯], path: /usr/bin/ls}
     - {argsRegex: '/usr/bin/ls( [^ ]*)*', path: /usr/bin/ls}
+    - {args: [/usr/bin/mariadb, ⋯⋯], path: /usr/bin/mariadb}
     - {argsRegex: '/usr/bin/mariadb( [^ ]*)*', path: /usr/bin/mariadb}
+    - {args: [/usr/bin/mariadb-admin, ⋯⋯], path: /usr/bin/mariadb-admin}
     - {argsRegex: '/usr/bin/mariadb-admin( [^ ]*)*', path: /usr/bin/mariadb-admin}
+    - {args: [/usr/bin/mariadb-backup, ⋯⋯], path: /usr/bin/mariadb-backup}
     - {argsRegex: '/usr/bin/mariadb-backup( [^ ]*)*', path: /usr/bin/mariadb-backup}
+    - {args: [/usr/bin/mariadb-binlog, ⋯⋯], path: /usr/bin/mariadb-binlog}
     - {argsRegex: '/usr/bin/mariadb-binlog( [^ ]*)*', path: /usr/bin/mariadb-binlog}
+    - {args: [/usr/bin/mariadb-check, ⋯⋯], path: /usr/bin/mariadb-check}
     - {argsRegex: '/usr/bin/mariadb-check( [^ ]*)*', path: /usr/bin/mariadb-check}
+    - {args: [/usr/bin/mariadb-dump, ⋯⋯], path: /usr/bin/mariadb-dump}
     - {argsRegex: '/usr/bin/mariadb-dump( [^ ]*)*', path: /usr/bin/mariadb-dump}
+    - {args: [/usr/bin/mariadb-import, ⋯⋯], path: /usr/bin/mariadb-import}
     - {argsRegex: '/usr/bin/mariadb-import( [^ ]*)*', path: /usr/bin/mariadb-import}
+    - {args: [/usr/bin/mariadb-show, ⋯⋯], path: /usr/bin/mariadb-show}
     - {argsRegex: '/usr/bin/mariadb-show( [^ ]*)*', path: /usr/bin/mariadb-show}
+    - {args: [/usr/bin/mariadb-tzinfo-to-sql, ⋯⋯], path: /usr/bin/mariadb-tzinfo-to-sql}
     - {argsRegex: '/usr/bin/mariadb-tzinfo-to-sql( [^ ]*)*', path: /usr/bin/mariadb-tzinfo-to-sql}
+    - {args: [/usr/bin/mkdir, ⋯⋯], path: /usr/bin/mkdir}
     - {argsRegex: '/usr/bin/mkdir( [^ ]*)*', path: /usr/bin/mkdir}
+    - {args: [/usr/bin/my_print_defaults, ⋯⋯], path: /usr/bin/my_print_defaults}
     - {argsRegex: '/usr/bin/my_print_defaults( [^ ]*)*', path: /usr/bin/my_print_defaults}
+    - {args: [/usr/bin/pwgen, ⋯⋯], path: /usr/bin/pwgen}
     - {argsRegex: '/usr/bin/pwgen( [^ ]*)*', path: /usr/bin/pwgen}
+    - {args: [/usr/bin/rm, ⋯⋯], path: /usr/bin/rm}
     - {argsRegex: '/usr/bin/rm( [^ ]*)*', path: /usr/bin/rm}
+    - {args: [/usr/bin/sed, ⋯⋯], path: /usr/bin/sed}
     - {argsRegex: '/usr/bin/sed( [^ ]*)*', path: /usr/bin/sed}
+    - {args: [/usr/bin/sleep, ⋯⋯], path: /usr/bin/sleep}
     - {argsRegex: '/usr/bin/sleep( [^ ]*)*', path: /usr/bin/sleep}
+    - {args: [/usr/bin/tail, ⋯⋯], path: /usr/bin/tail}
     - {argsRegex: '/usr/bin/tail( [^ ]*)*', path: /usr/bin/tail}
+    - {args: [/usr/bin/uname, ⋯⋯], path: /usr/bin/uname}
     - {argsRegex: '/usr/bin/uname( [^ ]*)*', path: /usr/bin/uname}
+    - {args: [/usr/local/bin/gosu, ⋯⋯], path: /usr/local/bin/gosu}
     - {argsRegex: '/usr/local/bin/gosu( [^ ]*)*', path: /usr/local/bin/gosu}
+    - {args: [/usr/sbin/mariadbd, ⋯⋯], path: /usr/sbin/mariadbd}
     - {argsRegex: '/usr/sbin/mariadbd( [^ ]*)*', path: /usr/sbin/mariadbd}
+    - {args: [mariadbd, ⋯⋯], path: /usr/sbin/mariadbd}
     - {argsRegex: 'mariadbd( [^ ]*)*', path: /usr/sbin/mariadbd}
     - {args: [/usr/bin/sh, -c, f=$(ls /var/lib/mysql/mariadb-bin.0* | head -1) && mariadb-binlog $f | head -50 > /dev/null], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, 'for try in 1 2 3; do mariadb-dump -uroot -psim-only --single-transaction --routines --events --all-databases > /tmp/hook-all.sql && { rm -f /tmp/hook-all.sql; exit 0; }; sleep 3; done; rm -f /tmp/hook-all.sql; exit 1'], path: /usr/bin/dash}
@@ -68,6 +99,7 @@ spec:
     - {args: [/usr/bin/sh, -c, mariadb-dump -uroot -psim-only --no-data app > /dev/null], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, mariadb-dump -uroot -psim-only --single-transaction app > /tmp/hook.sql && rm -f /tmp/hook.sql], path: /usr/bin/dash}
     - {args: [/usr/bin/sh, -c, mariadb-dump -uroot -psim-only --xml app stock > /dev/null], path: /usr/bin/dash}
+    - {args: [/usr/bin/find, ⋯⋯], path: /usr/bin/find}
     - {argsRegex: '/usr/bin/find( [^ ]*)*', path: /usr/bin/find}
     - {args: [/usr/bin/awk, -v, conf=datadir, '$1 == conf && /^[^ \t]/ { sub(/^[^ \t]+[ \t]+/, ""); print; exit }'], path: /usr/bin/gawk}
     - {args: [/usr/bin/awk, -v, conf=port, '$1 == conf && /^[^ \t]/ { sub(/^[^ \t]+[ \t]+/, ""); print; exit }'], path: /usr/bin/gawk}
@@ -123,6 +155,7 @@ spec:
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /tmp/⋯, processes: [/usr/bin/dash, /usr/bin/mariadb-import]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/find, /usr/bin/mariadb-backup]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/find, /usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/du, /usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/mariadb-backup, /usr/bin/mkdir, /usr/bin/sed, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/mkdir, /usr/bin/sed]}
@@ -152,7 +185,8 @@ spec:
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/mariadb, /usr/bin/mariadb-backup, /usr/bin/mariadb-binlog, /usr/bin/mariadb-dump, /usr/sbin/mariadbd]}
     - {flags: [O_RDONLY], path: /sys/dev/block/⋯/physical_block_size, processes: [/usr/bin/mariadb-backup]}
     - {flags: [O_RDONLY], path: /sys/dev/block/⋯/queue/physical_block_size, processes: [/usr/bin/mariadb-backup]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*, processes: [/usr/bin/mariadb-backup]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_DIRECT, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /tmp/*, processes: [/usr/bin/mariadb-backup]}
+    - {flags: [O_CLOEXEC, O_DIRECT, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/mariadb-backup]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/mariadb-backup, /usr/bin/mariadb-binlog, /usr/bin/mariadb-dump, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /tmp/*, processes: [/usr/bin/mariadb-backup, /usr/bin/rm]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
@@ -160,7 +194,7 @@ spec:
     - {flags: [O_RDONLY], path: /sys/dev/block/⋯/queue/physical_block_size, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/devices/*, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC], path: /tmp, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
-    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECT, O_DIRECTORY, O_EXCL, O_NOFOLLOW, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/mysql/*, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECT, O_EXCL, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /var/lib/mysql/*, processes: [/usr/bin/mariadb-backup, /usr/sbin/mariadbd]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/mysql/*, processes: [/usr/bin/mariadb-binlog]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /usr/share/*, processes: [/usr/bin/mariadb-tzinfo-to-sql]}
     - {flags: [O_RDONLY], path: /dev/urandom, processes: [/usr/bin/pwgen]}
