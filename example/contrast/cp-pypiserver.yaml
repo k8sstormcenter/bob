@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: pypiserver
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e8b39b6
+    signature.kubescape.io/generator-ref: da7de90
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-pypiserver-pypiserver
   namespace: sim-pypiserver
@@ -89,7 +89,7 @@ spec:
     - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /sbin/ldconfig, processes: [/bin/busybox]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/usr/local/bin/gosu]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_LARGEFILE, O_NOFOLLOW, O_RDWR], path: /tmp/⋯, processes: [/usr/local/bin/python3.10]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_EXCL, O_LARGEFILE, O_NOFOLLOW, O_RDWR], path: /tmp/*, processes: [/usr/local/bin/python3.10]}
     - {flags: [MAPPED, O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /usr/lib/*, processes: [/bin/bash, /bin/busybox, /usr/local/bin/gosu, /usr/local/bin/python3.10]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_LARGEFILE, O_RDONLY], path: /usr/local/bin, processes: [/usr/local/bin/python3.10]}
     - {flags: [O_LARGEFILE, O_RDONLY], path: /usr/local/bin/pybuilddir.txt, processes: [/usr/local/bin/python3.10]}

@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: postgres
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e8b39b6
+    signature.kubescape.io/generator-ref: da7de90
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-cnpg-postgres
   namespace: sim-cnpg
@@ -18,8 +18,6 @@ spec:
   architectures:
     - amd64
   capabilities:
-    - CAP_DAC_OVERRIDE
-    - CAP_DAC_READ_SEARCH
     - CAP_NET_ADMIN
     - CAP_SYS_RESOURCE
   egress:
@@ -51,7 +49,6 @@ spec:
   ingress:
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8000, port: 8000, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-5432, port: 5432, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 'pods:metadata.name=cnpg-system/name=cloudnative-pg', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: cnpg-system}}, podSelector: {matchLabels: {app.kubernetes.io/name: cloudnative-pg}}, ports: [{name: TCP-8000, port: 8000, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /controller/certificates, processes: [/controller/manager]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /controller/certificates/client-ca.crt, processes: [/controller/manager, /usr/lib/postgresql/18/bin/postgres]}
@@ -95,7 +92,7 @@ spec:
     - {flags: [O_WRONLY], path: /proc/⋯/oom_score_adj, processes: [/usr/lib/postgresql/18/bin/postgres]}
     - {flags: [O_RDONLY], path: /proc/⋯/status, processes: [/usr/lib/postgresql/18/bin/postgres]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/controller/manager]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/controller/manager]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /sys/devices/*, processes: [/usr/lib/postgresql/18/bin/postgres]}

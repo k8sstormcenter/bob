@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: falco
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e8b39b6
+    signature.kubescape.io/generator-ref: da7de90
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-falco-new-falco
   namespace: sim-falco-new
@@ -103,7 +103,6 @@ spec:
     - {flags: [O_RDONLY], path: /host/proc/⋯/net/udp, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /host/proc/⋯/net/udp6, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /host/proc/⋯/net/unix, processes: [/usr/bin/falco]}
-    - {flags: [O_RDONLY], path: /host/proc/⋯/root/etc/group, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /host/proc/⋯/stat, processes: [/usr/bin/falco]}
     - {flags: [O_RDONLY], path: /host/proc/⋯/status, processes: [/usr/bin/falco]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /host/proc/⋯/task, processes: [/usr/bin/falco]}

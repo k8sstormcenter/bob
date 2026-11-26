@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: nginx
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e8b39b6
+    signature.kubescape.io/generator-ref: da7de90
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-nginx-nginx
   namespace: sim-nginx
@@ -39,8 +39,6 @@ spec:
     - {argsRegex: /usr/bin/cp access\.log access\.log\.ops, path: /usr/bin/cp}
     - {args: [/usr/bin/cut, '-d ', -f, ⋯], path: /usr/bin/cut}
     - {argsRegex: '/usr/bin/cut -d\x20 -f [^ ]*', path: /usr/bin/cut}
-    - {args: [/bin/sh, -c], path: /usr/bin/dash}
-    - {argsRegex: /bin/sh -c, path: /usr/bin/dash}
     - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
     - {argsRegex: /bin/sh -c gzip, path: /usr/bin/dash}
     - {args: [/bin/sh, /docker-entrypoint.d/40-logrotate.sh], path: /usr/bin/dash}
@@ -166,7 +164,7 @@ spec:
   imageTag: docker.io/library/nginx:1.28.3
   ingress:
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-80, port: 80, protocol: TCP}, {name: TCP-443, port: 443, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-443, port: 443, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-80, port: 80, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/dash]}
