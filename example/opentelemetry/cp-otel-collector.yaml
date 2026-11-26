@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: opentelemetry-collector
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 6897c21
+    signature.kubescape.io/generator-ref: e8b39b6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-otel-collector-opentelemetry-collector
   namespace: sim-otel
@@ -378,6 +378,5 @@ spec:
         path: /usr/lib/systemd/system/*
       - flags: null
         path: /var/spool/cron/*
-  syscalls:
-    - unshare
+  syscalls: null
 status: {}

@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: nginx
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 6897c21
+    signature.kubescape.io/generator-ref: e8b39b6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-nginx-nginx
   namespace: sim-nginx
@@ -39,6 +39,8 @@ spec:
     - {argsRegex: /usr/bin/cp access\.log access\.log\.ops, path: /usr/bin/cp}
     - {args: [/usr/bin/cut, '-d ', -f, ⋯], path: /usr/bin/cut}
     - {argsRegex: '/usr/bin/cut -d\x20 -f [^ ]*', path: /usr/bin/cut}
+    - {args: [/bin/sh, -c], path: /usr/bin/dash}
+    - {argsRegex: /bin/sh -c, path: /usr/bin/dash}
     - {args: [/bin/sh, -c, gzip], path: /usr/bin/dash}
     - {argsRegex: /bin/sh -c gzip, path: /usr/bin/dash}
     - {args: [/bin/sh, /docker-entrypoint.d/40-logrotate.sh], path: /usr/bin/dash}
@@ -537,6 +539,5 @@ spec:
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
-  syscalls:
-    - unshare
+  syscalls: null
 status: {}

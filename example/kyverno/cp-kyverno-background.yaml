@@ -1,0 +1,295 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-container-name: controller
+    signature.kubescape.io/generator: bobctl
+    signature.kubescape.io/generator-ref: e8b39b6
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
+  name: sim-kyverno-background-controller
+  namespace: sim-kyverno
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_NET_ADMIN
+    - CAP_SETGID
+    - CAP_SETPCAP
+    - CAP_SETUID
+    - CAP_SYS_ADMIN
+  egress:
+    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 'service:default/kubernetes', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+  endpoints: null
+  execs:
+    - {args: [/ko-app/background-controller, --disableMetrics=false, --otelConfig=prometheus, --metricsPort=8000, --resyncPeriod=15m, --crdWatcher=false, --enableConfigMapCaching=true, '--controllerRuntimeMetricsAddress=:8080', --enableDeferredLoading=true, ⋯, --apiCallTimeout=30s, --maxGlobalContextEntries=0, --loggingFormat=text, --v=2, '--omitEvents=PolicyApplied,PolicySkipped', --enablePolicyException=true, --exceptionNamespace=sim-kyverno, '--enableReporting=validate,mutate,mutateExisting,imageVerify,generate'], path: /ko-app/background-controller}
+    - {argsRegex: '/ko-app/background-controller --disableMetrics=false --otelConfig=prometheus --metricsPort=8000 --resyncPeriod=15m --crdWatcher=false --enableConfigMapCaching=true --controllerRuntimeMetricsAddress=:8080 --enableDeferredLoading=true [^ ]* --apiCallTimeout=30s --maxGlobalContextEntries=0 --loggingFormat=text --v=2 --omitEvents=PolicyApplied,PolicySkipped --enablePolicyException=true --exceptionNamespace=sim-kyverno --enableReporting=validate,mutate,mutateExisting,imageVerify,generate', path: /ko-app/background-controller}
+    - {args: [/ko-app/background-controller, --help], path: /ko-app/background-controller}
+    - {argsRegex: /ko-app/background-controller --help, path: /ko-app/background-controller}
+  identifiedCallStacks: null
+  imageID: reg.kyverno.io/kyverno/background-controller@sha256:c72df38320a48fc9de10f9d23d087a117853bb08207b7f60f6d1e8457fb3ddb7
+  imageTag: reg.kyverno.io/kyverno/background-controller:v1.20.0
+  ingress: null
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/httpd/conf/mime.types, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_RDONLY], path: /etc/localtime, processes: [/ko-app/background-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mime.types, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /ko-app/background-controller, processes: [/ko-app/background-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/ko-app/background-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/ko-app/background-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/ko-app/background-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/ko-app/background-controller]}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/ko-app/background-controller, /runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/ko-app/background-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/ko-app/background-controller]}
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0006:
+      processAllowed:
+        - background-cont
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  subtract:
+    egress:
+      - dns: ""
+        dnsNames: null
+        identifier: signature-metadata-egress-ecs
+        ipAddress: 169.254.170.2
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+      - dns: ""
+        dnsNames:
+          - metadata.google.internal.
+        identifier: signature-metadata-egress-name
+        ipAddress: ""
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+      - dns: ""
+        dnsNames: null
+        identifier: signature-metadata-egress-v4
+        ipAddress: 169.254.169.254
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+    execs:
+      - path: /*/apk
+      - path: /*/apt
+      - path: /*/apt-get
+      - path: /*/aria2c
+      - path: /*/arp
+      - path: /*/ash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/ash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/ash
+      - path: /*/auditctl
+      - path: /*/autossh
+      - argsRegex: '[^ ]+( .*)? (-d|-D|--decode)( .*)?'
+        path: /*/base64
+      - path: /*/bash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/bash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/bash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/busybox
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/busybox
+      - path: /*/capsh
+      - path: /*/chattr
+      - path: /*/chisel
+      - argsRegex: '[^ ]+ (.* )?(0?[4-7][0-7]{3}|[ugoa]*u[ugoa]*[+=][rwxXst]*s[rwxXst]*|[+=][rwxXst]*s[rwxXst]*)( .*)?'
+        path: /*/chmod
+      - path: /*/cloudflared
+      - path: /*/cpuminer
+      - path: /*/curl
+      - path: /*/dash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/dash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/dash
+      - path: /*/dbclient
+      - path: /*/depmod
+      - path: /*/dnf
+      - path: /*/doas
+      - path: /*/dpkg
+      - path: /*/dropbear
+      - path: /*/ethminer
+      - path: /*/frpc
+      - path: /*/frps
+      - path: /*/fscan
+      - path: /*/ftpget
+      - path: /*/gost
+      - path: /*/hostname
+      - path: /*/id
+      - path: /*/ifconfig
+      - path: /*/insmod
+      - path: /*/ip6tables
+      - path: /*/iptables
+      - path: /*/kdevtmpfsi
+      - path: /*/kinsing
+      - path: /*/kmod
+      - path: /*/lscpu
+      - path: /*/masscan
+      - path: /*/microdnf
+      - path: /*/minerd
+      - path: /*/modprobe
+      - path: /*/naabu
+      - path: /*/nc
+      - path: /*/nc.openbsd
+      - path: /*/nc.traditional
+      - path: /*/ncat
+      - path: /*/netcat
+      - path: /*/netstat
+      - path: /*/nft
+      - path: /*/ngrok
+      - path: /*/nmap
+      - argsRegex: '[^ ]+( -[A-Za-z-]+)* (-e|-p|--eval|--print) .*'
+        path: /*/node
+      - path: /*/npc
+      - path: /*/nps
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -[eE] .*'
+        path: /*/perl
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -r .*'
+        path: /*/php
+      - path: /*/pip
+      - path: /*/pip3
+      - path: /*/pkexec
+      - path: /*/pnscan
+      - path: /*/printenv
+      - path: /*/proxychains
+      - path: /*/proxychains4
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -c .*'
+        path: /*/python
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -c .*'
+        path: /*/python3
+      - path: /*/rmmod
+      - path: /*/rpm
+      - argsRegex: '[^ ]+( -[A-Za-z]+)* -[eE] .*'
+        path: /*/ruby
+      - path: /*/scp
+      - path: /*/setcap
+      - path: /*/setenforce
+      - path: /*/sftp
+      - path: /*/sh
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/sh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/sh
+      - path: /*/shred
+      - path: /*/socat
+      - path: /*/ssh
+      - path: /*/ssh-add
+      - path: /*/ssh-agent
+      - path: /*/ssh-keygen
+      - path: /*/ssh-keyscan
+      - path: /*/sshd
+      - path: /*/sshpass
+      - path: /*/su
+      - path: /*/sudo
+      - path: /*/telnet
+      - path: /*/tftp
+      - path: /*/tmate
+      - path: /*/tor
+      - path: /*/uname
+      - path: /*/wget
+      - path: /*/whoami
+      - path: /*/xmr-stak
+      - path: /*/xmrig
+      - path: /*/yum
+      - path: /*/zgrab
+      - path: /*/zgrab2
+      - path: /*/zmap
+      - path: /*/zsh
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/zsh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/zsh
+      - path: /dev/fd/*
+      - path: /dev/shm/*
+      - path: /proc/*/fd/*
+      - path: /tmp/*
+      - path: /var/tmp/*
+    opens:
+      - flags: null
+        path: /etc/cron.d/*
+      - flags: null
+        path: /etc/cron.daily/*
+      - flags: null
+        path: /etc/cron.hourly/*
+      - flags: null
+        path: /etc/cron.monthly/*
+      - flags: null
+        path: /etc/cron.weekly/*
+      - flags: null
+        path: /etc/crontab
+      - flags: null
+        path: /etc/gshadow
+      - flags: null
+        path: /etc/init.d/*
+      - flags: null
+        path: /etc/ld.so.preload
+      - flags: null
+        path: /etc/profile.d/*
+      - flags: null
+        path: /etc/rc.local
+      - flags: null
+        path: /etc/shadow
+      - flags: null
+        path: /etc/sudoers
+      - flags: null
+        path: /etc/sudoers.d/*
+      - flags: null
+        path: /etc/systemd/system/*
+      - flags: null
+        path: /lib/systemd/system/*
+      - flags: null
+        path: /proc/*/environ
+      - flags: null
+        path: /proc/*/mem
+      - flags: null
+        path: /usr/lib/systemd/system/*
+      - flags: null
+        path: /var/spool/cron/*
+  syscalls: null
+status: {}

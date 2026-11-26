@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: cert-manager-controller
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 6897c21
+    signature.kubescape.io/generator-ref: e8b39b6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-cert-manager-cert-manager-controller
   namespace: sim-cert-manager
@@ -32,6 +32,7 @@ spec:
   imageTag: quay.io/jetstack/cert-manager-controller:v1.21.3
   ingress:
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9403, port: 9403, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9402, port: 9402, protocol: TCP}], type: internal}
   opens:
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /app/cmd/controller/controller, processes: [/app/cmd/controller/controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/app/cmd/controller/controller]}
@@ -42,9 +43,12 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mime.types, processes: [/app/cmd/controller/controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/app/cmd/controller/controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/app/cmd/controller/controller]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/app/cmd/controller/controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat, processes: [/app/cmd/controller/controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/app/cmd/controller/controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/limits, processes: [/app/cmd/controller/controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/app/cmd/controller/controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/net/*, processes: [/app/cmd/controller/controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat, processes: [/app/cmd/controller/controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
     - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/app/cmd/controller/controller]}

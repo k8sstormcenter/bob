@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: mongo
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 6897c21
+    signature.kubescape.io/generator-ref: e8b39b6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-mongodb-mongo
   namespace: sim-mongodb
@@ -25,7 +25,7 @@ spec:
     - CAP_SETGID
     - CAP_SETUID
   egress:
-    - {dns: compass.mongodb.com., dnsNames: [compass.mongodb.com.], identifier: 'dns:compass.mongodb.com', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
+    - {dns: "", dnsNames: [compass.mongodb.com., raw.githubusercontent.com.], identifier: 'dns:compass.mongodb.com', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: 'service:kube-system/kube-dns', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
@@ -82,13 +82,13 @@ spec:
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-27017, port: 27017, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-27017, port: 27017, protocol: TCP}], type: internal}
   opens:
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_NONBLOCK, O_RDONLY], path: /, processes: [/usr/bin/find, /usr/bin/mongod]}
     - {flags: [O_RDONLY], path: /data/*, processes: [/usr/bin/dpkg]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /data/*, processes: [/usr/bin/find]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /data/*, processes: [/usr/bin/find, /usr/bin/mongod]}
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /data/*, processes: [/usr/bin/find, /usr/bin/mongosh]}
     - {flags: [O_RDONLY], path: /data/*, processes: [/usr/bin/jq]}
-    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_EXCL, O_NOATIME, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /data/*, processes: [/usr/bin/mongod]}
+    - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL, O_NOATIME, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /data/*, processes: [/usr/bin/mongod]}
     - {flags: [O_APPEND, O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /data/*, processes: [/usr/bin/mongosh]}
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/bash, /usr/bin/mongod, /usr/bin/mongosh]}
     - {flags: [O_NOCTTY, O_NONBLOCK, O_RDONLY, O_RDWR], path: /dev/tty, processes: [/usr/bin/bash, /usr/bin/ps]}
