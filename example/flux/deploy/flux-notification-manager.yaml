@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: e8b39b6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-notification-manager
   namespace: flux-system
@@ -22,8 +22,8 @@ spec:
     - CAP_DAC_READ_SEARCH
     - CAP_NET_ADMIN
   egress:
-    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
-    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 'service:default/kubernetes', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: 'service:kube-system/kube-dns', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
     - {args: [/usr/local/bin/notification-controller, ⋯⋯], path: /usr/local/bin/notification-controller}
@@ -34,13 +34,11 @@ spec:
   imageID: ghcr.io/fluxcd/notification-controller@sha256:229b0685768aec0adf7f0d9536890c93bcffc06b17336e1c1fdd4372c4c27dca
   imageTag: ghcr.io/fluxcd/notification-controller:v1.10.1
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 422a2565cebefb7d5baf64f1d905867eb038a3420679d91f83324e164077ab66, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: helm-controller, app.kubernetes.io/component: helm-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 2ab45f2f6a1a31d5f8d69091dd6ce97ca3da1d64c09b2d24814d1a1e7e09c970, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: kustomize-controller, app.kubernetes.io/component: kustomize-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: ce9ed7b2847c2dcbad8c178071676c2e1704ca4c800315b30a26d0636695d557, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: source-controller, app.kubernetes.io/component: source-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=helm-controller,component=helm-controller,instance=flux-system,part-of=flux', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: helm-controller, app.kubernetes.io/component: helm-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=kustomize-controller,component=kustomize-controller,instance=flux-system,part-of=flux', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: kustomize-controller, app.kubernetes.io/component: kustomize-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=source-controller,component=source-controller,instance=flux-system,part-of=flux', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: source-controller, app.kubernetes.io/component: source-controller, app.kubernetes.io/instance: flux-system, app.kubernetes.io/part-of: flux}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
   opens:
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/usr/local/bin/notification-controller]}
@@ -52,6 +50,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/local/bin/notification-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, processes: [/usr/local/bin/notification-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/usr/local/bin/notification-controller]}

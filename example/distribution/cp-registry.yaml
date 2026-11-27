@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: registry
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: e8b39b6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-registry-registry
   namespace: sim-registry
@@ -25,16 +25,18 @@ spec:
     - {args: [/entrypoint.sh, ⋯⋯], path: /bin/busybox}
     - {argsRegex: '/entrypoint\.sh( [^ ]*)*', path: /bin/busybox}
     - {args: [/bin/registry, serve, /etc/docker/registry/config.yml], path: /bin/registry}
+    - {argsRegex: /bin/registry serve /etc/docker/registry/config\.yml, path: /bin/registry}
     - {args: [registry, serve, /etc/docker/registry/config.yml], path: /bin/registry}
+    - {argsRegex: registry serve /etc/docker/registry/config\.yml, path: /bin/registry}
   identifiedCallStacks: null
   imageID: docker.io/library/registry@sha256:a3d8aaa63ed8681a604f1dea0aa03f100d5895b6a58ace528858a7b332415373
   imageTag: docker.io/library/registry:2.8.3
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-5000, port: 5000, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 8dc0dc3f0cf665efa19a04de5bc587093c47c3292aaaa3ab58c008038d590e58, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-5000, port: 5000, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-5000, port: 5000, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-5000, port: 5000, protocol: TCP}, {name: TCP-5001, port: 5001, protocol: TCP}], type: internal}
   opens:
-    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /entrypoint.sh, processes: [/bin/busybox]}
     - {flags: [MAPPED], path: /bin/registry, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_LARGEFILE, O_RDONLY], path: /entrypoint.sh, processes: [/bin/busybox]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/docker/registry/config.yml, processes: [/bin/registry]}
@@ -46,14 +48,41 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/net/core/somaxconn, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/fd, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/limits, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/blobs/sha256/*, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_layers/sha256/⋯/link, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/revisions/sha256/⋯/link, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/tags, processes: [/bin/registry]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/tags/latest/current/link, processes: [/bin/registry]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/tags/⋯/current/link, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/tags/⋯/index/sha256/⋯/link, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads/⋯, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads/⋯/data, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads/⋯/hashstates, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads/⋯/hashstates/sha256, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads/⋯/hashstates/sha256/⋯, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads/⋯/startedat, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs/_layers/sha256/⋯/link, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs/_uploads, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs/_uploads/⋯, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs/_uploads/⋯/data, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs/_uploads/⋯/hashstates, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs/_uploads/⋯/hashstates/sha256, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs/_uploads/⋯/hashstates/sha256/⋯, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/blobs/_uploads/⋯/startedat, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/mirror, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/mirror/_layers/sha256/⋯/link, processes: [/bin/registry]}
   rulePolicies:
     R0002:
       processAllowed:

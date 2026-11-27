@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5fdfcb0
+    signature.kubescape.io/generator-ref: da7de90
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-helm-manager
   namespace: flux-system
@@ -22,11 +22,11 @@ spec:
     - CAP_DAC_READ_SEARCH
     - CAP_NET_ADMIN
   egress:
-    - {dns: "", dnsNames: [notification-controller., notification-controller.cluster.local., notification-controller.flux-system.svc.cluster.local., notification-controller.svc.cluster.local., source-controller., source-controller.cluster.local., source-controller.flux-system.svc.cluster.local., source-controller.svc.cluster.local.], identifier: b6bf3f1d06757c4f12bd2fa2790f7f63d7155048ad2357daf54367c903e3b1b5, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
-    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 0eb016dd83f68c1178b2d4fe406ba024a59fe01e80530f0042ba8e091c008b49, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
-    - {dns: "", dnsNames: null, identifier: 2a91885a2b3c7c8bc0f5fd078f08758a2b085c13b56f3da4583cfc658c69ff26, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: notification-controller}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], serviceRefName: notification-controller, serviceRefNamespace: flux-system, type: internal}
-    - {dns: "", dnsNames: null, identifier: 8079019250567575ccc1773f9f1ebf7b7095e7035e7fb339fa1c62e9d20f7706, ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: source-controller}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], serviceRefName: source-controller, serviceRefNamespace: flux-system, type: internal}
-    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: f14f2fcfddcf09359d7b0488b71dc30968e15b77e76f686341beb550270073b2, ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
+    - {dns: "", dnsNames: [notification-controller., notification-controller.cluster.local., notification-controller.flux-system.svc.cluster.local., notification-controller.svc.cluster.local., source-controller., source-controller.cluster.local., source-controller.flux-system.svc.cluster.local., source-controller.svc.cluster.local.], identifier: 'dns:notification-controller', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
+    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 'service:default/kubernetes', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+    - {dns: "", dnsNames: null, identifier: 'service:flux-system/notification-controller', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: notification-controller}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], serviceRefName: notification-controller, serviceRefNamespace: flux-system, type: internal}
+    - {dns: "", dnsNames: null, identifier: 'service:flux-system/source-controller', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: source-controller}}, ports: [{name: TCP-80, port: 80, protocol: TCP}], serviceRefName: source-controller, serviceRefNamespace: flux-system, type: internal}
+    - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: 'service:kube-system/kube-dns', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
     - {args: [/usr/local/bin/helm-controller, ⋯⋯], path: /usr/local/bin/helm-controller}
@@ -37,10 +37,8 @@ spec:
   imageID: ghcr.io/fluxcd/helm-controller@sha256:cc944eff709767f9a4d22de6b52dfa330f872962465868ed7787320b056b84f8
   imageTag: ghcr.io/fluxcd/helm-controller:v1.7.2
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 8298282dd5d5892a8f93c10f65039ddb1731bca80844d227176015cf1c2a16b8, ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
-    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/config, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/usr/local/bin/helm-controller]}
@@ -56,6 +54,8 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/net/*, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat, processes: [/usr/local/bin/helm-controller]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/namespace, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/usr/local/bin/helm-controller]}
