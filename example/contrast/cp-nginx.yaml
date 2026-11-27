@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: nginx
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: da7de90
+    signature.kubescape.io/generator-ref: cc9d11d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-nginx-nginx
   namespace: sim-nginx
@@ -164,7 +164,7 @@ spec:
   imageTag: docker.io/library/nginx:1.28.3
   ingress:
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-80, port: 80, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-443, port: 443, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-80, port: 80, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-80, port: 80, protocol: TCP}, {name: TCP-443, port: 443, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/dash]}
@@ -252,14 +252,12 @@ spec:
     - {flags: [O_CLOEXEC, O_DIRECTORY, O_NOCTTY, O_NOFOLLOW, O_NONBLOCK, O_RDONLY], path: /var/log/nginx, processes: [/usr/bin/df, /usr/bin/du, /usr/bin/find, /usr/bin/gzip, /usr/bin/ls]}
     - {flags: [O_APPEND, O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /var/log/nginx/access.log, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/mawk, /usr/bin/tail, /usr/sbin/nginx]}
     - {flags: [O_NOCTTY, O_NONBLOCK, O_RDONLY], path: /var/log/nginx/access.log.1, processes: [/usr/bin/gzip]}
-    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /var/log/nginx/access.log.1.gz, processes: [/usr/bin/gzip]}
-    - {flags: [O_DIRECTORY, O_RDONLY], path: /var/log/nginx/access.log.3.gz, processes: [/usr/bin/mv]}
     - {flags: [O_CREAT, O_DIRECTORY, O_EXCL, O_NOCTTY, O_NONBLOCK, O_RDONLY, O_WRONLY], path: /var/log/nginx/access.log.ops, processes: [/usr/bin/cp, /usr/bin/gzip]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /var/log/nginx/access.log.ops.gz, processes: [/usr/bin/gzip]}
     - {flags: [O_APPEND, O_CREAT, O_NOCTTY, O_RDONLY, O_WRONLY], path: /var/log/nginx/error.log, processes: [/usr/bin/grep, /usr/bin/tail, /usr/sbin/nginx]}
     - {flags: [O_NOCTTY, O_NONBLOCK, O_RDONLY], path: /var/log/nginx/error.log.1, processes: [/usr/bin/gzip]}
-    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /var/log/nginx/error.log.1.gz, processes: [/usr/bin/gzip]}
-    - {flags: [O_DIRECTORY, O_RDONLY], path: /var/log/nginx/error.log.3.gz, processes: [/usr/bin/mv]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /var/log/nginx/⋯, processes: [/usr/bin/gzip]}
+    - {flags: [O_DIRECTORY, O_RDONLY], path: /var/log/nginx/⋯, processes: [/usr/bin/mv]}
   rulePolicies:
     R0002:
       processAllowed:

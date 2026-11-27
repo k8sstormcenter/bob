@@ -1,0 +1,376 @@
+# Maintainer: Constanze Roedig <constanze.roedig@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+# Licensed under the Apache License, Version 2.0; see LICENSE.
+# All trademarks are expressly reserved.
+apiVersion: spdx.softwarecomposition.kubescape.io/v1beta1
+kind: ContainerProfile
+metadata:
+  annotations:
+    kubescape.io/managed-by: User
+  labels:
+    kubescape.io/workload-container-name: prometheus
+    signature.kubescape.io/generator: bobctl
+    signature.kubescape.io/generator-ref: cc9d11d
+    signature.kubescape.io/matcher-version: 759ea1ea57079998
+  name: sim-prometheus-prometheus
+  namespace: sim-prometheus
+spec:
+  architectures:
+    - amd64
+  capabilities:
+    - CAP_CHOWN
+    - CAP_DAC_OVERRIDE
+    - CAP_DAC_READ_SEARCH
+    - CAP_NET_ADMIN
+    - CAP_SETGID
+    - CAP_SETPCAP
+    - CAP_SETUID
+    - CAP_SYS_ADMIN
+  egress:
+    - {dns: "", dnsNames: null, identifier: 'pods:alertmanager=prometheus-kube-prometheus-alertmanager,instance=prometheus-kube-prometheus-alertmanager,managed-by=prometheus-operator,name=alertmanager', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {alertmanager: prometheus-kube-prometheus-alertmanager, app.kubernetes.io/instance: prometheus-kube-prometheus-alertmanager, app.kubernetes.io/managed-by: prometheus-operator, app.kubernetes.io/name: alertmanager}}, ports: [{name: TCP-9093, port: 9093, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=kube-prometheus-stack-operator,component=prometheus-operator,heritage=Helm,instance=prometheus,managed-by=Helm,name=kube-prometheus-stack-prometheus-operator,part-of=kube-prometheus-stack,release=prometheus', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: kube-prometheus-stack-operator, app.kubernetes.io/component: prometheus-operator, app.kubernetes.io/instance: prometheus, app.kubernetes.io/managed-by: Helm, app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator, app.kubernetes.io/part-of: kube-prometheus-stack, heritage: Helm, release: prometheus}}, ports: [{name: TCP-10250, port: 10250, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:component=metrics,instance=prometheus,managed-by=Helm,name=kube-state-metrics,part-of=kube-state-metrics,release=prometheus', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/component: metrics, app.kubernetes.io/instance: prometheus, app.kubernetes.io/managed-by: Helm, app.kubernetes.io/name: kube-state-metrics, app.kubernetes.io/part-of: kube-state-metrics, release: prometheus}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:instance=prometheus-kube-prometheus-prometheus,managed-by=prometheus-operator,name=prometheus,name=prometheus-kube-prometheus-prometheus,prometheus=prometheus-kube-prometheus-prometheus,shard=0', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: prometheus-kube-prometheus-prometheus, app.kubernetes.io/managed-by: prometheus-operator, app.kubernetes.io/name: prometheus, operator.prometheus.io/name: prometheus-kube-prometheus-prometheus, operator.prometheus.io/shard: "0", prometheus: prometheus-kube-prometheus-prometheus}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:metadata.name=kube-system/k8s-app=kube-dns', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: TCP-9153, port: 9153, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 'service:default/kubernetes', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-6443, port: 6443, protocol: TCP}, {name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+    - {dns: "", dnsNames: [prometheus-kube-prometheus-kubelet., prometheus-kube-prometheus-kubelet.cluster.local., prometheus-kube-prometheus-kubelet.kube-system.svc.cluster.local., prometheus-kube-prometheus-kubelet.svc.cluster.local.], identifier: 'service:kube-system/prometheus-kube-prometheus-kubelet', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-10250, port: 10250, protocol: TCP}], serviceRefName: prometheus-kube-prometheus-kubelet, serviceRefNamespace: kube-system, type: internal}
+    - {dns: "", dnsNames: [prometheus-prometheus-node-exporter., prometheus-prometheus-node-exporter.cluster.local., prometheus-prometheus-node-exporter.sim-prometheus.svc.cluster.local., prometheus-prometheus-node-exporter.svc.cluster.local.], identifier: 'service:sim-prometheus/prometheus-prometheus-node-exporter', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9100, port: 9100, protocol: TCP}], serviceRefName: prometheus-prometheus-node-exporter, serviceRefNamespace: sim-prometheus, type: internal}
+  endpoints: null
+  execs:
+    - {args: [/bin/prometheus, ⋯⋯], path: /usr/bin/prometheus}
+    - {argsRegex: '/bin/prometheus( [^ ]*)*', path: /usr/bin/prometheus}
+    - {args: [/bin/promtool, --version], path: /usr/bin/promtool}
+    - {argsRegex: /bin/promtool --version, path: /usr/bin/promtool}
+    - {args: [/bin/promtool, check, config, /etc/prometheus/config_out/prometheus.env.yaml], path: /usr/bin/promtool}
+    - {argsRegex: /bin/promtool check config /etc/prometheus/config_out/prometheus\.env\.yaml, path: /usr/bin/promtool}
+    - {args: [/bin/promtool, check, healthy, '--url=http://localhost:9090'], path: /usr/bin/promtool}
+    - {argsRegex: '/bin/promtool check healthy --url=http://localhost:9090', path: /usr/bin/promtool}
+    - {args: [/bin/promtool, check, ready, '--url=http://localhost:9090'], path: /usr/bin/promtool}
+    - {argsRegex: '/bin/promtool check ready --url=http://localhost:9090', path: /usr/bin/promtool}
+    - {args: [/bin/promtool, check, web-config, /etc/prometheus/web_config/web-config.yaml], path: /usr/bin/promtool}
+    - {argsRegex: /bin/promtool check web-config /etc/prometheus/web_config/web-config\.yaml, path: /usr/bin/promtool}
+    - {args: [/bin/promtool, query, instant, 'http://localhost:9090', count(up == 1)], path: /usr/bin/promtool}
+    - {argsRegex: '/bin/promtool query instant http://localhost:9090 count\(up\x20==\x201\)', path: /usr/bin/promtool}
+    - {args: [/bin/promtool, tsdb, list, /prometheus], path: /usr/bin/promtool}
+    - {argsRegex: /bin/promtool tsdb list /prometheus, path: /usr/bin/promtool}
+  identifiedCallStacks: null
+  imageID: quay.io/prometheus/prometheus@sha256:9764044e09eb2c9e1abdb12d0f0188d4efb7384b0262d3c080f0fc59045c89ba
+  imageTag: quay.io/prometheus/prometheus:v3.16.0-distroless
+  ingress:
+    - {dns: "", dnsNames: null, identifier: 'address:127.0.0.1', ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: external}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:instance=prometheus-kube-prometheus-prometheus,managed-by=prometheus-operator,name=prometheus,name=prometheus-kube-prometheus-prometheus,prometheus=prometheus-kube-prometheus-prometheus,shard=0', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: prometheus-kube-prometheus-prometheus, app.kubernetes.io/managed-by: prometheus-operator, app.kubernetes.io/name: prometheus, operator.prometheus.io/name: prometheus-kube-prometheus-prometheus, operator.prometheus.io/shard: "0", prometheus: prometheus-kube-prometheus-prometheus}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+  opens:
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/httpd/conf/mime.types, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_RDONLY], path: /etc/localtime, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/mime.types, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/runc, /usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/certs/⋯/0_sim-prometheus_prometheus-kube-prometheus-admission_ca.crt, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/certs/⋯/1_sim-prometheus_kube-root-ca.crt_ca.crt, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/config_out/prometheus.env.yaml, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/rules/prometheus-prometheus-kube-prometheus-prometheus-rulefiles-0, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/rules/prometheus-prometheus-kube-prometheus-prometheus-rulefiles-0/⋯/⋯, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/rules/prometheus-prometheus-kube-prometheus-prometheus-rulefiles-0/⋯/⋯, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/rules/prometheus-prometheus-kube-prometheus-prometheus-rulefiles-1, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/rules/prometheus-prometheus-kube-prometheus-prometheus-rulefiles-2, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/prometheus/web_config/web-config.yaml, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/filesystems, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/stat, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/sys/kernel/cap_last_cap, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/cgroup, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/limits, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/mountinfo, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/net/*, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/setgroups, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /proc/⋯/stat, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY, O_WRONLY], path: /proc/⋯/task/*, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /prometheus, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [MAPPED, O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_NOFOLLOW, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /prometheus/*, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /prometheus/⋯/chunks, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_DIRECTORY, O_RDONLY], path: /prometheus/⋯/chunks, processes: [/usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /prometheus/⋯/chunks/⋯, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /prometheus/⋯/chunks/⋯, processes: [/usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /prometheus/⋯/index, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /prometheus/⋯/index, processes: [/usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /prometheus/⋯/meta.json, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /prometheus/⋯/tombstones, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /prometheus/⋯/tombstones, processes: [/usr/bin/promtool]}
+    - {flags: [O_WRONLY], path: /run/containerd/runc/k8s.io/⋯/exec.fifo, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /runc, processes: [/runc]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /sys/fs/cgroup/*, processes: [/usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/bin/prometheus, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/bin/promtool, processes: [/usr/bin/promtool]}
+    - {flags: [O_RDONLY], path: /usr/local/go/lib/time/*, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/runc, /usr/bin/prometheus, /usr/bin/promtool]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/ca.crt, processes: [/usr/bin/prometheus]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token, processes: [/usr/bin/prometheus]}
+  rulePolicies:
+    R0002:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0004:
+      processAllowed:
+        - runc:[1:INIT]
+        - runc:[1:CHILD]
+        - runc:[2:INIT]
+        - runc:[3:INIT]
+    R0006:
+      processAllowed:
+        - prometheus
+  seccompProfile:
+    spec:
+      defaultAction: ""
+  subtract:
+    egress:
+      - dns: ""
+        dnsNames: null
+        identifier: signature-metadata-egress-ecs
+        ipAddress: 169.254.170.2
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+      - dns: ""
+        dnsNames:
+          - metadata.google.internal.
+        identifier: signature-metadata-egress-name
+        ipAddress: ""
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+      - dns: ""
+        dnsNames: null
+        identifier: signature-metadata-egress-v4
+        ipAddress: 169.254.169.254
+        namespaceSelector: null
+        podSelector: null
+        ports: null
+        type: external
+    execs:
+      - path: /*/apk
+      - path: /*/apt
+      - path: /*/apt-get
+      - path: /*/aria2c
+      - path: /*/arp
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/ash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/ash
+      - path: /*/auditctl
+      - path: /*/autossh
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/bash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/bash
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/busybox
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/busybox
+      - path: /*/capsh
+      - path: /*/chattr
+      - path: /*/chisel
+      - argsRegex: '[^ ]+ (.* )?(0?[4-7][0-7]{3}|[ugoa]*u[ugoa]*[+=][rwxXst]*s[rwxXst]*|[+=][rwxXst]*s[rwxXst]*)( .*)?'
+        path: /*/chmod
+      - path: /*/cloudflared
+      - path: /*/cpuminer
+      - path: /*/curl
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/dash
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/dash
+      - path: /*/dbclient
+      - path: /*/depmod
+      - path: /*/dnf
+      - path: /*/doas
+      - path: /*/dpkg
+      - path: /*/dropbear
+      - path: /*/ethminer
+      - path: /*/frpc
+      - path: /*/frps
+      - path: /*/fscan
+      - path: /*/ftpget
+      - path: /*/gost
+      - path: /*/hostname
+      - path: /*/id
+      - path: /*/ifconfig
+      - path: /*/insmod
+      - path: /*/ip6tables
+      - path: /*/iptables
+      - path: /*/kdevtmpfsi
+      - path: /*/kinsing
+      - path: /*/kmod
+      - path: /*/lscpu
+      - path: /*/masscan
+      - path: /*/microdnf
+      - path: /*/minerd
+      - path: /*/modprobe
+      - path: /*/naabu
+      - path: /*/nc
+      - path: /*/nc.openbsd
+      - path: /*/nc.traditional
+      - path: /*/ncat
+      - path: /*/netcat
+      - path: /*/netstat
+      - path: /*/nft
+      - path: /*/ngrok
+      - path: /*/nmap
+      - path: /*/npc
+      - path: /*/nps
+      - path: /*/pip
+      - path: /*/pip3
+      - path: /*/pkexec
+      - path: /*/pnscan
+      - path: /*/printenv
+      - path: /*/proxychains
+      - path: /*/proxychains4
+      - path: /*/rmmod
+      - path: /*/rpm
+      - path: /*/scp
+      - path: /*/setcap
+      - path: /*/setenforce
+      - path: /*/sftp
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/sh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/sh
+      - path: /*/shred
+      - path: /*/socat
+      - path: /*/ssh
+      - path: /*/ssh-add
+      - path: /*/ssh-agent
+      - path: /*/ssh-keygen
+      - path: /*/ssh-keyscan
+      - path: /*/sshd
+      - path: /*/sshpass
+      - path: /*/su
+      - path: /*/sudo
+      - path: /*/telnet
+      - path: /*/tftp
+      - path: /*/tmate
+      - path: /*/tor
+      - path: /*/uname
+      - path: /*/wget
+      - path: /*/whoami
+      - path: /*/xmr-stak
+      - path: /*/xmrig
+      - path: /*/yum
+      - path: /*/zgrab
+      - path: /*/zgrab2
+      - path: /*/zmap
+      - argsRegex: .*(/dev/(tcp|udp)/|(curl|wget)[^|]*\|.?(ba|da|a|z)?sh).*
+        path: /*/zsh
+      - argsRegex: .*stratum\+(tcp|ssl)://.*
+        path: /*/zsh
+      - path: /dev/fd/*
+      - path: /dev/shm/*
+      - path: /proc/*/fd/*
+      - path: /tmp/*
+      - path: /var/tmp/*
+    opens:
+      - flags: null
+        path: /*/.aws/*
+      - flags: null
+        path: /*/.bash_history
+      - flags: null
+        path: /*/.bash_profile
+      - flags: null
+        path: /*/.bashrc
+      - flags: null
+        path: /*/.config/autostart/*
+      - flags: null
+        path: /*/.config/gcloud/*
+      - flags: null
+        path: /*/.config/systemd/user/*
+      - flags: null
+        path: /*/.docker/config.json
+      - flags: null
+        path: /*/.env
+      - flags: null
+        path: /*/.git-credentials
+      - flags: null
+        path: /*/.htpasswd
+      - flags: null
+        path: /*/.kube/*
+      - flags: null
+        path: /*/.my.cnf
+      - flags: null
+        path: /*/.mysql_history
+      - flags: null
+        path: /*/.netrc
+      - flags: null
+        path: /*/.npmrc
+      - flags: null
+        path: /*/.pgpass
+      - flags: null
+        path: /*/.profile
+      - flags: null
+        path: /*/.psql_history
+      - flags: null
+        path: /*/.rediscli_history
+      - flags: null
+        path: /*/.ssh/*
+      - flags: null
+        path: /*/env.php
+      - flags: null
+        path: /*/terraform.tfstate
+      - flags: null
+        path: /*/wp-config.php
+      - flags: null
+        path: /etc/cron.d/*
+      - flags: null
+        path: /etc/cron.daily/*
+      - flags: null
+        path: /etc/cron.hourly/*
+      - flags: null
+        path: /etc/cron.monthly/*
+      - flags: null
+        path: /etc/cron.weekly/*
+      - flags: null
+        path: /etc/crontab
+      - flags: null
+        path: /etc/gshadow
+      - flags: null
+        path: /etc/init.d/*
+      - flags: null
+        path: /etc/ld.so.preload
+      - flags: null
+        path: /etc/profile.d/*
+      - flags: null
+        path: /etc/rc.local
+      - flags: null
+        path: /etc/shadow
+      - flags: null
+        path: /etc/sudoers
+      - flags: null
+        path: /etc/sudoers.d/*
+      - flags: null
+        path: /etc/systemd/system/*
+      - flags: null
+        path: /lib/systemd/system/*
+      - flags: null
+        path: /proc/*/environ
+      - flags: null
+        path: /proc/*/mem
+      - flags: null
+        path: /usr/lib/systemd/system/*
+      - flags: null
+        path: /var/spool/cron/*
+  syscalls: null
+status: {}

@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: envoy
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e8b39b6
+    signature.kubescape.io/generator-ref: cc9d11d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-envoy-gateway-envoy
   namespace: envoy-gateway-system
@@ -41,7 +41,7 @@ spec:
   imageTag: docker.io/envoyproxy/envoy@sha256:09ca6f2140a61ad8df11779a4a30d52b48433d444466328494f9188c9c35eded
   ingress:
     - {dns: "", dnsNames: null, identifier: 'address:127.0.0.1', ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-19000, port: 19000, protocol: TCP}], type: external}
-    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-19003, port: 19003, protocol: TCP}, {name: TCP-19002, port: 19002, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-19002, port: 19002, protocol: TCP}, {name: TCP-19003, port: 19003, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 'pods:metadata.name=sim-envoy-gateway/app=traffic', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: sim-envoy-gateway}}, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-10080, port: 10080, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_RDONLY], path: /certs/⋯/ca.crt, processes: [/usr/local/bin/envoy]}

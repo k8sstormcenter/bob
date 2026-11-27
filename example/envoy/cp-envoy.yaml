@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: envoy
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: da7de90
+    signature.kubescape.io/generator-ref: cc9d11d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-envoy-envoy
   namespace: sim-envoy
@@ -30,7 +30,7 @@ spec:
   egress:
     - {dns: "", dnsNames: null, identifier: 'address:127.0.0.1', ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: backend.sim-envoy.svc.cluster.local., dnsNames: [backend., backend.cluster.local., backend.sim-envoy.svc.cluster.local., backend.svc.cluster.local.], identifier: 'dns:backend', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
-    - {dns: "", dnsNames: null, identifier: 'pods:app=backend', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: backend}}, ports: [{name: TCP-8082, port: 8082, protocol: TCP}, {name: TCP-8081, port: 8081, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=backend', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: backend}}, ports: [{name: TCP-8081, port: 8081, protocol: TCP}, {name: TCP-8082, port: 8082, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: 'service:kube-system/kube-dns', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:
@@ -118,7 +118,7 @@ spec:
   ingress:
     - {dns: "", dnsNames: null, identifier: 'address:127.0.0.1', ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9902, port: 9902, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9902, port: 9902, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}, {name: TCP-9902, port: 9902, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/dash]}
