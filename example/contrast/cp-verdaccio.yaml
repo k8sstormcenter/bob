@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: verdaccio
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 6897c21
+    signature.kubescape.io/generator-ref: cc9d11d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-verdaccio-verdaccio
   namespace: sim-verdaccio
@@ -364,5 +364,7 @@ spec:
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
+      - flags: null
+        path: /var/www/*/.htaccess
   syscalls: null
 status: {}

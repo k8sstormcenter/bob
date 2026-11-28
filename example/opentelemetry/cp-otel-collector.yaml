@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: opentelemetry-collector
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: da7de90
+    signature.kubescape.io/generator-ref: 5ad01a5
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-otel-collector-opentelemetry-collector
   namespace: sim-otel
@@ -29,7 +29,7 @@ spec:
     - CAP_SYS_ADMIN
   egress:
     - {dns: "", dnsNames: null, identifier: 'pods:component=agent-collector,instance=otel-collector,name=opentelemetry-collector', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: otel-collector, app.kubernetes.io/name: opentelemetry-collector, component: agent-collector}}, ports: [{name: TCP-8888, port: 8888, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 'service:default/kubernetes', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-10250, port: 10250, protocol: TCP}, {name: TCP-443, port: 443, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
+    - {dns: "", dnsNames: [kubernetes., kubernetes.cluster.local., kubernetes.default.svc.cluster.local., kubernetes.svc.cluster.local.], identifier: 'service:default/kubernetes', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-443, port: 443, protocol: TCP}, {name: TCP-10250, port: 10250, protocol: TCP}], serviceRefName: kubernetes, serviceRefNamespace: default, type: internal}
   endpoints: null
   execs:
     - {args: [/otelcol-k8s, --config=/conf/relay.yaml], path: /otelcol-k8s}
@@ -73,6 +73,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/net/tcp, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/net/tcp6, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/status, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/run/udev/data, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/run/udev/data/⋯, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: '/hostfs/sys/dev/block/7:0/device/model', processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: '/hostfs/sys/dev/block/7:0/device/serial', processes: [/otelcol-k8s]}

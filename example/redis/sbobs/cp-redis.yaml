@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: redis
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 6897c21
+    signature.kubescape.io/generator-ref: cc9d11d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-redis-redis
   namespace: sim-redis
@@ -18,7 +18,6 @@ spec:
   architectures:
     - amd64
   capabilities:
-    - CAP_CHOWN
     - CAP_DAC_OVERRIDE
     - CAP_DAC_READ_SEARCH
     - CAP_NET_ADMIN
@@ -29,8 +28,6 @@ spec:
   egress: null
   endpoints: null
   execs:
-    - {args: [/usr/bin/chown, redis, .], path: /usr/bin/chown}
-    - {argsRegex: /usr/bin/chown redis \., path: /usr/bin/chown}
     - {args: [/usr/bin/cp, /data/dump.rdb, /data/backup.rdb], path: /usr/bin/cp}
     - {argsRegex: /usr/bin/cp /data/dump\.rdb /data/backup\.rdb, path: /usr/bin/cp}
     - {args: [/usr/bin/sh, -c, ls -la /data /data/appendonlydir], path: /usr/bin/dash}
@@ -86,19 +83,19 @@ spec:
     - {flags: [O_APPEND, O_CREAT, O_NONBLOCK, O_RDONLY, O_RDWR, O_TRUNC, O_WRONLY], path: /data/*, processes: [/usr/local/bin/redis-server]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/dash]}
     - {flags: [O_RDONLY], path: /dev/urandom, processes: [/usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/runc, /usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/localtime, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/runc, /usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/gai.conf, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/group, processes: [/runc, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/host.conf, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/hosts, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/ld.so.cache, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/localtime, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/nsswitch.conf, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/passwd, processes: [/runc, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/protocols, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/resolv.conf, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/services, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/cp]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/cp, /usr/bin/find, /usr/bin/id, /usr/bin/ls]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/find, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /lib/*, processes: [/usr/bin/setpriv]}
@@ -119,10 +116,10 @@ spec:
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/enabled, processes: [/usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/runc]}
     - {flags: [O_CREAT, O_RDONLY, O_WRONLY], path: /tmp/⋯, processes: [/usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
-    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/lib/*, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /usr/lib/*, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
     - {flags: [O_RDONLY], path: /usr/local/bin/docker-entrypoint.sh, processes: [/usr/bin/dash]}
     - {flags: [MAPPED], path: /usr/local/bin/redis-server, processes: [/usr/local/bin/redis-server]}
-    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/usr/bin/chown, /usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/zoneinfo/*, processes: [/usr/bin/cp, /usr/bin/dash, /usr/bin/du, /usr/bin/find, /usr/bin/id, /usr/bin/ls, /usr/bin/rm, /usr/bin/setpriv, /usr/bin/sleep, /usr/local/bin/redis-benchmark, /usr/local/bin/redis-cli, /usr/local/bin/redis-server]}
   rulePolicies:
     R0002:
       processAllowed:

@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: pypiserver
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: da7de90
+    signature.kubescape.io/generator-ref: 5ad01a5
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-pypiserver-pypiserver
   namespace: sim-pypiserver
@@ -376,5 +376,7 @@ spec:
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
+      - flags: null
+        path: /var/www/*/.htaccess
   syscalls: null
 status: {}

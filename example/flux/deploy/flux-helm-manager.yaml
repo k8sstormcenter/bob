@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: da7de90
+    signature.kubescape.io/generator-ref: 5ad01a5
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-helm-manager
   namespace: flux-system
@@ -37,7 +37,7 @@ spec:
   imageID: ghcr.io/fluxcd/helm-controller@sha256:cc944eff709767f9a4d22de6b52dfa330f872962465868ed7787320b056b84f8
   imageTag: ghcr.io/fluxcd/helm-controller:v1.7.2
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9440, port: 9440, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /.kube/config, processes: [/usr/local/bin/helm-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/usr/local/bin/helm-controller]}
