@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: postgres
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5ad01a5
+    signature.kubescape.io/generator-ref: 5f5dea6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-cnpg-postgres
   namespace: sim-cnpg
@@ -57,7 +57,6 @@ spec:
   ingress:
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8000, port: 8000, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-5432, port: 5432, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 'pods:metadata.name=cnpg-system/name=cloudnative-pg', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: cnpg-system}}, podSelector: {matchLabels: {app.kubernetes.io/name: cloudnative-pg}}, ports: [{name: TCP-8000, port: 8000, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /controller/certificates, processes: [/controller/manager]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /controller/certificates/client-ca.crt, processes: [/controller/manager, /usr/lib/postgresql/18/bin/postgres]}

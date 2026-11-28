@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: tomcat
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5ad01a5
+    signature.kubescape.io/generator-ref: 5f5dea6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-tomcat-tomcat
   namespace: sim-tomcat
@@ -411,6 +411,50 @@ spec:
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/choose.jsp.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/foreach.html, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/foreach.jsp, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/foreach.jsp.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/howto.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/if.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/if.jsp, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/if.jsp.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/tagplugin/notes.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/xml/xml.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/xml/xml.jsp, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/jsp/xml/xml.jsp.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/cookies.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/helloworld.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/images/code.gif, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/images/execute.gif, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/images/return.gif, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/index.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/nonblocking/bytecounter.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/reqheaders.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/reqinfo.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/reqparams.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/servlets/sessions.html, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/websocket/chat.xhtml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/websocket/drawboard.xhtml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/websocket/echo.xhtml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/websocket/index.xhtml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/examples/websocket/snake.xhtml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/META-INF/context.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/WEB-INF/jsp/⋯, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/WEB-INF/manager.xml, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/css/manager.css, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/images/asf-logo.svg, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/images/favicon.ico, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/images/tomcat.svg, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/host-manager/index.jsp, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/manager/META-INF/context.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/WEB-INF/jsp/⋯, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_RDONLY, O_WRONLY], path: /usr/local/tomcat/webapps/manager/WEB-INF/web.xml, processes: [/opt/java/openjdk/bin/java, /usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/css/manager.css, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/images/asf-logo.svg, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/images/favicon.ico, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/images/tomcat.svg, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/index.jsp, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/status.xsd, processes: [/usr/bin/gnucp]}
+    - {flags: [O_CREAT, O_EXCL, O_WRONLY], path: /usr/local/tomcat/webapps/manager/xform.xsl, processes: [/usr/bin/gnucp]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.class, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.classtmp, processes: [/opt/java/openjdk/bin/java]}
     - {flags: [O_CREAT, O_RDONLY, O_TRUNC, O_WRONLY], path: /usr/local/tomcat/work/Catalina/localhost/ROOT/org/apache/jsp/index_jsp.java, processes: [/opt/java/openjdk/bin/java]}
