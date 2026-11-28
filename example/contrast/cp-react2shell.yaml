@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: next
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5ad01a5
+    signature.kubescape.io/generator-ref: 5f5dea6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-react2shell-next
   namespace: sim-react2shell
@@ -369,5 +369,6 @@ spec:
         path: /var/run/secrets/kubernetes.io/serviceaccount/⋯/token
       - flags: null
         path: /var/spool/cron/*
-  syscalls: null
+  syscalls:
+    - unshare
 status: {}

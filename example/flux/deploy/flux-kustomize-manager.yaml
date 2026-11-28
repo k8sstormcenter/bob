@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: manager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5ad01a5
+    signature.kubescape.io/generator-ref: 5f5dea6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: flux-kustomize-manager
   namespace: flux-system
@@ -39,7 +39,7 @@ spec:
   imageID: ghcr.io/fluxcd/kustomize-controller@sha256:e122808057ef0f6a3cb7fbd8e256b5a528d8a59f41d237f2d6664f54481c26d9
   imageTag: ghcr.io/fluxcd/kustomize-controller:v1.10.2
   ingress:
-    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9440, port: 9440, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9440, port: 9440, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache/mime.types, processes: [/usr/local/bin/kustomize-controller]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /etc/apache2/mime.types, processes: [/usr/local/bin/kustomize-controller]}

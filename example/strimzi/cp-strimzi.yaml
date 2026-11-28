@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: kafka
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: 5ad01a5
+    signature.kubescape.io/generator-ref: 5f5dea6
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-strimzi-kafka
   namespace: sim-strimzi
@@ -113,7 +113,7 @@ spec:
     - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9092, port: 9092, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 'pods:broker-role=true,cluster=my-cluster,component-type=kafka,controller-name=my-cluster-dual-role,controller-role=true,controller=strimzipodset,instance=my-cluster,kind=Kafka,managed-by=strimzi-cluster-operator,name=kafka,name=my-cluster-kafka,part-of=strimzi-my-cluster,pod-name=my-cluster-dual-role-0,pool-name=dual-role', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: my-cluster, app.kubernetes.io/managed-by: strimzi-cluster-operator, app.kubernetes.io/name: kafka, app.kubernetes.io/part-of: strimzi-my-cluster, strimzi.io/broker-role: "true", strimzi.io/cluster: my-cluster, strimzi.io/component-type: kafka, strimzi.io/controller: strimzipodset, strimzi.io/controller-name: my-cluster-dual-role, strimzi.io/controller-role: "true", strimzi.io/kind: Kafka, strimzi.io/name: my-cluster-kafka, strimzi.io/pod-name: my-cluster-dual-role-0, strimzi.io/pool-name: dual-role}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 'pods:cluster=my-cluster,component-type=entity-operator,instance=my-cluster,kind=Kafka,managed-by=strimzi-cluster-operator,name=entity-operator,name=my-cluster-entity-operator,part-of=strimzi-my-cluster', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: my-cluster, app.kubernetes.io/managed-by: strimzi-cluster-operator, app.kubernetes.io/name: entity-operator, app.kubernetes.io/part-of: strimzi-my-cluster, strimzi.io/cluster: my-cluster, strimzi.io/component-type: entity-operator, strimzi.io/kind: Kafka, strimzi.io/name: my-cluster-entity-operator}}, ports: [{name: TCP-9091, port: 9091, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 'pods:kind=cluster-operator,name=strimzi-cluster-operator', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {name: strimzi-cluster-operator, strimzi.io/kind: cluster-operator}}, ports: [{name: TCP-9090, port: 9090, protocol: TCP}, {name: TCP-9091, port: 9091, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:kind=cluster-operator,name=strimzi-cluster-operator', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {name: strimzi-cluster-operator, strimzi.io/kind: cluster-operator}}, ports: [{name: TCP-9091, port: 9091, protocol: TCP}, {name: TCP-9090, port: 9090, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CREAT, O_RDWR, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/bash, /usr/bin/gawk]}
     - {flags: [O_RDONLY], path: /dev/random, processes: [/usr/lib/jvm/java-21-openjdk-21.0.13.1.2-1.2.el9.x86_64/bin/java]}
