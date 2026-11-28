@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: envoy
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: cc9d11d
+    signature.kubescape.io/generator-ref: 5ad01a5
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-envoy-envoy
   namespace: sim-envoy
@@ -118,7 +118,7 @@ spec:
   ingress:
     - {dns: "", dnsNames: null, identifier: 'address:127.0.0.1', ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9902, port: 9902, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}, {name: TCP-9902, port: 9902, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9902, port: 9902, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-8443, port: 8443, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /, processes: [/usr/bin/find]}
     - {flags: [O_CREAT, O_TRUNC, O_WRONLY], path: /dev/null, processes: [/usr/bin/dash]}

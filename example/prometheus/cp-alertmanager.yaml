@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: alertmanager
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: cc9d11d
+    signature.kubescape.io/generator-ref: 5ad01a5
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-alertmanager-alertmanager
   namespace: sim-prometheus
@@ -53,7 +53,7 @@ spec:
     - {dns: "", dnsNames: null, identifier: 'address:127.0.0.1', ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9093, port: 9093, protocol: TCP}], type: external}
     - {dns: "", dnsNames: null, entity: host, identifier: 'entity:host', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: TCP-9093, port: 9093, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: null, identifier: 'pods:app=traffic', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: traffic}}, ports: [{name: TCP-9093, port: 9093, protocol: TCP}], type: internal}
-    - {dns: "", dnsNames: null, identifier: 'pods:instance=prometheus-kube-prometheus-prometheus,managed-by=prometheus-operator,name=prometheus,name=prometheus-kube-prometheus-prometheus,prometheus=prometheus-kube-prometheus-prometheus,shard=0', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: prometheus-kube-prometheus-prometheus, app.kubernetes.io/managed-by: prometheus-operator, app.kubernetes.io/name: prometheus, operator.prometheus.io/name: prometheus-kube-prometheus-prometheus, operator.prometheus.io/shard: "0", prometheus: prometheus-kube-prometheus-prometheus}}, ports: [{name: TCP-8080, port: 8080, protocol: TCP}, {name: TCP-9093, port: 9093, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:instance=prometheus-kube-prometheus-prometheus,managed-by=prometheus-operator,name=prometheus,name=prometheus-kube-prometheus-prometheus,prometheus=prometheus-kube-prometheus-prometheus,shard=0', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app.kubernetes.io/instance: prometheus-kube-prometheus-prometheus, app.kubernetes.io/managed-by: prometheus-operator, app.kubernetes.io/name: prometheus, operator.prometheus.io/name: prometheus-kube-prometheus-prometheus, operator.prometheus.io/shard: "0", prometheus: prometheus-kube-prometheus-prometheus}}, ports: [{name: TCP-9093, port: 9093, protocol: TCP}, {name: TCP-8080, port: 8080, protocol: TCP}], type: internal}
   opens:
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_RDWR, O_TRUNC], path: /alertmanager/⋯, processes: [/bin/alertmanager]}
     - {flags: [MAPPED, O_CLOEXEC, O_RDONLY], path: /bin/alertmanager, processes: [/bin/alertmanager]}

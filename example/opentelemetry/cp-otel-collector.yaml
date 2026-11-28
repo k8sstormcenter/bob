@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: opentelemetry-collector
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: cc9d11d
+    signature.kubescape.io/generator-ref: 5ad01a5
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-otel-collector-opentelemetry-collector
   namespace: sim-otel
@@ -73,6 +73,7 @@ spec:
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/net/tcp, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/net/tcp6, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/proc/⋯/status, processes: [/otelcol-k8s]}
+    - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/run/udev/data, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /hostfs/run/udev/data/⋯, processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: '/hostfs/sys/dev/block/7:0/device/model', processes: [/otelcol-k8s]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: '/hostfs/sys/dev/block/7:0/device/serial', processes: [/otelcol-k8s]}

@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: postgres
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: cc9d11d
+    signature.kubescape.io/generator-ref: 5ad01a5
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-cnpg-postgres
   namespace: sim-cnpg
@@ -30,7 +30,7 @@ spec:
     - {argsRegex: /controller/manager instance run --status-port-tls --log-level=info, path: /controller/manager}
     - {args: [/controller/manager, wal-archive, --log-destination, /controller/log/postgres.json, pg_wal/⋯], path: /controller/manager}
     - {argsRegex: '/controller/manager wal-archive --log-destination /controller/log/postgres\.json pg_wal/[^/ ]*', path: /controller/manager}
-    - {args: [/bin/sh, -c, --, /controller/manager wal-archive --log-destination /controller/log/postgres.json pg_wal/000000010000000000000001], path: /usr/bin/dash}
+    - {path: /usr/bin/dash}
     - {args: [/bin/sh, -c, --, /controller/manager wal-archive --log-destination /controller/log/postgres.json pg_wal/000000010000000000000002], path: /usr/bin/dash}
     - {args: [/bin/sh, -c, --, /controller/manager wal-archive --log-destination /controller/log/postgres.json pg_wal/000000010000000000000003], path: /usr/bin/dash}
     - {argsRegex: '/bin/sh -c -- /controller/manager\x20wal-archive\x20--log-destination\x20/controller/log/postgres\.json\x20pg_wal/[0-9A-Fa-f-]+', path: /usr/bin/dash}
