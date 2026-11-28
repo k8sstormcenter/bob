@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: envoy
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: da7de90
+    signature.kubescape.io/generator-ref: 5ad01a5
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-envoy-envoy
   namespace: sim-envoy
@@ -30,7 +30,7 @@ spec:
   egress:
     - {dns: "", dnsNames: null, identifier: 'address:127.0.0.1', ipAddress: 127.0.0.1, namespaceSelector: null, podSelector: null, ports: [{name: TCP-9901, port: 9901, protocol: TCP}], type: external}
     - {dns: backend.sim-envoy.svc.cluster.local., dnsNames: [backend., backend.cluster.local., backend.sim-envoy.svc.cluster.local., backend.svc.cluster.local.], identifier: 'dns:backend', ipAddress: "", namespaceSelector: null, podSelector: null, ports: [{name: lookup-only, port: null, protocol: ""}], type: external}
-    - {dns: "", dnsNames: null, identifier: 'pods:app=backend', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: backend}}, ports: [{name: TCP-8082, port: 8082, protocol: TCP}, {name: TCP-8081, port: 8081, protocol: TCP}], type: internal}
+    - {dns: "", dnsNames: null, identifier: 'pods:app=backend', ipAddress: "", namespaceSelector: null, podSelector: {matchLabels: {app: backend}}, ports: [{name: TCP-8081, port: 8081, protocol: TCP}, {name: TCP-8082, port: 8082, protocol: TCP}], type: internal}
     - {dns: "", dnsNames: [kube-dns., kube-dns.cluster.local., kube-dns.kube-system.svc.cluster.local., kube-dns.svc.cluster.local.], identifier: 'service:kube-system/kube-dns', ipAddress: "", namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}, podSelector: {matchLabels: {k8s-app: kube-dns}}, ports: [{name: UDP-53, port: 53, protocol: UDP}], serviceRefName: kube-dns, serviceRefNamespace: kube-system, type: internal}
   endpoints: null
   execs:

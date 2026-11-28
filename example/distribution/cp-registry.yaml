@@ -10,7 +10,7 @@ metadata:
   labels:
     kubescape.io/workload-container-name: registry
     signature.kubescape.io/generator: bobctl
-    signature.kubescape.io/generator-ref: e8b39b6
+    signature.kubescape.io/generator-ref: cc9d11d
     signature.kubescape.io/matcher-version: 759ea1ea57079998
   name: sim-registry-registry
   namespace: sim-registry
@@ -56,14 +56,14 @@ spec:
     - {flags: [O_RDONLY], path: /sys/kernel/mm/transparent_hugepage/hpage_pmd_size, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/local/share/mime/globs2, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /usr/share/mime/globs2, processes: [/bin/registry]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/blobs/sha256/*, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/blobs/sha256/*/data, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_layers/sha256/⋯/link, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/revisions/sha256/⋯/link, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/tags, processes: [/bin/registry]}
-    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/tags/⋯/current/link, processes: [/bin/registry]}
+    - {flags: [O_CLOEXEC, O_CREAT, O_RDONLY, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/tags/⋯/current/⋯, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_CREAT, O_WRONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_manifests/tags/⋯/index/sha256/⋯/link, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads, processes: [/bin/registry]}
     - {flags: [O_CLOEXEC, O_RDONLY], path: /var/lib/registry/docker/registry/v2/repositories/sim/app/_uploads/⋯, processes: [/bin/registry]}
